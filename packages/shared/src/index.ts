@@ -1,4 +1,7 @@
-// Shared types between frontend and backend
-// This package contains DTOs, interfaces, and constants used by both apps/web and apps/api
-
-export type {}
+// Schemas (Zod)
+export * from "./schemas/auth.schema.js"
+export * from "./schemas/user.schema.js"
+export type * from "./types/api.js"
+// Types (inferred from schemas + generic API contracts)
+export type * from "./types/auth.js"
+export type * from "./types/user.js"

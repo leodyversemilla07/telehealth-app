@@ -74,3 +74,16 @@ model Verification {
 
   @@map("verifications")
 }
+
+model AuditLog {
+  id           String   @id @default(cuid())
+  action       String
+  actorId      String
+  actorEmail   String
+  targetId     String?
+  targetEmail  String?
+  reason       String?
+  timestamp    DateTime @default(now())
+
+  @@map("audit_logs")
+}
