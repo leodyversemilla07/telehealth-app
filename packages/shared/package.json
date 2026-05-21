@@ -1,0 +1,19 @@
+{
+  "name": "@workspace/shared",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "lint": "biome lint",
+    "format": "biome check --write",
+    "format:check": "biome check",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^5.9.3"
+  },
+  "exports": {
+    "./*": "./src/*.ts"
+  }
+}
