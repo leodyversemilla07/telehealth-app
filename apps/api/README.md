@@ -21,6 +21,26 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
+## Monorepo usage
+
+This `apps/api` service is part of a pnpm/Turbo monorepo. From the repository root you can run and build the API with the following commands:
+
+```bash
+# install deps at repo root
+pnpm install
+
+# run the API in watch mode
+pnpm --filter api start:dev
+
+# build the API
+pnpm --filter api build
+
+# run API tests
+pnpm --filter api test
+```
+
+See the repository root `README.md` for overall workspace commands and developer notes.
+
 ## Description
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
