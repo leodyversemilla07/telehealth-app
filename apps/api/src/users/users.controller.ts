@@ -16,10 +16,10 @@ import { FileInterceptor } from "@nestjs/platform-express"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
 import type { PublicUserDto } from "@workspace/shared/types/user"
-import type { BanUserDto } from "./dto/ban-user.dto"
-import type { SetRoleDto } from "./dto/set-role.dto"
-import type { UpdateProfileDto } from "./dto/update-profile.dto"
-import type { UsersService } from "./users.service"
+import type { BanUserDto } from "@/users/dto/ban-user.dto"
+import type { SetRoleDto } from "@/users/dto/set-role.dto"
+import type { UpdateProfileDto } from "@/users/dto/update-profile.dto"
+import { UsersService } from "@/users/users.service"
 
 @Controller("users")
 export class UsersController {
@@ -81,7 +81,11 @@ export class UsersController {
 
     writeFileSync(filePath, file.buffer)
 
-    const avatarUrl = `http://localhost:${process.env.PORT ?? 3000}/uploads/${filename}`
+    const apiBaseUrl = (
+      process.env.BETTER_AUTH_URL ||
+      `http://localhost:${process.env.PORT ?? 3000}`
+    ).replace(/\/$/, "")
+    const avatarUrl = `${apiBaseUrl}/uploads/${filename}`
 
     return this.usersService.updateProfile(
       session.user.id,

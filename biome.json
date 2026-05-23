@@ -53,5 +53,17 @@
   "files": {
     "includes": ["**/*.{js,ts,jsx,tsx,mjs,cjs,json,css,md}"],
     "ignoreUnknown": true
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/api/src/**/*.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useImportType": "off"
+          }
+        }
+      }
+    }
+  ]
 }

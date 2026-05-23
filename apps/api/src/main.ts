@@ -3,7 +3,7 @@ import { join } from "node:path"
 import { ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import express from "express"
-import { AppModule } from "./app.module"
+import { AppModule } from "@/app.module"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

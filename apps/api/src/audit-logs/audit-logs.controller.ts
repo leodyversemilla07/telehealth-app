@@ -1,6 +1,6 @@
 import { Controller, Get } from "@nestjs/common"
 import { Roles } from "@thallesp/nestjs-better-auth"
-import type { AuditLogsService } from "./audit-logs.service"
+import { AuditLogsService } from "@/audit-logs/audit-logs.service"
 
 @Controller("audit-logs")
 @Roles(["ADMIN"])

@@ -380,7 +380,7 @@ export default function AdminUsersPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 text-[11px] gap-1.5 h-8 font-medium hover:bg-success/5 hover:text-success hover:border-success/30"
+                        className="flex-1 text-[11px] gap-1.5 h-8 font-medium hover:bg-primary/5 hover:text-primary hover:border-primary/30"
                         disabled={unbanMutation.isPending}
                         onClick={() => unbanMutation.mutate(user.id)}
                       >

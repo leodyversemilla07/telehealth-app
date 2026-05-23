@@ -4,14 +4,16 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import type { Role } from "@workspace/shared/types/user"
-import type { AuditLogsService } from "../audit-logs/audit-logs.service"
-import type { PrismaService } from "../prisma/prisma.service"
+import { AuditLogsService } from "@/audit-logs/audit-logs.service"
+import { PrismaService } from "@/prisma/prisma.service"
+import { SecurityAlertsService } from "@/security-alerts/security-alerts.service"
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly auditLogs: AuditLogsService,
+    private readonly alertsService: SecurityAlertsService,
   ) {}
 
   /**
@@ -94,6 +96,22 @@ export class UsersService {
     })
 
     await this.auditLogs.createLog(requesterId, "Updated profile", id)
+
+    // Trigger security alerts
+    if (data.image) {
+      await this.alertsService.createAlert(
+        id,
+        "Profile Picture Updated",
+        "Your account avatar image was successfully updated.",
+      )
+    }
+    if (data.name) {
+      await this.alertsService.createAlert(
+        id,
+        "Profile Info Updated",
+        "Your account display name was successfully updated.",
+      )
+    }
 
     return updated
   }
@@ -215,6 +233,13 @@ export class UsersService {
       `Session ID: ${sessionId}`,
     )
 
+    // Trigger security alert
+    await this.alertsService.createAlert(
+      userId,
+      "Device Session Revoked",
+      `An active device session (ID: ${sessionId}) was successfully revoked.`,
+    )
+
     return { success: true }
   }
 
@@ -233,6 +258,13 @@ export class UsersService {
       userId,
       "Revoked other active sessions",
       userId,
+    )
+
+    // Trigger security alert
+    await this.alertsService.createAlert(
+      userId,
+      "Multiple Device Sessions Revoked",
+      "All other active device sessions were successfully terminated.",
     )
 
     return { success: true }

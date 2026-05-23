@@ -28,3 +28,14 @@ export interface AuditLogDto {
   reason: string | null
   timestamp: string
 }
+
+export interface SecurityAlertDto {
+  id: string
+  userId: string
+  title: string
+  message: string
+  ipAddress: string | null
+  userAgent: string | null
+  read: boolean
+  createdAt: string
+}

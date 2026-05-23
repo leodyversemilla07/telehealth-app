@@ -59,7 +59,7 @@ export default function Page() {
     )
   }
 
-  const user = session.user as UserDto
+  const user = session.user as unknown as UserDto
   const isAdmin = user.role === "ADMIN"
 
   return (

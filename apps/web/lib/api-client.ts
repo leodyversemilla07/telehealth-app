@@ -15,7 +15,7 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000"
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>

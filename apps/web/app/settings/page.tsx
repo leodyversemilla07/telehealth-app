@@ -1,7 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import type { UserSessionDto } from "@workspace/shared"
+import type { SecurityAlertDto, UserSessionDto } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -16,11 +16,15 @@ import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
 import {
+  AlertTriangle,
   ArrowLeft,
   Camera,
   Check,
   CheckCircle2,
+  CheckSquare,
+  Download,
   Globe,
+  Inbox,
   Key,
   Laptop,
   Loader2,
@@ -143,6 +147,18 @@ export default function SettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [revokeOtherDevices, setRevokeOtherDevices] = useState(false)
 
+  // 2FA States
+  const [twoFactorPassword, setTwoFactorPassword] = useState("")
+  const [twoFactorCode, setTwoFactorCode] = useState("")
+  const [totpUri, setTotpUri] = useState("")
+  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  const [showTwoFactorWizard, setShowTwoFactorWizard] = useState(false)
+  const [twoFactorStep, setTwoFactorStep] = useState<
+    "password" | "verify" | "backup"
+  >("password")
+  const [showDisable2FAConfirm, setShowDisable2FAConfirm] = useState(false)
+  const [disablePassword, setDisablePassword] = useState("")
+
   // Clean up preview object URL on unmount
   useEffect(() => {
     return () => {
@@ -168,16 +184,16 @@ export default function SettingsPage() {
       apiClient.patch("/users/me", data),
     onSuccess: async () => {
       toast.success("Profile updated successfully!")
-      // Sync local Better Auth session cache
       await refetch()
+      refetchAlerts()
+      queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
     },
-    // biome-ignore lint/suspicious/noExplicitAny: React Query error payload structure can vary dynamically
-    onError: (err: any) => {
+    onError: (err: { message?: string }) => {
       toast.error(err.message || "Failed to update profile")
     },
   })
 
-  // Avatar upload mutation (Option 4)
+  // Avatar upload mutation
   const uploadAvatarMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData()
@@ -189,17 +205,18 @@ export default function SettingsPage() {
       setImageUrl(data.image)
       setPreviewUrl(null)
       await refetch()
+      refetchAlerts()
       queryClient.invalidateQueries({ queryKey: ["users"] })
       queryClient.invalidateQueries({ queryKey: ["audit-logs"] })
+      queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
     },
-    // biome-ignore lint/suspicious/noExplicitAny: React Query errors can vary dynamically
-    onError: (err: any) => {
+    onError: (err: { message?: string }) => {
       toast.error(err.message || "Failed to upload avatar")
       setPreviewUrl(null)
     },
   })
 
-  // Password change mutation (Option 3)
+  // Password change mutation
   const changePasswordMutation = useMutation({
     mutationFn: async (data: {
       currentPassword: string
@@ -222,9 +239,10 @@ export default function SettingsPage() {
       setConfirmPassword("")
       setRevokeOtherDevices(false)
       refetchSessions()
+      refetchAlerts()
+      queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
     },
-    // biome-ignore lint/suspicious/noExplicitAny: React Query errors can vary dynamically
-    onError: (err: any) => {
+    onError: (err: { message?: string }) => {
       toast.error(err.message || "Failed to update password")
     },
   })
@@ -237,7 +255,19 @@ export default function SettingsPage() {
   } = useQuery<UserSessionDto[]>({
     queryKey: ["user-sessions"],
     queryFn: () => apiClient.get<UserSessionDto[]>("/users/me/sessions"),
-    enabled: !!session, // only fetch if user is logged in
+    enabled: !!session,
+  })
+
+  // Fetch security alerts
+  const {
+    data: alerts,
+    isPending: alertsLoading,
+    refetch: refetchAlerts,
+  } = useQuery<SecurityAlertDto[]>({
+    queryKey: ["security-alerts"],
+    queryFn: () =>
+      apiClient.get<SecurityAlertDto[]>("/users/me/security-alerts"),
+    enabled: !!session,
   })
 
   // Revoke a single active session
@@ -246,9 +276,10 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast.success("Device session revoked successfully")
       refetchSessions()
+      refetchAlerts()
+      queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
     },
-    // biome-ignore lint/suspicious/noExplicitAny: React Query error payload structure can vary dynamically
-    onError: (err: any) => {
+    onError: (err: { message?: string }) => {
       toast.error(err.message || "Failed to revoke session")
     },
   })
@@ -259,10 +290,100 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast.success("All other active device sessions revoked")
       refetchSessions()
+      refetchAlerts()
+      queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
     },
-    // biome-ignore lint/suspicious/noExplicitAny: React Query error payload structure can vary dynamically
-    onError: (err: any) => {
+    onError: (err: { message?: string }) => {
       toast.error(err.message || "Failed to revoke other sessions")
+    },
+  })
+
+  // 2FA Enable Mutation
+  const enable2FAMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await authClient.twoFactor.enable({
+        password: twoFactorPassword,
+      })
+      if (error) {
+        throw new Error(error.message || "Failed to enable 2FA")
+      }
+      return data
+    },
+    onSuccess: (data) => {
+      if (data?.totpURI) {
+        setTotpUri(data.totpURI)
+        if (data.backupCodes) {
+          setBackupCodes(data.backupCodes)
+        }
+        setTwoFactorStep("verify")
+      } else {
+        toast.success("Two-factor authentication enabled successfully!")
+        refetch()
+        setShowTwoFactorWizard(false)
+        setTwoFactorPassword("")
+      }
+    },
+    onError: (err: { message?: string }) => {
+      toast.error(err.message || "Failed to initiate 2FA setup")
+    },
+  })
+
+  // 2FA Verify Mutation
+  const verify2FAMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await authClient.twoFactor.verifyTotp({
+        code: twoFactorCode,
+      })
+      if (error) {
+        throw new Error(error.message || "Invalid verification code")
+      }
+    },
+    onSuccess: () => {
+      toast.success("Two-factor authentication verified and enabled!")
+      refetch()
+      if (backupCodes && backupCodes.length > 0) {
+        setTwoFactorStep("backup")
+      } else {
+        setShowTwoFactorWizard(false)
+        setTwoFactorPassword("")
+        setTwoFactorCode("")
+      }
+    },
+    onError: (err: { message?: string }) => {
+      toast.error(err.message || "Invalid authenticator code")
+    },
+  })
+
+  // 2FA Disable Mutation
+  const disable2FAMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await authClient.twoFactor.disable({
+        password: disablePassword,
+      })
+      if (error) {
+        throw new Error(error.message || "Failed to disable 2FA")
+      }
+    },
+    onSuccess: () => {
+      toast.success("Two-factor authentication disabled successfully")
+      refetch()
+      setShowDisable2FAConfirm(false)
+      setDisablePassword("")
+    },
+    onError: (err: { message?: string }) => {
+      toast.error(err.message || "Failed to disable 2FA. Verify password.")
+    },
+  })
+
+  // Read all alerts mutation
+  const readAlertsMutation = useMutation({
+    mutationFn: () => apiClient.post("/users/me/security-alerts/read", {}),
+    onSuccess: () => {
+      toast.success("All security alerts marked as read")
+      refetchAlerts()
+    },
+    onError: (err: { message?: string }) => {
+      toast.error(err.message || "Failed to mark alerts as read")
     },
   })
 
@@ -407,6 +528,17 @@ export default function SettingsPage() {
     }
   }
 
+  const downloadBackupCodes = () => {
+    const element = document.createElement("a")
+    const file = new Blob([backupCodes.join("\n")], { type: "text/plain" })
+    element.href = URL.createObjectURL(file)
+    element.download = "next-monorepo-backup-codes.txt"
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+    toast.success("Backup codes downloaded!")
+  }
+
   // Loading skeleton
   if (sessionLoading || !session) {
     return (
@@ -422,12 +554,15 @@ export default function SettingsPage() {
   }
 
   const user = session.user as {
+    id: string
     role?: string
     name?: string
     email: string
     image?: string
+    twoFactorEnabled?: boolean
   }
   const isAdmin = user.role === "ADMIN"
+  const is2FAEnabled = user.twoFactorEnabled === true
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -499,10 +634,8 @@ export default function SettingsPage() {
                       accept="image/jpeg,image/png,image/webp"
                     />
 
-                    {/* Image Preview / Current Image */}
                     {previewUrl || imageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      // biome-ignore lint/performance/noImgElement: dynamic and uploaded avatar photos require flexible rendering
+                      // biome-ignore lint/performance/noImgElement: External avatar preview element
                       <img
                         src={previewUrl || imageUrl}
                         alt="Avatar Preview"
@@ -616,8 +749,7 @@ export default function SettingsPage() {
                             }`}
                             title={`Select preset: ${preset.name}`}
                           >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            {/* biome-ignore lint/performance/noImgElement: dynamic external avatar seeds cannot be pre-whitelisted in NextImage */}
+                            {/* biome-ignore lint/performance/noImgElement: DiceBear stable avatar presets */}
                             <img
                               src={preset.url}
                               alt={preset.name}
@@ -702,9 +834,325 @@ export default function SettingsPage() {
             </form>
           </Card>
 
+          {/* Option A: Two-Factor Authentication (2FA) Card */}
+          <Card className="border-border/40 bg-card shadow-xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+            <CardHeader className="space-y-1 pb-4">
+              <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+                Two-Factor Authentication (2FA)
+              </CardTitle>
+              <CardDescription>
+                Add a strong extra layer of defense to secure your workspace
+                account.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {is2FAEnabled ? (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4 p-4 border border-emerald-500/20 rounded-xl bg-emerald-500/5">
+                    <div className="h-10 w-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
+                      <ShieldCheck className="h-6 w-6" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-semibold text-sm text-foreground flex items-center gap-1.5">
+                        Two-Factor Authentication is Active
+                        <Badge
+                          variant="default"
+                          className="bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 text-[9px] uppercase font-bold py-0.5 px-1.5 h-4.5"
+                        >
+                          Secure
+                        </Badge>
+                      </h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Your account is fully hardened. Every login will require
+                        a 6-digit TOTP code generated in your mobile
+                        authenticator app.
+                      </p>
+                    </div>
+                  </div>
+
+                  {showDisable2FAConfirm ? (
+                    <div className="p-4 border border-red-500/20 rounded-xl bg-red-500/5 space-y-4">
+                      <h4 className="font-bold text-xs uppercase tracking-wider text-red-500 flex items-center gap-1.5">
+                        <AlertTriangle className="h-4 w-4" /> Confirm Disabling
+                        2FA
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        Disabling 2FA reduces your account security. Please
+                        verify your current password to proceed.
+                      </p>
+                      <div className="space-y-3">
+                        <div className="space-y-1.5">
+                          <Label
+                            htmlFor="disable-password"
+                            className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                          >
+                            Account Password
+                          </Label>
+                          <Input
+                            id="disable-password"
+                            type="password"
+                            placeholder="••••••••"
+                            value={disablePassword}
+                            onChange={(e) => setDisablePassword(e.target.value)}
+                            className="bg-background border-border/60"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 text-xs"
+                            onClick={() => {
+                              setShowDisable2FAConfirm(false)
+                              setDisablePassword("")
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            className="flex-1 text-xs font-semibold"
+                            onClick={() => disable2FAMutation.mutate()}
+                            disabled={disable2FAMutation.isPending}
+                          >
+                            {disable2FAMutation.isPending ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              "Disable Security"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full text-xs font-semibold border-border hover:bg-red-500/5 hover:text-red-500 hover:border-red-500/30"
+                      onClick={() => setShowDisable2FAConfirm(true)}
+                    >
+                      Disable Two-Factor Authentication
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-4 p-4 border border-border/20 rounded-xl bg-muted/10">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                      <Lock className="h-5 w-5" />
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-semibold text-sm text-foreground">
+                        Protect Your Account
+                      </h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Time-based One-Time Passwords (TOTP) protect your
+                        account even if your email and password credentials are
+                        leaked in third-party database breaches.
+                      </p>
+                    </div>
+                  </div>
+
+                  {showTwoFactorWizard ? (
+                    <div className="p-4 border border-border/40 rounded-xl bg-muted/5 space-y-4 relative">
+                      <div className="absolute top-2 right-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-foreground"
+                          onClick={() => {
+                            setShowTwoFactorWizard(false)
+                            setTwoFactorStep("password")
+                            setTwoFactorPassword("")
+                            setTwoFactorCode("")
+                          }}
+                        >
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
+
+                      {twoFactorStep === "password" && (
+                        <div className="space-y-4">
+                          <h5 className="font-semibold text-xs uppercase tracking-wider text-primary">
+                            Step 1: Verify Password
+                          </h5>
+                          <p className="text-xs text-muted-foreground">
+                            Please confirm your account password to generate a
+                            secure 2FA activation token.
+                          </p>
+                          <div className="space-y-3">
+                            <div className="space-y-1.5">
+                              <Label
+                                htmlFor="2fa-password"
+                                className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                              >
+                                Account Password
+                              </Label>
+                              <Input
+                                id="2fa-password"
+                                type="password"
+                                placeholder="••••••••"
+                                value={twoFactorPassword}
+                                onChange={(e) =>
+                                  setTwoFactorPassword(e.target.value)
+                                }
+                                className="bg-background border-border/60"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              className="w-full text-xs font-bold"
+                              onClick={() => enable2FAMutation.mutate()}
+                              disabled={
+                                enable2FAMutation.isPending ||
+                                !twoFactorPassword
+                              }
+                            >
+                              {enable2FAMutation.isPending ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                "Generate TOTP Key"
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {twoFactorStep === "verify" && (
+                        <div className="space-y-4">
+                          <h5 className="font-semibold text-xs uppercase tracking-wider text-primary">
+                            Step 2: Scan QR & Verify
+                          </h5>
+                          <p className="text-xs text-muted-foreground">
+                            Scan this QR code with Google Authenticator,
+                            1Password, or Authy, then enter the 6-digit code.
+                          </p>
+                          <div className="flex flex-col items-center justify-center bg-white p-3 rounded-xl border border-border/40 max-w-[200px] mx-auto shadow-inner">
+                            {/* biome-ignore lint/performance/noImgElement: Google Charts API TOTP QR code generator */}
+                            <img
+                              src={`https://chart.googleapis.com/chart?chs=180x180&chld=M|0&cht=qr&chl=${encodeURIComponent(totpUri)}`}
+                              alt="Scan QR code to enable 2FA"
+                              className="h-[180px] w-[180px] object-contain"
+                            />
+                          </div>
+                          <div className="space-y-3">
+                            <div className="space-y-1.5">
+                              <Label
+                                htmlFor="2fa-code"
+                                className="text-xs font-bold uppercase tracking-wider text-muted-foreground text-center block"
+                              >
+                                Authenticator App 6-Digit Code
+                              </Label>
+                              <Input
+                                id="2fa-code"
+                                type="text"
+                                maxLength={6}
+                                placeholder="000 000"
+                                value={twoFactorCode}
+                                onChange={(e) =>
+                                  setTwoFactorCode(e.target.value)
+                                }
+                                className="text-center font-mono tracking-widest text-lg font-bold bg-background border-border/60 h-11"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              className="w-full text-xs font-bold"
+                              onClick={() => verify2FAMutation.mutate()}
+                              disabled={
+                                verify2FAMutation.isPending ||
+                                twoFactorCode.length < 6
+                              }
+                            >
+                              {verify2FAMutation.isPending ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                "Complete Activation"
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {twoFactorStep === "backup" && (
+                        <div className="space-y-4">
+                          <div className="flex items-center gap-1.5 text-emerald-500">
+                            <CheckCircle2 className="h-4.5 w-4.5" />
+                            <h5 className="font-semibold text-xs uppercase tracking-wider">
+                              Step 3: Save Backup Codes
+                            </h5>
+                          </div>
+                          <p className="text-xs text-muted-foreground leading-normal">
+                            Keep these backup codes somewhere highly secure. You
+                            can use them to recover access if you lose your
+                            phone or authenticator app.
+                          </p>
+                          <div className="bg-muted/30 border border-border/30 rounded-xl p-3.5 font-mono text-xs select-all text-foreground grid grid-cols-2 gap-x-4 gap-y-1 bg-background/50 shadow-inner">
+                            {backupCodes.map((code) => (
+                              <div
+                                key={code}
+                                className="flex items-center gap-1.5"
+                              >
+                                <span className="text-[10px] text-muted-foreground select-none">
+                                  •
+                                </span>
+                                <span className="tracking-wider">{code}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 text-xs gap-1.5 h-9"
+                              onClick={downloadBackupCodes}
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              Download
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="flex-1 text-xs font-semibold h-9"
+                              onClick={() => {
+                                setShowTwoFactorWizard(false)
+                                setTwoFactorStep("password")
+                                setTwoFactorPassword("")
+                                setTwoFactorCode("")
+                                setBackupCodes([])
+                              }}
+                            >
+                              Done
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="default"
+                      className="w-full text-xs font-semibold shadow-md shadow-primary/10 h-10"
+                      onClick={() => setShowTwoFactorWizard(true)}
+                    >
+                      Enable Two-Factor Authentication
+                    </Button>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Option 3: Hardened Credential & Password Update Card */}
           <Card className="border-border/40 bg-card shadow-xl overflow-hidden relative">
-            {/* Mesh decor element */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
             <CardHeader className="space-y-1 pb-4">
@@ -789,12 +1237,8 @@ export default function SettingsPage() {
 
                       {/* Checklist */}
                       <ul className="space-y-1.5 pt-1 text-[11px] text-muted-foreground">
-                        {passwordRequirements.map((r, i) => (
-                          <li
-                            // biome-ignore lint/suspicious/noArrayIndexKey: Static checklist elements
-                            key={i}
-                            className="flex items-center gap-2"
-                          >
+                        {passwordRequirements.map((r) => (
+                          <li key={r.label} className="flex items-center gap-2">
                             {r.met ? (
                               <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500 shrink-0" />
                             ) : (
@@ -896,6 +1340,141 @@ export default function SettingsPage() {
                 </Button>
               </CardFooter>
             </form>
+          </Card>
+
+          {/* Option B: Security Logs & Alerts Inbox Card */}
+          <Card className="border-border/40 bg-card shadow-xl overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+
+            <CardHeader className="space-y-1 pb-4 flex flex-row items-center justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-2">
+                  <Inbox className="h-5 w-5 text-primary" />
+                  Security Logs & Alerts
+                </CardTitle>
+                <CardDescription>
+                  Audit logs and system security alerts triggered for your
+                  account.
+                </CardDescription>
+              </div>
+              {alerts && alerts.filter((a) => !a.read).length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs font-bold text-primary gap-1"
+                  onClick={() => readAlertsMutation.mutate()}
+                  disabled={readAlertsMutation.isPending}
+                >
+                  {readAlertsMutation.isPending ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <CheckSquare className="h-3.5 w-3.5" />
+                  )}
+                  Mark all read
+                </Button>
+              )}
+            </CardHeader>
+
+            <CardContent className="space-y-4">
+              {alertsLoading ? (
+                <div className="space-y-3">
+                  <div className="h-14 w-full rounded-xl bg-muted/10 border border-border/20 animate-pulse" />
+                  <div className="h-14 w-full rounded-xl bg-muted/10 border border-border/20 animate-pulse" />
+                </div>
+              ) : alerts && alerts.length > 0 ? (
+                <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                  {alerts.map((alert) => {
+                    const isUnread = !alert.read
+                    const isSessionRevoked = alert.title.includes("Session")
+                    const is2FA =
+                      alert.title.includes("2FA") ||
+                      alert.title.includes("Factor")
+                    const isPassword =
+                      alert.title.includes("Password") ||
+                      alert.title.includes("Credential")
+
+                    return (
+                      <div
+                        key={alert.id}
+                        className={`flex gap-3 p-3.5 rounded-xl border transition-all duration-300 ${
+                          isUnread
+                            ? "bg-primary/5 border-primary/20 shadow-sm"
+                            : "bg-muted/5 border-border/20"
+                        }`}
+                      >
+                        <div
+                          className={`h-8 w-8 rounded-lg border flex items-center justify-center shrink-0 shadow-sm mt-0.5 ${
+                            isUnread
+                              ? "bg-primary/10 border-primary/20 text-primary"
+                              : "bg-muted border-border/30 text-muted-foreground"
+                          }`}
+                        >
+                          {isPassword ? (
+                            <Lock className="h-4 w-4" />
+                          ) : isSessionRevoked ? (
+                            <Laptop className="h-4 w-4" />
+                          ) : is2FA ? (
+                            <ShieldCheck className="h-4 w-4" />
+                          ) : (
+                            <Shield className="h-4 w-4" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-semibold text-xs text-foreground truncate">
+                              {alert.title}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground shrink-0 font-medium">
+                              {new Date(alert.createdAt).toLocaleDateString(
+                                undefined,
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">
+                            {alert.message}
+                          </p>
+                          {(alert.ipAddress || alert.userAgent) && (
+                            <div className="flex items-center gap-2 pt-1 font-mono text-[9px] text-muted-foreground/60 flex-wrap">
+                              {alert.ipAddress && (
+                                <span className="bg-muted px-1 rounded border border-border/5">
+                                  IP: {alert.ipAddress}
+                                </span>
+                              )}
+                              {alert.userAgent && (
+                                <span className="truncate max-w-[180px]">
+                                  UA:{" "}
+                                  {
+                                    getSessionDisplayDetails(alert.userAgent)
+                                      .browser
+                                  }
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-6 text-center border border-dashed border-border/60 rounded-xl bg-muted/10 space-y-2">
+                  <Inbox className="h-8 w-8 text-muted-foreground/60 animate-pulse" />
+                  <h4 className="font-semibold text-sm text-foreground">
+                    Your Inbox is Clean
+                  </h4>
+                  <p className="text-xs text-muted-foreground max-w-xs leading-normal">
+                    There are no recent security alerts or changes detected on
+                    your account.
+                  </p>
+                </div>
+              )}
+            </CardContent>
           </Card>
 
           {/* Active Devices & Sessions Card */}
