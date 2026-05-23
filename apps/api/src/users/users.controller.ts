@@ -1,4 +1,4 @@
-import { writeFileSync } from "node:fs"
+import { writeFile } from "node:fs/promises"
 import { extname, join } from "node:path"
 import {
   BadRequestException,
@@ -79,7 +79,7 @@ export class UsersController {
     const filename = `avatar-${session.user.id}-${Date.now()}${extension}`
     const filePath = join(process.cwd(), "uploads", filename)
 
-    writeFileSync(filePath, file.buffer)
+    await writeFile(filePath, file.buffer)
 
     const apiBaseUrl = (
       process.env.BETTER_AUTH_URL ||
