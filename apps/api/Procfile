@@ -1,0 +1,1 @@
+web: node -r ./paths-register.js dist/src/main.js

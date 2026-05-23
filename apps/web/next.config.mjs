@@ -10,6 +10,7 @@ const workspaceRoot = path.resolve(__dirname, '..', '..')
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ["@workspace/ui"],
+  output: process.env.NEXT_OUTPUT ?? undefined,
   turbopack: {
     root: workspaceRoot,
   },
