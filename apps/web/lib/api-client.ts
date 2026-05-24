@@ -1,4 +1,5 @@
 import type { ApiErrorResponse } from "@workspace/shared/types/api"
+import { env } from "@/lib/env"
 
 /**
  * Custom typed error class representing an API failure.
@@ -15,7 +16,7 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
+const BASE_URL = env.NEXT_PUBLIC_API_URL
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>

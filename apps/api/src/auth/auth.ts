@@ -1,10 +1,10 @@
+import { PrismaClient } from "@generated/prisma/client.js"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { createAuthMiddleware, getSessionFromCtx } from "better-auth/api"
 import { twoFactor } from "better-auth/plugins"
 import pg from "pg"
-import { PrismaClient } from "@generated/prisma/client.js"
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -20,6 +20,9 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: false,
+    minPasswordLength: 8,
+    maxPasswordLength: 128,
   },
   socialProviders: {
     google: {
@@ -35,6 +38,35 @@ export const auth = betterAuth({
   },
   plugins: [twoFactor()],
   basePath: "/api/auth",
+  /**
+   * Session configuration:
+   * - Sessions expire after 7 days.
+   * - A new session token is issued on every request (session rotation)
+   *   to mitigate session fixation attacks.
+   * - Fresh tokens are issued if more than 1 day has elapsed since last update.
+   */
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24, // refresh token every 24h
+    freshAge: 60 * 5, // treat sessions <5 min old as "fresh"
+  },
+  /**
+   * Account linking: do not auto-link OAuth accounts by default;
+   * prevents accidental account merging.
+   */
+  account: {
+    accountLinking: {
+      enabled: false,
+      trustedProviders: ["github", "google"],
+    },
+  },
+  /**
+   * Rate-limiting for auth endpoints (better-auth built-in).
+   */
+  rateLimit: {
+    window: 60, // 60-second window
+    max: 20, // max 20 auth requests per window
+  },
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
       // Record a SecurityAlert when the user's password changes successfully

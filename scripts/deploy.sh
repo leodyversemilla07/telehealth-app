@@ -67,13 +67,13 @@ mkdir -p "$ROOT/dist/deploy"
 
 case "$TARGET" in
   api)
-    package "api" "api" "generated paths-register.js"
+    package "api" "api"
     ;;
   web)
     package "web" "web" "next.config.mjs next-env.d.ts"
     ;;
   all)
-    package "api" "api" "generated paths-register.js"
+    package "api" "api"
     package "web" "web" "next.config.mjs next-env.d.ts"
     ;;
   *)

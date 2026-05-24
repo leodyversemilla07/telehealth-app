@@ -1,5 +1,3 @@
-import { writeFile } from "node:fs/promises"
-import { extname, join } from "node:path"
 import {
   BadRequestException,
   Body,
@@ -16,14 +14,20 @@ import { FileInterceptor } from "@nestjs/platform-express"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
 import type { PublicUserDto } from "@workspace/shared/types/user"
-import type { BanUserDto } from "@/users/dto/ban-user.dto"
-import type { SetRoleDto } from "@/users/dto/set-role.dto"
-import type { UpdateProfileDto } from "@/users/dto/update-profile.dto"
+import { StorageService } from "@/storage/storage.service"
+import type {
+  BanUserDto,
+  SetRoleDto,
+  UpdateProfileDto,
+} from "@/users/dto/index.js"
 import { UsersService } from "@/users/users.service"
 
 @Controller("users")
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly storage: StorageService,
+  ) {}
 
   // ─── Current user ─────────────────────────────────────────────────────────
 
@@ -61,31 +65,24 @@ export class UsersController {
       throw new BadRequestException("No file provided")
     }
 
-    const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"]
-    if (!allowedMimeTypes.includes(file.mimetype)) {
+    if (!this.storage.validateMimeType(file.mimetype)) {
       throw new BadRequestException(
-        "Invalid file type. Only JPEG, PNG, and WEBP are allowed.",
+        `Invalid file type. Only ${this.storage.allowedMimeTypes.join(", ")} are allowed.`,
       )
     }
 
-    const maxBytes = 2 * 1024 * 1024 // 2MB
-    if (file.size > maxBytes) {
+    if (!this.storage.validateSize(file.size)) {
       throw new BadRequestException(
-        "File is too large. Max allowed size is 2MB.",
+        `File is too large. Max allowed size is ${this.storage.maxFileSize / 1024 / 1024}MB.`,
       )
     }
 
-    const extension = extname(file.originalname) || ".jpg"
-    const filename = `avatar-${session.user.id}-${Date.now()}${extension}`
-    const filePath = join(process.cwd(), "uploads", filename)
-
-    await writeFile(filePath, file.buffer)
-
-    const apiBaseUrl = (
-      process.env.BETTER_AUTH_URL ||
-      `http://localhost:${process.env.PORT ?? 3000}`
-    ).replace(/\/$/, "")
-    const avatarUrl = `${apiBaseUrl}/uploads/${filename}`
+    const avatarUrl = await this.storage.uploadFile(
+      session.user.id,
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+    )
 
     return this.usersService.updateProfile(
       session.user.id,

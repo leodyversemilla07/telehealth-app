@@ -1,6 +1,8 @@
 generator client {
   provider     = "prisma-client"
   output       = "../generated/prisma"
+  // Generate CJS-compatible TypeScript so the compiled output works
+  // with NestJS's CJS emit (required by experimentalDecorators).
   moduleFormat = "cjs"
 }
 

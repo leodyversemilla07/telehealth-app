@@ -109,27 +109,27 @@ cdk init app --language=typescript
 The NestJS API can run as a Lambda function:
 
 ```typescript
-import { NestFactory } from "@nestjs/core"
-import { ExpressAdapter } from "@nestjs/platform-express"
-import express from "express"
-import { Handler } from "aws-lambda"
-import serverlessExpress from "@codegenie/serverless-express"
+import { NestFactory } from "@nestjs/core";
+import { ExpressAdapter } from "@nestjs/platform-express";
+import express from "express";
+import { Handler } from "aws-lambda";
+import serverlessExpress from "@codegenie/serverless-express";
 
-let cachedServer: Handler
+let cachedServer: Handler;
 
 export const handler: Handler = async (event, context) => {
   if (!cachedServer) {
-    const expressApp = express()
+    const expressApp = express();
     const app = await NestFactory.create(
       AppModule,
       new ExpressAdapter(expressApp),
-    )
-    app.enableCors()
-    await app.init()
-    cachedServer = serverlessExpress({ app: expressApp })
+    );
+    app.enableCors();
+    await app.init();
+    cachedServer = serverlessExpress({ app: expressApp });
   }
-  return cachedServer(event, context)
-}
+  return cachedServer(event, context);
+};
 ```
 
 ### Database — RDS PostgreSQL
@@ -165,12 +165,13 @@ aws cloudfront create-distribution \
 
 ## Troubleshooting
 
-| Issue | Fix |
-|-------|-----|
-| `Cannot find module '@generated/...'` | Ensure `paths-register.js` is in the zip root |
-| EB not picking up new version | Run `eb deploy --staged` |
+| Issue                                     | Fix                                            |
+| ----------------------------------------- | ---------------------------------------------- |
+| `Cannot find module '@generated/...'`     | Rebuild with `pnpm run build` — 
+`tsc-alias` resolves `@generated/` to relative paths in the built output |
+| EB not picking up new version             | Run `eb deploy --staged`                       |
 | Next.js cannot resolve workspace packages | Rebuild with `pnpm run build` before packaging |
 
 ---
 
-*This deployment uses **zero Docker** — apps run directly on Amazon Linux 2023 via the Node.js platform.*
+_This deployment uses **zero Docker** — apps run directly on Amazon Linux 2023 via the Node.js platform._
