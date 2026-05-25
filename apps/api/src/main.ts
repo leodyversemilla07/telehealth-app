@@ -4,6 +4,7 @@ import { ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import express from "express"
 import { AppModule } from "@/app.module"
+import { setupSwagger } from "@/config/swagger.config"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -44,6 +45,11 @@ async function bootstrap() {
       transform: true,
     }),
   )
+
+  // Swagger / OpenAPI docs
+  if (process.env.NODE_ENV !== "production") {
+    setupSwagger(app)
+  }
 
   await app.listen(process.env.PORT ?? 3000)
 }

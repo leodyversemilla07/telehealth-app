@@ -7,15 +7,61 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-randompassword}
       POSTGRES_DB: ${POSTGRES_DB:-mydb}
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-johndoe} -d ${POSTGRES_DB:-mydb}']
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-johndoe} -d ${POSTGRES_DB:-mydb}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    networks:
+      - app-net
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: next-monorepo-api
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-johndoe}:${POSTGRES_PASSWORD:-randompassword}@postgres:5432/${POSTGRES_DB:-mydb}
+      CORS_ORIGIN: http://localhost:3000
+      BETTER_AUTH_URL: http://localhost:3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    container_name: next-monorepo-web
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge
 
 volumes:
   pgdata:

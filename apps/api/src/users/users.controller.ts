@@ -11,6 +11,14 @@ import {
   UseInterceptors,
 } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
 import type { PublicUserDto } from "@workspace/shared/types/user"
@@ -22,6 +30,8 @@ import type {
 } from "@/users/dto/index.js"
 import { UsersService } from "@/users/users.service"
 
+@ApiTags("Users")
+@ApiBearerAuth("session-token")
 @Controller("users")
 export class UsersController {
   constructor(
@@ -31,16 +41,16 @@ export class UsersController {
 
   // ─── Current user ─────────────────────────────────────────────────────────
 
-  /** GET /users/me — returns the current authenticated session */
   @Get("me")
+  @ApiOperation({ summary: "Get current user profile and session" })
   async getProfile(
     @Session() session: UserSession,
   ): Promise<{ user: PublicUserDto; session: object }> {
     return session as { user: PublicUserDto; session: object }
   }
 
-  /** PATCH /users/me — update current user's name / image */
   @Patch("me")
+  @ApiOperation({ summary: "Update current user's name / image" })
   async updateMyProfile(
     @Session() session: UserSession,
     @Body() dto: UpdateProfileDto,
@@ -53,9 +63,16 @@ export class UsersController {
     )
   }
 
-  /** POST /users/me/avatar — upload avatar image */
   @Post("me/avatar")
   @UseInterceptors(FileInterceptor("file"))
+  @ApiOperation({ summary: "Upload avatar image" })
+  @ApiConsumes("multipart/form-data")
+  @ApiBody({
+    schema: {
+      type: "object",
+      properties: { file: { type: "string", format: "binary" } },
+    },
+  })
   async uploadAvatar(
     @Session() session: UserSession,
     // biome-ignore lint/suspicious/noExplicitAny: Multer file structure is dynamically parsed in Express middleware
@@ -92,8 +109,8 @@ export class UsersController {
     )
   }
 
-  /** GET /users/me/sessions — lists all active sessions for the current user */
   @Get("me/sessions")
+  @ApiOperation({ summary: "List all active sessions for current user" })
   async getMySessions(@Session() session: UserSession) {
     return this.usersService.getActiveSessions(
       session.user.id,
@@ -101,8 +118,9 @@ export class UsersController {
     )
   }
 
-  /** DELETE /users/me/sessions/:id — revokes a specific active session */
   @Delete("me/sessions/:id")
+  @ApiOperation({ summary: "Revoke a specific session" })
+  @ApiParam({ name: "id", description: "Session ID to revoke" })
   async revokeMySession(
     @Session() session: UserSession,
     @Param("id") id: string,
@@ -110,8 +128,8 @@ export class UsersController {
     return this.usersService.revokeSession(session.user.id, id)
   }
 
-  /** DELETE /users/me/sessions — revokes all other sessions for the user */
   @Delete("me/sessions")
+  @ApiOperation({ summary: "Revoke all other sessions" })
   async revokeMyOtherSessions(@Session() session: UserSession) {
     return this.usersService.revokeOtherSessions(
       session.user.id,
@@ -121,32 +139,34 @@ export class UsersController {
 
   // ─── Public ───────────────────────────────────────────────────────────────
 
-  /** GET /users/public — unauthenticated health-check endpoint */
   @Get("public")
   @AllowAnonymous()
+  @ApiOperation({ summary: "Public health-check endpoint (no auth)" })
   async publicRoute(): Promise<{ message: string }> {
     return { message: "Public endpoint" }
   }
 
   // ─── Admin ────────────────────────────────────────────────────────────────
 
-  /** GET /users — list all users (ADMIN only) */
   @Get()
   @Roles(["ADMIN"])
+  @ApiOperation({ summary: "List all users (admin)" })
   async findAll() {
     return this.usersService.findAll()
   }
 
-  /** GET /users/:id — get any user by ID (ADMIN only) */
   @Get(":id")
   @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Get user by ID (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
   async findOne(@Param("id") id: string) {
     return this.usersService.findById(id)
   }
 
-  /** PATCH /users/:id — update another user's profile (ADMIN only) */
   @Patch(":id")
   @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Update another user's profile (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
   async updateProfile(
     @Session() session: UserSession,
     @Param("id") id: string,
@@ -160,9 +180,10 @@ export class UsersController {
     )
   }
 
-  /** POST /users/:id/ban — ban a user (ADMIN only) */
   @Post(":id/ban")
   @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Ban a user (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
   async banUser(
     @Session() session: UserSession,
     @Param("id") id: string,
@@ -174,16 +195,18 @@ export class UsersController {
     })
   }
 
-  /** Delete /users/:id/ban — unban a user (ADMIN only) */
   @Delete(":id/ban")
   @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Unban a user (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
   async unbanUser(@Session() session: UserSession, @Param("id") id: string) {
     return this.usersService.unbanUser(session.user.id, id)
   }
 
-  /** Patch /users/:id/role — set role (ADMIN only) */
   @Patch(":id/role")
   @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Set user role (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
   async setRole(
     @Session() session: UserSession,
     @Param("id") id: string,
