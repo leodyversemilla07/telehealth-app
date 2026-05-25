@@ -3,7 +3,8 @@
  *
  * Creates:
  *   - 1 admin user (admin@example.com)
- *   - 2 standard users
+ *   - 1 provider user (doctor@example.com)
+ *   - 2 standard patient users
  *
  * Usage: node --import tsx prisma/seed.ts
  *
@@ -39,6 +40,7 @@ const prisma = new PrismaClient({ adapter })
 async function seed() {
   console.log("🌱 Seeding database ...")
 
+  // Admin
   const admin = await prisma.user.upsert({
     where: { email: "admin@example.com" },
     update: {},
@@ -51,6 +53,37 @@ async function seed() {
   })
   console.log(`  ✓ Admin: ${admin.email}`)
 
+  // Provider
+  const doctor = await prisma.user.upsert({
+    where: { email: "doctor@example.com" },
+    update: {},
+    create: {
+      email: "doctor@example.com",
+      name: "Dr. Maria Santos",
+      emailVerified: true,
+      role: "PROVIDER",
+    },
+  })
+
+  // Create a provider profile for the doctor
+  await prisma.providerProfile.upsert({
+    where: { userId: doctor.id },
+    update: {},
+    create: {
+      userId: doctor.id,
+      specialty: "General Practice",
+      prcLicenseNumber: "PRC-123456",
+      prcLicenseExpiry: new Date("2027-12-31"),
+      philhealthAccreditation: "PHAC-001",
+      bio: "Experienced general practitioner with over 10 years of clinical practice.",
+      clinicAddress: "123 Medical Plaza, Makati City",
+      pricePerVisit: 500,
+      isApproved: true,
+    },
+  })
+  console.log(`  ✓ Provider: ${doctor.email} (approved)`)
+
+  // Patients
   const alice = await prisma.user.upsert({
     where: { email: "alice@example.com" },
     update: {},
@@ -58,10 +91,19 @@ async function seed() {
       email: "alice@example.com",
       name: "Alice Johnson",
       emailVerified: true,
-      role: "USER",
+      role: "PATIENT",
     },
   })
-  console.log(`  ✓ User: ${alice.email}`)
+
+  await prisma.patientProfile.upsert({
+    where: { userId: alice.id },
+    update: {},
+    create: {
+      userId: alice.id,
+      phone: "+639123456789",
+    },
+  })
+  console.log(`  ✓ Patient: ${alice.email}`)
 
   const bob = await prisma.user.upsert({
     where: { email: "bob@example.com" },
@@ -70,14 +112,26 @@ async function seed() {
       email: "bob@example.com",
       name: "Bob Smith",
       emailVerified: true,
-      role: "USER",
+      role: "PATIENT",
     },
   })
-  console.log(`  ✓ User: ${bob.email}`)
+
+  await prisma.patientProfile.upsert({
+    where: { userId: bob.id },
+    update: {},
+    create: {
+      userId: bob.id,
+      phone: "+639987654321",
+    },
+  })
+  console.log(`  ✓ Patient: ${bob.email}`)
 
   console.log("")
   console.log("✅ Seed complete. Users (set passwords via sign-up UI):")
-  console.log("   admin@example.com — alice@example.com — bob@example.com")
+  console.log("   admin@example.com   — Administrator")
+  console.log("   doctor@example.com  — Provider (pre-approved)")
+  console.log("   alice@example.com   — Patient")
+  console.log("   bob@example.com     — Patient")
 }
 
 seed()

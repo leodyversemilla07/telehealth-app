@@ -18,7 +18,7 @@ export class S3Storage implements StorageProvider {
   private readonly publicUrlBase: string
 
   constructor() {
-    this.bucket = process.env.S3_BUCKET ?? "next-monorepo-uploads"
+    this.bucket = process.env.S3_BUCKET ?? "telehealth-app-uploads"
 
     // CloudFront or direct S3 URL
     this.publicUrlBase =

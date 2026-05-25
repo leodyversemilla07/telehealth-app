@@ -22,6 +22,13 @@ import {
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Separator } from "@workspace/ui/components/separator"
 import {
   Activity,
@@ -30,8 +37,10 @@ import {
   Clock,
   Crown,
   FileText,
+  HeartPulse,
   Mail,
   Search,
+  Shield,
   ShieldAlert,
   ShieldMinus,
   UserCheck,
@@ -49,6 +58,10 @@ export default function AdminUsersPage() {
     null,
   )
   const [banReason, setBanReason] = useState("")
+  const [selectedUserForRole, setSelectedUserForRole] = useState<{
+    user: UserDto
+    role: "PATIENT" | "PROVIDER" | "ADMIN"
+  } | null>(null)
 
   // 1. Fetch Users Query
   const {
@@ -70,17 +83,25 @@ export default function AdminUsersPage() {
 
   // 2. Mutations
   const roleMutation = useMutation({
-    mutationFn: ({ id, role }: { id: string; role: "ADMIN" | "USER" }) =>
-      apiClient.patch<{ id: string; email: string; role: "ADMIN" | "USER" }>(
-        `/users/${id}/role`,
-        { role },
-      ),
+    mutationFn: ({
+      id,
+      role,
+    }: {
+      id: string
+      role: "PATIENT" | "PROVIDER" | "ADMIN"
+    }) =>
+      apiClient.patch<{
+        id: string
+        email: string
+        role: "PATIENT" | "PROVIDER" | "ADMIN"
+      }>(`/users/${id}/role`, { role }),
     onSuccess: (updatedUser) => {
       toast.success(
         `Role updated to ${updatedUser.role} for ${updatedUser.email}`,
       )
       queryClient.invalidateQueries({ queryKey: ["users"] })
       queryClient.invalidateQueries({ queryKey: ["audit-logs"] })
+      setSelectedUserForRole(null)
     },
     onError: (err: ApiError) => {
       toast.error(err.message || "Failed to update user role")
@@ -146,6 +167,13 @@ export default function AdminUsersPage() {
     setBanReason("")
   }
 
+  function handleOpenRoleModal(
+    user: UserDto,
+    role: "PATIENT" | "PROVIDER" | "ADMIN",
+  ) {
+    setSelectedUserForRole({ user, role })
+  }
+
   function handleConfirmBan(e: React.FormEvent) {
     e.preventDefault()
     if (!selectedUserForBan) return
@@ -153,6 +181,28 @@ export default function AdminUsersPage() {
       id: selectedUserForBan.id,
       reason: banReason.trim() || undefined,
     })
+  }
+
+  function getRoleIcon(role: string) {
+    switch (role) {
+      case "ADMIN":
+        return <Crown className="h-3 w-3" />
+      case "PROVIDER":
+        return <HeartPulse className="h-3 w-3" />
+      default:
+        return <Shield className="h-3 w-3" />
+    }
+  }
+
+  function getRoleBadgeColor(role: string) {
+    switch (role) {
+      case "ADMIN":
+        return "default"
+      case "PROVIDER":
+        return "secondary"
+      default:
+        return "outline"
+    }
   }
 
   return (
@@ -164,7 +214,8 @@ export default function AdminUsersPage() {
             Users Management
           </h1>
           <p className="text-sm text-muted-foreground">
-            Manage system roles, access statuses, and bans across the workspace.
+            Manage system roles, provider approvals, access statuses, and bans
+            across the workspace.
           </p>
         </div>
       </div>
@@ -263,6 +314,8 @@ export default function AdminUsersPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredUsers.map((user) => {
             const isAdmin = user.role === "ADMIN"
+            const isProvider = user.role === "PROVIDER"
+            const _isPatient = user.role === "PATIENT"
             const isBanned = user.banned === true
 
             return (
@@ -281,7 +334,9 @@ export default function AdminUsersPage() {
                       ? "bg-destructive"
                       : isAdmin
                         ? "bg-primary"
-                        : "bg-muted-foreground/30"
+                        : isProvider
+                          ? "bg-emerald-500"
+                          : "bg-muted-foreground/30"
                   }`}
                 />
 
@@ -294,15 +349,13 @@ export default function AdminUsersPage() {
                       <CardTitle className="truncate font-semibold text-sm text-foreground max-w-[150px]">
                         {user.name || "User"}
                       </CardTitle>
-                      {isAdmin && (
-                        <Badge
-                          variant="default"
-                          className="text-[9px] h-4 gap-0.5 font-bold"
-                        >
-                          <Crown className="h-2.5 w-2.5" />
-                          ADMIN
-                        </Badge>
-                      )}
+                      <Badge
+                        variant={getRoleBadgeColor(user.role)}
+                        className="text-[9px] h-4 gap-0.5 font-bold"
+                      >
+                        {getRoleIcon(user.role)}
+                        {user.role}
+                      </Badge>
                       {isBanned && (
                         <Badge
                           variant="destructive"
@@ -346,16 +399,14 @@ export default function AdminUsersPage() {
 
                 <CardFooter className="flex flex-col gap-2 pt-3 bg-muted/10">
                   <div className="flex gap-2 w-full">
-                    {/* Toggle Admin Privilege Action */}
+                    {/* Role management */}
                     {isAdmin ? (
                       <Button
                         variant="outline"
                         size="sm"
                         className="flex-1 text-[11px] gap-1.5 h-8 font-medium"
                         disabled={roleMutation.isPending}
-                        onClick={() =>
-                          roleMutation.mutate({ id: user.id, role: "USER" })
-                        }
+                        onClick={() => handleOpenRoleModal(user, "PROVIDER")}
                       >
                         <ShieldMinus className="h-3.5 w-3.5" />
                         Demote
@@ -366,21 +417,19 @@ export default function AdminUsersPage() {
                         size="sm"
                         className="flex-1 text-[11px] gap-1.5 h-8 font-medium hover:bg-primary/5 hover:text-primary hover:border-primary/30"
                         disabled={roleMutation.isPending}
-                        onClick={() =>
-                          roleMutation.mutate({ id: user.id, role: "ADMIN" })
-                        }
+                        onClick={() => handleOpenRoleModal(user, "ADMIN")}
                       >
                         <Crown className="h-3.5 w-3.5" />
                         Promote
                       </Button>
                     )}
 
-                    {/* Ban / Unban Action */}
+                    {/* Ban / Unban */}
                     {isBanned ? (
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 text-[11px] gap-1.5 h-8 font-medium hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                        className="flex-1 text-[11px] gap-1.5 h-8 font-medium"
                         disabled={unbanMutation.isPending}
                         onClick={() => unbanMutation.mutate(user.id)}
                       >
@@ -406,6 +455,103 @@ export default function AdminUsersPage() {
           })}
         </div>
       )}
+
+      {/* Role Change Confirmation Dialog */}
+      <Dialog
+        open={!!selectedUserForRole}
+        onOpenChange={(open) => !open && setSelectedUserForRole(null)}
+      >
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Crown className="h-5 w-5 text-primary" />
+              Change User Role
+            </DialogTitle>
+            <DialogDescription>
+              Select a new role for{" "}
+              <strong>
+                {selectedUserForRole?.user.name ||
+                  selectedUserForRole?.user.email}
+              </strong>
+              . Current role: <strong>{selectedUserForRole?.user.role}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label className="text-xs font-semibold">New Role</Label>
+              <Select
+                value={selectedUserForRole?.role ?? "PATIENT"}
+                onValueChange={(
+                  value: "PATIENT" | "PROVIDER" | "ADMIN" | null,
+                ) => {
+                  if (selectedUserForRole && value) {
+                    setSelectedUserForRole({
+                      ...selectedUserForRole,
+                      role: value,
+                    })
+                  }
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PATIENT">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Patient
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="PROVIDER">
+                    <div className="flex items-center gap-2">
+                      <HeartPulse className="h-4 w-4" />
+                      Provider
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="ADMIN">
+                    <div className="flex items-center gap-2">
+                      <Crown className="h-4 w-4" />
+                      Admin
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setSelectedUserForRole(null)}
+              className="h-8 text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              className="h-8 text-xs gap-1.5"
+              disabled={
+                roleMutation.isPending ||
+                !selectedUserForRole ||
+                selectedUserForRole.role === selectedUserForRole.user.role
+              }
+              onClick={() => {
+                if (selectedUserForRole) {
+                  roleMutation.mutate({
+                    id: selectedUserForRole.user.id,
+                    role: selectedUserForRole.role,
+                  })
+                }
+              }}
+            >
+              {roleMutation.isPending ? "Updating..." : "Confirm Role Change"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* System Activity & Audit Logs */}
       <Card className="border border-border/40 bg-card/60 shadow-lg backdrop-blur-md mt-8">

@@ -532,7 +532,7 @@ export default function SettingsPage() {
     const element = document.createElement("a")
     const file = new Blob([backupCodes.join("\n")], { type: "text/plain" })
     element.href = URL.createObjectURL(file)
-    element.download = "next-monorepo-backup-codes.txt"
+    element.download = "telehealth-app-backup-codes.txt"
     document.body.appendChild(element)
     element.click()
     document.body.removeChild(element)

@@ -11,7 +11,10 @@ import {
   throttlerConfig,
   throttlerGuardProvider,
 } from "@/config/throttler.config"
+import { ConsentModule } from "@/consent/consent.module"
+import { PatientsModule } from "@/patients/patients.module"
 import { PrismaModule } from "@/prisma/prisma.module"
+import { ProvidersModule } from "@/providers/providers.module"
 import { SecurityAlertsModule } from "@/security-alerts/security-alerts.module"
 import { StorageModule } from "@/storage/storage.module"
 import { UsersModule } from "@/users/users.module"
@@ -32,6 +35,9 @@ import { UsersModule } from "@/users/users.module"
     UsersModule,
     AuditLogsModule,
     SecurityAlertsModule,
+    ProvidersModule,
+    PatientsModule,
+    ConsentModule,
   ],
   controllers: [AppController],
   providers: [AppService, throttlerGuardProvider],

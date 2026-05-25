@@ -11,17 +11,26 @@ datasource db {
 }
 
 enum Role {
-  USER
+  PATIENT
+  PROVIDER
   ADMIN
+}
+
+enum Language {
+  FILIPINO
+  ENGLISH
 }
 
 model User {
   id             String    @id @default(cuid())
   email          String    @unique
   emailVerified  Boolean   @default(false)
+  mobile         String?   @unique
+  mobileVerified Boolean   @default(false)
+  preferredLang  Language  @default(FILIPINO)
   name           String?
   image          String?
-  role           Role      @default(USER)
+  role           Role      @default(PATIENT)
   banned         Boolean   @default(false)
   banReason      String?
   banExpires     DateTime?
@@ -36,6 +45,9 @@ model User {
   sessions       Session[]
   accounts       Account[]
   securityAlerts SecurityAlert[]
+  patientProfile PatientProfile?
+  providerProfile ProviderProfile?
+  consentLogs    ConsentLog[]
 }
 
 model Session {
@@ -84,6 +96,53 @@ model Verification {
   @@map("verifications")
 }
 
+model PatientProfile {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dob              DateTime?
+  sex              String?
+  phone            String?
+  address          String?
+  philhealthNumber String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("patient_profiles")
+}
+
+model ProviderProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty             String
+  prcLicenseNumber      String   @unique
+  prcLicenseExpiry      DateTime
+  philhealthAccreditation String?
+  pdeaS2License         String?
+  pdeaS2Expiry          DateTime?
+  bio                   String?
+  clinicAddress         String?
+  pricePerVisit         Decimal  @db.Decimal(10, 2)
+  isApproved            Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("provider_profiles")
+}
+
+model ConsentLog {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  consentType String   // privacy_policy, data_sharing, recording, marketing
+  granted     Boolean
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@map("consent_logs")
+}
+
 model AuditLog {
   id           String   @id @default(cuid())
   action       String
@@ -111,4 +170,3 @@ model SecurityAlert {
 
   @@map("security_alerts")
 }
-

@@ -1,5 +1,7 @@
 import type { z } from "zod"
 import type {
+  patientProfileSchema,
+  providerProfileSchema,
   publicUserSchema,
   roleSchema,
   userSchema,
@@ -8,6 +10,8 @@ import type {
 export type Role = z.infer<typeof roleSchema>
 export type UserDto = z.infer<typeof userSchema>
 export type PublicUserDto = z.infer<typeof publicUserSchema>
+export type PatientProfileDto = z.infer<typeof patientProfileSchema>
+export type ProviderProfileDto = z.infer<typeof providerProfileSchema>
 
 export interface UserSessionDto {
   id: string
@@ -37,5 +41,14 @@ export interface SecurityAlertDto {
   ipAddress: string | null
   userAgent: string | null
   read: boolean
+  createdAt: string
+}
+
+export interface ConsentLogDto {
+  id: string
+  userId: string
+  consentType: string
+  granted: boolean
+  ipAddress: string | null
   createdAt: string
 }

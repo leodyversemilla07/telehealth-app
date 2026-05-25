@@ -1,12 +1,15 @@
 import { z } from "zod"
 
-export const roleSchema = z.enum(["USER", "ADMIN"])
+export const roleSchema = z.enum(["PATIENT", "PROVIDER", "ADMIN"])
 
 export const userSchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
   email: z.string().email(),
   emailVerified: z.boolean(),
+  mobile: z.string().nullable(),
+  mobileVerified: z.boolean(),
+  preferredLang: z.enum(["FILIPINO", "ENGLISH"]),
   image: z.string().url().nullable(),
   role: roleSchema,
   banned: z.boolean(),
@@ -23,4 +26,33 @@ export const publicUserSchema = userSchema.pick({
   image: true,
   role: true,
   createdAt: true,
+})
+
+export const patientProfileSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  dob: z.coerce.date().nullable(),
+  sex: z.string().nullable(),
+  phone: z.string().nullable(),
+  address: z.string().nullable(),
+  philhealthNumber: z.string().nullable(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+})
+
+export const providerProfileSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  specialty: z.string(),
+  prcLicenseNumber: z.string(),
+  prcLicenseExpiry: z.coerce.date(),
+  philhealthAccreditation: z.string().nullable(),
+  pdeaS2License: z.string().nullable(),
+  pdeaS2Expiry: z.coerce.date().nullable(),
+  bio: z.string().nullable(),
+  clinicAddress: z.string().nullable(),
+  pricePerVisit: z.number(),
+  isApproved: z.boolean(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 })

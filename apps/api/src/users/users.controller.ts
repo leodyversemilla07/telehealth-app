@@ -58,7 +58,7 @@ export class UsersController {
     return this.usersService.updateProfile(
       session.user.id,
       session.user.id,
-      session.user.role as "USER" | "ADMIN",
+      session.user.role as "PATIENT" | "PROVIDER" | "ADMIN",
       dto,
     )
   }
@@ -104,7 +104,7 @@ export class UsersController {
     return this.usersService.updateProfile(
       session.user.id,
       session.user.id,
-      session.user.role as "USER" | "ADMIN",
+      session.user.role as "PATIENT" | "PROVIDER" | "ADMIN",
       { image: avatarUrl },
     )
   }
@@ -175,7 +175,7 @@ export class UsersController {
     return this.usersService.updateProfile(
       id,
       session.user.id,
-      session.user.role as "USER" | "ADMIN",
+      session.user.role as "PATIENT" | "PROVIDER" | "ADMIN",
       dto,
     )
   }

@@ -1,10 +1,10 @@
-import { PrismaClient } from "@generated/prisma/client.js"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { createAuthMiddleware, getSessionFromCtx } from "better-auth/api"
 import { twoFactor } from "better-auth/plugins"
 import pg from "pg"
+import { PrismaClient } from "../../generated/prisma/client.js"
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,

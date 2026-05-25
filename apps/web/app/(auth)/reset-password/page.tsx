@@ -59,7 +59,7 @@ function ResetPasswordForm() {
 
   if (done) {
     return (
-      <div className="flex min-h-svh items-center justify-center p-6 bg-gradient-to-br from-background via-background/95 to-muted/10">
+      <div className="flex min-h-svh items-center justify-center p-6 bg-linear-to-br from-background via-background/95 to-muted/10">
         <div className="w-full max-w-sm space-y-6 bg-card/65 backdrop-blur-md border border-border/30 p-8 rounded-2xl shadow-xl text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 mx-auto">
             <CheckCircle2 className="h-7 w-7" />
@@ -84,7 +84,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-6 bg-gradient-to-br from-background via-background/95 to-muted/10">
+    <div className="flex min-h-svh items-center justify-center p-6 bg-linear-to-br from-background via-background/95 to-muted/10">
       <div className="w-full max-w-sm space-y-6 bg-card/65 backdrop-blur-md border border-border/30 p-8 rounded-2xl shadow-xl">
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-bold tracking-tight">

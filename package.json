@@ -1,5 +1,5 @@
 {
-  "name": "next-monorepo",
+  "name": "telehealth-app",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -24,7 +24,7 @@
     "turbo": "^2.8.17",
     "typescript": "5.9.3"
   },
-  "packageManager": "pnpm@9.15.9",
+  "packageManager": "pnpm@11.3.0",
   "engines": {
     "node": ">=20"
   }

@@ -83,7 +83,7 @@ export default function AdminLayout({
                     {user.name || "Standard User"}
                   </p>
                   <p className="text-[10px] text-muted-foreground truncate">
-                    {user.email} (Role: {user.role || "USER"})
+                    {user.email} (Role: {user.role || "PATIENT"})
                   </p>
                 </div>
               </div>

@@ -3,8 +3,8 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger"
 
 export function setupSwagger(app: INestApplication) {
   const config = new DocumentBuilder()
-    .setTitle("next-monorepo API")
-    .setDescription("REST API for the next-monorepo platform")
+    .setTitle("telehealth-app API")
+    .setDescription("REST API for the telehealth-app platform")
     .setVersion("0.0.1")
     .addBearerAuth(
       {
@@ -23,6 +23,6 @@ export function setupSwagger(app: INestApplication) {
   SwaggerModule.setup("api/docs", app, document, {
     jsonDocumentUrl: "api/docs.json",
     yamlDocumentUrl: "api/docs.yaml",
-    customSiteTitle: "next-monorepo API Docs",
+    customSiteTitle: "telehealth-app API Docs",
   })
 }

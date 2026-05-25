@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: next-monorepo-postgres
+    container_name: telehealth-app-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-johndoe}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-randompassword}
@@ -27,7 +27,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    container_name: next-monorepo-api
+    container_name: telehealth-app-api
     environment:
       NODE_ENV: production
       PORT: 3001
@@ -47,7 +47,7 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
-    container_name: next-monorepo-web
+    container_name: telehealth-app-web
     environment:
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: http://localhost:3001

@@ -1,4 +1,4 @@
-# AWS Deployment — Next.js + NestJS Monorepo
+# AWS Deployment — Telehealth App (Next.js + NestJS)
 
 Deploy to AWS **without Docker** using **Elastic Beanstalk** (Node.js platform).
 
@@ -45,8 +45,8 @@ pnpm run build
 
 ```bash
 cd apps/api
-eb init next-monorepo-api --platform "Node.js 22" --region us-east-1
-eb create next-monorepo-api-prod \
+eb init telehealth-app-api --platform "Node.js 22" --region us-east-1
+eb create telehealth-app-api-prod \
   --elb-type application \
   --instance-type t3.small \
   --database.engine postgres \
@@ -60,8 +60,8 @@ eb open
 
 ```bash
 cd apps/web
-eb init next-monorepo-web --platform "Node.js 22" --region us-east-1
-eb create next-monorepo-web-prod \
+eb init telehealth-app-web --platform "Node.js 22" --region us-east-1
+eb create telehealth-app-web-prod \
   --elb-type application \
   --instance-type t3.small
 eb open
@@ -136,7 +136,7 @@ export const handler: Handler = async (event, context) => {
 
 ```bash
 aws rds create-db-instance \
-  --db-instance-identifier next-monorepo-db \
+  --db-instance-identifier telehealth-app-db \
   --db-instance-class db.t3.micro \
   --engine postgres \
   --master-username dbuser \
