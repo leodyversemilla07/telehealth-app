@@ -20,7 +20,11 @@ import { PrismaPg } from "@prisma/adapter-pg"
 import pg from "pg"
 import { PrismaClient } from "../generated/prisma/client.js"
 
-const url = new URL(process.env.DATABASE_URL!)
+const databaseUrl = process.env.DATABASE_URL
+if (!databaseUrl) {
+  throw new Error("DATABASE_URL is not set")
+}
+const url = new URL(databaseUrl)
 const pool = new pg.Pool({
   host: url.hostname,
   port: Number(url.port),
