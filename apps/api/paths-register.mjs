@@ -13,16 +13,18 @@
  * output — no runtime registration needed.
  */
 
+import { createRequire } from "node:module"
 import { resolve } from "node:path"
 import { pathToFileURL } from "node:url"
-import { createRequire } from "node:module"
 
 const require = createRequire(import.meta.url)
 
 // tsconfig-paths exposes a CJS API; use createRequire to bridge into ESM
 const tsConfigPaths = require("tsconfig-paths")
 
-const baseUrl = resolve(import.meta.dirname ?? new URL(".", import.meta.url).pathname)
+const baseUrl = resolve(
+  import.meta.dirname ?? new URL(".", import.meta.url).pathname,
+)
 
 tsConfigPaths.register({
   baseUrl,

@@ -13,6 +13,7 @@ import {
 import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"
+import { env } from "@/lib/env"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
@@ -25,8 +26,23 @@ export default function ForgotPasswordPage() {
     setError(null)
     setLoading(true)
 
-    // Simulated — Better Auth email verification not configured for dev
-    await new Promise((r) => setTimeout(r, 1000))
+    const res = await fetch(
+      `${env.NEXT_PUBLIC_API_URL}/api/auth/forget-password`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          redirectTo: `${window.location.origin}/reset-password`,
+        }),
+      },
+    )
+
+    if (!res.ok) {
+      setError("Failed to send reset link. Please try again later.")
+      setLoading(false)
+      return
+    }
 
     toast.success(
       "If this email exists, you'll receive a password reset link shortly.",
@@ -43,10 +59,13 @@ export default function ForgotPasswordPage() {
             <CheckCircle2 className="h-7 w-7" />
           </div>
           <div className="space-y-2">
-            <h1 className="text-xl font-bold tracking-tight">Check your email</h1>
+            <h1 className="text-xl font-bold tracking-tight">
+              Check your email
+            </h1>
             <p className="text-sm text-muted-foreground leading-relaxed">
               We&apos;ve sent a password reset link to{" "}
-              <strong className="text-foreground">{email}</strong>. It will expire in 1 hour.
+              <strong className="text-foreground">{email}</strong>. It will
+              expire in 1 hour.
             </p>
           </div>
           <Link
@@ -65,9 +84,12 @@ export default function ForgotPasswordPage() {
     <div className="flex min-h-svh items-center justify-center p-6 bg-gradient-to-br from-background via-background/95 to-muted/10">
       <div className="w-full max-w-sm space-y-6 bg-card/65 backdrop-blur-md border border-border/30 p-8 rounded-2xl shadow-xl">
         <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">Forgot password?</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            Forgot password?
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Enter the email address linked to your account and we&apos;ll send you a recovery link.
+            Enter the email address linked to your account and we&apos;ll send
+            you a recovery link.
           </p>
         </div>
 

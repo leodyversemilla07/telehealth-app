@@ -75,7 +75,8 @@
     },
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1",
-      "^@generated/(.*)$": "<rootDir>/../generated/$1"
+      "^@generated/(.*)$": "<rootDir>/../generated/$1",
+      "^@thallesp/nestjs-better-auth$": "<rootDir>/../test/mocks/nestjs-better-auth.ts"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"
