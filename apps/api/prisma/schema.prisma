@@ -21,6 +21,21 @@ enum Language {
   ENGLISH
 }
 
+enum AppointmentStatus {
+  BOOKED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum VisitType {
+  VIDEO
+  PHONE
+  IN_PERSON
+}
+
 model User {
   id             String    @id @default(cuid())
   email          String    @unique
@@ -42,12 +57,13 @@ model User {
   twoFactorSecret      String?
   twoFactorBackupCodes String?
 
-  sessions       Session[]
-  accounts       Account[]
-  securityAlerts SecurityAlert[]
-  patientProfile PatientProfile?
-  providerProfile ProviderProfile?
-  consentLogs    ConsentLog[]
+  sessions         Session[]
+  accounts         Account[]
+  securityAlerts   SecurityAlert[]
+  patientProfile   PatientProfile?
+  providerProfile  ProviderProfile?
+  consentLogs      ConsentLog[]
+  patientAppointments Appointment[] @relation("PatientAppointments")
 }
 
 model Session {
@@ -128,7 +144,62 @@ model ProviderProfile {
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 
+  availabilities Availability[]
+  timeOff        TimeOff[]
+  appointments   Appointment[] @relation("ProviderAppointments")
+
   @@map("provider_profiles")
+}
+
+model Availability {
+  id           String         @id @default(cuid())
+  providerId   String
+  provider     ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  dayOfWeek    Int             // 0=Sun, 1=Mon ... 6=Sat
+  startTime    String          // HH:mm format (24h), e.g. "09:00"
+  endTime      String          // HH:mm format (24h), e.g. "17:00"
+  slotDuration Int             // minutes (15, 30, or 60)
+  isActive     Boolean         @default(true)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([providerId, dayOfWeek, startTime, endTime])
+  @@map("availabilities")
+}
+
+model TimeOff {
+  id         String   @id @default(cuid())
+  providerId String
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  date       DateTime        @db.Date
+  startTime  String          // HH:mm format (24h)
+  endTime    String          // HH:mm format (24h)
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@map("time_off")
+}
+
+model Appointment {
+  id         String            @id @default(cuid())
+  patientId  String
+  patient    User              @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
+  providerId String
+  provider   ProviderProfile   @relation("ProviderAppointments", fields: [providerId], references: [id], onDelete: Cascade)
+  startTime  DateTime
+  endTime    DateTime
+  status     AppointmentStatus @default(BOOKED)
+  reason     String?
+  symptoms   String?
+  language   Language?
+  type       VisitType         @default(VIDEO)
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  @@index([patientId])
+  @@index([providerId])
+  @@index([startTime])
+  @@map("appointments")
 }
 
 model ConsentLog {

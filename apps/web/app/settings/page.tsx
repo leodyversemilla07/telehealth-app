@@ -1094,7 +1094,7 @@ export default function SettingsPage() {
                             can use them to recover access if you lose your
                             phone or authenticator app.
                           </p>
-                          <div className="bg-muted/30 border border-border/30 rounded-xl p-3.5 font-mono text-xs select-all text-foreground grid grid-cols-2 gap-x-4 gap-y-1 bg-background/50 shadow-inner">
+                          <div className="bg-muted/30 border border-border/30 rounded-xl p-3.5 font-mono text-xs select-all text-foreground grid grid-cols-2 gap-x-4 gap-y-1 shadow-inner">
                             {backupCodes.map((code) => (
                               <div
                                 key={code}

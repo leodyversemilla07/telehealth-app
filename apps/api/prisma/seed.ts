@@ -126,6 +126,62 @@ async function seed() {
   })
   console.log(`  ✓ Patient: ${bob.email}`)
 
+  // Provider availability (Mon–Fri, 9 AM – 5 PM, 30 min slots)
+  const doctorProfile = await prisma.providerProfile.findUniqueOrThrow({
+    where: { userId: doctor.id },
+  })
+
+  const days = [1, 2, 3, 4, 5] // Mon–Fri
+  for (const dayOfWeek of days) {
+    await prisma.availability.upsert({
+      where: {
+        providerId_dayOfWeek_startTime_endTime: {
+          providerId: doctorProfile.id,
+          dayOfWeek,
+          startTime: "09:00",
+          endTime: "17:00",
+        },
+      },
+      update: {},
+      create: {
+        providerId: doctorProfile.id,
+        dayOfWeek,
+        startTime: "09:00",
+        endTime: "17:00",
+        slotDuration: 30,
+        isActive: true,
+      },
+    })
+  }
+  console.log("  ✓ Availability: Mon–Fri 09:00–17:00 (30 min slots)")
+
+  // Sample appointment for tomorrow at 10:00 AM
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  tomorrow.setHours(10, 0, 0, 0)
+  const appointmentEnd = new Date(tomorrow)
+  appointmentEnd.setHours(10, 30, 0, 0)
+
+  await prisma.appointment.upsert({
+    where: { id: "seed-appointment-1" },
+    update: {},
+    create: {
+      id: "seed-appointment-1",
+      patientId: alice.id,
+      providerId: doctorProfile.id,
+      startTime: tomorrow,
+      endTime: appointmentEnd,
+      status: "CONFIRMED",
+      reason: "Annual check-up",
+      symptoms: "Mild fever and cough for 3 days",
+      language: "FILIPINO",
+      type: "VIDEO",
+    },
+  })
+  console.log(
+    `  ✓ Appointment: Alice → Dr. Santos (${tomorrow.toLocaleDateString()} 10:00–10:30)`,
+  )
+
   console.log("")
   console.log("✅ Seed complete. Users (set passwords via sign-up UI):")
   console.log("   admin@example.com   — Administrator")

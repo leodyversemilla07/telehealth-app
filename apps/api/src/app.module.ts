@@ -4,8 +4,10 @@ import { ThrottlerModule } from "@nestjs/throttler"
 import { AuthModule } from "@thallesp/nestjs-better-auth"
 import { AppController } from "@/app.controller"
 import { AppService } from "@/app.service"
+import { AppointmentsModule } from "@/appointments/appointments.module"
 import { AuditLogsModule } from "@/audit-logs/audit-logs.module"
 import { auth } from "@/auth/auth"
+import { AvailabilityModule } from "@/availability/availability.module"
 import { validate } from "@/config/env.validation"
 import {
   throttlerConfig,
@@ -38,6 +40,8 @@ import { UsersModule } from "@/users/users.module"
     ProvidersModule,
     PatientsModule,
     ConsentModule,
+    AvailabilityModule,
+    AppointmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService, throttlerGuardProvider],
