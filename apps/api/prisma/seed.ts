@@ -3,7 +3,7 @@
  *
  * Creates:
  *   - 1 admin user (admin@example.com)
- *   - 1 provider user (doctor@example.com)
+ * - 1 doctor user (doctor@example.com)
  *   - 2 standard patient users
  *
  * Usage: node --import tsx prisma/seed.ts
@@ -53,7 +53,7 @@ async function seed() {
   })
   console.log(`  ✓ Admin: ${admin.email}`)
 
-  // Provider
+  // Doctor
   const doctor = await prisma.user.upsert({
     where: { email: "doctor@example.com" },
     update: {},
@@ -61,12 +61,12 @@ async function seed() {
       email: "doctor@example.com",
       name: "Dr. Maria Santos",
       emailVerified: true,
-      role: "PROVIDER",
+      role: "DOCTOR",
     },
   })
 
-  // Create a provider profile for the doctor
-  await prisma.providerProfile.upsert({
+  // Create a doctor profile for the doctor
+  await prisma.doctorProfile.upsert({
     where: { userId: doctor.id },
     update: {},
     create: {
@@ -81,7 +81,7 @@ async function seed() {
       isApproved: true,
     },
   })
-  console.log(`  ✓ Provider: ${doctor.email} (approved)`)
+  console.log(` ✓ Doctor: ${doctor.email} (approved)`)
 
   // Patients
   const alice = await prisma.user.upsert({
@@ -185,7 +185,7 @@ async function seed() {
   console.log("")
   console.log("✅ Seed complete. Users (set passwords via sign-up UI):")
   console.log("   admin@example.com   — Administrator")
-  console.log("   doctor@example.com  — Provider (pre-approved)")
+  console.log(" doctor@example.com — Doctor (pre-approved)")
   console.log("   alice@example.com   — Patient")
   console.log("   bob@example.com     — Patient")
 }

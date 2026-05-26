@@ -16,6 +16,19 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   CANCELLED: [],
 }
 
+const DOCTOR_INCLUDE = {
+  select: {
+    id: true,
+    specialty: true,
+    pricePerVisit: true,
+    user: { select: { id: true, name: true, email: true, image: true } },
+  },
+}
+
+const PATIENT_INCLUDE = {
+  select: { id: true, name: true, email: true, image: true },
+}
+
 @Injectable()
 export class AppointmentsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -33,21 +46,26 @@ export class AppointmentsService {
       )
     }
 
-    // Verify provider exists and is approved
-    const provider = await this.prisma.providerProfile.findUnique({
-      where: { id: dto.providerId },
+    // Verify doctor exists and is approved
+    const doctor = await this.prisma.doctorProfile.findUnique({
+      where: { id: dto.doctorId },
     })
-    if (!provider) {
-      throw new NotFoundException("Provider not found")
+    if (!doctor) throw new NotFoundException("Doctor not found")
+    if (!doctor.isApproved) {
+      throw new ForbiddenException("Doctor is not yet approved")
     }
-    if (!provider.isApproved) {
-      throw new ForbiddenException("Provider is not yet approved")
-    }
+
+    // Verify schedule belongs to doctor
+    const schedule = await this.prisma.availabilitySchedule.findUnique({
+      where: { id: dto.scheduleId },
+    })
+    if (!schedule || schedule.doctorId !== dto.doctorId)
+      throw new NotFoundException("Schedule not found for this doctor")
 
     // Check for double-booking (overlapping appointment)
     const overlapping = await this.prisma.appointment.findFirst({
       where: {
-        providerId: dto.providerId,
+        doctorId: dto.doctorId,
         status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
         startTime: { lt: new Date(dto.endTime) },
         endTime: { gt: new Date(dto.startTime) },
@@ -60,7 +78,8 @@ export class AppointmentsService {
     return this.prisma.appointment.create({
       data: {
         patientId: userId,
-        providerId: dto.providerId,
+        doctorId: dto.doctorId,
+        scheduleId: dto.scheduleId,
         startTime: new Date(dto.startTime),
         endTime: new Date(dto.endTime),
         reason: dto.reason ?? null,
@@ -68,44 +87,26 @@ export class AppointmentsService {
         type: dto.type ?? "VIDEO",
       },
       include: {
-        patient: { select: { id: true, name: true, email: true, image: true } },
-        provider: {
-          select: {
-            id: true,
-            specialty: true,
-            pricePerVisit: true,
-            user: {
-              select: { id: true, name: true, email: true, image: true },
-            },
-          },
-        },
+        patient: PATIENT_INCLUDE,
+        doctor: DOCTOR_INCLUDE,
       },
     })
   }
 
   /**
-   * List appointments for the current user (patient or provider).
+   * List appointments for the current user (patient or doctor).
    */
   async findMyAppointments(userId: string, role: string) {
-    if (role === "PROVIDER") {
-      const profile = await this.prisma.providerProfile.findUnique({
+    if (role === "DOCTOR") {
+      const profile = await this.prisma.doctorProfile.findUnique({
         where: { userId },
       })
       if (!profile) return []
       return this.prisma.appointment.findMany({
-        where: { providerId: profile.id },
+        where: { doctorId: profile.id },
         include: {
-          patient: {
-            select: { id: true, name: true, email: true, image: true },
-          },
-          provider: {
-            select: {
-              id: true,
-              specialty: true,
-              pricePerVisit: true,
-              user: { select: { id: true, name: true, image: true } },
-            },
-          },
+          patient: PATIENT_INCLUDE,
+          doctor: DOCTOR_INCLUDE,
         },
         orderBy: { startTime: "asc" },
       })
@@ -114,15 +115,8 @@ export class AppointmentsService {
     return this.prisma.appointment.findMany({
       where: { patientId: userId },
       include: {
-        patient: { select: { id: true, name: true, email: true, image: true } },
-        provider: {
-          select: {
-            id: true,
-            specialty: true,
-            pricePerVisit: true,
-            user: { select: { id: true, name: true, image: true } },
-          },
-        },
+        patient: PATIENT_INCLUDE,
+        doctor: DOCTOR_INCLUDE,
       },
       orderBy: { startTime: "asc" },
     })
@@ -135,26 +129,19 @@ export class AppointmentsService {
     const appt = await this.prisma.appointment.findUnique({
       where: { id },
       include: {
-        patient: { select: { id: true, name: true, email: true, image: true } },
-        provider: {
-          select: {
-            id: true,
-            specialty: true,
-            pricePerVisit: true,
-            user: { select: { id: true, name: true, image: true } },
-          },
-        },
+        patient: PATIENT_INCLUDE,
+        doctor: DOCTOR_INCLUDE,
       },
     })
     if (!appt) throw new NotFoundException("Appointment not found")
 
-    // Authorization: patient or assigned provider or admin
+    // Authorization: patient or assigned doctor or admin
     if (appt.patientId !== userId && role !== "ADMIN") {
-      if (role === "PROVIDER") {
-        const profile = await this.prisma.providerProfile.findUnique({
+      if (role === "DOCTOR") {
+        const profile = await this.prisma.doctorProfile.findUnique({
           where: { userId },
         })
-        if (!profile || profile.id !== appt.providerId)
+        if (!profile || profile.id !== appt.doctorId)
           throw new ForbiddenException("Not your appointment")
       } else {
         throw new ForbiddenException("Not your appointment")
@@ -185,11 +172,11 @@ export class AppointmentsService {
     }
 
     // Check permissions
-    if (role === "PROVIDER") {
-      const profile = await this.prisma.providerProfile.findUnique({
+    if (role === "DOCTOR") {
+      const profile = await this.prisma.doctorProfile.findUnique({
         where: { userId },
       })
-      if (!profile || profile.id !== appt.providerId)
+      if (!profile || profile.id !== appt.doctorId)
         throw new ForbiddenException("Not your appointment")
     }
 
@@ -197,15 +184,8 @@ export class AppointmentsService {
       where: { id },
       data: { status },
       include: {
-        patient: { select: { id: true, name: true, email: true, image: true } },
-        provider: {
-          select: {
-            id: true,
-            specialty: true,
-            pricePerVisit: true,
-            user: { select: { id: true, name: true, image: true } },
-          },
-        },
+        patient: PATIENT_INCLUDE,
+        doctor: DOCTOR_INCLUDE,
       },
     })
   }
@@ -223,11 +203,11 @@ export class AppointmentsService {
 
     // Verify ownership
     if (appt.patientId !== userId && role !== "ADMIN") {
-      if (role === "PROVIDER") {
-        const profile = await this.prisma.providerProfile.findUnique({
+      if (role === "DOCTOR") {
+        const profile = await this.prisma.doctorProfile.findUnique({
           where: { userId },
         })
-        if (!profile || profile.id !== appt.providerId)
+        if (!profile || profile.id !== appt.doctorId)
           throw new ForbiddenException("Not your appointment")
       } else {
         throw new ForbiddenException("Not your appointment")
@@ -238,15 +218,8 @@ export class AppointmentsService {
       where: { id },
       data: { status: "CANCELLED" },
       include: {
-        patient: { select: { id: true, name: true, email: true, image: true } },
-        provider: {
-          select: {
-            id: true,
-            specialty: true,
-            pricePerVisit: true,
-            user: { select: { id: true, name: true, image: true } },
-          },
-        },
+        patient: PATIENT_INCLUDE,
+        doctor: DOCTOR_INCLUDE,
       },
     })
   }
@@ -270,7 +243,7 @@ export class AppointmentsService {
     // Check new slot availability
     const conflict = await this.prisma.appointment.findFirst({
       where: {
-        providerId: appt.providerId,
+        doctorId: appt.doctorId,
         status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
         id: { not: id },
         startTime: { lt: new Date(dto.endTime) },
@@ -289,15 +262,8 @@ export class AppointmentsService {
         status: "BOOKED",
       },
       include: {
-        patient: { select: { id: true, name: true, email: true, image: true } },
-        provider: {
-          select: {
-            id: true,
-            specialty: true,
-            pricePerVisit: true,
-            user: { select: { id: true, name: true, image: true } },
-          },
-        },
+        patient: PATIENT_INCLUDE,
+        doctor: DOCTOR_INCLUDE,
       },
     })
   }

@@ -129,7 +129,7 @@ export default function AppointmentDetailPage({
     | { name?: string | null; email: string; role?: string | null }
     | undefined
   const role = user?.role ?? "PATIENT"
-  const isProvider = role === "PROVIDER" || role === "ADMIN"
+  const isProvider = role === "DOCTOR" || role === "ADMIN"
   const isPatient = role === "PATIENT"
 
   // ── Handlers ─────────────────────────────────────────────────────────────
@@ -209,9 +209,9 @@ export default function AppointmentDetailPage({
   const canReschedule = isPatient && ["BOOKED", "CONFIRMED"].includes(appointment.status)
 
   const displayName = isPatient
-    ? appointment.provider.user.name || "Provider"
+    ? appointment.doctor.user.name || "Doctor"
     : appointment.patient.name || "Patient"
-  const displaySpecialty = isPatient ? appointment.provider.specialty : null
+  const displaySpecialty = isPatient ? appointment.doctor.specialty : null
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">

@@ -7,7 +7,7 @@ import {
   MaxLength,
 } from "class-validator"
 
-export class RegisterProviderDto {
+export class RegisterDoctorDto {
   @IsString()
   @MaxLength(100)
   specialty!: string

@@ -1,0 +1,111 @@
+import { Body, Controller, ForbiddenException, Get, Param, Post } from "@nestjs/common"
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from "@nestjs/swagger"
+import type { UserSession } from "@thallesp/nestjs-better-auth"
+import { Roles, Session } from "@thallesp/nestjs-better-auth"
+import type { CreateConsultationDto, CreatePrescriptionDto } from "./dto"
+import { RecordsService } from "./records.service"
+
+@ApiTags("Medical Records")
+@ApiBearerAuth("session-token")
+@Controller("records")
+export class RecordsController {
+  constructor(private readonly recordsService: RecordsService) {}
+
+  // ─── Doctor: Create consultation after appointment ──────────────────
+
+  @Post("consultations")
+  @Roles(["DOCTOR"])
+  @ApiOperation({
+    summary: "Create consultation notes after a completed appointment (Doctor)",
+  })
+  async createConsultation(
+    @Session() session: UserSession,
+    @Body() dto: CreateConsultationDto,
+  ) {
+    return this.recordsService.createConsultation(session.user.id, dto)
+  }
+
+  // ─── Patient: Get own medical records ───────────────────────────────
+
+  @Get("consultations")
+  @Roles(["PATIENT"])
+  @ApiOperation({ summary: "Get all my medical records / consultations (Patient)" })
+  async getMyRecords(@Session() session: UserSession) {
+    return this.recordsService.getPatientRecords(session.user.id)
+  }
+
+  // ─── Get single consultation detail ─────────────────────────────────
+
+  @Get("consultations/:id")
+  @ApiOperation({ summary: "Get a single consultation detail (Patient or Doctor)" })
+  @ApiParam({ name: "id", description: "Consultation ID" })
+  async getConsultation(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+  ) {
+    const consultation = await this.recordsService.getConsultation(id)
+
+    // Authorization: only the patient or the assigned doctor (or admin) may view
+    const userId = session.user.id
+    const role = session.user.role as string
+
+    if (role === "ADMIN") return consultation
+
+    if (role === "PATIENT") {
+      if (consultation.appointment.patientId !== userId) {
+        throw new ForbiddenException("Not your medical record")
+      }
+      return consultation
+    }
+
+    if (role === "DOCTOR") {
+      // Delegate authorization check to the service
+      const isAuthorized = await this.recordsService.isDoctorAuthorized(
+        userId,
+        consultation.appointment.doctorId,
+      )
+      if (!isAuthorized) {
+        throw new ForbiddenException("Not your medical record")
+      }
+      return consultation
+    }
+
+    throw new ForbiddenException("Not your medical record")
+  }
+
+  // ─── Doctor: Add prescription to consultation ───────────────────────
+
+  @Post("consultations/:id/prescriptions")
+  @Roles(["DOCTOR"])
+  @ApiOperation({
+    summary: "Add a prescription to an existing consultation (Doctor)",
+  })
+  @ApiParam({ name: "id", description: "Consultation ID" })
+  async addPrescription(
+    @Session() session: UserSession,
+    @Param("id") consultationId: string,
+    @Body() dto: CreatePrescriptionDto,
+  ) {
+    return this.recordsService.addPrescription(
+      consultationId,
+      session.user.id,
+      dto,
+    )
+  }
+
+  // ─── Patient: Get all prescriptions across consultations ────────────
+
+  @Get("prescriptions")
+  @Roles(["PATIENT"])
+  @ApiOperation({
+    summary: "Get all my prescriptions across all consultations (Patient)",
+  })
+  async getMyPrescriptions(@Session() session: UserSession) {
+    return this.recordsService.getPatientPrescriptions(session.user.id)
+  }
+}

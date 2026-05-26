@@ -13,7 +13,8 @@ export const visitTypeSchema = z.enum(["VIDEO", "PHONE", "IN_PERSON"])
 export const appointmentSchema = z.object({
   id: z.string(),
   patientId: z.string(),
-  providerId: z.string(),
+  doctorId: z.string(),
+  scheduleId: z.string(),
   startTime: z.coerce.date(),
   endTime: z.coerce.date(),
   status: appointmentStatusSchema,
@@ -29,7 +30,7 @@ export const appointmentSchema = z.object({
     name: z.string().nullable(),
     email: z.string(),
   }),
-  provider: z.object({
+  doctor: z.object({
     id: z.string(),
     specialty: z.string(),
     pricePerVisit: z.number().nullable().optional(),
@@ -43,7 +44,8 @@ export const appointmentSchema = z.object({
 })
 
 export const createAppointmentSchema = z.object({
-  providerId: z.string(),
+ doctorId: z.string(),
+ scheduleId: z.string(),
   startTime: z.string(),
   endTime: z.string(),
   reason: z.string().optional(),

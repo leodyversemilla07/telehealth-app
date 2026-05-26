@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useMemo } from "react"
-import type { CreateAppointmentDto, ProviderProfileDto, VisitType } from "@workspace/shared"
+import type { CreateAppointmentDto, DoctorProfileDto, VisitType } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -30,9 +30,9 @@ import {
 import Link from "next/link"
 import { toast } from "sonner"
 import {
-  useApprovedProviders,
-  useAvailableSlots,
-  useBookAppointment,
+ useApprovedDoctors,
+ useAvailableSlots,
+ useBookAppointment,
 } from "@/hooks/use-appointments"
 
 // ── Step definitions ─────────────────────────────────────────────────────────
@@ -83,7 +83,7 @@ export default function BookAppointmentPage() {
 
   // Step 1: Choose doctor
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedProvider, setSelectedProvider] = useState<ProviderProfileDto | null>(null)
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorProfileDto | null>(null)
 
   // Step 2: Pick date & time
   const today = new Date()
@@ -99,9 +99,9 @@ export default function BookAppointmentPage() {
 
   // ── Data fetching ────────────────────────────────────────────────────────
 
-  const { data: providers, isPending: providersLoading } = useApprovedProviders()
-  const { data: slots, isPending: slotsLoading } = useAvailableSlots(
-    selectedProvider?.id ?? "",
+ const { data: doctors, isPending: doctorsLoading } = useApprovedDoctors()
+ const { data: slots, isPending: slotsLoading } = useAvailableSlots(
+ selectedDoctor?.id ?? "",
     selectedDate,
   )
 
@@ -109,16 +109,16 @@ export default function BookAppointmentPage() {
 
   // ── Filter providers by search ───────────────────────────────────────────
 
-  const filteredProviders = useMemo(() => {
-    if (!providers) return []
-    const q = searchQuery.toLowerCase().trim()
-    if (!q) return providers
-    return providers.filter(
-      (p) =>
-        p.specialty?.toLowerCase().includes(q) ||
-        p.user?.name?.toLowerCase().includes(q),
-    )
-  }, [providers, searchQuery])
+ const filteredDoctors = useMemo(() => {
+ if (!doctors) return []
+ const q = searchQuery.toLowerCase().trim()
+ if (!q) return doctors
+ return doctors.filter(
+ (d) =>
+ d.specialty?.toLowerCase().includes(q) ||
+ d.user?.name?.toLowerCase().includes(q),
+ )
+ }, [doctors, searchQuery])
 
   // ── Calendar data ────────────────────────────────────────────────────────
 
@@ -141,8 +141,8 @@ export default function BookAppointmentPage() {
 
   function canGoNext(): boolean {
     switch (step) {
-      case "Choose Doctor":
-        return !!selectedProvider
+ case "Choose Doctor":
+ return !!selectedDoctor
       case "Pick Date & Time":
         return !!selectedSlot && !!selectedDate
       case "Confirm":
@@ -154,11 +154,11 @@ export default function BookAppointmentPage() {
 
   // ── Submit ───────────────────────────────────────────────────────────────
 
-  function handleBook() {
-    if (!selectedProvider || !selectedSlot) return
+ function handleBook() {
+ if (!selectedDoctor || !selectedSlot) return
 
-    const dto: CreateAppointmentDto = {
-      providerId: selectedProvider.id,
+ const dto: CreateAppointmentDto = {
+ doctorId: selectedDoctor.id,
       scheduleId: selectedSlot.scheduleId,
       startTime: selectedSlot.startTime,
       endTime: selectedSlot.endTime,
@@ -249,33 +249,34 @@ export default function BookAppointmentPage() {
             />
           </div>
 
-          {/* Provider list */}
-          {providersLoading && (
+          {/* Doctor list */}
+          {doctorsLoading && (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
             </div>
           )}
 
-          {!providersLoading && filteredProviders.length === 0 && (
-            <div className="text-center py-10 text-muted-foreground text-sm">
-              {searchQuery
-                ? "No doctors match your search."
-                : "No providers available at the moment."}
+ {!doctorsLoading && filteredDoctors.length === 0 && (
+ <div className="text-center py-10 text-muted-foreground text-sm">
+ {searchQuery
+ ? "No doctors match your search."
+ : "No doctors available at the moment."}
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {filteredProviders.map((provider) => {
-              const isSelected = selectedProvider?.id === provider.id
+ {/* Doctor list */}
+ {filteredDoctors.map((doctor) => {
+ const isSelected = selectedDoctor?.id === doctor.id
               return (
                 <Card
-                  key={provider.id}
+                  key={doctor.id}
                   className={`cursor-pointer transition-all border ${
                     isSelected
                       ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
                       : "border-border/40 hover:border-primary/30 hover:shadow-sm"
                   }`}
-                  onClick={() => setSelectedProvider(provider)}
+                  onClick={() => setSelectedDoctor(doctor)}
                 >
                   <CardHeader className="pb-2">
                     <div className="flex items-center gap-3">
@@ -284,10 +285,10 @@ export default function BookAppointmentPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-sm font-semibold truncate">
-                          {provider.user?.name || "Doctor"}
+                          {doctor.user?.name || "Doctor"}
                         </CardTitle>
                         <CardDescription className="text-xs truncate">
-                          {provider.specialty || "General Practice"}
+                          {doctor.specialty || "General Practice"}
                         </CardDescription>
                       </div>
                       {isSelected && (
@@ -305,17 +306,17 @@ export default function BookAppointmentPage() {
       )}
 
       {/* ── Step 2: Pick Date & Time ───────────────────────────────────────── */}
-      {step === "Pick Date & Time" && selectedProvider && (
+      {step === "Pick Date & Time" && selectedDoctor && (
         <div className="space-y-5">
           {/* Selected doctor summary */}
           <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/40">
             <Stethoscope className="h-5 w-5 text-primary" />
             <div>
               <p className="text-sm font-medium">
-                {selectedProvider.user?.name || "Doctor"}
+                {selectedDoctor.user?.name || "Doctor"}
               </p>
               <p className="text-xs text-muted-foreground">
-                {selectedProvider.specialty || "General Practice"}
+                {selectedDoctor.specialty || "General Practice"}
               </p>
             </div>
           </div>
@@ -501,7 +502,7 @@ export default function BookAppointmentPage() {
       )}
 
       {/* ── Step 3: Confirm ────────────────────────────────────────────────── */}
-      {step === "Confirm" && selectedProvider && selectedSlot && (
+      {step === "Confirm" && selectedDoctor && selectedSlot && (
         <div className="space-y-5">
           {/* Summary card */}
           <Card className="border-border/40">
@@ -519,10 +520,10 @@ export default function BookAppointmentPage() {
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    {selectedProvider.user?.name || "Doctor"}
+                    {selectedDoctor.user?.name || "Doctor"}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {selectedProvider.specialty || "General Practice"}
+                    {selectedDoctor.specialty || "General Practice"}
                   </p>
                 </div>
               </div>

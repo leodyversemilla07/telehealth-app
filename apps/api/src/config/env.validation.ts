@@ -44,6 +44,21 @@ export const envSchema = z.object({
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   S3_BUCKET: z.string().optional(),
   S3_PUBLIC_URL: z.string().url().optional(),
+
+  // ── LiveKit (self-hosted on AWS EC2) ───────────────────────────────────────
+  LIVEKIT_URL: z
+    .string({
+      required_error: "LIVEKIT_URL is required",
+    })
+    .url("LIVEKIT_URL must be a valid WebSocket URL (e.g., wss://livekit.example.com)"),
+  LIVEKIT_API_KEY: z
+    .string({
+      required_error: "LIVEKIT_API_KEY is required",
+    }),
+  LIVEKIT_API_SECRET: z
+    .string({
+      required_error: "LIVEKIT_API_SECRET is required",
+    }),
 })
 
 export type Env = z.infer<typeof envSchema>

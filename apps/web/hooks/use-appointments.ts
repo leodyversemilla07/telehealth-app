@@ -6,10 +6,12 @@ import type {
   AppointmentStatus,
   AvailableSlotDto,
   CreateAppointmentDto,
-  ProviderProfileDto,
   RescheduleAppointmentDto,
 } from "@workspace/shared"
 import { apiClient } from "@/lib/api-client"
+
+// Re-export doctor hooks from dedicated module for backward compatibility
+export { doctorKeys, useDoctors as useApprovedDoctors, useDoctor } from "./use-doctors"
 
 // ─── Query Keys ──────────────────────────────────────────────
 
@@ -17,15 +19,10 @@ export const appointmentKeys = {
   all: ["appointments"] as const,
   lists: () => [...appointmentKeys.all, "list"] as const,
   detail: (id: string) => [...appointmentKeys.all, "detail", id] as const,
-  slots: (providerId: string, date: string) =>
-    [...appointmentKeys.all, "slots", providerId, date] as const,
+  slots: (doctorId: string, date: string) =>
+    [...appointmentKeys.all, "slots", doctorId, date] as const,
 }
 
-export const providerKeys = {
-  all: ["providers"] as const,
-  lists: () => [...providerKeys.all, "list"] as const,
-  detail: (id: string) => [...providerKeys.all, "detail", id] as const,
-}
 
 // ─── Appointments ────────────────────────────────────────────
 
@@ -103,30 +100,15 @@ export function useRescheduleAppointment() {
 
 // ─── Availability ────────────────────────────────────────────
 
-export function useAvailableSlots(providerId: string, date: string) {
+export function useAvailableSlots(doctorId: string, date: string) {
   return useQuery({
-    queryKey: appointmentKeys.slots(providerId, date),
+    queryKey: appointmentKeys.slots(doctorId, date),
     queryFn: () =>
-      apiClient.get<AvailableSlotDto[]>(`/availability/${providerId}/slots`, {
+      apiClient.get<AvailableSlotDto[]>(`/availability/${doctorId}/slots`, {
         params: { date },
       }),
-    enabled: !!providerId && !!date,
+    enabled: !!doctorId && !!date,
   })
 }
 
-// ─── Providers ───────────────────────────────────────────────
 
-export function useApprovedProviders() {
-  return useQuery({
-    queryKey: providerKeys.lists(),
-    queryFn: () => apiClient.get<ProviderProfileDto[]>("/providers"),
-  })
-}
-
-export function useProvider(id: string) {
-  return useQuery({
-    queryKey: providerKeys.detail(id),
-    queryFn: () => apiClient.get<ProviderProfileDto>(`/providers/${id}`),
-    enabled: !!id,
-  })
-}

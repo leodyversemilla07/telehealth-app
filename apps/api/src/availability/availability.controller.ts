@@ -22,14 +22,14 @@ import type { CreateTimeOffDto, SetAvailabilityDto } from "./dto"
 
 @ApiTags("Availability")
 @ApiBearerAuth("session-token")
-@Controller("providers")
+@Controller("availability")
 export class AvailabilityController {
   constructor(private readonly availabilityService: AvailabilityService) {}
 
-  // ─── Provider availability management ─────────────────────────────────
+  // ─── Doctor availability management ─────────────────────────────────
 
-  @Put("availability")
-  @Roles(["PROVIDER"])
+  @Put()
+  @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Set weekly availability schedule (Doctor)" })
   async setAvailability(
     @Session() session: UserSession,
@@ -38,27 +38,27 @@ export class AvailabilityController {
     return this.availabilityService.setAvailability(session.user.id, dto)
   }
 
-  @Get("availability")
-  @Roles(["PROVIDER"])
+  @Get("mine")
+  @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Get my availability schedule (Doctor)" })
   async getMyAvailability(@Session() session: UserSession) {
     return this.availabilityService.getMyAvailability(session.user.id)
   }
 
-  @Delete("availability/:slotId")
-  @Roles(["PROVIDER"])
-  @ApiOperation({ summary: "Delete an availability slot" })
-  @ApiParam({ name: "slotId", description: "Availability slot ID" })
-  async deleteSlot(@Param("slotId") slotId: string) {
-    return this.availabilityService.deleteSlot(slotId)
+  @Get(":doctorId")
+  @AllowAnonymous()
+  @ApiOperation({ summary: "Get a doctor's weekly schedule (public)" })
+  @ApiParam({ name: "doctorId", description: "Doctor profile ID" })
+  async getSchedule(@Param("doctorId") doctorId: string) {
+    return this.availabilityService.getSchedule(doctorId)
   }
 
   // ─── Time off ────────────────────────────────────────────────────────
 
   @Post("time-off")
-  @Roles(["PROVIDER"])
-  @ApiOperation({ summary: "Create a time-off block (Doctor)" })
-  async createTimeOff(
+  @Roles(["DOCTOR"])
+  @ApiOperation({ summary: "Add a time-off period (Doctor)" })
+  async addTimeOff(
     @Session() session: UserSession,
     @Body() dto: CreateTimeOffDto,
   ) {
@@ -66,15 +66,15 @@ export class AvailabilityController {
   }
 
   @Get("time-off")
-  @Roles(["PROVIDER"])
+  @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Get my time-off blocks (Doctor)" })
   async getTimeOff(@Session() session: UserSession) {
     return this.availabilityService.getTimeOff(session.user.id)
   }
 
   @Delete("time-off/:id")
-  @Roles(["PROVIDER"])
-  @ApiOperation({ summary: "Delete a time-off block" })
+  @Roles(["DOCTOR"])
+  @ApiOperation({ summary: "Remove a time-off entry (Doctor)" })
   @ApiParam({ name: "id", description: "Time-off ID" })
   async deleteTimeOff(@Param("id") id: string) {
     return this.availabilityService.deleteTimeOff(id)
@@ -82,17 +82,15 @@ export class AvailabilityController {
 
   // ─── Public: available slots for booking ─────────────────────────────
 
-  @Get(":providerProfileId/slots")
+  @Get(":doctorId/slots")
   @AllowAnonymous()
-  @ApiOperation({
-    summary: "Get available slots for a provider on a date (public)",
-  })
-  @ApiParam({ name: "providerProfileId", description: "Provider profile ID" })
+  @ApiOperation({ summary: "Get available slots for a date (public)" })
+  @ApiParam({ name: "doctorId", description: "Doctor profile ID" })
   @ApiQuery({ name: "date", description: "Date in YYYY-MM-DD format" })
   async getAvailableSlots(
-    @Param("providerProfileId") providerProfileId: string,
+    @Param("doctorId") doctorId: string,
     @Query("date") date: string,
   ) {
-    return this.availabilityService.getAvailableSlots(providerProfileId, date)
+    return this.availabilityService.getAvailableSlots(doctorId, date)
   }
 }

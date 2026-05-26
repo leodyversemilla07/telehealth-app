@@ -60,7 +60,7 @@ export default function AdminUsersPage() {
   const [banReason, setBanReason] = useState("")
   const [selectedUserForRole, setSelectedUserForRole] = useState<{
     user: UserDto
-    role: "PATIENT" | "PROVIDER" | "ADMIN"
+    role: "PATIENT" | "DOCTOR" | "ADMIN"
   } | null>(null)
 
   // 1. Fetch Users Query
@@ -88,12 +88,12 @@ export default function AdminUsersPage() {
       role,
     }: {
       id: string
-      role: "PATIENT" | "PROVIDER" | "ADMIN"
+      role: "PATIENT" | "DOCTOR" | "ADMIN"
     }) =>
       apiClient.patch<{
         id: string
         email: string
-        role: "PATIENT" | "PROVIDER" | "ADMIN"
+        role: "PATIENT" | "DOCTOR" | "ADMIN"
       }>(`/users/${id}/role`, { role }),
     onSuccess: (updatedUser) => {
       toast.success(
@@ -169,7 +169,7 @@ export default function AdminUsersPage() {
 
   function handleOpenRoleModal(
     user: UserDto,
-    role: "PATIENT" | "PROVIDER" | "ADMIN",
+    role: "PATIENT" | "DOCTOR" | "ADMIN",
   ) {
     setSelectedUserForRole({ user, role })
   }
@@ -187,7 +187,7 @@ export default function AdminUsersPage() {
     switch (role) {
       case "ADMIN":
         return <Crown className="h-3 w-3" />
-      case "PROVIDER":
+      case "DOCTOR":
         return <HeartPulse className="h-3 w-3" />
       default:
         return <Shield className="h-3 w-3" />
@@ -198,7 +198,7 @@ export default function AdminUsersPage() {
     switch (role) {
       case "ADMIN":
         return "default"
-      case "PROVIDER":
+      case "DOCTOR":
         return "secondary"
       default:
         return "outline"
@@ -314,7 +314,7 @@ export default function AdminUsersPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredUsers.map((user) => {
             const isAdmin = user.role === "ADMIN"
-            const isProvider = user.role === "PROVIDER"
+            const isProvider = user.role === "DOCTOR"
             const _isPatient = user.role === "PATIENT"
             const isBanned = user.banned === true
 
@@ -406,7 +406,7 @@ export default function AdminUsersPage() {
                         size="sm"
                         className="flex-1 text-[11px] gap-1.5 h-8 font-medium"
                         disabled={roleMutation.isPending}
-                        onClick={() => handleOpenRoleModal(user, "PROVIDER")}
+                        onClick={() => handleOpenRoleModal(user, "DOCTOR")}
                       >
                         <ShieldMinus className="h-3.5 w-3.5" />
                         Demote
@@ -483,7 +483,7 @@ export default function AdminUsersPage() {
               <Select
                 value={selectedUserForRole?.role ?? "PATIENT"}
                 onValueChange={(
-                  value: "PATIENT" | "PROVIDER" | "ADMIN" | null,
+                  value: "PATIENT" | "DOCTOR" | "ADMIN" | null,
                 ) => {
                   if (selectedUserForRole && value) {
                     setSelectedUserForRole({
@@ -503,7 +503,7 @@ export default function AdminUsersPage() {
                       Patient
                     </div>
                   </SelectItem>
-                  <SelectItem value="PROVIDER">
+                  <SelectItem value="DOCTOR">
                     <div className="flex items-center gap-2">
                       <HeartPulse className="h-4 w-4" />
                       Provider

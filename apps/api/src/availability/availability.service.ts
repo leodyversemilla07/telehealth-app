@@ -1,105 +1,131 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
 import { PrismaService } from "@/prisma/prisma.service"
 import type { CreateTimeOffDto, SetAvailabilityDto } from "./dto"
+
+type DayKey =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday"
+
+const DAYS: DayKey[] = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+]
 
 @Injectable()
 export class AvailabilityService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Get the provider profile ID from a user ID, or throw.
+   * Get the doctor profile from a user ID, or throw.
    */
-  private async getProviderProfile(userId: string) {
-    const profile = await this.prisma.providerProfile.findUnique({
+  private async getDoctorProfile(userId: string) {
+    const profile = await this.prisma.doctorProfile.findUnique({
       where: { userId },
     })
     if (!profile) {
-      throw new NotFoundException("Provider profile not found")
+      throw new NotFoundException("Doctor profile not found")
     }
     return profile
   }
 
   /**
-   * Set weekly availability for a provider.
-   * Replaces all existing slots for the provider with the new ones.
+   * Set (upsert) weekly availability schedule for a doctor.
    */
   async setAvailability(userId: string, dto: SetAvailabilityDto) {
-    const profile = await this.getProviderProfile(userId)
+    const doctor = await this.getDoctorProfile(userId)
 
-    // Delete existing availability slots
-    await this.prisma.availability.deleteMany({
-      where: { providerId: profile.id },
+    const data: Record<string, unknown> = {}
+    for (const day of DAYS) {
+      if (dto[day] !== undefined) data[day] = dto[day]
+    }
+    if (dto.slotDuration !== undefined) data.slotDuration = dto.slotDuration
+
+    return this.prisma.availabilitySchedule.upsert({
+      where: { doctorId: doctor.id },
+      update: data,
+      create: {
+        doctorId: doctor.id,
+        ...data,
+      },
     })
-
-    // Create new slots
-    const slots = await Promise.all(
-      dto.slots.map((slot) =>
-        this.prisma.availability.create({
-          data: {
-            providerId: profile.id,
-            dayOfWeek: slot.dayOfWeek,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            slotDuration: slot.slotDuration,
-            isActive: slot.isActive ?? true,
-          },
-        }),
-      ),
-    )
-
-    return slots
   }
 
   /**
-   * Get availability for the current provider.
+   * Get my availability schedule.
    */
   async getMyAvailability(userId: string) {
-    const profile = await this.getProviderProfile(userId)
-    return this.prisma.availability.findMany({
-      where: { providerId: profile.id, isActive: true },
-      orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
+    const doctor = await this.getDoctorProfile(userId)
+    const schedule = await this.prisma.availabilitySchedule.findUnique({
+      where: { doctorId: doctor.id },
+      include: { timeOffs: true },
     })
+    if (!schedule) {
+      throw new NotFoundException(
+        "Schedule not found — set availability first",
+      )
+    }
+    return schedule
   }
 
   /**
-   * Delete a specific availability slot.
+   * Get a doctor's schedule (public).
    */
-  async deleteSlot(slotId: string) {
-    const slot = await this.prisma.availability.findUnique({
-      where: { id: slotId },
+  async getSchedule(doctorId: string) {
+    const schedule = await this.prisma.availabilitySchedule.findUnique({
+      where: { doctorId },
+      include: { timeOffs: true },
     })
-    if (!slot) {
-      throw new NotFoundException(`Availability slot "${slotId}" not found`)
-    }
-    await this.prisma.availability.delete({ where: { id: slotId } })
-    return { success: true }
+    if (!schedule) throw new NotFoundException("Schedule not found")
+    return schedule
   }
 
   /**
    * Create a time-off block.
    */
   async createTimeOff(userId: string, dto: CreateTimeOffDto) {
-    const profile = await this.getProviderProfile(userId)
+    const doctor = await this.getDoctorProfile(userId)
+
+    const schedule = await this.prisma.availabilitySchedule.findUnique({
+      where: { doctorId: doctor.id },
+    })
+    if (!schedule) {
+      throw new NotFoundException(
+        "Schedule not found — set availability first",
+      )
+    }
 
     return this.prisma.timeOff.create({
       data: {
-        providerId: profile.id,
-        date: new Date(dto.date),
-        startTime: dto.startTime,
-        endTime: dto.endTime,
-        reason: dto.reason ?? null,
+        scheduleId: schedule.id,
+        startDate: new Date(dto.startDate),
+        endDate: new Date(dto.endDate),
+        reason: dto.reason,
       },
     })
   }
 
   /**
-   * Get time-off blocks for the current provider.
+   * Get time-off blocks for the current doctor.
    */
   async getTimeOff(userId: string) {
-    const profile = await this.getProviderProfile(userId)
+    const doctor = await this.getDoctorProfile(userId)
+    const schedule = await this.prisma.availabilitySchedule.findUnique({
+      where: { doctorId: doctor.id },
+    })
+    if (!schedule) return []
     return this.prisma.timeOff.findMany({
-      where: { providerId: profile.id },
-      orderBy: { date: "asc" },
+      where: { scheduleId: schedule.id },
+      orderBy: { startDate: "asc" },
     })
   }
 
@@ -118,81 +144,89 @@ export class AvailabilityService {
   }
 
   /**
-   * Get available time slots for a provider on a specific date.
-   * Excludes booked appointments and time-off blocks.
+   * Compute available slots for a given date.
+   * Parses the doctor's JSON schedule for that weekday,
+   * then excludes already-booked appointments and time-offs.
    */
-  async getAvailableSlots(providerProfileId: string, date: string) {
+  async getAvailableSlots(doctorId: string, date: string) {
+    const schedule = await this.prisma.availabilitySchedule.findUnique({
+      where: { doctorId },
+      include: {
+        appointments: {
+          where: {
+            status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
+            startTime: {
+              gte: new Date(`${date}T00:00:00.000Z`),
+              lt: new Date(`${date}T23:59:59.999Z`),
+            },
+          },
+        },
+        timeOffs: true,
+      },
+    })
+
+    if (!schedule) return []
+
     const targetDate = new Date(date)
     const dayOfWeek = targetDate.getDay()
+    const dayKey = DAYS[dayOfWeek === 0 ? 6 : dayOfWeek - 1] // 0=Sun → sunday, 1=Mon → monday...
 
-    // Get active availability for this day of week
-    const availabilities = await this.prisma.availability.findMany({
-      where: { providerId: providerProfileId, dayOfWeek, isActive: true },
-    })
+    const daySlots: string[] = (() => {
+      try {
+        return JSON.parse((schedule as Record<string, unknown>)[dayKey] as string || "[]")
+      } catch {
+        return []
+      }
+    })()
 
-    if (availabilities.length === 0) {
-      return []
-    }
+    if (daySlots.length === 0) return []
 
-    // Get time-off blocks for this date
-    const dateStart = new Date(targetDate)
-    dateStart.setHours(0, 0, 0, 0)
-    const dateEnd = new Date(targetDate)
-    dateEnd.setHours(23, 59, 59, 999)
+    // Check time-offs covering this date
+    const dateStart = new Date(`${date}T00:00:00.000Z`)
+    const dateEnd = new Date(`${date}T23:59:59.999Z`)
+    const hasTimeOff = schedule.timeOffs.some(
+      (to) => to.startDate <= dateEnd && to.endDate >= dateStart,
+    )
+    if (hasTimeOff) return []
 
-    const timeOffBlocks = await this.prisma.timeOff.findMany({
-      where: {
-        providerId: providerProfileId,
-        date: { gte: dateStart, lte: dateEnd },
-      },
-    })
+    // Generate time slots from the JSON schedule entries
+    const duration = schedule.slotDuration
+    const bookedTimes = schedule.appointments.map((apt) => ({
+      start: apt.startTime,
+      end: apt.endTime,
+    }))
 
-    // Get existing appointments for this date
-    const appointments = await this.prisma.appointment.findMany({
-      where: {
-        providerId: providerProfileId,
-        startTime: { gte: dateStart, lte: dateEnd },
-        status: { notIn: ["CANCELLED"] },
-      },
-    })
+    const slots: { startTime: string; endTime: string; available: boolean }[] = []
 
-    // Generate available slots
-    const slots: { startTime: string; endTime: string; available: boolean }[] =
-      []
+    for (const entry of daySlots) {
+      // Each entry is like "09:00-17:00"
+      const [startStr, endStr] = (entry as string).split("-")
+      if (!startStr || !endStr) continue
 
-    for (const av of availabilities) {
-      const startParts = av.startTime.split(":").map(Number)
-      const endParts = av.endTime.split(":").map(Number)
-      const startH = startParts[0] ?? 0
-      const startM = startParts[1] ?? 0
-      const endH = endParts[0] ?? 0
-      const endM = endParts[1] ?? 0
-
-      const startMinutes = startH * 60 + startM
-      const endMinutes = endH * 60 + endM
-      const duration = av.slotDuration
+      const [startH, startM] = startStr.split(":").map(Number)
+      const [endH, endM] = endStr.split(":").map(Number)
+      const startMinutes = (startH ?? 0) * 60 + (startM ?? 0)
+      const endMinutes = (endH ?? 0) * 60 + (endM ?? 0)
 
       for (let m = startMinutes; m + duration <= endMinutes; m += duration) {
         const slotStart = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`
         const slotEnd = `${String(Math.floor((m + duration) / 60)).padStart(2, "0")}:${String((m + duration) % 60).padStart(2, "0")}`
 
-        // Check if this slot is covered by time-off
-        const isTimeOff = timeOffBlocks.some((toff) => {
-          const toffStart = toff.startTime
-          const toffEnd = toff.endTime
-          return slotStart >= toffStart && slotEnd <= toffEnd
-        })
-        if (isTimeOff) continue
+        // Check if already booked
+        const slotStartUTC = new Date(`${date}T${slotStart}:00.000Z`)
+        const slotEndUTC = new Date(`${date}T${slotEnd}:00.000Z`)
 
-        // Check if this slot is already booked
-        const isBooked = appointments.some((apt) => {
-          const aptStart = `${apt.startTime.getHours().toString().padStart(2, "0")}:${apt.startTime.getMinutes().toString().padStart(2, "0")}`
-          const aptEnd = `${apt.endTime.getHours().toString().padStart(2, "0")}:${apt.endTime.getMinutes().toString().padStart(2, "0")}`
-          return slotStart < aptEnd && slotEnd > aptStart
+        const isBooked = bookedTimes.some((bt) => {
+          return slotStartUTC < bt.end && slotEndUTC > bt.start
         })
-        if (isBooked) continue
 
-        slots.push({ startTime: slotStart, endTime: slotEnd, available: true })
+        if (!isBooked) {
+          slots.push({
+            startTime: `${date}T${slotStart}:00`,
+            endTime: `${date}T${slotEnd}:00`,
+            available: true,
+          })
+        }
       }
     }
 

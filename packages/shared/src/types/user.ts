@@ -1,7 +1,7 @@
 import type { z } from "zod"
 import type {
   patientProfileSchema,
-  providerProfileSchema,
+  doctorProfileSchema,
   publicUserSchema,
   roleSchema,
   userSchema,
@@ -11,7 +11,7 @@ export type Role = z.infer<typeof roleSchema>
 export type UserDto = z.infer<typeof userSchema>
 export type PublicUserDto = z.infer<typeof publicUserSchema>
 export type PatientProfileDto = z.infer<typeof patientProfileSchema>
-export type ProviderProfileDto = z.infer<typeof providerProfileSchema>
+export type DoctorProfileDto = z.infer<typeof doctorProfileSchema>
 
 export interface UserSessionDto {
   id: string

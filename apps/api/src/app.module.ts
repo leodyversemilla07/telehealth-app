@@ -16,10 +16,14 @@ import {
 import { ConsentModule } from "@/consent/consent.module"
 import { PatientsModule } from "@/patients/patients.module"
 import { PrismaModule } from "@/prisma/prisma.module"
-import { ProvidersModule } from "@/providers/providers.module"
+import { DoctorsModule } from "@/doctors/doctors.module"
 import { SecurityAlertsModule } from "@/security-alerts/security-alerts.module"
 import { StorageModule } from "@/storage/storage.module"
 import { UsersModule } from "@/users/users.module"
+import { RecordsModule } from "@/records/records.module"
+import { RecommendationsModule } from "@/recommendations/recommendations.module"
+import { VideoModule } from "@/video/video.module"
+import { NotificationsModule } from "@/notifications/notifications.module"
 
 @Module({
   imports: [
@@ -37,11 +41,15 @@ import { UsersModule } from "@/users/users.module"
     UsersModule,
     AuditLogsModule,
     SecurityAlertsModule,
-    ProvidersModule,
+    DoctorsModule,
     PatientsModule,
     ConsentModule,
     AvailabilityModule,
     AppointmentsModule,
+    RecordsModule,
+    RecommendationsModule,
+    VideoModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, throttlerGuardProvider],

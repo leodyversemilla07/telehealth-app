@@ -46,7 +46,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id/status")
-  @Roles(["PROVIDER", "ADMIN"])
+  @Roles(["DOCTOR", "ADMIN"])
   @ApiOperation({ summary: "Update appointment status (Doctor/Admin)" })
   @ApiParam({ name: "id", description: "Appointment ID" })
   async updateStatus(

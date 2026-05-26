@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-export const roleSchema = z.enum(["PATIENT", "PROVIDER", "ADMIN"])
+export const roleSchema = z.enum(["PATIENT", "DOCTOR", "ADMIN"])
 
 export const userSchema = z.object({
   id: z.string(),
@@ -40,7 +40,7 @@ export const patientProfileSchema = z.object({
   updatedAt: z.coerce.date(),
 })
 
-const providerProfileBaseSchema = z.object({
+const doctorProfileBaseSchema = z.object({
   id: z.string(),
   userId: z.string(),
   specialty: z.string(),
@@ -57,7 +57,7 @@ const providerProfileBaseSchema = z.object({
   updatedAt: z.coerce.date(),
 })
 
-export const providerProfileSchema = providerProfileBaseSchema.extend({
+export const doctorProfileSchema = doctorProfileBaseSchema.extend({
   user: z.object({
     id: z.string(),
     name: z.string().nullable(),

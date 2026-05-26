@@ -1,8 +1,6 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../generated/prisma"
-  // Generate CJS-compatible TypeScript so the compiled output works
-  // with NestJS's CJS emit (required by experimentalDecorators).
+  provider = "prisma-client"
+  output = "../generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -12,7 +10,7 @@ datasource db {
 
 enum Role {
   PATIENT
-  PROVIDER
+  DOCTOR
   ADMIN
 }
 
@@ -35,46 +33,55 @@ enum VisitType {
   IN_PERSON
 }
 
+enum NotificationType {
+  APPOINTMENT_REMINDER
+  APPOINTMENT_CONFIRMATION
+  APPOINTMENT_CANCELLED
+  NEW_MESSAGE
+  SCHEDULE_UPDATED
+  SYSTEM
+}
+
 model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  emailVerified  Boolean   @default(false)
-  mobile         String?   @unique
-  mobileVerified Boolean   @default(false)
-  preferredLang  Language  @default(FILIPINO)
-  name           String?
-  image          String?
-  role           Role      @default(PATIENT)
-  banned         Boolean   @default(false)
-  banReason      String?
-  banExpires     DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id            String   @id @default(cuid())
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  mobile        String?  @unique
+  mobileVerified Boolean @default(false)
+  preferredLang Language @default(FILIPINO)
+  name          String?
+  image         String?
+  role          Role     @default(PATIENT)
+  banned        Boolean  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   // 2FA Fields
-  twoFactorEnabled     Boolean   @default(false)
+  twoFactorEnabled     Boolean  @default(false)
   twoFactorSecret      String?
   twoFactorBackupCodes String?
 
-  sessions         Session[]
-  accounts         Account[]
-  securityAlerts   SecurityAlert[]
-  patientProfile   PatientProfile?
-  providerProfile  ProviderProfile?
-  consentLogs      ConsentLog[]
-  appointments     Appointment[] @relation("PatientAppointments")
-  notifications    Notification[]
+  sessions        Session[]
+  accounts        Account[]
+  securityAlerts  SecurityAlert[]
+  patientProfile  PatientProfile?
+  doctorProfile   DoctorProfile?
+  consentLogs     ConsentLog[]
+  appointments    Appointment[] @relation("PatientAppointments")
+  notifications   Notification[]
 }
 
 model Session {
-  id         String   @id @default(cuid())
-  expiresAt  DateTime
-  token      String   @unique
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  ipAddress  String?
-  userAgent  String?
-  userId     String
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -102,12 +109,12 @@ model Account {
 }
 
 model Verification {
-  id         String   @id @default(cuid())
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id          String   @id @default(cuid())
+  identifier  String
+  value       String
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("verifications")
 }
@@ -127,101 +134,138 @@ model PatientProfile {
   @@map("patient_profiles")
 }
 
-model ProviderProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialty String
-  prcLicenseNumber    String   @unique
-  prcLicenseExpiry    DateTime
+model DoctorProfile {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty            String
+  prcLicenseNumber     String   @unique
+  prcLicenseExpiry     DateTime
   philhealthAccreditation String?
-  pdeaS2License       String?
-  pdeaS2Expiry        DateTime?
-  bio        String?
-  clinicAddress String?
-  pricePerVisit Decimal @db.Decimal(10, 2)
-  isApproved Boolean @default(false)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  pdeaS2License        String?
+  pdeaS2Expiry         DateTime?
+  bio                  String?
+  clinicAddress        String?
+  pricePerVisit        Decimal  @db.Decimal(10, 2)
+  isApproved           Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  availabilities  Availability[]
-  timeOff         TimeOff[]
-  appointments    Appointment[] @relation("DoctorAppointments")
+  appointments        Appointment[] @relation("DoctorAppointments")
+  availabilitySchedule AvailabilitySchedule?
 
-  @@map("provider_profiles")
+  @@map("doctor_profiles")
 }
 
-model Availability {
-  id           String         @id @default(cuid())
-  providerId   String
-  provider     ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  dayOfWeek    Int             // 0=Sun, 1=Mon ... 6=Sat
-  startTime    String          // HH:mm format (24h), e.g. "09:00"
-  endTime      String          // HH:mm format (24h), e.g. "17:00"
-  slotDuration Int             // minutes (15, 30, or 60)
-  isActive     Boolean         @default(true)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+model AvailabilitySchedule {
+  id           String   @id @default(cuid())
+  doctorId     String   @unique
+  doctor       DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  monday       String   @default("[]")
+  tuesday      String   @default("[]")
+  wednesday    String   @default("[]")
+  thursday     String   @default("[]")
+  friday       String   @default("[]")
+  saturday     String   @default("[]")
+  sunday       String   @default("[]")
+  slotDuration Int      @default(30)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  @@unique([providerId, dayOfWeek, startTime, endTime])
-  @@map("availabilities")
+  appointments Appointment[]
+  timeOffs     TimeOff[]
+
+  @@map("availability_schedules")
 }
 
 model TimeOff {
-  id         String   @id @default(cuid())
-  providerId String
-  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  date       DateTime        @db.Date
-  startTime  String          // HH:mm format (24h)
-  endTime    String          // HH:mm format (24h)
-  reason     String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  scheduleId String
+  schedule  AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  startDate DateTime
+  endDate   DateTime
+  reason    String?
+  createdAt DateTime @default(now())
 
-  @@map("time_off")
+  @@map("time_offs")
 }
 
 model Appointment {
-  id         String            @id @default(cuid())
+  id         String             @id @default(cuid())
   patientId  String
-  patient    User              @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
-  providerId String
-  provider   ProviderProfile   @relation("DoctorAppointments", fields: [providerId], references: [id], onDelete: Cascade)
+  patient    User               @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId   String
+  doctor     DoctorProfile      @relation("DoctorAppointments", fields: [doctorId], references: [id], onDelete: Cascade)
+  scheduleId String
+  schedule   AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   startTime  DateTime
   endTime    DateTime
-  status     AppointmentStatus @default(BOOKED)
+  status     AppointmentStatus  @default(BOOKED)
   reason     String?
   symptoms   String?
-  type       VisitType         @default(VIDEO)
+  type       VisitType          @default(VIDEO)
+  roomUrl    String?
   notes      String?
-  prescription String?
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  consultation Consultation?
 
   @@index([patientId])
-  @@index([providerId])
+  @@index([doctorId])
   @@index([startTime])
   @@map("appointments")
 }
 
+model Consultation {
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patientNotes  String?
+  doctorNotes   String?
+  diagnosis     String?
+  plan          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  prescriptions Prescription[]
+
+  @@map("consultations")
+}
+
+model Prescription {
+  id             String   @id @default(cuid())
+  consultationId String
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  medicationName String
+  dosage         String
+  frequency      String
+  duration       String
+  instructions   String?
+  createdAt      DateTime @default(now())
+
+  @@map("prescriptions")
+}
+
 model Notification {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // APPOINTMENT_REMINDER, APPOINTMENT_CONFIRMATION, APPOINTMENT_CANCELLED, SCHEDULE_UPDATED, SYSTEM
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
   title     String
   body      String?
-  isRead    Boolean  @default(false)
+  isRead    Boolean          @default(false)
   readAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime         @default(now())
 
   @@map("notifications")
 }
 
 model ConsentLog {
-  id          String   @id @default(cuid())
-  userId      String
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  consentType String   // privacy_policy, data_sharing, recording, marketing
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  consentType String // privacy_policy, data_sharing, recording, marketing
   granted     Boolean
   ipAddress   String?
   createdAt   DateTime @default(now())
@@ -230,14 +274,14 @@ model ConsentLog {
 }
 
 model AuditLog {
-  id           String   @id @default(cuid())
-  action       String
-  actorId      String
-  actorEmail   String
-  targetId     String?
-  targetEmail  String?
-  reason       String?
-  timestamp    DateTime @default(now())
+  id          String   @id @default(cuid())
+  action      String
+  actorId     String
+  actorEmail  String
+  targetId    String?
+  targetEmail String?
+  reason      String?
+  timestamp   DateTime @default(now())
 
   @@map("audit_logs")
 }

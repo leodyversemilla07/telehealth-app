@@ -3,20 +3,25 @@
 import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import {
-  CalendarDays,
-  FileText,
-  LogOut,
-  Menu,
-  Stethoscope,
-  Users,
-  X,
-  Loader2,
+ Bell,
+ CalendarDays,
+ FileText,
+ LogOut,
+ Menu,
+ Stethoscope,
+ Users,
+ X,
+ Loader2,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
 import { authClient } from "@/lib/auth-client"
 import { cn } from "@workspace/ui/lib/utils"
+import {
+  useUnreadCount,
+  useNotificationSocket,
+} from "@/hooks/use-notifications"
 
 // ── Navigation definitions per role ──────────────────────────────────────────
 
@@ -28,11 +33,11 @@ type NavItem = {
 
 const PATIENT_NAV: NavItem[] = [
   { label: "Appointments", href: "/appointments", icon: CalendarDays },
-  { label: "Find Doctors", href: "/find-doctors", icon: Stethoscope },
+  { label: "Find Doctors", href: "/doctors", icon: Stethoscope },
   { label: "Medical Records", href: "/medical-records", icon: FileText },
 ]
 
-const PROVIDER_NAV: NavItem[] = [
+const DOCTOR_NAV: NavItem[] = [
   { label: "My Schedule", href: "/my-schedule", icon: Stethoscope },
   { label: "Appointments", href: "/appointments", icon: CalendarDays },
   { label: "Consultations", href: "/consultations", icon: FileText },
@@ -44,8 +49,8 @@ const ADMIN_NAV: NavItem[] = [
 
 function getNavItems(role: string | null | undefined): NavItem[] {
   switch (role) {
-    case "PROVIDER":
-      return PROVIDER_NAV
+    case "DOCTOR":
+      return DOCTOR_NAV
     case "ADMIN":
       return ADMIN_NAV
     case "PATIENT":
@@ -163,6 +168,31 @@ function Sidebar({
         </Button>
       </div>
     </div>
+  )
+}
+
+// ── Notification bell ────────────────────────────────────────────────────────
+
+function NotificationBell() {
+  const router = useRouter()
+  useNotificationSocket()
+  const { data: unreadData } = useUnreadCount()
+  const unreadCount = unreadData?.count ?? 0
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      className="relative"
+      onClick={() => router.push("/notifications")}
+    >
+      <Bell className="h-5 w-5" />
+      {unreadCount > 0 && (
+        <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground shadow-sm">
+          {unreadCount > 99 ? "99+" : unreadCount}
+        </span>
+      )}
+    </Button>
   )
 }
 

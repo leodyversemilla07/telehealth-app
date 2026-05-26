@@ -3,7 +3,10 @@ import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator"
 
 export class CreateAppointmentDto {
   @IsString()
-  providerId!: string
+  doctorId!: string
+
+  @IsString()
+  scheduleId!: string
 
   @IsDateString()
   startTime!: string

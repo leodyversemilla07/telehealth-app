@@ -311,10 +311,13 @@ export default function AppointmentsPage() {
           {sorted.map((appt) => {
             const statusConfig = STATUS_BADGE_MAP[appt.status]
             const canCancel = CANCELLABLE_STATUSES.includes(appt.status)
+  const canJoinCall =
+    (appt.status === "CONFIRMED" || appt.status === "IN_PROGRESS") &&
+    appt.type === "VIDEO"
             const displayName = isPatient
-              ? appt.provider.user.name || "Provider"
+              ? appt.doctor.user.name || "Doctor"
               : appt.patient.name || "Patient"
-            const displaySpecialty = isPatient ? appt.provider.specialty : null
+            const displaySpecialty = isPatient ? appt.doctor.specialty : null
 
             return (
               <Card
@@ -398,6 +401,19 @@ export default function AppointmentsPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2 !mt-3">
+                    {canJoinCall && (
+                      <Button
+                        size="sm"
+                        className="flex-1 text-[11px] gap-1.5 h-8 font-medium bg-emerald-600 hover:bg-emerald-700 text-white"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/consultation/${appt.id}`)
+                        }}
+                      >
+                        <Video className="h-3.5 w-3.5" />
+                        Join Call
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
