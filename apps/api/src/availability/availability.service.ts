@@ -1,27 +1,34 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
-import type { CreateTimeOffDto, SetAvailabilityDto } from "@/availability/dto"
 import { PrismaService } from "@/prisma/prisma.service"
+import type { CreateTimeOffDto, SetAvailabilityDto } from "./dto"
 
 @Injectable()
 export class AvailabilityService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Set weekly availability for a provider.
-   * Replaces all existing slots for the provider with the new ones.
+   * Get the provider profile ID from a user ID, or throw.
    */
-  async setAvailability(providerProfileId: string, dto: SetAvailabilityDto) {
-    // Verify provider exists
+  private async getProviderProfile(userId: string) {
     const profile = await this.prisma.providerProfile.findUnique({
-      where: { id: providerProfileId },
+      where: { userId },
     })
     if (!profile) {
       throw new NotFoundException("Provider profile not found")
     }
+    return profile
+  }
+
+  /**
+   * Set weekly availability for a provider.
+   * Replaces all existing slots for the provider with the new ones.
+   */
+  async setAvailability(userId: string, dto: SetAvailabilityDto) {
+    const profile = await this.getProviderProfile(userId)
 
     // Delete existing availability slots
     await this.prisma.availability.deleteMany({
-      where: { providerId: providerProfileId },
+      where: { providerId: profile.id },
     })
 
     // Create new slots
@@ -29,7 +36,7 @@ export class AvailabilityService {
       dto.slots.map((slot) =>
         this.prisma.availability.create({
           data: {
-            providerId: providerProfileId,
+            providerId: profile.id,
             dayOfWeek: slot.dayOfWeek,
             startTime: slot.startTime,
             endTime: slot.endTime,
@@ -44,11 +51,12 @@ export class AvailabilityService {
   }
 
   /**
-   * Get availability for a provider.
+   * Get availability for the current provider.
    */
-  async getAvailability(providerProfileId: string) {
+  async getMyAvailability(userId: string) {
+    const profile = await this.getProviderProfile(userId)
     return this.prisma.availability.findMany({
-      where: { providerId: providerProfileId, isActive: true },
+      where: { providerId: profile.id, isActive: true },
       orderBy: [{ dayOfWeek: "asc" }, { startTime: "asc" }],
     })
   }
@@ -70,17 +78,12 @@ export class AvailabilityService {
   /**
    * Create a time-off block.
    */
-  async createTimeOff(providerProfileId: string, dto: CreateTimeOffDto) {
-    const profile = await this.prisma.providerProfile.findUnique({
-      where: { id: providerProfileId },
-    })
-    if (!profile) {
-      throw new NotFoundException("Provider profile not found")
-    }
+  async createTimeOff(userId: string, dto: CreateTimeOffDto) {
+    const profile = await this.getProviderProfile(userId)
 
     return this.prisma.timeOff.create({
       data: {
-        providerId: providerProfileId,
+        providerId: profile.id,
         date: new Date(dto.date),
         startTime: dto.startTime,
         endTime: dto.endTime,
@@ -90,11 +93,12 @@ export class AvailabilityService {
   }
 
   /**
-   * Get time-off blocks for a provider.
+   * Get time-off blocks for the current provider.
    */
-  async getTimeOff(providerProfileId: string) {
+  async getTimeOff(userId: string) {
+    const profile = await this.getProviderProfile(userId)
     return this.prisma.timeOff.findMany({
-      where: { providerId: providerProfileId },
+      where: { providerId: profile.id },
       orderBy: { date: "asc" },
     })
   }
@@ -153,7 +157,8 @@ export class AvailabilityService {
     })
 
     // Generate available slots
-    const slots: { startTime: string; endTime: string }[] = []
+    const slots: { startTime: string; endTime: string; available: boolean }[] =
+      []
 
     for (const av of availabilities) {
       const startParts = av.startTime.split(":").map(Number)
@@ -187,7 +192,7 @@ export class AvailabilityService {
         })
         if (isBooked) continue
 
-        slots.push({ startTime: slotStart, endTime: slotEnd })
+        slots.push({ startTime: slotStart, endTime: slotEnd, available: true })
       }
     }
 

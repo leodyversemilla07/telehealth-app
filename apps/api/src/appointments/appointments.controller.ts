@@ -1,27 +1,23 @@
 import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common"
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
-import { AppointmentsService } from "@/appointments/appointments.service"
+import { AppointmentsService } from "./appointments.service"
 import type {
   CreateAppointmentDto,
   RescheduleAppointmentDto,
   UpdateAppointmentStatusDto,
-} from "@/appointments/dto"
-import { PrismaService } from "@/prisma/prisma.service"
+} from "./dto"
 
 @ApiTags("Appointments")
+@ApiBearerAuth("session-token")
 @Controller("appointments")
 export class AppointmentsController {
-  constructor(
-    private readonly appointmentsService: AppointmentsService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Post()
   @Roles(["PATIENT"])
-  @ApiBearerAuth("session-token")
-  @ApiOperation({ summary: "Book a new appointment (patient)" })
+  @ApiOperation({ summary: "Book a new appointment (Patient)" })
   async create(
     @Session() session: UserSession,
     @Body() dto: CreateAppointmentDto,
@@ -29,51 +25,63 @@ export class AppointmentsController {
     return this.appointmentsService.create(session.user.id, dto)
   }
 
-  @Get("my")
-  @ApiBearerAuth("session-token")
-  @ApiOperation({ summary: "Get my appointments (patient/provider)" })
-  async getMyAppointments(@Session() session: UserSession) {
-    const user = session.user as { id: string; role: string }
-    if (user.role === "PROVIDER") {
-      const profile = await this.prisma.providerProfile.findUnique({
-        where: { userId: user.id },
-        select: { id: true },
-      })
-      if (!profile) throw new Error("Provider profile not found")
-      return this.appointmentsService.getProviderAppointments(profile.id)
-    }
-    return this.appointmentsService.getPatientAppointments(user.id)
+  @Get()
+  @ApiOperation({ summary: "List my appointments (Patient or Doctor)" })
+  async findMine(@Session() session: UserSession) {
+    return this.appointmentsService.findMyAppointments(
+      session.user.id,
+      session.user.role as string,
+    )
   }
 
   @Get(":id")
-  @ApiBearerAuth("session-token")
-  @ApiOperation({ summary: "Get appointment by ID" })
-  async findById(@Param("id") id: string) {
-    return this.appointmentsService.findById(id)
+  @ApiOperation({ summary: "Get appointment detail" })
+  @ApiParam({ name: "id", description: "Appointment ID" })
+  async findOne(@Session() session: UserSession, @Param("id") id: string) {
+    return this.appointmentsService.findOne(
+      id,
+      session.user.id,
+      session.user.role as string,
+    )
   }
 
   @Patch(":id/status")
-  @ApiBearerAuth("session-token")
-  @ApiOperation({
-    summary: "Update appointment status (patient cancels, provider progresses)",
-  })
+  @Roles(["PROVIDER", "ADMIN"])
+  @ApiOperation({ summary: "Update appointment status (Doctor/Admin)" })
+  @ApiParam({ name: "id", description: "Appointment ID" })
   async updateStatus(
     @Session() session: UserSession,
     @Param("id") id: string,
     @Body() dto: UpdateAppointmentStatusDto,
   ) {
-    return this.appointmentsService.updateStatus(id, session.user.id, dto)
+    return this.appointmentsService.updateStatus(
+      id,
+      dto.status,
+      session.user.id,
+      session.user.role as string,
+    )
+  }
+
+  @Patch(":id/cancel")
+  @ApiOperation({ summary: "Cancel an appointment (Patient or Doctor)" })
+  @ApiParam({ name: "id", description: "Appointment ID" })
+  async cancel(@Session() session: UserSession, @Param("id") id: string) {
+    return this.appointmentsService.cancel(
+      id,
+      session.user.id,
+      session.user.role as string,
+    )
   }
 
   @Patch(":id/reschedule")
   @Roles(["PATIENT"])
-  @ApiBearerAuth("session-token")
-  @ApiOperation({ summary: "Reschedule an appointment (patient)" })
+  @ApiOperation({ summary: "Reschedule an appointment (Patient)" })
+  @ApiParam({ name: "id", description: "Appointment ID" })
   async reschedule(
     @Session() session: UserSession,
     @Param("id") id: string,
     @Body() dto: RescheduleAppointmentDto,
   ) {
-    return this.appointmentsService.reschedule(id, session.user.id, dto)
+    return this.appointmentsService.reschedule(id, dto, session.user.id)
   }
 }

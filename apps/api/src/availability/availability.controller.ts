@@ -16,87 +16,73 @@ import {
   ApiTags,
 } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
-import { AllowAnonymous, Session } from "@thallesp/nestjs-better-auth"
-import { AvailabilityService } from "@/availability/availability.service"
-import type { CreateTimeOffDto, SetAvailabilityDto } from "@/availability/dto"
-import { PrismaService } from "@/prisma/prisma.service"
+import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
+import { AvailabilityService } from "./availability.service"
+import type { CreateTimeOffDto, SetAvailabilityDto } from "./dto"
 
 @ApiTags("Availability")
-@Controller()
+@ApiBearerAuth("session-token")
+@Controller("providers")
 export class AvailabilityController {
-  constructor(
-    private readonly availabilityService: AvailabilityService,
-    private readonly prisma: PrismaService,
-  ) {}
-
-  private async getProviderProfileId(userId: string): Promise<string> {
-    const profile = await this.prisma.providerProfile.findUnique({
-      where: { userId },
-      select: { id: true },
-    })
-    if (!profile) throw new Error("Provider profile not found")
-    return profile.id
-  }
+  constructor(private readonly availabilityService: AvailabilityService) {}
 
   // ─── Provider availability management ─────────────────────────────────
 
-  @Put("providers/availability")
-  @ApiBearerAuth("session-token")
-  @ApiOperation({ summary: "Set weekly availability schedule (provider)" })
+  @Put("availability")
+  @Roles(["PROVIDER"])
+  @ApiOperation({ summary: "Set weekly availability schedule (Doctor)" })
   async setAvailability(
     @Session() session: UserSession,
     @Body() dto: SetAvailabilityDto,
   ) {
-    const profileId = await this.getProviderProfileId(session.user.id)
-    return this.availabilityService.setAvailability(profileId, dto)
+    return this.availabilityService.setAvailability(session.user.id, dto)
   }
 
-  @Get("providers/availability")
-  @ApiBearerAuth("session-token")
-  @ApiOperation({ summary: "Get my availability schedule (provider)" })
+  @Get("availability")
+  @Roles(["PROVIDER"])
+  @ApiOperation({ summary: "Get my availability schedule (Doctor)" })
   async getMyAvailability(@Session() session: UserSession) {
-    const profileId = await this.getProviderProfileId(session.user.id)
-    return this.availabilityService.getAvailability(profileId)
+    return this.availabilityService.getMyAvailability(session.user.id)
   }
 
-  @Delete("providers/availability/:slotId")
-  @ApiBearerAuth("session-token")
+  @Delete("availability/:slotId")
+  @Roles(["PROVIDER"])
   @ApiOperation({ summary: "Delete an availability slot" })
+  @ApiParam({ name: "slotId", description: "Availability slot ID" })
   async deleteSlot(@Param("slotId") slotId: string) {
     return this.availabilityService.deleteSlot(slotId)
   }
 
   // ─── Time off ────────────────────────────────────────────────────────
 
-  @Post("providers/time-off")
-  @ApiBearerAuth("session-token")
-  @ApiOperation({ summary: "Create a time-off block (provider)" })
+  @Post("time-off")
+  @Roles(["PROVIDER"])
+  @ApiOperation({ summary: "Create a time-off block (Doctor)" })
   async createTimeOff(
     @Session() session: UserSession,
     @Body() dto: CreateTimeOffDto,
   ) {
-    const profileId = await this.getProviderProfileId(session.user.id)
-    return this.availabilityService.createTimeOff(profileId, dto)
+    return this.availabilityService.createTimeOff(session.user.id, dto)
   }
 
-  @Get("providers/time-off")
-  @ApiBearerAuth("session-token")
-  @ApiOperation({ summary: "Get time-off blocks (provider)" })
+  @Get("time-off")
+  @Roles(["PROVIDER"])
+  @ApiOperation({ summary: "Get my time-off blocks (Doctor)" })
   async getTimeOff(@Session() session: UserSession) {
-    const profileId = await this.getProviderProfileId(session.user.id)
-    return this.availabilityService.getTimeOff(profileId)
+    return this.availabilityService.getTimeOff(session.user.id)
   }
 
-  @Delete("providers/time-off/:id")
-  @ApiBearerAuth("session-token")
+  @Delete("time-off/:id")
+  @Roles(["PROVIDER"])
   @ApiOperation({ summary: "Delete a time-off block" })
+  @ApiParam({ name: "id", description: "Time-off ID" })
   async deleteTimeOff(@Param("id") id: string) {
     return this.availabilityService.deleteTimeOff(id)
   }
 
   // ─── Public: available slots for booking ─────────────────────────────
 
-  @Get("providers/:providerProfileId/slots")
+  @Get(":providerProfileId/slots")
   @AllowAnonymous()
   @ApiOperation({
     summary: "Get available slots for a provider on a date (public)",

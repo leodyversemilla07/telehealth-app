@@ -27,7 +27,6 @@ enum AppointmentStatus {
   IN_PROGRESS
   COMPLETED
   CANCELLED
-  NO_SHOW
 }
 
 enum VisitType {
@@ -63,7 +62,8 @@ model User {
   patientProfile   PatientProfile?
   providerProfile  ProviderProfile?
   consentLogs      ConsentLog[]
-  patientAppointments Appointment[] @relation("PatientAppointments")
+  appointments     Appointment[] @relation("PatientAppointments")
+  notifications    Notification[]
 }
 
 model Session {
@@ -128,25 +128,25 @@ model PatientProfile {
 }
 
 model ProviderProfile {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialty             String
-  prcLicenseNumber      String   @unique
-  prcLicenseExpiry      DateTime
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty String
+  prcLicenseNumber    String   @unique
+  prcLicenseExpiry    DateTime
   philhealthAccreditation String?
-  pdeaS2License         String?
-  pdeaS2Expiry          DateTime?
-  bio                   String?
-  clinicAddress         String?
-  pricePerVisit         Decimal  @db.Decimal(10, 2)
-  isApproved            Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  pdeaS2License       String?
+  pdeaS2Expiry        DateTime?
+  bio        String?
+  clinicAddress String?
+  pricePerVisit Decimal @db.Decimal(10, 2)
+  isApproved Boolean @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  availabilities Availability[]
-  timeOff        TimeOff[]
-  appointments   Appointment[] @relation("ProviderAppointments")
+  availabilities  Availability[]
+  timeOff         TimeOff[]
+  appointments    Appointment[] @relation("DoctorAppointments")
 
   @@map("provider_profiles")
 }
@@ -185,14 +185,15 @@ model Appointment {
   patientId  String
   patient    User              @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
   providerId String
-  provider   ProviderProfile   @relation("ProviderAppointments", fields: [providerId], references: [id], onDelete: Cascade)
+  provider   ProviderProfile   @relation("DoctorAppointments", fields: [providerId], references: [id], onDelete: Cascade)
   startTime  DateTime
   endTime    DateTime
   status     AppointmentStatus @default(BOOKED)
   reason     String?
   symptoms   String?
-  language   Language?
   type       VisitType         @default(VIDEO)
+  notes      String?
+  prescription String?
   createdAt  DateTime          @default(now())
   updatedAt  DateTime          @updatedAt
 
@@ -200,6 +201,20 @@ model Appointment {
   @@index([providerId])
   @@index([startTime])
   @@map("appointments")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // APPOINTMENT_REMINDER, APPOINTMENT_CONFIRMATION, APPOINTMENT_CANCELLED, SCHEDULE_UPDATED, SYSTEM
+  title     String
+  body      String?
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
 }
 
 model ConsentLog {

@@ -1,65 +1,22 @@
-export type AppointmentStatus =
-  | "BOOKED"
-  | "CONFIRMED"
-  | "IN_PROGRESS"
-  | "COMPLETED"
-  | "CANCELLED"
-  | "NO_SHOW"
+import type { z } from "zod"
+import type {
+  appointmentSchema,
+  appointmentStatusSchema,
+  availableSlotSchema,
+  createAppointmentSchema,
+  rescheduleAppointmentSchema,
+  updateAppointmentStatusSchema,
+  visitTypeSchema,
+} from "../schemas/appointment.schema.js"
 
-export type VisitType = "VIDEO" | "PHONE" | "IN_PERSON"
-
-export interface AvailabilitySlotDto {
-  id: string
-  providerId: string
-  dayOfWeek: number
-  startTime: string // HH:mm
-  endTime: string // HH:mm
-  slotDuration: number
-  isActive: boolean
-}
-
-export interface TimeOffDto {
-  id: string
-  providerId: string
-  date: string
-  startTime: string
-  endTime: string
-  reason: string | null
-}
-
-export interface TimeSlot {
-  startTime: string // HH:mm
-  endTime: string // HH:mm
-}
-
-export interface AppointmentDto {
-  id: string
-  patientId: string
-  providerId: string
-  startTime: string
-  endTime: string
-  status: AppointmentStatus
-  reason: string | null
-  symptoms: string | null
-  language: string | null
-  type: VisitType
-  createdAt: string
-  updatedAt: string
-  patient?: {
-    id: string
-    name: string | null
-    email: string
-    image: string | null
-  }
-  provider?: {
-    id: string
-    specialty: string
-    pricePerVisit: number
-    user: {
-      id: string
-      name: string | null
-      email: string
-      image: string | null
-    }
-  }
-}
+export type AppointmentStatus = z.infer<typeof appointmentStatusSchema>
+export type VisitType = z.infer<typeof visitTypeSchema>
+export type AppointmentDto = z.infer<typeof appointmentSchema>
+export type CreateAppointmentDto = z.infer<typeof createAppointmentSchema>
+export type RescheduleAppointmentDto = z.infer<
+  typeof rescheduleAppointmentSchema
+>
+export type UpdateAppointmentStatusDto = z.infer<
+  typeof updateAppointmentStatusSchema
+>
+export type AvailableSlotDto = z.infer<typeof availableSlotSchema>

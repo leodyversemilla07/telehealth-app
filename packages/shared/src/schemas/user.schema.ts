@@ -40,7 +40,7 @@ export const patientProfileSchema = z.object({
   updatedAt: z.coerce.date(),
 })
 
-export const providerProfileSchema = z.object({
+const providerProfileBaseSchema = z.object({
   id: z.string(),
   userId: z.string(),
   specialty: z.string(),
@@ -55,4 +55,13 @@ export const providerProfileSchema = z.object({
   isApproved: z.boolean(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
+})
+
+export const providerProfileSchema = providerProfileBaseSchema.extend({
+  user: z.object({
+    id: z.string(),
+    name: z.string().nullable(),
+    email: z.string().email(),
+    image: z.string().url().nullable(),
+  }),
 })
