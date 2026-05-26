@@ -386,8 +386,8 @@ export default function AppointmentDetailPage({
               {visitTypeLabel(appointment.type)}
             </p>
             {appointment.roomUrl && (
-              <a
-                href={appointment.roomUrl}
+            <a
+            href={appointment.roomUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-primary hover:underline mt-1 inline-block"

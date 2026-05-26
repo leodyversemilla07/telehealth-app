@@ -201,14 +201,14 @@ export class AvailabilityService {
 
     const targetDate = new Date(date)
     const dayOfWeek = targetDate.getDay()
-    const dayKey = DAY_BY_INDEX[dayOfWeek]
-    if (!dayKey) return []
+ const dayKey = DAY_BY_INDEX[dayOfWeek]
+ if (!dayKey) return []
 
-    const daySlots: string[] = (() => {
-      try {
-        return JSON.parse(
-          ((schedule as Record<string, unknown>)[dayKey] as string) || "[]",
-        )
+ const daySlots: string[] = (() => {
+ try {
+ return JSON.parse(
+ ((schedule as Record<string, unknown>)[dayKey] as string) || "[]",
+ )
       } catch {
         return []
       }
@@ -261,12 +261,12 @@ export class AvailabilityService {
         })
 
         if (!isBooked) {
-          slots.push({
-            startTime: `${date}T${slotStart}:00`,
-            endTime: `${date}T${slotEnd}:00`,
-            scheduleId: schedule.id,
-            available: true,
-          })
+ slots.push({
+ startTime: `${date}T${slotStart}:00`,
+ endTime: `${date}T${slotEnd}:00`,
+ scheduleId: schedule.id,
+ available: true,
+ })
         }
       }
     }
