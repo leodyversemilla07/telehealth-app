@@ -45,14 +45,6 @@ export class AvailabilityController {
     return this.availabilityService.getMyAvailability(session.user.id)
   }
 
-  @Get(":doctorId")
-  @AllowAnonymous()
-  @ApiOperation({ summary: "Get a doctor's weekly schedule (public)" })
-  @ApiParam({ name: "doctorId", description: "Doctor profile ID" })
-  async getSchedule(@Param("doctorId") doctorId: string) {
-    return this.availabilityService.getSchedule(doctorId)
-  }
-
   // ─── Time off ────────────────────────────────────────────────────────
 
   @Post("time-off")
@@ -76,8 +68,11 @@ export class AvailabilityController {
   @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Remove a time-off entry (Doctor)" })
   @ApiParam({ name: "id", description: "Time-off ID" })
-  async deleteTimeOff(@Param("id") id: string) {
-    return this.availabilityService.deleteTimeOff(id)
+  async deleteTimeOff(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+  ) {
+    return this.availabilityService.deleteTimeOff(session.user.id, id)
   }
 
   // ─── Public: available slots for booking ─────────────────────────────
@@ -92,5 +87,13 @@ export class AvailabilityController {
     @Query("date") date: string,
   ) {
     return this.availabilityService.getAvailableSlots(doctorId, date)
+  }
+
+  @Get(":doctorId")
+  @AllowAnonymous()
+  @ApiOperation({ summary: "Get a doctor's weekly schedule (public)" })
+  @ApiParam({ name: "doctorId", description: "Doctor profile ID" })
+  async getSchedule(@Param("doctorId") doctorId: string) {
+    return this.availabilityService.getSchedule(doctorId)
   }
 }

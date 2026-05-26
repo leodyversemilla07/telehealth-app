@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable, NotFoundException } from "@nestjs/common"
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common"
 import { PrismaService } from "@/prisma/prisma.service"
 import type { CreateTimeOffDto, SetAvailabilityDto } from "./dto"
 
@@ -20,6 +24,16 @@ const DAYS: DayKey[] = [
   "saturday",
   "sunday",
 ]
+
+const DAY_BY_INDEX: Record<number, DayKey> = {
+  0: "sunday",
+  1: "monday",
+  2: "tuesday",
+  3: "wednesday",
+  4: "thursday",
+  5: "friday",
+  6: "saturday",
+}
 
 @Injectable()
 export class AvailabilityService {
@@ -44,11 +58,28 @@ export class AvailabilityService {
   async setAvailability(userId: string, dto: SetAvailabilityDto) {
     const doctor = await this.getDoctorProfile(userId)
 
-    const data: Record<string, unknown> = {}
+    const grouped = new Map<DayKey, string[]>()
     for (const day of DAYS) {
-      if (dto[day] !== undefined) data[day] = dto[day]
+      grouped.set(day, [])
     }
-    if (dto.slotDuration !== undefined) data.slotDuration = dto.slotDuration
+
+    for (const slot of dto.slots) {
+      if (slot.isActive === false) continue
+      const day = DAY_BY_INDEX[slot.dayOfWeek]
+      if (!day) continue
+      grouped.get(day)?.push(`${slot.startTime}-${slot.endTime}`)
+    }
+
+    const data: Record<DayKey, string> & { slotDuration: number } = {
+      monday: JSON.stringify(grouped.get("monday") ?? []),
+      tuesday: JSON.stringify(grouped.get("tuesday") ?? []),
+      wednesday: JSON.stringify(grouped.get("wednesday") ?? []),
+      thursday: JSON.stringify(grouped.get("thursday") ?? []),
+      friday: JSON.stringify(grouped.get("friday") ?? []),
+      saturday: JSON.stringify(grouped.get("saturday") ?? []),
+      sunday: JSON.stringify(grouped.get("sunday") ?? []),
+      slotDuration: dto.slots[0]?.slotDuration ?? 30,
+    }
 
     return this.prisma.availabilitySchedule.upsert({
       where: { doctorId: doctor.id },
@@ -70,9 +101,7 @@ export class AvailabilityService {
       include: { timeOffs: true },
     })
     if (!schedule) {
-      throw new NotFoundException(
-        "Schedule not found — set availability first",
-      )
+      throw new NotFoundException("Schedule not found — set availability first")
     }
     return schedule
   }
@@ -99,16 +128,14 @@ export class AvailabilityService {
       where: { doctorId: doctor.id },
     })
     if (!schedule) {
-      throw new NotFoundException(
-        "Schedule not found — set availability first",
-      )
+      throw new NotFoundException("Schedule not found — set availability first")
     }
 
     return this.prisma.timeOff.create({
       data: {
         scheduleId: schedule.id,
-        startDate: new Date(dto.startDate),
-        endDate: new Date(dto.endDate),
+        startDate: new Date(`${dto.date}T${dto.startTime}:00`),
+        endDate: new Date(`${dto.date}T${dto.endTime}:00`),
         reason: dto.reason,
       },
     })
@@ -132,12 +159,17 @@ export class AvailabilityService {
   /**
    * Delete a time-off block.
    */
-  async deleteTimeOff(timeOffId: string) {
+  async deleteTimeOff(userId: string, timeOffId: string) {
+    const doctor = await this.getDoctorProfile(userId)
     const entry = await this.prisma.timeOff.findUnique({
       where: { id: timeOffId },
+      include: { schedule: true },
     })
     if (!entry) {
       throw new NotFoundException(`Time-off entry "${timeOffId}" not found`)
+    }
+    if (entry.schedule.doctorId !== doctor.id) {
+      throw new ForbiddenException("You can only delete your own time off")
     }
     await this.prisma.timeOff.delete({ where: { id: timeOffId } })
     return { success: true }
@@ -169,11 +201,14 @@ export class AvailabilityService {
 
     const targetDate = new Date(date)
     const dayOfWeek = targetDate.getDay()
-    const dayKey = DAYS[dayOfWeek === 0 ? 6 : dayOfWeek - 1] // 0=Sun → sunday, 1=Mon → monday...
+    const dayKey = DAY_BY_INDEX[dayOfWeek]
+    if (!dayKey) return []
 
     const daySlots: string[] = (() => {
       try {
-        return JSON.parse((schedule as Record<string, unknown>)[dayKey] as string || "[]")
+        return JSON.parse(
+          ((schedule as Record<string, unknown>)[dayKey] as string) || "[]",
+        )
       } catch {
         return []
       }
@@ -196,7 +231,12 @@ export class AvailabilityService {
       end: apt.endTime,
     }))
 
-    const slots: { startTime: string; endTime: string; available: boolean }[] = []
+    const slots: {
+      startTime: string
+      endTime: string
+      scheduleId: string
+      available: boolean
+    }[] = []
 
     for (const entry of daySlots) {
       // Each entry is like "09:00-17:00"
@@ -224,6 +264,7 @@ export class AvailabilityService {
           slots.push({
             startTime: `${date}T${slotStart}:00`,
             endTime: `${date}T${slotEnd}:00`,
+            scheduleId: schedule.id,
             available: true,
           })
         }

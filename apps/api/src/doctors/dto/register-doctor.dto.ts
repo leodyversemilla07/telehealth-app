@@ -1,5 +1,4 @@
 import {
-  IsBoolean,
   IsDateString,
   IsDecimal,
   IsOptional,
@@ -42,8 +41,4 @@ export class RegisterDoctorDto {
   @IsOptional()
   @IsDecimal({ decimal_digits: "2" })
   pricePerVisit?: string
-
-  @IsOptional()
-  @IsBoolean()
-  isApproved?: boolean
 }

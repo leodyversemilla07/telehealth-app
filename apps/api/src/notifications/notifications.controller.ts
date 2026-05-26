@@ -1,10 +1,5 @@
-import { Controller, Get, Param, Patch } from "@nestjs/common"
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from "@nestjs/swagger"
+import { Controller, Get, Param, Patch, Query } from "@nestjs/common"
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Session } from "@thallesp/nestjs-better-auth"
 import type { NotificationQueryDto } from "./dto"
@@ -20,7 +15,7 @@ export class NotificationsController {
   @ApiOperation({ summary: "List current user's notifications" })
   async getNotifications(
     @Session() session: UserSession,
-    @Param() query: NotificationQueryDto,
+    @Query() query: NotificationQueryDto,
   ) {
     return this.notificationsService.getNotifications(session.user.id, query)
   }
@@ -31,19 +26,16 @@ export class NotificationsController {
     return this.notificationsService.getUnreadCount(session.user.id)
   }
 
-  @Patch(":id/read")
-  @ApiOperation({ summary: "Mark a single notification as read" })
-  @ApiParam({ name: "id", description: "Notification ID" })
-  async markAsRead(
-    @Session() session: UserSession,
-    @Param("id") id: string,
-  ) {
-    return this.notificationsService.markAsRead(session.user.id, id)
-  }
-
   @Patch("mark-all-read")
   @ApiOperation({ summary: "Mark all notifications as read" })
   async markAllAsRead(@Session() session: UserSession) {
     return this.notificationsService.markAllAsRead(session.user.id)
+  }
+
+  @Patch(":id/read")
+  @ApiOperation({ summary: "Mark a single notification as read" })
+  @ApiParam({ name: "id", description: "Notification ID" })
+  async markAsRead(@Session() session: UserSession, @Param("id") id: string) {
+    return this.notificationsService.markAsRead(session.user.id, id)
   }
 }

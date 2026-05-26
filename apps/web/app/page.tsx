@@ -36,7 +36,7 @@ export default function Page() {
   if (!session) {
     return (
       <div className="flex min-h-svh flex-col items-center justify-center gap-4 p-6 bg-background">
-        <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-extrabold tracking-tight bg-linear-to-r from-primary to-primary/60 bg-clip-text text-transparent">
           Next Monorepo
         </h1>
         <p className="text-muted-foreground text-sm max-w-sm text-center leading-relaxed">

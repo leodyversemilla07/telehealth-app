@@ -8,6 +8,7 @@
   },
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/../src/$1",
-    "^@generated/(.*)$": "<rootDir>/../generated/$1"
+    "^@generated/(.*)$": "<rootDir>/../generated/$1",
+    "^@thallesp/nestjs-better-auth$": "<rootDir>/mocks/nestjs-better-auth.ts"
   }
 }

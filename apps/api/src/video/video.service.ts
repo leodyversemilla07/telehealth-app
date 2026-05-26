@@ -19,11 +19,11 @@ export class VideoService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
   ) {
-    this.livekitUrl = this.configService.get<string>("LIVEKIT_URL")!
-    this.livekitApiKey = this.configService.get<string>("LIVEKIT_API_KEY")!
-    this.livekitApiSecret = this.configService.get<string>(
-      "LIVEKIT_API_SECRET",
-    )!
+    this.livekitUrl = this.configService.getOrThrow<string>("LIVEKIT_URL")
+    this.livekitApiKey =
+      this.configService.getOrThrow<string>("LIVEKIT_API_KEY")
+    this.livekitApiSecret =
+      this.configService.getOrThrow<string>("LIVEKIT_API_SECRET")
 
     this.roomServiceClient = new RoomServiceClient(
       this.livekitUrl,
@@ -68,13 +68,9 @@ export class VideoService {
     roomName: string,
     isDoctor: boolean,
   ): Promise<string> {
-    const token = new AccessToken(
-      this.livekitApiKey,
-      this.livekitApiSecret,
-      {
-        identity: participantIdentity,
-      },
-    )
+    const token = new AccessToken(this.livekitApiKey, this.livekitApiSecret, {
+      identity: participantIdentity,
+    })
 
     token.addGrant({
       roomJoin: true,
@@ -94,7 +90,10 @@ export class VideoService {
    * Validates appointment exists, user is participant, status is CONFIRMED/IN_PROGRESS,
    * and current time is within the appointment window (5 min before start to end).
    */
-  async joinRoom(dto: JoinRoomDto, userId: string): Promise<{
+  async joinRoom(
+    dto: JoinRoomDto,
+    userId: string,
+  ): Promise<{
     token: string
     url: string
     roomName: string
@@ -187,8 +186,14 @@ export class VideoService {
     }
 
     // Generate token for the participant
-    const participantIdentity = isDoctor ? `doctor-${userId}` : `patient-${userId}`
-    const token = await this.generateToken(participantIdentity, roomName, isDoctor)
+    const participantIdentity = isDoctor
+      ? `doctor-${userId}`
+      : `patient-${userId}`
+    const token = await this.generateToken(
+      participantIdentity,
+      roomName,
+      isDoctor,
+    )
 
     return {
       token,
@@ -202,7 +207,10 @@ export class VideoService {
    * F-CONSULT-05: Redirect to post-visit screen after call ends.
    * F-CONSULT-06: Store call metadata (duration, participants, timestamps).
    */
-  async endRoom(dto: JoinRoomDto): Promise<{
+  async endRoom(
+    dto: JoinRoomDto,
+    userId: string,
+  ): Promise<{
     appointmentId: string
     status: string
     endedAt: Date
@@ -212,6 +220,9 @@ export class VideoService {
 
     const appointment = await this.prisma.appointment.findUnique({
       where: { id: appointmentId },
+      include: {
+        doctor: { select: { userId: true } },
+      },
     })
 
     if (!appointment) {
@@ -221,6 +232,15 @@ export class VideoService {
     if (appointment.status !== "IN_PROGRESS") {
       throw new ForbiddenException(
         "Appointment is not in progress and cannot be ended",
+      )
+    }
+
+    if (
+      appointment.patientId !== userId &&
+      appointment.doctor.userId !== userId
+    ) {
+      throw new ForbiddenException(
+        "You are not a participant of this appointment",
       )
     }
 

@@ -16,10 +16,7 @@ export class VideoController {
     summary:
       "Join a video consultation room for an appointment (patient or doctor)",
   })
-  async joinRoom(
-    @Session() session: UserSession,
-    @Body() dto: JoinRoomDto,
-  ) {
+  async joinRoom(@Session() session: UserSession, @Body() dto: JoinRoomDto) {
     return this.videoService.joinRoom(dto, session.user.id)
   }
 
@@ -27,7 +24,7 @@ export class VideoController {
   @ApiOperation({
     summary: "End a video consultation and mark the appointment as completed",
   })
-  async endRoom(@Body() dto: JoinRoomDto) {
-    return this.videoService.endRoom(dto)
+  async endRoom(@Session() session: UserSession, @Body() dto: JoinRoomDto) {
+    return this.videoService.endRoom(dto, session.user.id)
   }
 }

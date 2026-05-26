@@ -2,26 +2,26 @@
 
 import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
+import { cn } from "@workspace/ui/lib/utils"
 import {
- Bell,
- CalendarDays,
- FileText,
- LogOut,
- Menu,
- Stethoscope,
- Users,
- X,
- Loader2,
+  Bell,
+  CalendarDays,
+  FileText,
+  Loader2,
+  LogOut,
+  Menu,
+  Stethoscope,
+  Users,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
-import { authClient } from "@/lib/auth-client"
-import { cn } from "@workspace/ui/lib/utils"
 import {
-  useUnreadCount,
   useNotificationSocket,
+  useUnreadCount,
 } from "@/hooks/use-notifications"
+import { authClient } from "@/lib/auth-client"
 
 // ── Navigation definitions per role ──────────────────────────────────────────
 
@@ -82,7 +82,7 @@ function Sidebar({
     <div
       className={cn(
         "flex flex-col h-full bg-card border-r border-border/40 transition-all duration-300 ease-in-out",
-        collapsed ? "w-16" : "w-64"
+        collapsed ? "w-16" : "w-64",
       )}
     >
       {/* Branding */}
@@ -125,7 +125,7 @@ function Sidebar({
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                 isActive
                   ? "bg-primary/10 text-primary border border-primary/20"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground border border-transparent",
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
@@ -160,7 +160,7 @@ function Sidebar({
           onClick={onSignOut}
           className={cn(
             "w-full flex items-center gap-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-            collapsed && "justify-center"
+            collapsed && "justify-center",
           )}
         >
           <LogOut className="h-4 w-4 shrink-0" />
@@ -265,7 +265,9 @@ export default function DashboardLayout({
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden">
           {/* Backdrop */}
-          <div
+          <button
+            type="button"
+            aria-label="Close navigation"
             className="absolute inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setSidebarOpen(false)}
           />

@@ -1,8 +1,10 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
-import type { CreateAppointmentDto, DoctorProfileDto, VisitType } from "@workspace/shared"
-import { Badge } from "@workspace/ui/components/badge"
+import type {
+  CreateAppointmentDto,
+  DoctorProfileDto,
+  VisitType,
+} from "@workspace/shared"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -28,11 +30,12 @@ import {
   Video,
 } from "lucide-react"
 import Link from "next/link"
+import React, { useMemo, useState } from "react"
 import { toast } from "sonner"
 import {
- useApprovedDoctors,
- useAvailableSlots,
- useBookAppointment,
+  useApprovedDoctors,
+  useAvailableSlots,
+  useBookAppointment,
 } from "@/hooks/use-appointments"
 
 // ── Step definitions ─────────────────────────────────────────────────────────
@@ -42,7 +45,11 @@ type Step = (typeof STEPS)[number]
 
 // ── Visit type config ────────────────────────────────────────────────────────
 
-const VISIT_TYPES: { value: VisitType; label: string; icon: React.ElementType }[] = [
+const VISIT_TYPES: {
+  value: VisitType
+  label: string
+  icon: React.ElementType
+}[] = [
   { value: "VIDEO", label: "Video Call", icon: Video },
   { value: "PHONE", label: "Phone Call", icon: Phone },
   { value: "IN_PERSON", label: "In Person", icon: Monitor },
@@ -63,11 +70,22 @@ function formatDateISO(date: Date) {
 }
 
 const MONTH_NAMES = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ]
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const EMPTY_CALENDAR_CELLS = [0, 1, 2, 3, 4, 5]
 
 const timeFormatter = new Intl.DateTimeFormat("en-PH", {
   timeStyle: "short",
@@ -83,14 +101,20 @@ export default function BookAppointmentPage() {
 
   // Step 1: Choose doctor
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedDoctor, setSelectedDoctor] = useState<DoctorProfileDto | null>(null)
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorProfileDto | null>(
+    null,
+  )
 
   // Step 2: Pick date & time
   const today = new Date()
   const [calYear, setCalYear] = useState(today.getFullYear())
   const [calMonth, setCalMonth] = useState(today.getMonth())
   const [selectedDate, setSelectedDate] = useState<string>("")
-  const [selectedSlot, setSelectedSlot] = useState<{ startTime: string; endTime: string; scheduleId: string } | null>(null)
+  const [selectedSlot, setSelectedSlot] = useState<{
+    startTime: string
+    endTime: string
+    scheduleId: string
+  } | null>(null)
   const [visitType, setVisitType] = useState<VisitType>("VIDEO")
 
   // Step 3: Reason
@@ -99,9 +123,9 @@ export default function BookAppointmentPage() {
 
   // ── Data fetching ────────────────────────────────────────────────────────
 
- const { data: doctors, isPending: doctorsLoading } = useApprovedDoctors()
- const { data: slots, isPending: slotsLoading } = useAvailableSlots(
- selectedDoctor?.id ?? "",
+  const { data: doctors, isPending: doctorsLoading } = useApprovedDoctors()
+  const { data: slots, isPending: slotsLoading } = useAvailableSlots(
+    selectedDoctor?.id ?? "",
     selectedDate,
   )
 
@@ -109,23 +133,21 @@ export default function BookAppointmentPage() {
 
   // ── Filter providers by search ───────────────────────────────────────────
 
- const filteredDoctors = useMemo(() => {
- if (!doctors) return []
- const q = searchQuery.toLowerCase().trim()
- if (!q) return doctors
- return doctors.filter(
- (d) =>
- d.specialty?.toLowerCase().includes(q) ||
- d.user?.name?.toLowerCase().includes(q),
- )
- }, [doctors, searchQuery])
+  const filteredDoctors = useMemo(() => {
+    if (!doctors) return []
+    const q = searchQuery.toLowerCase().trim()
+    if (!q) return doctors
+    return doctors.filter(
+      (d) =>
+        d.specialty?.toLowerCase().includes(q) ||
+        d.user?.name?.toLowerCase().includes(q),
+    )
+  }, [doctors, searchQuery])
 
   // ── Calendar data ────────────────────────────────────────────────────────
 
   const daysInMonth = getDaysInMonth(calYear, calMonth)
   const firstDay = getFirstDayOfMonth(calYear, calMonth)
-  const isCurrentMonth =
-    calYear === today.getFullYear() && calMonth === today.getMonth()
 
   // ── Step navigation ──────────────────────────────────────────────────────
 
@@ -141,8 +163,8 @@ export default function BookAppointmentPage() {
 
   function canGoNext(): boolean {
     switch (step) {
- case "Choose Doctor":
- return !!selectedDoctor
+      case "Choose Doctor":
+        return !!selectedDoctor
       case "Pick Date & Time":
         return !!selectedSlot && !!selectedDate
       case "Confirm":
@@ -154,11 +176,11 @@ export default function BookAppointmentPage() {
 
   // ── Submit ───────────────────────────────────────────────────────────────
 
- function handleBook() {
- if (!selectedDoctor || !selectedSlot) return
+  function handleBook() {
+    if (!selectedDoctor || !selectedSlot) return
 
- const dto: CreateAppointmentDto = {
- doctorId: selectedDoctor.id,
+    const dto: CreateAppointmentDto = {
+      doctorId: selectedDoctor.id,
       scheduleId: selectedSlot.scheduleId,
       startTime: selectedSlot.startTime,
       endTime: selectedSlot.endTime,
@@ -218,17 +240,15 @@ export default function BookAppointmentPage() {
                   i < stepIndex
                     ? "bg-primary text-primary-foreground"
                     : i === stepIndex
-                    ? "border-2 border-primary text-primary"
-                    : "bg-muted-foreground/20 text-muted-foreground"
+                      ? "border-2 border-primary text-primary"
+                      : "bg-muted-foreground/20 text-muted-foreground"
                 }`}
               >
                 {i < stepIndex ? <Check className="h-3 w-3" /> : i + 1}
               </span>
               <span className="hidden sm:inline">{s}</span>
             </div>
-            {i < STEPS.length - 1 && (
-              <div className="flex-1 h-px bg-border" />
-            )}
+            {i < STEPS.length - 1 && <div className="flex-1 h-px bg-border" />}
           </React.Fragment>
         ))}
       </div>
@@ -256,18 +276,18 @@ export default function BookAppointmentPage() {
             </div>
           )}
 
- {!doctorsLoading && filteredDoctors.length === 0 && (
- <div className="text-center py-10 text-muted-foreground text-sm">
- {searchQuery
- ? "No doctors match your search."
- : "No doctors available at the moment."}
+          {!doctorsLoading && filteredDoctors.length === 0 && (
+            <div className="text-center py-10 text-muted-foreground text-sm">
+              {searchQuery
+                ? "No doctors match your search."
+                : "No doctors available at the moment."}
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
- {/* Doctor list */}
- {filteredDoctors.map((doctor) => {
- const isSelected = selectedDoctor?.id === doctor.id
+            {/* Doctor list */}
+            {filteredDoctors.map((doctor) => {
+              const isSelected = selectedDoctor?.id === doctor.id
               return (
                 <Card
                   key={doctor.id}
@@ -407,14 +427,20 @@ export default function BookAppointmentPage() {
 
                 {/* Day cells */}
                 <div className="grid grid-cols-7 gap-1">
-                  {Array.from({ length: firstDay }).map((_, i) => (
-                    <div key={`empty-${i}`} />
+                  {EMPTY_CALENDAR_CELLS.slice(0, firstDay).map((cell) => (
+                    <div key={`empty-${cell}`} />
                   ))}
                   {Array.from({ length: daysInMonth }).map((_, i) => {
                     const day = i + 1
                     const dateObj = new Date(calYear, calMonth, day)
                     const dateStr = formatDateISO(dateObj)
-                    const isPast = dateObj < new Date(today.getFullYear(), today.getMonth(), today.getDate())
+                    const isPast =
+                      dateObj <
+                      new Date(
+                        today.getFullYear(),
+                        today.getMonth(),
+                        today.getDate(),
+                      )
                     const isSelected = selectedDate === dateStr
                     const isToday =
                       dateObj.toDateString() === today.toDateString()
@@ -432,10 +458,10 @@ export default function BookAppointmentPage() {
                           isSelected
                             ? "bg-primary text-primary-foreground shadow-sm"
                             : isToday
-                            ? "bg-primary/10 text-primary font-bold"
-                            : isPast
-                            ? "text-muted-foreground/30 cursor-not-allowed"
-                            : "text-foreground hover:bg-muted"
+                              ? "bg-primary/10 text-primary font-bold"
+                              : isPast
+                                ? "text-muted-foreground/30 cursor-not-allowed"
+                                : "text-foreground hover:bg-muted"
                         }`}
                       >
                         {day}
@@ -456,7 +482,7 @@ export default function BookAppointmentPage() {
                   weekday: "long",
                   month: "long",
                   day: "numeric",
-                }).format(new Date(selectedDate + "T00:00:00"))}
+                }).format(new Date(`${selectedDate}T00:00:00`))}
               </Label>
 
               {slotsLoading && (
@@ -542,8 +568,8 @@ export default function BookAppointmentPage() {
               <div className="flex items-center gap-3">
                 <Clock className="h-4 w-4 text-muted-foreground" />
                 <p className="text-sm">
-                  {timeFormatter.format(new Date(selectedSlot.startTime))} &ndash;{" "}
-                  {timeFormatter.format(new Date(selectedSlot.endTime))}
+                  {timeFormatter.format(new Date(selectedSlot.startTime))}{" "}
+                  &ndash; {timeFormatter.format(new Date(selectedSlot.endTime))}
                 </p>
               </div>
 
@@ -556,7 +582,8 @@ export default function BookAppointmentPage() {
                   { className: "h-4 w-4 text-muted-foreground" },
                 )}
                 <p className="text-sm">
-                  {VISIT_TYPES.find((v) => v.value === visitType)?.label ?? "Video Call"}
+                  {VISIT_TYPES.find((v) => v.value === visitType)?.label ??
+                    "Video Call"}
                 </p>
               </div>
             </CardContent>
@@ -611,11 +638,7 @@ export default function BookAppointmentPage() {
         )}
 
         {stepIndex < STEPS.length - 1 ? (
-          <Button
-            onClick={goNext}
-            disabled={!canGoNext()}
-            className="gap-1.5"
-          >
+          <Button onClick={goNext} disabled={!canGoNext()} className="gap-1.5">
             Next
             <ChevronRight className="h-4 w-4" />
           </Button>

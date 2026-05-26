@@ -50,15 +50,18 @@ export const envSchema = z.object({
     .string({
       required_error: "LIVEKIT_URL is required",
     })
-    .url("LIVEKIT_URL must be a valid WebSocket URL (e.g., wss://livekit.example.com)"),
-  LIVEKIT_API_KEY: z
-    .string({
-      required_error: "LIVEKIT_API_KEY is required",
-    }),
-  LIVEKIT_API_SECRET: z
-    .string({
-      required_error: "LIVEKIT_API_SECRET is required",
-    }),
+    .url(
+      "LIVEKIT_URL must be a valid WebSocket URL (e.g., wss://livekit.example.com)",
+    ),
+  LIVEKIT_API_KEY: z.string({
+    required_error: "LIVEKIT_API_KEY is required",
+  }),
+  LIVEKIT_API_SECRET: z.string({
+    required_error: "LIVEKIT_API_SECRET is required",
+  }),
+
+  // ── AI Recommendations (optional; endpoint returns 503 when absent) ───────
+  NIM_API_KEY: z.string().optional(),
 })
 
 export type Env = z.infer<typeof envSchema>

@@ -1,8 +1,8 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { io as socketIO, type Socket } from "socket.io-client"
-import { useEffect, useRef, useCallback } from "react"
+import { useCallback, useEffect, useRef } from "react"
+import { type Socket, io as socketIO } from "socket.io-client"
 import { apiClient } from "@/lib/api-client"
 import { env } from "@/lib/env"
 
@@ -11,9 +11,17 @@ import { env } from "@/lib/env"
 export interface Notification {
   id: string
   title: string
-  body: string
-  read: boolean
+  body: string | null
+  isRead: boolean
+  readAt: string | null
   createdAt: string
+}
+
+export interface NotificationListResponse {
+  items: Notification[]
+  total: number
+  limit: number
+  offset: number
 }
 
 export interface UnreadCountResponse {
@@ -33,7 +41,7 @@ export const notificationKeys = {
 export function useNotifications() {
   return useQuery({
     queryKey: notificationKeys.lists(),
-    queryFn: () => apiClient.get<Notification[]>("/notifications"),
+    queryFn: () => apiClient.get<NotificationListResponse>("/notifications"),
   })
 }
 
@@ -56,7 +64,9 @@ export function useMarkAsRead() {
       apiClient.patch<Notification>(`/notifications/${id}/read`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.unreadCount(),
+      })
     },
   })
 }
@@ -69,7 +79,9 @@ export function useMarkAllAsRead() {
       apiClient.patch<Notification>("/notifications/mark-all-read"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
+      queryClient.invalidateQueries({
+        queryKey: notificationKeys.unreadCount(),
+      })
     },
   })
 }

@@ -12,13 +12,15 @@ import { cn } from "@workspace/ui/lib/utils"
 import { Bell, Check, CheckCheck, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import {
+  type Notification,
+  useMarkAllAsRead,
+  useMarkAsRead,
+  useNotificationSocket,
   useNotifications,
   useUnreadCount,
-  useMarkAsRead,
-  useMarkAllAsRead,
-  useNotificationSocket,
-  type Notification,
 } from "@/hooks/use-notifications"
+
+const SKELETON_ROWS = ["first", "second", "third", "fourth", "fifth"]
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -67,22 +69,22 @@ function NotificationItem({
     <button
       type="button"
       onClick={() => {
-        if (!notification.read) onMarkAsRead(notification.id)
+        if (!notification.isRead) onMarkAsRead(notification.id)
       }}
       className={cn(
         "flex items-start gap-3 rounded-lg border p-4 text-left transition-all duration-200 w-full",
-        notification.read
+        notification.isRead
           ? "border-border/30 bg-card/60 hover:bg-card"
-          : "border-primary/20 bg-primary/5 hover:bg-primary/10 shadow-sm shadow-primary/5"
+          : "border-primary/20 bg-primary/5 hover:bg-primary/10 shadow-sm shadow-primary/5",
       )}
     >
       {/* Icon */}
       <div
         className={cn(
           "h-9 w-9 rounded-full flex items-center justify-center shrink-0",
-          notification.read
+          notification.isRead
             ? "bg-muted text-muted-foreground"
-            : "bg-primary/10 text-primary"
+            : "bg-primary/10 text-primary",
         )}
       >
         <Bell className="h-4 w-4" />
@@ -94,14 +96,14 @@ function NotificationItem({
           <p
             className={cn(
               "text-sm truncate",
-              notification.read
+              notification.isRead
                 ? "font-medium text-foreground/80"
-                : "font-semibold text-foreground"
+                : "font-semibold text-foreground",
             )}
           >
             {notification.title}
           </p>
-          {!notification.read && (
+          {!notification.isRead && (
             <Badge
               variant="secondary"
               className="h-5 px-1.5 text-[10px] font-semibold bg-primary/10 text-primary border-primary/20 shrink-0"
@@ -122,7 +124,7 @@ function NotificationItem({
       <div className="shrink-0 pt-0.5">
         {isMarkingRead ? (
           <Loader2 className="h-4 w-4 animate-spin text-primary" />
-        ) : notification.read ? (
+        ) : notification.isRead ? (
           <CheckCheck className="h-4 w-4 text-muted-foreground/50" />
         ) : (
           <Check className="h-4 w-4 text-primary/60 hover:text-primary transition-colors" />
@@ -141,7 +143,9 @@ function EmptyState() {
         <Bell className="h-7 w-7 text-muted-foreground" />
       </div>
       <div className="text-center space-y-1">
-        <p className="text-sm font-semibold text-foreground">No notifications</p>
+        <p className="text-sm font-semibold text-foreground">
+          No notifications
+        </p>
         <p className="text-xs text-muted-foreground">
           You&apos;re all caught up! New notifications will appear here.
         </p>
@@ -162,7 +166,7 @@ export default function NotificationsPage() {
   const markAllAsRead = useMarkAllAsRead()
 
   const unreadCount = unreadData?.count ?? 0
-  const items = notifications ?? []
+  const items = notifications?.items ?? []
 
   const handleMarkAsRead = (id: string) => {
     markAsRead.mutate(id, {
@@ -240,8 +244,8 @@ export default function NotificationsPage() {
           {/* Loading skeletons */}
           {isPending && (
             <div className="space-y-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <NotificationSkeleton key={i} />
+              {SKELETON_ROWS.map((row) => (
+                <NotificationSkeleton key={row} />
               ))}
             </div>
           )}
@@ -257,7 +261,8 @@ export default function NotificationsPage() {
                 notification={notification}
                 onMarkAsRead={handleMarkAsRead}
                 isMarkingRead={
-                  markAsRead.isPending && markAsRead.variables === notification.id
+                  markAsRead.isPending &&
+                  markAsRead.variables === notification.id
                 }
               />
             ))}

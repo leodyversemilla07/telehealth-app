@@ -34,6 +34,10 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-johndoe}:${POSTGRES_PASSWORD:-randompassword}@postgres:5432/${POSTGRES_DB:-mydb}
       CORS_ORIGIN: http://localhost:3000
       BETTER_AUTH_URL: http://localhost:3001
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-development-secret-change-me-32}
+      LIVEKIT_URL: ${LIVEKIT_URL:-wss://livekit.local}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-devkey}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-devsecret}
     ports:
       - "3001:3001"
     depends_on:

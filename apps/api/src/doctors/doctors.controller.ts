@@ -1,10 +1,18 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
+import { DoctorsService } from "@/doctors/doctors.service"
 import type { RegisterDoctorDto } from "@/doctors/dto"
 import { SearchDoctorsDto } from "@/doctors/dto"
-import { DoctorsService } from "@/doctors/doctors.service"
 
 @ApiTags("Doctors")
 @ApiBearerAuth("session-token")
@@ -15,6 +23,7 @@ export class DoctorsController {
   // ─── Registration (authenticated user) ──────────────────────────────
 
   @Post("register")
+  @Roles(["DOCTOR"])
   @ApiOperation({
     summary: "Register as a doctor (requires DOCTOR role)",
   })
@@ -29,7 +38,10 @@ export class DoctorsController {
 
   @Get()
   @AllowAnonymous()
-  @ApiOperation({ summary: "List all approved doctors with optional search, filter, and sort (public)" })
+  @ApiOperation({
+    summary:
+      "List all approved doctors with optional search, filter, and sort (public)",
+  })
   async findAllApproved(@Query() query: SearchDoctorsDto) {
     return this.doctorsService.findApproved(query)
   }

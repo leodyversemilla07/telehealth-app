@@ -3,8 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
-import { PrismaService } from "@/prisma/prisma.service"
 import type { RegisterDoctorDto, SearchDoctorsDto } from "@/doctors/dto"
+import { PrismaService } from "@/prisma/prisma.service"
 
 @Injectable()
 export class DoctorsService {
@@ -48,7 +48,7 @@ export class DoctorsService {
         pricePerVisit: dto.pricePerVisit
           ? Number.parseFloat(dto.pricePerVisit)
           : 0,
-        isApproved: dto.isApproved ?? false,
+        isApproved: false,
       },
     })
 
@@ -98,10 +98,7 @@ export class DoctorsService {
 
       // When both specialty filter and search are present, combine with AND
       const searchOr = {
-        OR: [
-          { specialty: searchFilter },
-          { user: { name: searchFilter } },
-        ],
+        OR: [{ specialty: searchFilter }, { user: { name: searchFilter } }],
       }
 
       if (filters.specialty) {

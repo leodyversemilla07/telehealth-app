@@ -258,7 +258,8 @@ function AiRecommendationCard() {
       {expanded && (
         <CardContent className="px-6 pb-6 pt-0 space-y-4">
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Describe your symptoms and our AI will recommend the right specialties and doctors for you.
+            Describe your symptoms and our AI will recommend the right
+            specialties and doctors for you.
           </p>
 
           {/* Symptoms textarea + submit */}
@@ -266,7 +267,9 @@ function AiRecommendationCard() {
             <Textarea
               placeholder="e.g. I've been having persistent headaches and blurred vision for the past week..."
               value={symptoms}
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setSymptoms(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+                setSymptoms(e.target.value)
+              }
               rows={3}
               className="resize-none text-sm"
             />
@@ -297,7 +300,8 @@ function AiRecommendationCard() {
               <div className="space-y-1 flex-1">
                 <h4 className="font-semibold text-sm">Recommendation failed</h4>
                 <p className="text-xs text-destructive/80 leading-relaxed">
-                  {recommendation.error?.message || "Something went wrong. Please try again."}
+                  {recommendation.error?.message ||
+                    "Something went wrong. Please try again."}
                 </p>
               </div>
               <Button
@@ -354,14 +358,16 @@ function AiRecommendationCard() {
               )}
 
               {/* No matches */}
-              {result.specialties.length === 0 && result.doctors.length === 0 && (
-                <div className="bg-card border border-border/40 rounded-lg p-6 text-center space-y-2">
-                  <Stethoscope className="h-5 w-5 text-muted-foreground mx-auto" />
-                  <p className="text-sm text-muted-foreground">
-                    No matching specialties or doctors found for your symptoms.
-                  </p>
-                </div>
-              )}
+              {result.specialties.length === 0 &&
+                result.doctors.length === 0 && (
+                  <div className="bg-card border border-border/40 rounded-lg p-6 text-center space-y-2">
+                    <Stethoscope className="h-5 w-5 text-muted-foreground mx-auto" />
+                    <p className="text-sm text-muted-foreground">
+                      No matching specialties or doctors found for your
+                      symptoms.
+                    </p>
+                  </div>
+                )}
             </div>
           )}
         </CardContent>
@@ -416,9 +422,9 @@ export default function DoctorDiscoveryPage() {
               {resultCount} doctor{resultCount !== 1 ? "s" : ""} available
             </span>
           )}
-          {!isPending && resultCount === 0 && (deferredSearch || specialty !== "all") && (
-            <span>No matches</span>
-          )}
+          {!isPending &&
+            resultCount === 0 &&
+            (deferredSearch || specialty !== "all") && <span>No matches</span>}
         </div>
       </div>
 
@@ -446,10 +452,15 @@ export default function DoctorDiscoveryPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         {/* Specialty dropdown */}
         <div className="flex items-center gap-2 sm:w-64">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
             Specialty
-          </label>
-          <Select value={specialty} onValueChange={(v: string | null) => { if (v != null) setSpecialty(v) }}>
+          </span>
+          <Select
+            value={specialty}
+            onValueChange={(v: string | null) => {
+              if (v != null) setSpecialty(v)
+            }}
+          >
             <SelectTrigger className="h-9 text-sm">
               <SelectValue placeholder="All specialties" />
             </SelectTrigger>
@@ -466,9 +477,9 @@ export default function DoctorDiscoveryPage() {
 
         {/* Sort toggle */}
         <div className="flex items-center gap-2">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider whitespace-nowrap">
             Sort by
-          </label>
+          </span>
           <div className="inline-flex items-center rounded-lg border border-border/40 bg-card p-0.5 shadow-sm">
             <button
               type="button"

@@ -21,8 +21,8 @@ export const appointmentSchema = z.object({
   reason: z.string().nullable(),
   symptoms: z.string().nullable(),
   type: visitTypeSchema,
+  roomUrl: z.string().nullable().optional(),
   notes: z.string().nullable(),
-  prescription: z.string().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   patient: z.object({
@@ -44,8 +44,8 @@ export const appointmentSchema = z.object({
 })
 
 export const createAppointmentSchema = z.object({
- doctorId: z.string(),
- scheduleId: z.string(),
+  doctorId: z.string(),
+  scheduleId: z.string(),
   startTime: z.string(),
   endTime: z.string(),
   reason: z.string().optional(),
@@ -65,5 +65,6 @@ export const updateAppointmentStatusSchema = z.object({
 export const availableSlotSchema = z.object({
   startTime: z.string(),
   endTime: z.string(),
+  scheduleId: z.string(),
   available: z.boolean().optional(),
 })
