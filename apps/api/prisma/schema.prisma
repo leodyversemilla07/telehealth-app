@@ -42,12 +42,13 @@ model User {
   twoFactorSecret      String?
   twoFactorBackupCodes String?
 
-  sessions       Session[]
-  accounts       Account[]
+  sessions Session[]
+  accounts Account[]
   securityAlerts SecurityAlert[]
   patientProfile PatientProfile?
   providerProfile ProviderProfile?
-  consentLogs    ConsentLog[]
+  consentLogs ConsentLog[]
+  appointments Appointment[] @relation("PatientAppointments")
 }
 
 model Session {
@@ -112,21 +113,24 @@ model PatientProfile {
 }
 
 model ProviderProfile {
-  id                    String   @id @default(cuid())
-  userId                String   @unique
-  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  specialty             String
-  prcLicenseNumber      String   @unique
-  prcLicenseExpiry      DateTime
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  specialty String
+  prcLicenseNumber    String   @unique
+  prcLicenseExpiry    DateTime
   philhealthAccreditation String?
-  pdeaS2License         String?
-  pdeaS2Expiry          DateTime?
-  bio                   String?
-  clinicAddress         String?
-  pricePerVisit         Decimal  @db.Decimal(10, 2)
-  isApproved            Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  pdeaS2License       String?
+  pdeaS2Expiry        DateTime?
+  bio        String?
+  clinicAddress String?
+  pricePerVisit Decimal @db.Decimal(10, 2)
+  isApproved Boolean @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  appointments        Appointment[] @relation("DoctorAppointments")
+  availabilitySchedule AvailabilitySchedule?
 
   @@map("provider_profiles")
 }
@@ -169,4 +173,105 @@ model SecurityAlert {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("security_alerts")
+}
+
+enum AppointmentStatus {
+  BOOKED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum VisitType {
+  VIDEO
+  PHONE
+  IN_PERSON
+}
+
+model AvailabilitySchedule {
+  id         String   @id @default(cuid())
+  providerId String   @unique
+  provider   ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  monday     String   @default("[]")
+  tuesday    String   @default("[]")
+  wednesday  String   @default("[]")
+  thursday   String   @default("[]")
+  friday     String   @default("[]")
+  saturday   String   @default("[]")
+  sunday     String   @default("[]")
+  slotDuration Int    @default(30)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  appointments Appointment[]
+  timeOffs     TimeOff[]
+
+  @@map("availability_schedules")
+}
+
+model TimeOff {
+  id         String   @id @default(cuid())
+  scheduleId String
+  schedule   AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  startDate  DateTime
+  endDate    DateTime
+  reason     String?
+  createdAt  DateTime @default(now())
+
+  @@map("time_offs")
+}
+
+model Appointment {
+  id         String   @id @default(cuid())
+  patientId  String
+  patient    User     @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
+  providerId String
+  provider   ProviderProfile @relation("DoctorAppointments", fields: [providerId], references: [id], onDelete: Cascade)
+  scheduleId String
+  schedule   AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  startTime  DateTime
+  endTime    DateTime
+  status     AppointmentStatus @default(BOOKED)
+  reason     String?
+  symptoms   String?
+  type       VisitType @default(VIDEO)
+  roomUrl    String?
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  consultation Consultation?
+
+  @@map("appointments")
+}
+
+model Consultation {
+  id           String   @id @default(cuid())
+  appointmentId String  @unique
+  appointment  Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patientNotes String?
+  doctorNotes  String?
+  diagnosis    String?
+  plan         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  prescriptions Prescription[]
+
+  @@map("consultations")
+}
+
+model Prescription {
+  id             String   @id @default(cuid())
+  consultationId String
+  consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  medicationName String
+  dosage         String
+  frequency      String
+  duration       String
+  instructions   String?
+  createdAt      DateTime @default(now())
+
+  @@map("prescriptions")
 }
