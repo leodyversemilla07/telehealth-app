@@ -5,7 +5,7 @@ import { twoFactor } from "better-auth/plugins/two-factor"
 import { prisma } from "@/prisma/prisma-client"
 
 export const auth = betterAuth({
-  appName: "Next Monorepo",
+  appName: "Telehealth Platform",
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -80,7 +80,7 @@ export const auth = betterAuth({
             },
           })
           console.log(
-            `\x1b[33m[Security SMTP Send]\x1b[0m To: \x1b[36m${session.user.email}\x1b[0m | Subject: \x1b[1m[Next Monorepo] Security Alert: Password Changed\x1b[0m | Message: Your password has been changed. If this wasn't you, please contact support immediately.`,
+            `\x1b[33m[Security SMTP Send]\x1b[0m To: \x1b[36m${session.user.email}\x1b[0m | Subject: \x1b[1m[Telehealth Platform] Security Alert: Password Changed\x1b[0m | Message: Your password has been changed. If this wasn't you, please contact support immediately.`,
           )
         }
       }

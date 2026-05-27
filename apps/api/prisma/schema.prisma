@@ -128,6 +128,9 @@ model PatientProfile {
   phone            String?
   address          String?
   philhealthNumber String?
+  weight           Float?
+  height           Float?
+  medicalHistory   Json?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

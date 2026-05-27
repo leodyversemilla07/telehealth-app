@@ -34,6 +34,9 @@ export class PatientsService {
       phone?: string
       address?: string
       philhealthNumber?: string
+      weight?: number
+      height?: number
+      medicalHistory?: Record<string, unknown> | unknown[]
     },
   ) {
     await this.getOrCreateProfile(userId)
@@ -47,6 +50,11 @@ export class PatientsService {
         ...(data.address !== undefined ? { address: data.address } : {}),
         ...(data.philhealthNumber !== undefined
           ? { philhealthNumber: data.philhealthNumber }
+          : {}),
+        ...(data.weight !== undefined ? { weight: data.weight } : {}),
+        ...(data.height !== undefined ? { height: data.height } : {}),
+        ...(data.medicalHistory !== undefined
+          ? { medicalHistory: data.medicalHistory as any }
           : {}),
       },
     })

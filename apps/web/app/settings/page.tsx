@@ -16,30 +16,32 @@ import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
 import {
-  AlertTriangle,
-  ArrowLeft,
-  Camera,
-  Check,
-  CheckCircle2,
-  CheckSquare,
-  Download,
-  Globe,
-  Inbox,
-  Key,
-  Laptop,
-  Loader2,
-  Lock,
-  LogOut,
-  Mail,
-  Save,
-  Shield,
-  ShieldCheck,
-  Smartphone,
-  Sparkles,
-  Trash2,
-  UploadCloud,
-  User,
-  XCircle,
+ AlertTriangle,
+ ArrowLeft,
+ Camera,
+ Check,
+ CheckCircle2,
+ CheckSquare,
+ Download,
+ Globe,
+ Heart,
+ Inbox,
+ Key,
+ Laptop,
+ Loader2,
+ Lock,
+ LogOut,
+ Mail,
+ Ruler,
+ Save,
+ Shield,
+ ShieldCheck,
+ Smartphone,
+ Sparkles,
+ Trash2,
+ UploadCloud,
+ User,
+ XCircle,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
@@ -146,6 +148,13 @@ export default function SettingsPage() {
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [revokeOtherDevices, setRevokeOtherDevices] = useState(false)
+
+  // Patient Profile States
+  const [weight, setWeight] = useState("")
+  const [height, setHeight] = useState("")
+  const [allergies, setAllergies] = useState("")
+  const [conditions, setConditions] = useState("")
+  const [medications, setMedications] = useState("")
 
   // 2FA States
   const [twoFactorPassword, setTwoFactorPassword] = useState("")
@@ -374,6 +383,69 @@ export default function SettingsPage() {
       toast.error(err.message || "Failed to disable 2FA. Verify password.")
     },
   })
+
+  // Fetch patient profile
+  const {
+    data: patientProfile,
+    isPending: patientProfileLoading,
+  } = useQuery({
+    queryKey: ["patient-profile"],
+    queryFn: () => apiClient.get<{
+      weight: number | null
+      height: number | null
+      medicalHistory: Record<string, unknown> | null
+    }>("/patients/me"),
+    enabled: !!session && (session.user as { role?: string }).role === "PATIENT",
+  })
+
+  // Pre-fill patient profile fields when loaded
+  useEffect(() => {
+    if (patientProfile) {
+      setWeight(patientProfile.weight != null ? String(patientProfile.weight) : "")
+      setHeight(patientProfile.height != null ? String(patientProfile.height) : "")
+      const mh = patientProfile.medicalHistory as {
+        allergies?: string[]
+        conditions?: string[]
+        medications?: string[]
+      } | null
+      if (mh) {
+        setAllergies((mh.allergies ?? []).join(", "))
+        setConditions((mh.conditions ?? []).join(", "))
+        setMedications((mh.medications ?? []).join(", "))
+      }
+    }
+  }, [patientProfile])
+
+  // Patient profile update mutation
+  const patientProfileMutation = useMutation({
+    mutationFn: (data: {
+      weight?: number
+      height?: number
+      medicalHistory?: Record<string, unknown>
+    }) => apiClient.patch("/patients/me", data),
+    onSuccess: () => {
+      toast.success("Patient profile updated successfully!")
+      queryClient.invalidateQueries({ queryKey: ["patient-profile"] })
+    },
+    onError: (err: { message?: string }) => {
+      toast.error(err.message || "Failed to update patient profile")
+    },
+  })
+
+  function handlePatientProfileSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const w = weight.trim()
+    const h = height.trim()
+    patientProfileMutation.mutate({
+      ...(w ? { weight: Number.parseFloat(w) } : {}),
+      ...(h ? { height: Number.parseFloat(h) } : {}),
+      medicalHistory: {
+        allergies: allergies.split(",").map((s) => s.trim()).filter(Boolean),
+        conditions: conditions.split(",").map((s) => s.trim()).filter(Boolean),
+        medications: medications.split(",").map((s) => s.trim()).filter(Boolean),
+      },
+    })
+  }
 
   // Read all alerts mutation
   const readAlertsMutation = useMutation({
@@ -833,6 +905,132 @@ export default function SettingsPage() {
               </CardFooter>
             </form>
           </Card>
+
+          {/* Patient Profile Card — only shown for PATIENT role */}
+          {user.role === "PATIENT" && (
+          <Card className="border-border/40 bg-card shadow-xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
+
+          <CardHeader className="space-y-1 pb-4">
+          <CardTitle className="text-xl font-bold tracking-tight flex items-center gap-2">
+          <Heart className="h-5 w-5 text-emerald-500" />
+          Patient Profile
+          </CardTitle>
+          <CardDescription>
+          Your health details help doctors provide better care.
+          </CardDescription>
+          </CardHeader>
+
+          <form onSubmit={handlePatientProfileSubmit}>
+          <CardContent className="space-y-4">
+          {/* Weight & Height */}
+          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+          <Label htmlFor="weight" className="text-xs font-medium flex items-center gap-1.5">
+          <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
+          Weight (kg)
+          </Label>
+          <Input
+          id="weight"
+          type="number"
+          step="0.1"
+          min="0"
+          max="500"
+          placeholder="e.g. 65"
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+          className="h-9"
+          />
+          </div>
+          <div className="space-y-1.5">
+          <Label htmlFor="height" className="text-xs font-medium flex items-center gap-1.5">
+          <Ruler className="h-3.5 w-3.5 text-muted-foreground" />
+          Height (cm)
+          </Label>
+          <Input
+          id="height"
+          type="number"
+          step="0.1"
+          min="0"
+          max="300"
+          placeholder="e.g. 170"
+          value={height}
+          onChange={(e) => setHeight(e.target.value)}
+          className="h-9"
+          />
+          </div>
+          </div>
+
+          <Separator />
+
+          {/* Medical History */}
+          <div className="space-y-3">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Basic Medical History
+          </p>
+
+          <div className="space-y-1.5">
+          <Label htmlFor="allergies" className="text-xs font-medium">
+          Allergies
+          </Label>
+          <Input
+          id="allergies"
+          type="text"
+          placeholder="e.g. Penicillin, Latex (comma-separated)"
+          value={allergies}
+          onChange={(e) => setAllergies(e.target.value)}
+          className="h-9"
+          />
+          </div>
+
+          <div className="space-y-1.5">
+          <Label htmlFor="conditions" className="text-xs font-medium">
+          Conditions
+          </Label>
+          <Input
+          id="conditions"
+          type="text"
+          placeholder="e.g. Asthma, Hypertension (comma-separated)"
+          value={conditions}
+          onChange={(e) => setConditions(e.target.value)}
+          className="h-9"
+          />
+          </div>
+
+          <div className="space-y-1.5">
+          <Label htmlFor="medications" className="text-xs font-medium">
+          Current Medications
+          </Label>
+          <Input
+          id="medications"
+          type="text"
+          placeholder="e.g. Albuterol, Amlodipine 5mg (comma-separated)"
+          value={medications}
+          onChange={(e) => setMedications(e.target.value)}
+          className="h-9"
+          />
+          </div>
+          </div>
+          </CardContent>
+
+          <CardFooter className="pt-2 pb-6 flex gap-3">
+          <Button
+          type="submit"
+          size="sm"
+          className="h-9 gap-1.5"
+          disabled={patientProfileMutation.isPending}
+          >
+          {patientProfileMutation.isPending ? (
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+          <Save className="h-3.5 w-3.5" />
+          )}
+          Save Health Details
+          </Button>
+          </CardFooter>
+          </form>
+          </Card>
+          )}
 
           {/* Option A: Two-Factor Authentication (2FA) Card */}
           <Card className="border-border/40 bg-card shadow-xl overflow-hidden relative">

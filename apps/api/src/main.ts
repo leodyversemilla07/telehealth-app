@@ -4,19 +4,25 @@ import { ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import express from "express"
 import { AppModule } from "@/app.module"
+import { PhtDateInterceptor } from "@/common/interceptors/pht-date.interceptor"
 import { setupSwagger } from "@/config/swagger.config"
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {
-    bodyParser: false,
-  })
+ const app = await NestFactory.create(AppModule, {
+ bodyParser: false,
+ })
 
-  // Ensure uploads directory exists
-  const uploadsDir = join(process.cwd(), "uploads")
-  if (!existsSync(uploadsDir)) {
-    mkdirSync(uploadsDir, { recursive: true })
-  }
-  app.use("/uploads", express.static(uploadsDir))
+ // Ensure uploads directory exists
+ const uploadsDir = join(process.cwd(), "uploads")
+ if (!existsSync(uploadsDir)) {
+ mkdirSync(uploadsDir, { recursive: true })
+ }
+ app.use("/uploads", express.static(uploadsDir))
+
+ // ── PHT Date Interceptor ─────────────────────────────────────────────
+ // SRS §5.1 & Appendix D: "All times displayed in Philippine Standard Time (UTC+8)"
+ // Converts all Date fields in API responses to PHT-formatted strings.
+ app.useGlobalInterceptors(new PhtDateInterceptor())
 
   // Restrict CORS origins with secure credential handshakes
   const rawCorsOrigins =

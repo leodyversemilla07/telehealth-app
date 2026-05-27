@@ -23,6 +23,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1053.0",
     "@nestjs/common": "^11.0.1",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
@@ -80,8 +81,10 @@
     },
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1",
-      "^@generated/(.*)$": "<rootDir>/../generated/$1",
-      "^@thallesp/nestjs-better-auth$": "<rootDir>/../test/mocks/nestjs-better-auth.ts"
+      "^@generated/prisma/client\\.js$": "<rootDir>/../test/mocks/prisma-client.ts",
+      "^@thallesp/nestjs-better-auth$": "<rootDir>/../test/mocks/nestjs-better-auth.ts",
+      "^@/prisma/prisma\\.service$": "<rootDir>/../test/mocks/prisma.service.ts",
+      "generated/prisma/client\\.js$": "<rootDir>/../test/mocks/prisma-client.ts"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

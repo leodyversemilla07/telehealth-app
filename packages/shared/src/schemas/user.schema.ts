@@ -36,6 +36,9 @@ export const patientProfileSchema = z.object({
   phone: z.string().nullable(),
   address: z.string().nullable(),
   philhealthNumber: z.string().nullable(),
+  weight: z.number().nullable(),
+  height: z.number().nullable(),
+  medicalHistory: z.record(z.unknown()).nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 })

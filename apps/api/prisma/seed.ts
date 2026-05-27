@@ -2,15 +2,15 @@
  * Development seed script.
  *
  * Creates:
- *   - 1 admin user (admin@example.com)
+ * - 1 admin user (admin@example.com)
  * - 1 doctor user (doctor@example.com)
- *   - 2 standard patient users
+ * - 2 standard patient users
  *
  * Usage: node --import tsx prisma/seed.ts
  *
  * Prerequisites:
- *   - PostgreSQL running (docker compose up -d)
- *   - Migrations applied
+ * - PostgreSQL running (docker compose up -d)
+ * - Migrations applied
  */
 
 import { config } from "dotenv"
@@ -51,7 +51,7 @@ async function seed() {
       role: "ADMIN",
     },
   })
-  console.log(`  ✓ Admin: ${admin.email}`)
+  console.log(` ✓ Admin: ${admin.email}`)
 
   // Doctor
   const doctor = await prisma.user.upsert({
@@ -100,10 +100,17 @@ async function seed() {
     update: {},
     create: {
       userId: alice.id,
-      phone: "+639123456789",
+      phone: "+639****6789",
+      weight: 55,
+      height: 160,
+      medicalHistory: {
+        allergies: ["Penicillin"],
+        conditions: ["Asthma"],
+        medications: ["Albuterol inhaler"],
+      },
     },
   })
-  console.log(`  ✓ Patient: ${alice.email}`)
+  console.log(` ✓ Patient: ${alice.email}`)
 
   const bob = await prisma.user.upsert({
     where: { email: "bob@example.com" },
@@ -121,10 +128,17 @@ async function seed() {
     update: {},
     create: {
       userId: bob.id,
-      phone: "+639987654321",
+      phone: "+639****4321",
+      weight: 72,
+      height: 175,
+      medicalHistory: {
+        allergies: [],
+        conditions: ["Hypertension"],
+        medications: ["Amlodipine 5mg"],
+      },
     },
   })
-  console.log(`  ✓ Patient: ${bob.email}`)
+  console.log(` ✓ Patient: ${bob.email}`)
 
   // Doctor availability (Mon-Fri, 9 AM - 5 PM, 30 min slots)
   const doctorProfile = await prisma.doctorProfile.findUniqueOrThrow({
@@ -144,7 +158,7 @@ async function seed() {
       slotDuration: 30,
     },
   })
-  console.log("  ✓ Availability: Mon-Fri 09:00-17:00 (30 min slots)")
+  console.log(" ✓ Availability: Mon-Fri 09:00-17:00 (30 min slots)")
 
   // Sample appointment for tomorrow at 10:00 AM
   const tomorrow = new Date()
@@ -170,15 +184,15 @@ async function seed() {
     },
   })
   console.log(
-    `  ✓ Appointment: Alice -> Dr. Santos (${tomorrow.toLocaleDateString()} 10:00-10:30)`,
+    ` ✓ Appointment: Alice -> Dr. Santos (${tomorrow.toLocaleDateString()} 10:00-10:30)`,
   )
 
   console.log("")
   console.log("✅ Seed complete. Users (set passwords via sign-up UI):")
-  console.log("   admin@example.com   — Administrator")
+  console.log(" admin@example.com — Administrator")
   console.log(" doctor@example.com — Doctor (pre-approved)")
-  console.log("   alice@example.com   — Patient")
-  console.log("   bob@example.com     — Patient")
+  console.log(" alice@example.com — Patient")
+  console.log(" bob@example.com — Patient")
 }
 
 seed()

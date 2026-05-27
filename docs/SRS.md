@@ -317,7 +317,7 @@ The system supports the following high-level functions:
 |---|---|---|
 | F-DISCOVERY-01 | The system shall allow Patients to browse all approved doctors and view their availability. | Test: Approved doctors listed with schedules |
 | F-DISCOVERY-02 | The system shall allow Patients to filter doctors by specialization (e.g., Cardiology, Pediatrics, Dermatology). | Test: Filter returns matching results |
-| F-DISCOVERY-03 | The system shall allow Patients to search doctors by name or specialty. | Test: Search returns matching providers |
+| F-DISCOVERY-03 | The system shall allow Patients to search doctors by name or specialty. | Test: Search returns matching doctors |
 | F-DISCOVERY-04 | The system shall provide an AI-powered recommendation feature that suggests doctors based on patient-described symptoms or healthcare needs, using NVIDIA NIM (Nemotron-3-Super-120B-A12B) for symptom-to-specialty mapping. | Test: AI recommendation returns relevant doctors |
 | F-DISCOVERY-05 | The system shall display doctor profiles with: name, specialty, bio, PRC credentials, price per visit, and available time slots. | Test: All fields render on profile page |
 
@@ -546,7 +546,7 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 | NFR-COMP-02 | The system shall register as a Personal Information Controller (PIC) with the National Privacy Commission. | NPC |
 | NFR-COMP-03 | The system shall comply with DOH Administrative Order 2021-0037 on telehealth services implementation. | DOH AO 2021-0037 |
 | NFR-COMP-04 | The system shall maintain audit trails for a minimum of 5 years per NPC guidelines. | NPC |
-| NFR-COMP-05 | Provider credentials (PRC license) shall be reverified at minimum every 6 months automatically. | PRC |
+| NFR-COMP-05 | Doctor credentials (PRC license) shall be reverified at minimum every 6 months automatically. | PRC |
 
 ---
 
@@ -557,25 +557,54 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 ```prisma
 // Core models already implemented in schema.prisma
 // See: apps/api/prisma/schema.prisma
-// Additional models for appointments, notifications, and medical records:
+// Additional models for appointments, consultations, prescriptions, and notifications:
 
 model Appointment {
-  id         String            @id @default(cuid())
-  patientId  String
-  patient    User              @relation("PatientAppointments", fields: [patientId], references: [id])
-  doctorId   String
-  doctor     ProviderProfile   @relation("DoctorAppointments", fields: [doctorId], references: [id])
-  startTime  DateTime          // PHT (UTC+8)
-  endTime    DateTime          // PHT (UTC+8)
-  status     AppointmentStatus @default(BOOKED)
-  reason     String?
-  symptoms   String?
-  type       VisitType         @default(VIDEO)
-  roomToken  String?
-  notes      String?
-  prescription String?
-  createdAt  DateTime          @default(now())
-  updatedAt  DateTime          @updatedAt
+  id                String            @id @default(cuid())
+  patientId         String
+  patient           User              @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId          String
+  doctor            DoctorProfile     @relation("DoctorAppointments", fields: [doctorId], references: [id], onDelete: Cascade)
+  scheduleId        String
+  schedule          AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  startTime         DateTime          // PHT (UTC+8)
+  endTime           DateTime          // PHT (UTC+8)
+  status            AppointmentStatus @default(BOOKED)
+  reason            String?
+  symptoms          String?
+  type              VisitType         @default(VIDEO)
+  roomUrl           String?
+  notes             String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  consultation      Consultation?
+}
+
+model Consultation {
+  id              String        @id @default(cuid())
+  appointmentId   String        @unique
+  appointment     Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  patientNotes    String?
+  doctorNotes     String?
+  diagnosis       String?
+  plan            String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  prescriptions   Prescription[]
+}
+
+model Prescription {
+  id              String       @id @default(cuid())
+  consultationId  String
+  consultation    Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
+  medicationName  String
+  dosage          String
+  frequency       String
+  duration        String
+  instructions    String?
+  createdAt       DateTime     @default(now())
 }
 
 enum AppointmentStatus {
@@ -593,15 +622,15 @@ enum VisitType {
 }
 
 model Notification {
-  id        String   @id @default(cuid())
+  id        String           @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User             @relation(fields: [userId], references: [id])
   type      NotificationType
   title     String
   body      String?
-  isRead    Boolean  @default(false)
+  isRead    Boolean          @default(false)
   readAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime         @default(now())
 }
 
 enum NotificationType {
@@ -618,39 +647,68 @@ enum NotificationType {
 
 ```
 # Authentication (Better Auth)
-POST   /api/auth/sign-in
-POST   /api/auth/sign-up
-POST   /api/auth/sign-out
-POST   /api/auth/reset-password
-GET    /api/auth/session
+POST /api/auth/sign-in
+POST /api/auth/sign-up
+POST /api/auth/sign-out
+POST /api/auth/reset-password
+GET /api/auth/session
 
-# Patient Routes
-GET    /api/providers                    # Search approved doctors
-GET    /api/providers/:id                # Doctor profile + availability
-GET    /api/providers/:id/slots?date=    # Available slots for a date
-POST   /api/appointments                 # Create appointment
-GET    /api/appointments                 # My appointments list
-PATCH  /api/appointments/:id/cancel      # Cancel appointment
-PATCH  /api/appointments/:id/reschedule  # Reschedule appointment
-GET    /api/records                      # My medical records
-GET    /api/prescriptions                # My prescriptions
+# Doctor Discovery (public)
+GET /api/doctors # Search approved doctors (filter by specialty, search by name)
+GET /api/doctors/:id # Doctor profile detail
 POST /api/recommendations # AI doctor recommendation (symptoms → doctors) via NVIDIA NIM Nemotron-3-Super-120B
 
-# Doctor Routes
-GET    /api/doctor/schedule             # Today's/upcoming appointments
-PUT    /api/doctor/availability         # Set weekly availability
-POST   /api/doctor/time-off             # Block specific time
-PATCH  /api/appointments/:id/status     # Update appointment status
-POST   /api/appointments/:id/notes      # Add consultation notes
-POST   /api/prescriptions               # Write prescription
-GET    /api/doctor/patients             # My patients list
-GET    /api/doctor/patients/:id/records # Patient's health records
+# Availability (public + doctor)
+GET /api/availability/:doctorId # Doctor's weekly schedule
+GET /api/availability/:doctorId/slots?date= # Available slots for a date
+PUT /api/availability # Set weekly availability (Doctor)
+GET /api/availability/mine # Get my availability (Doctor)
+POST /api/availability/time-off # Block specific time (Doctor)
+GET /api/availability/time-off # Get my time-off blocks (Doctor)
+DELETE /api/availability/time-off/:id # Remove a time-off entry (Doctor)
+
+# Appointments
+POST /api/appointments # Create appointment (Patient)
+GET /api/appointments # My appointments list (Patient or Doctor)
+GET /api/appointments/:id # Appointment detail
+PATCH /api/appointments/:id/status # Update appointment status (Doctor/Admin)
+PATCH /api/appointments/:id/cancel # Cancel appointment (Patient or Doctor)
+PATCH /api/appointments/:id/reschedule # Reschedule appointment (Patient)
+
+# Medical Records & Prescriptions
+GET /api/records/consultations # My medical records / consultations (Patient)
+GET /api/records/consultations/:id # Single consultation detail (Patient or Doctor)
+POST /api/records/consultations # Create consultation notes (Doctor)
+POST /api/records/consultations/:id/prescriptions # Add prescription to consultation (Doctor)
+GET /api/records/prescriptions # My prescriptions across all consultations (Patient)
+
+# Video Consultation (LiveKit)
+POST /api/video/rooms # Create video room for appointment
+POST /api/video/rooms/:roomName/join # Get token to join room
+PATCH /api/video/rooms/:roomName/end # End consultation
+GET /api/video/rooms/:roomName # Get room metadata
+
+# Notifications (Socket.IO Gateway)
+GET /api/notifications # List my notifications
+PATCH /api/notifications/:id/read # Mark notification as read
+PATCH /api/notifications/read-all # Mark all as read
+
+# Patients (Doctor-facing)
+POST /api/patients/profile # Create/update patient profile (Patient)
+GET /api/patients/profile # Get my patient profile (Patient)
+
+# Doctors (registration)
+POST /api/doctors/register # Register as doctor (Doctor role)
+
+# Consent
+POST /api/consent # Record consent action
+GET /api/consent # Get my consent history
 
 # Admin Routes
-GET    /api/admin/users                 # List all users
-PATCH  /api/admin/users/:id/approve     # Approve doctor (verify PRC)
-GET    /api/admin/appointments          # All appointments
-GET    /api/admin/audit-log             # Audit trail (NPC compliance)
+GET /api/admin/users # List all users
+PATCH /api/admin/doctors/:id/approve # Approve doctor (verify PRC)
+GET /api/admin/appointments # All appointments
+GET /api/admin/audit-logs # Audit trail (NPC compliance)
 ```
 
 ### Appendix C: Error Codes
@@ -704,6 +762,7 @@ GET    /api/admin/audit-log             # Audit trail (NPC compliance)
 | Version | Date | Author | Changes |
 |---|---|---|---|
 | 1.0 | 2026-05-30 | System | Updated for WC Launchpad Builder Round — focused MVP with Patient/Doctor modules, AI recommendation, real-time notifications, and RA 10173 compliance |
+| 1.1 | 2026-05-27 | System | Provider→Doctor rename throughout; updated Appendix A (normalized Consultation/Prescription models); updated Appendix B (API routes to match implementation: /doctors, /availability, /records, /video, /notifications, /consent) |
 
 ---
 

@@ -35,7 +35,7 @@ export class SecurityAlertsService {
 
     // 3. Print SMTP console logs
     console.log(
-      `\x1b[33m[Security SMTP Send]\x1b[0m To: \x1b[36m${user.email}\x1b[0m | Subject: \x1b[1m[Next Monorepo] Security Alert: ${title}\x1b[0m | Message: ${message}`,
+      `\x1b[33m[Security SMTP Send]\x1b[0m To: \x1b[36m${user.email}\x1b[0m | Subject: \x1b[1m[Telehealth Platform] Security Alert: ${title}\x1b[0m | Message: ${message}`,
     )
 
     return alert

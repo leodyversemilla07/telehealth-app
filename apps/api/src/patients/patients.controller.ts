@@ -27,6 +27,9 @@ export class PatientsController {
       phone?: string
       address?: string
       philhealthNumber?: string
+      weight?: number
+      height?: number
+      medicalHistory?: Record<string, unknown> | unknown[]
     },
   ) {
     return this.patientsService.updateProfile(session.user.id, data)

@@ -56,39 +56,27 @@ export class AvailabilityService {
    * Set (upsert) weekly availability schedule for a doctor.
    */
   async setAvailability(userId: string, dto: SetAvailabilityDto) {
-    const doctor = await this.getDoctorProfile(userId)
+  const doctor = await this.getDoctorProfile(userId)
 
-    const grouped = new Map<DayKey, string[]>()
-    for (const day of DAYS) {
-      grouped.set(day, [])
-    }
+  const data: Record<string, unknown> = {}
+  for (const day of DAYS) {
+  const value = dto[day]
+  if (value !== undefined) {
+  data[day] = typeof value === "string" ? value : JSON.stringify(value)
+  }
+  }
+  if (dto.slotDuration !== undefined) {
+  data.slotDuration = dto.slotDuration
+  }
 
-    for (const slot of dto.slots) {
-      if (slot.isActive === false) continue
-      const day = DAY_BY_INDEX[slot.dayOfWeek]
-      if (!day) continue
-      grouped.get(day)?.push(`${slot.startTime}-${slot.endTime}`)
-    }
-
-    const data: Record<DayKey, string> & { slotDuration: number } = {
-      monday: JSON.stringify(grouped.get("monday") ?? []),
-      tuesday: JSON.stringify(grouped.get("tuesday") ?? []),
-      wednesday: JSON.stringify(grouped.get("wednesday") ?? []),
-      thursday: JSON.stringify(grouped.get("thursday") ?? []),
-      friday: JSON.stringify(grouped.get("friday") ?? []),
-      saturday: JSON.stringify(grouped.get("saturday") ?? []),
-      sunday: JSON.stringify(grouped.get("sunday") ?? []),
-      slotDuration: dto.slots[0]?.slotDuration ?? 30,
-    }
-
-    return this.prisma.availabilitySchedule.upsert({
-      where: { doctorId: doctor.id },
-      update: data,
-      create: {
-        doctorId: doctor.id,
-        ...data,
-      },
-    })
+  return this.prisma.availabilitySchedule.upsert({
+  where: { doctorId: doctor.id },
+  update: data,
+  create: {
+  doctorId: doctor.id,
+  ...data,
+  },
+  })
   }
 
   /**
@@ -132,12 +120,12 @@ export class AvailabilityService {
     }
 
     return this.prisma.timeOff.create({
-      data: {
-        scheduleId: schedule.id,
-        startDate: new Date(`${dto.date}T${dto.startTime}:00`),
-        endDate: new Date(`${dto.date}T${dto.endTime}:00`),
-        reason: dto.reason,
-      },
+    data: {
+    scheduleId: schedule.id,
+    startDate: new Date(dto.startDate),
+    endDate: new Date(dto.endDate),
+    reason: dto.reason,
+    },
     })
   }
 

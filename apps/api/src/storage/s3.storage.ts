@@ -3,8 +3,7 @@ import type { StorageProvider } from "@/storage/storage.interface"
 // Dynamic import to avoid requiring @aws-sdk/client-s3 when not using S3
 // biome-ignore lint/suspicious/noExplicitAny: dynamic optional dependency
 async function getS3(): Promise<any> {
-  // @ts-expect-error — optional dependency, only resolves when S3 is used
-  return import("@aws-sdk/client-s3")
+ return import("@aws-sdk/client-s3")
 }
 
 /**

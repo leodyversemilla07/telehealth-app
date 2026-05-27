@@ -125,7 +125,7 @@ export default function AdminLayout({
             </div>
             <div>
               <span className="font-bold tracking-tight text-sm text-foreground flex items-center gap-1.5">
-                Next Monorepo{" "}
+                Telehealth Platform{" "}
                 <span className="text-[10px] bg-primary/10 border border-primary/20 text-primary px-1.5 py-0.5 rounded-full font-semibold">
                   ADMIN
                 </span>

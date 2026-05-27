@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest"
 
 describe("Home page", () => {
   it("renders the landing heading text", () => {
-    // The page renders "Next Monorepo" heading for unauthenticated users
+    // The page renders "Telehealth Platform" heading for unauthenticated users
     // This is a smoke test — full integration tests require mocking authClient
-    expect("Next Monorepo").toBeDefined()
+    expect("Telehealth Platform").toBeDefined()
   })
 
   it("exports auth client correctly", async () => {

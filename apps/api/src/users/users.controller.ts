@@ -1,217 +1,144 @@
 import {
-  BadRequestException,
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  UploadedFile,
-  UseInterceptors,
+ BadRequestException,
+ Body,
+ Controller,
+ Delete,
+ Get,
+ Param,
+ Patch,
+ Post,
+ UploadedFile,
+ UseInterceptors,
 } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
 import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiConsumes,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
+ ApiBearerAuth,
+ ApiBody,
+ ApiConsumes,
+ ApiOperation,
+ ApiParam,
+ ApiTags,
 } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
-import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
+import { AllowAnonymous, Session } from "@thallesp/nestjs-better-auth"
 import type { PublicUserDto } from "@workspace/shared/types/user"
 import { StorageService } from "@/storage/storage.service"
-import type {
-  BanUserDto,
-  SetRoleDto,
-  UpdateProfileDto,
-} from "@/users/dto/index.js"
+import type { UpdateProfileDto } from "@/users/dto/index.js"
 import { UsersService } from "@/users/users.service"
 
 @ApiTags("Users")
 @ApiBearerAuth("session-token")
 @Controller("users")
 export class UsersController {
-  constructor(
-    private readonly usersService: UsersService,
-    private readonly storage: StorageService,
-  ) {}
+ constructor(
+ private readonly usersService: UsersService,
+ private readonly storage: StorageService,
+ ) {}
 
-  // ─── Current user ─────────────────────────────────────────────────────────
+ // ─── Current user ─────────────────────────────────────────────────────────
 
-  @Get("me")
-  @ApiOperation({ summary: "Get current user profile and session" })
-  async getProfile(
-    @Session() session: UserSession,
-  ): Promise<{ user: PublicUserDto; session: object }> {
-    return session as { user: PublicUserDto; session: object }
-  }
+ @Get("me")
+ @ApiOperation({ summary: "Get current user profile and session" })
+ async getProfile(
+ @Session() session: UserSession,
+ ): Promise<{ user: PublicUserDto; session: object }> {
+ return session as { user: PublicUserDto; session: object }
+ }
 
-  @Patch("me")
-  @ApiOperation({ summary: "Update current user's name / image" })
-  async updateMyProfile(
-    @Session() session: UserSession,
-    @Body() dto: UpdateProfileDto,
-  ) {
-    return this.usersService.updateProfile(
-      session.user.id,
-      session.user.id,
-      session.user.role as "PATIENT" | "DOCTOR" | "ADMIN",
-      dto,
-    )
-  }
+ @Patch("me")
+ @ApiOperation({ summary: "Update current user's name / image" })
+ async updateMyProfile(
+ @Session() session: UserSession,
+ @Body() dto: UpdateProfileDto,
+ ) {
+ return this.usersService.updateProfile(
+ session.user.id,
+ session.user.id,
+ session.user.role as "PATIENT" | "DOCTOR" | "ADMIN",
+ dto,
+ )
+ }
 
-  @Post("me/avatar")
-  @UseInterceptors(FileInterceptor("file"))
-  @ApiOperation({ summary: "Upload avatar image" })
-  @ApiConsumes("multipart/form-data")
-  @ApiBody({
-    schema: {
-      type: "object",
-      properties: { file: { type: "string", format: "binary" } },
-    },
-  })
-  async uploadAvatar(
-    @Session() session: UserSession,
-    // biome-ignore lint/suspicious/noExplicitAny: Multer file structure is dynamically parsed in Express middleware
-    @UploadedFile() file: any,
-  ) {
-    if (!file) {
-      throw new BadRequestException("No file provided")
-    }
+ @Post("me/avatar")
+ @UseInterceptors(FileInterceptor("file"))
+ @ApiOperation({ summary: "Upload avatar image" })
+ @ApiConsumes("multipart/form-data")
+ @ApiBody({
+ schema: {
+ type: "object",
+ properties: { file: { type: "string", format: "binary" } },
+ },
+ })
+ async uploadAvatar(
+ @Session() session: UserSession,
+ // biome-ignore lint/suspicious/noExplicitAny: Multer file structure is dynamically parsed in Express middleware
+ @UploadedFile() file: any,
+ ) {
+ if (!file) {
+ throw new BadRequestException("No file provided")
+ }
 
-    if (!this.storage.validateMimeType(file.mimetype)) {
-      throw new BadRequestException(
-        `Invalid file type. Only ${this.storage.allowedMimeTypes.join(", ")} are allowed.`,
-      )
-    }
+ if (!this.storage.validateMimeType(file.mimetype)) {
+ throw new BadRequestException(
+ `Invalid file type. Only ${this.storage.allowedMimeTypes.join(", ")} are allowed.`,
+ )
+ }
 
-    if (!this.storage.validateSize(file.size)) {
-      throw new BadRequestException(
-        `File is too large. Max allowed size is ${this.storage.maxFileSize / 1024 / 1024}MB.`,
-      )
-    }
+ if (!this.storage.validateSize(file.size)) {
+ throw new BadRequestException(
+ `File is too large. Max allowed size is ${this.storage.maxFileSize / 1024 / 1024}MB.`,
+ )
+ }
 
-    const avatarUrl = await this.storage.uploadFile(
-      session.user.id,
-      file.buffer,
-      file.originalname,
-      file.mimetype,
-    )
+ const avatarUrl = await this.storage.uploadFile(
+ session.user.id,
+ file.buffer,
+ file.originalname,
+ file.mimetype,
+ )
 
-    return this.usersService.updateProfile(
-      session.user.id,
-      session.user.id,
-      session.user.role as "PATIENT" | "DOCTOR" | "ADMIN",
-      { image: avatarUrl },
-    )
-  }
+ return this.usersService.updateProfile(
+ session.user.id,
+ session.user.id,
+ session.user.role as "PATIENT" | "DOCTOR" | "ADMIN",
+ { image: avatarUrl },
+ )
+ }
 
-  @Get("me/sessions")
-  @ApiOperation({ summary: "List all active sessions for current user" })
-  async getMySessions(@Session() session: UserSession) {
-    return this.usersService.getActiveSessions(
-      session.user.id,
-      (session.session as { id: string }).id,
-    )
-  }
+ @Get("me/sessions")
+ @ApiOperation({ summary: "List all active sessions for current user" })
+ async getMySessions(@Session() session: UserSession) {
+ return this.usersService.getActiveSessions(
+ session.user.id,
+ (session.session as { id: string }).id,
+ )
+ }
 
-  @Delete("me/sessions/:id")
-  @ApiOperation({ summary: "Revoke a specific session" })
-  @ApiParam({ name: "id", description: "Session ID to revoke" })
-  async revokeMySession(
-    @Session() session: UserSession,
-    @Param("id") id: string,
-  ) {
-    return this.usersService.revokeSession(session.user.id, id)
-  }
+ @Delete("me/sessions/:id")
+ @ApiOperation({ summary: "Revoke a specific session" })
+ @ApiParam({ name: "id", description: "Session ID to revoke" })
+ async revokeMySession(
+ @Session() session: UserSession,
+ @Param("id") id: string,
+ ) {
+ return this.usersService.revokeSession(session.user.id, id)
+ }
 
-  @Delete("me/sessions")
-  @ApiOperation({ summary: "Revoke all other sessions" })
-  async revokeMyOtherSessions(@Session() session: UserSession) {
-    return this.usersService.revokeOtherSessions(
-      session.user.id,
-      (session.session as { id: string }).id,
-    )
-  }
+ @Delete("me/sessions")
+ @ApiOperation({ summary: "Revoke all other sessions" })
+ async revokeMyOtherSessions(@Session() session: UserSession) {
+ return this.usersService.revokeOtherSessions(
+ session.user.id,
+ (session.session as { id: string }).id,
+ )
+ }
 
-  // ─── Public ───────────────────────────────────────────────────────────────
+ // ─── Public ───────────────────────────────────────────────────────────────
 
-  @Get("public")
-  @AllowAnonymous()
-  @ApiOperation({ summary: "Public health-check endpoint (no auth)" })
-  async publicRoute(): Promise<{ message: string }> {
-    return { message: "Public endpoint" }
-  }
-
-  // ─── Admin ────────────────────────────────────────────────────────────────
-
-  @Get()
-  @Roles(["ADMIN"])
-  @ApiOperation({ summary: "List all users (admin)" })
-  async findAll() {
-    return this.usersService.findAll()
-  }
-
-  @Get(":id")
-  @Roles(["ADMIN"])
-  @ApiOperation({ summary: "Get user by ID (admin)" })
-  @ApiParam({ name: "id", description: "Target user ID" })
-  async findOne(@Param("id") id: string) {
-    return this.usersService.findById(id)
-  }
-
-  @Patch(":id")
-  @Roles(["ADMIN"])
-  @ApiOperation({ summary: "Update another user's profile (admin)" })
-  @ApiParam({ name: "id", description: "Target user ID" })
-  async updateProfile(
-    @Session() session: UserSession,
-    @Param("id") id: string,
-    @Body() dto: UpdateProfileDto,
-  ) {
-    return this.usersService.updateProfile(
-      id,
-      session.user.id,
-      session.user.role as "PATIENT" | "DOCTOR" | "ADMIN",
-      dto,
-    )
-  }
-
-  @Post(":id/ban")
-  @Roles(["ADMIN"])
-  @ApiOperation({ summary: "Ban a user (admin)" })
-  @ApiParam({ name: "id", description: "Target user ID" })
-  async banUser(
-    @Session() session: UserSession,
-    @Param("id") id: string,
-    @Body() dto: BanUserDto,
-  ) {
-    return this.usersService.banUser(session.user.id, id, {
-      reason: dto.reason,
-      expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-    })
-  }
-
-  @Delete(":id/ban")
-  @Roles(["ADMIN"])
-  @ApiOperation({ summary: "Unban a user (admin)" })
-  @ApiParam({ name: "id", description: "Target user ID" })
-  async unbanUser(@Session() session: UserSession, @Param("id") id: string) {
-    return this.usersService.unbanUser(session.user.id, id)
-  }
-
-  @Patch(":id/role")
-  @Roles(["ADMIN"])
-  @ApiOperation({ summary: "Set user role (admin)" })
-  @ApiParam({ name: "id", description: "Target user ID" })
-  async setRole(
-    @Session() session: UserSession,
-    @Param("id") id: string,
-    @Body() dto: SetRoleDto,
-  ) {
-    return this.usersService.setRole(session.user.id, id, dto.role)
-  }
+ @Get("public")
+ @AllowAnonymous()
+ @ApiOperation({ summary: "Public health-check endpoint (no auth)" })
+ async publicRoute(): Promise<{ message: string }> {
+ return { message: "Public endpoint" }
+ }
 }
