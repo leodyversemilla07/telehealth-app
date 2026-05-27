@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { PrismaService } from "@/prisma/prisma.service"
+import type { Prisma } from "../../generated/prisma/client.js"
 
 @Injectable()
 export class PatientsService {
@@ -54,7 +55,7 @@ export class PatientsService {
         ...(data.weight !== undefined ? { weight: data.weight } : {}),
         ...(data.height !== undefined ? { height: data.height } : {}),
         ...(data.medicalHistory !== undefined
-          ? { medicalHistory: data.medicalHistory as any }
+          ? { medicalHistory: data.medicalHistory as Prisma.InputJsonValue }
           : {}),
       },
     })

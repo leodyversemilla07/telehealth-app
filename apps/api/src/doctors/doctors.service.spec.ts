@@ -1,13 +1,29 @@
-import { Test, TestingModule } from "@nestjs/testing"
 import { NotFoundException } from "@nestjs/common"
-import { DoctorsService } from "./doctors.service"
+import { Test, TestingModule } from "@nestjs/testing"
 import { PrismaService } from "@/prisma/prisma.service"
+import { DoctorsService } from "./doctors.service"
+
+type MockPrisma = {
+  doctorProfile: {
+    findUnique: jest.Mock
+    findFirst: jest.Mock
+    findMany: jest.Mock
+    update: jest.Mock
+    create: jest.Mock
+  }
+  user: {
+    findUnique: jest.Mock
+    findMany: jest.Mock
+    update: jest.Mock
+  }
+  $transaction: jest.Mock
+}
 
 describe("DoctorsService", () => {
   let service: DoctorsService
-  let prisma: any
+  let prisma: MockPrisma
 
-  function buildMock() {
+  function buildMock(): MockPrisma {
     return {
       doctorProfile: {
         findUnique: jest.fn(),
@@ -44,8 +60,18 @@ describe("DoctorsService", () => {
   describe("findApproved", () => {
     it("should return only approved doctors when no filters", async () => {
       const doctors = [
-        { id: "doc-1", specialty: "Cardiology", isApproved: true, user: { name: "Dr. Cruz" } },
-        { id: "doc-2", specialty: "Dermatology", isApproved: true, user: { name: "Dr. Reyes" } },
+        {
+          id: "doc-1",
+          specialty: "Cardiology",
+          isApproved: true,
+          user: { name: "Dr. Cruz" },
+        },
+        {
+          id: "doc-2",
+          specialty: "Dermatology",
+          isApproved: true,
+          user: { name: "Dr. Reyes" },
+        },
       ]
       prisma.doctorProfile.findMany.mockResolvedValue(doctors)
 
@@ -123,7 +149,9 @@ describe("DoctorsService", () => {
     it("should throw NotFoundException if doctor not found", async () => {
       prisma.doctorProfile.findUnique.mockResolvedValue(null)
 
-      await expect(service.approve("nonexistent")).rejects.toThrow(NotFoundException)
+      await expect(service.approve("nonexistent")).rejects.toThrow(
+        NotFoundException,
+      )
     })
 
     it("should update isApproved to true", async () => {

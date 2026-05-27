@@ -1,6 +1,5 @@
 "use client"
 
-import React from "react"
 import type { AppointmentStatus } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -11,7 +10,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { Separator } from "@workspace/ui/components/separator"
 import {
   Dialog,
   DialogClose,
@@ -22,52 +20,59 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
+import { Separator } from "@workspace/ui/components/separator"
 import {
   ArrowLeft,
   CalendarDays,
+  CheckCircle2,
   Clock,
+  FileText,
   Loader2,
   Monitor,
   Phone,
+  Play,
+  RotateCcw,
   Stethoscope,
   Video,
   XCircle,
-  CheckCircle2,
-  Play,
-  FileText,
-  RotateCcw,
 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import React, { useState } from "react"
 import { toast } from "sonner"
-import { authClient } from "@/lib/auth-client"
 import {
   useAppointment,
   useCancelAppointment,
   useUpdateAppointmentStatus,
 } from "@/hooks/use-appointments"
+import { authClient } from "@/lib/auth-client"
 
 // ── Status config ────────────────────────────────────────────────────────────
 
 const STATUS_BADGE_MAP: Record<
   AppointmentStatus,
-  { label: string; variant: "default" | "secondary" | "outline" | "destructive"; className: string }
+  {
+    label: string
+    variant: "default" | "secondary" | "outline" | "destructive"
+    className: string
+  }
 > = {
   BOOKED: {
     label: "Booked",
     variant: "default",
-    className: "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/25",
+    className:
+      "bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-500/25",
   },
   CONFIRMED: {
     label: "Confirmed",
     variant: "default",
-    className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/25",
+    className:
+      "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/25",
   },
   IN_PROGRESS: {
     label: "In Progress",
     variant: "default",
-    className: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/25",
+    className:
+      "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/25",
   },
   COMPLETED: {
     label: "Completed",
@@ -108,7 +113,10 @@ function visitTypeLabel(type: string) {
 }
 
 const dateFormatter = new Intl.DateTimeFormat("en-PH", { dateStyle: "full" })
-const timeFormatter = new Intl.DateTimeFormat("en-PH", { timeStyle: "short", hour12: true })
+const timeFormatter = new Intl.DateTimeFormat("en-PH", {
+  timeStyle: "short",
+  hour12: true,
+})
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
@@ -117,7 +125,6 @@ export default function AppointmentDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  const router = useRouter()
   const { id } = React.use(params)
   const { data: session } = authClient.useSession()
   const { data: appointment, isPending, error } = useAppointment(id)
@@ -206,7 +213,8 @@ export default function AppointmentDetailPage({
   const canConfirm = isProvider && appointment.status === "BOOKED"
   const canStart = isProvider && appointment.status === "CONFIRMED"
   const canComplete = isProvider && appointment.status === "IN_PROGRESS"
-  const canReschedule = isPatient && ["BOOKED", "CONFIRMED"].includes(appointment.status)
+  const canReschedule =
+    isPatient && ["BOOKED", "CONFIRMED"].includes(appointment.status)
 
   const displayName = isPatient
     ? appointment.doctor.user.name || "Doctor"
@@ -329,7 +337,11 @@ export default function AppointmentDetailPage({
                 </DialogHeader>
                 <DialogFooter className="flex gap-2 justify-end">
                   <DialogClose
-                    render={<Button variant="outline" size="sm">Keep Appointment</Button>}
+                    render={
+                      <Button variant="outline" size="sm">
+                        Keep Appointment
+                      </Button>
+                    }
                   />
                   <Button
                     variant="destructive"
@@ -386,8 +398,8 @@ export default function AppointmentDetailPage({
               {visitTypeLabel(appointment.type)}
             </p>
             {appointment.roomUrl && (
-            <a
-            href={appointment.roomUrl}
+              <a
+                href={appointment.roomUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-xs text-primary hover:underline mt-1 inline-block"
@@ -413,7 +425,9 @@ export default function AppointmentDetailPage({
           <CardContent className="space-y-1">
             <p className="text-sm font-medium text-foreground">{displayName}</p>
             {displaySpecialty && (
-              <p className="text-xs text-muted-foreground">{displaySpecialty}</p>
+              <p className="text-xs text-muted-foreground">
+                {displaySpecialty}
+              </p>
             )}
             {!isPatient && appointment.patient.email && (
               <p className="text-xs text-muted-foreground">
@@ -445,7 +459,9 @@ export default function AppointmentDetailPage({
                 <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
                   Symptoms
                 </p>
-                <p className="text-sm text-foreground">{appointment.symptoms}</p>
+                <p className="text-sm text-foreground">
+                  {appointment.symptoms}
+                </p>
               </div>
             )}
             {!appointment.reason && !appointment.symptoms && (

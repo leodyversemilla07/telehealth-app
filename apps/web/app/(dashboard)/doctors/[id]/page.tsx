@@ -1,28 +1,29 @@
 "use client"
 
-import { useParams, useRouter } from "next/navigation"
-import Link from "next/link"
-import { useDoctor } from "@/hooks/use-doctors"
 import type { DoctorProfileDto } from "@workspace/shared"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
 } from "@workspace/ui/components/card"
-import { Badge } from "@workspace/ui/components/badge"
 import { Separator } from "@workspace/ui/components/separator"
 import {
+  ArrowLeft,
+  BadgeCheck,
+  Calendar,
+  Clock,
   HeartPulse,
   MapPin,
-  BadgeCheck,
-  Clock,
-  Calendar,
-  ArrowLeft,
 } from "lucide-react"
+import Image from "next/image"
+import Link from "next/link"
+import { useParams, useRouter } from "next/navigation"
+import { useDoctor } from "@/hooks/use-doctors"
 
 function formatPrice(amount: number): string {
   return `₱${amount.toLocaleString("en-PH", { minimumFractionDigits: 0 })}`
@@ -34,10 +35,11 @@ function DoctorAvatar({ doctor }: { doctor: DoctorProfileDto }) {
 
   if (imageUrl) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
+      <Image
         src={imageUrl}
         alt={name}
+        width={96}
+        height={96}
         className="h-24 w-24 rounded-full object-cover"
       />
     )
@@ -206,9 +208,7 @@ export default function DoctorProfilePage() {
               </li>
               <li className="flex items-center gap-2">
                 <Clock className="h-4 w-4 text-muted-foreground shrink-0" />
-                <span className="text-muted-foreground">
-                  License Expiry:
-                </span>
+                <span className="text-muted-foreground">License Expiry:</span>
                 <span className="font-medium">
                   {new Date(doctor.prcLicenseExpiry).toLocaleDateString(
                     "en-PH",

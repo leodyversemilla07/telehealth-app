@@ -1,4 +1,4 @@
-import { IsInt, IsJSON, IsOptional, IsString, Min, Max } from "class-validator"
+import { IsInt, IsJSON, IsOptional, Max, Min } from "class-validator"
 
 export class SetAvailabilityDto {
   @IsOptional()

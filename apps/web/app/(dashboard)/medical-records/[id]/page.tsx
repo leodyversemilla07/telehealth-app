@@ -1,32 +1,32 @@
 "use client"
 
-import { useParams, useRouter } from "next/navigation"
-import { useConsultation } from "@/hooks/use-records"
+import type { ConsultationWithPrescriptionsDto } from "@workspace/shared"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
 } from "@workspace/ui/components/card"
-import { Badge } from "@workspace/ui/components/badge"
 import { Separator } from "@workspace/ui/components/separator"
+import { cn } from "@workspace/ui/lib/utils"
 import {
+  AlertCircle,
   ArrowLeft,
   Calendar,
-  Stethoscope,
   FileText,
-  Pill,
-  AlertCircle,
-  RefreshCw,
-  Video,
   Phone,
+  Pill,
+  RefreshCw,
+  Stethoscope,
   User,
+  Video,
 } from "lucide-react"
-import { cn } from "@workspace/ui/lib/utils"
-import type { ConsultationWithPrescriptionsDto } from "@workspace/shared"
+import { useParams, useRouter } from "next/navigation"
+import { useConsultation } from "@/hooks/use-records"
 
 // ─── Helpers ─────────────────────────────────────────────────
 
@@ -61,7 +61,11 @@ function formatTimestamp(date: Date): string {
 
 const visitTypeConfig: Record<
   string,
-  { label: string; icon: React.ElementType; variant: "default" | "secondary" | "outline" }
+  {
+    label: string
+    icon: React.ElementType
+    variant: "default" | "secondary" | "outline"
+  }
 > = {
   VIDEO: { label: "Video Call", icon: Video, variant: "default" },
   PHONE: { label: "Phone Call", icon: Phone, variant: "secondary" },
@@ -131,11 +135,7 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
   return (
     <div className="mx-auto max-w-2xl p-6">
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onRetry}
-        >
+        <Button variant="ghost" size="sm" onClick={onRetry}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Medical Records
         </Button>
@@ -146,8 +146,8 @@ function ErrorState({ onRetry }: { onRetry: () => void }) {
           <AlertCircle className="mb-4 h-12 w-12 text-destructive" />
           <h2 className="text-xl font-semibold">Failed to Load Consultation</h2>
           <p className="mt-2 text-muted-foreground">
-            Something went wrong while fetching the consultation details.
-            Please try again.
+            Something went wrong while fetching the consultation details. Please
+            try again.
           </p>
           <Button className="mt-6" onClick={onRetry}>
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -186,11 +186,7 @@ function ConsultationDetail({
     <div className="mx-auto max-w-2xl space-y-6 p-6">
       {/* Back Button */}
       <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onBack}
-        >
+        <Button variant="ghost" size="sm" onClick={onBack}>
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Medical Records
         </Button>
@@ -207,8 +203,7 @@ function ConsultationDetail({
             </Badge>
           </div>
           <CardDescription className="mt-1">
-            Consultation on{" "}
-            {formatDate(consultation.appointment.startTime)}
+            Consultation on {formatDate(consultation.appointment.startTime)}
           </CardDescription>
         </CardHeader>
 
@@ -227,7 +222,10 @@ function ConsultationDetail({
               <li className="flex items-center gap-2">
                 <VisitIcon className="h-4 w-4 text-muted-foreground shrink-0" />
                 <span className="text-muted-foreground">Type:</span>
-                <Badge variant={visitType?.variant ?? "outline"} className="text-xs">
+                <Badge
+                  variant={visitType?.variant ?? "outline"}
+                  className="text-xs"
+                >
                   {visitType?.label ?? consultation.appointment.type}
                 </Badge>
               </li>
@@ -299,14 +297,12 @@ function ConsultationDetail({
 
           {/* Patient Notes */}
           {consultation.patientNotes && (
-            <>
-              <div>
-                <SectionLabel>Patient Notes</SectionLabel>
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {consultation.patientNotes}
-                </p>
-              </div>
-            </>
+            <div>
+              <SectionLabel>Patient Notes</SectionLabel>
+              <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                {consultation.patientNotes}
+              </p>
+            </div>
           )}
         </CardContent>
 
@@ -345,10 +341,7 @@ function ConsultationDetail({
           ) : (
             <ul className="space-y-4">
               {consultation.prescriptions.map((rx) => (
-                <li
-                  key={rx.id}
-                  className="rounded-lg border bg-card px-4 py-3"
-                >
+                <li key={rx.id} className="rounded-lg border bg-card px-4 py-3">
                   <p className="text-base font-semibold">{rx.medicationName}</p>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {rx.dosage}
@@ -377,7 +370,12 @@ function ConsultationDetail({
 export default function ConsultationDetailPage() {
   const { id } = useParams<{ id: string }>()
   const router = useRouter()
-  const { data: consultation, isLoading, isError, refetch } = useConsultation(id)
+  const {
+    data: consultation,
+    isLoading,
+    isError,
+    refetch,
+  } = useConsultation(id)
 
   if (isLoading) {
     return <LoadingSkeleton />

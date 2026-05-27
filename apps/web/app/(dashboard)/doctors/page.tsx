@@ -36,6 +36,7 @@ import {
   UserRound,
   X,
 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import type { ChangeEvent } from "react"
 import { useDeferredValue, useState } from "react"
@@ -122,10 +123,11 @@ function DoctorCard({ doctor }: { doctor: DoctorProfileDto }) {
         {/* Avatar */}
         <div className="h-14 w-14 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-bold text-lg shrink-0 overflow-hidden">
           {doctor.user?.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={doctor.user.image}
               alt={name}
+              width={56}
+              height={56}
               className="h-full w-full object-cover"
             />
           ) : (
@@ -591,7 +593,7 @@ export default function DoctorDiscoveryPage() {
       {/* ── Doctor cards grid ───────────────────────────────────────────── */}
       {!isPending && !error && resultCount > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {doctors!.map((doctor) => (
+          {doctors?.map((doctor) => (
             <DoctorCard key={doctor.id} doctor={doctor} />
           ))}
         </div>

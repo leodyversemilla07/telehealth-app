@@ -4,7 +4,6 @@ import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
 import {
-  Bell,
   CalendarDays,
   FileText,
   Loader2,
@@ -17,10 +16,6 @@ import {
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { useCallback, useEffect, useState } from "react"
-import {
-  useNotificationSocket,
-  useUnreadCount,
-} from "@/hooks/use-notifications"
 import { authClient } from "@/lib/auth-client"
 
 // ── Navigation definitions per role ──────────────────────────────────────────
@@ -53,7 +48,6 @@ function getNavItems(role: string | null | undefined): NavItem[] {
       return DOCTOR_NAV
     case "ADMIN":
       return ADMIN_NAV
-    case "PATIENT":
     default:
       return PATIENT_NAV
   }
@@ -168,31 +162,6 @@ function Sidebar({
         </Button>
       </div>
     </div>
-  )
-}
-
-// ── Notification bell ────────────────────────────────────────────────────────
-
-function NotificationBell() {
-  const router = useRouter()
-  useNotificationSocket()
-  const { data: unreadData } = useUnreadCount()
-  const unreadCount = unreadData?.count ?? 0
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="relative"
-      onClick={() => router.push("/notifications")}
-    >
-      <Bell className="h-5 w-5" />
-      {unreadCount > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground shadow-sm">
-          {unreadCount > 99 ? "99+" : unreadCount}
-        </span>
-      )}
-    </Button>
   )
 }
 

@@ -3,7 +3,12 @@
  * Jest can't resolve the Prisma generated client's internal relative imports.
  */
 
-export type AppointmentStatus = "BOOKED" | "CONFIRMED" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED"
+export type AppointmentStatus =
+  | "BOOKED"
+  | "CONFIRMED"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELLED"
 export const AppointmentStatus = {
   BOOKED: "BOOKED",
   CONFIRMED: "CONFIRMED",
@@ -61,7 +66,7 @@ export class PrismaClient {
     findMany: jest.fn(),
     update: jest.fn(),
   }
-  $transaction = jest.fn((fn: any) => fn(this))
+  $transaction = jest.fn((fn: (tx: unknown) => unknown) => fn(this))
   $connect = jest.fn()
   $disconnect = jest.fn()
 }

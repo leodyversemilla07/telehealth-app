@@ -78,10 +78,16 @@ export class UsersService {
     id: string,
     requesterId: string,
     requesterRole: Role,
-    data: { name?: string; image?: string },
+    data: { name?: string; image?: string; role?: "DOCTOR" },
   ) {
     if (requesterId !== id && requesterRole !== "ADMIN") {
       throw new ForbiddenException("You can only update your own profile")
+    }
+
+    if (data.role && requesterRole !== "ADMIN" && requesterId !== id) {
+      throw new ForbiddenException(
+        "Only the account owner can change their role",
+      )
     }
 
     await this.findById(id) // ensure exists

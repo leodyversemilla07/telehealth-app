@@ -1,6 +1,9 @@
 "use client"
 
-import type { ConsultationWithPrescriptionsDto, PrescriptionDto } from "@workspace/shared"
+import type {
+  ConsultationWithPrescriptionsDto,
+  PrescriptionDto,
+} from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -17,7 +20,6 @@ import {
   CalendarDays,
   ClipboardList,
   FileText,
-  Loader2,
   Pill,
   RefreshCw,
   Stethoscope,
@@ -28,10 +30,6 @@ import { useState } from "react"
 import { usePatientPrescriptions, usePatientRecords } from "@/hooks/use-records"
 
 // ── Date formatting ───────────────────────────────────────────────────────────
-
-const dateFormatter = new Intl.DateTimeFormat("en-PH", {
-  dateStyle: "full",
-})
 
 const shortDateFormatter = new Intl.DateTimeFormat("en-PH", {
   year: "numeric",
@@ -89,7 +87,9 @@ function ConsultationCard({
 }) {
   const doctorName = consultation.doctor.user.name || "Doctor"
   const specialty = consultation.doctor.specialty
-  const date = shortDateFormatter.format(new Date(consultation.appointment.startTime))
+  const date = shortDateFormatter.format(
+    new Date(consultation.appointment.startTime),
+  )
   const diagnosis = consultation.diagnosis
   const doctorNotes = consultation.doctorNotes
   const plan = consultation.plan
@@ -153,7 +153,9 @@ function ConsultationCard({
         {/* Treatment plan */}
         {plan && (
           <div className="rounded-md bg-primary/5 border border-primary/10 px-3 py-2">
-            <p className="text-[11px] font-medium text-primary/80 mb-0.5">Treatment Plan</p>
+            <p className="text-[11px] font-medium text-primary/80 mb-0.5">
+              Treatment Plan
+            </p>
             <p className="text-xs text-foreground/80 leading-relaxed line-clamp-2">
               {plan}
             </p>
@@ -265,7 +267,8 @@ export default function MedicalRecordsPage() {
   // Sort prescriptions by most recent first
   const sortedPrescriptions = prescriptions
     ? [...prescriptions].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
     : []
 
@@ -276,18 +279,33 @@ export default function MedicalRecordsPage() {
   }
 
   const tabs: { key: TabKey; label: string; icon: React.ReactNode }[] = [
-    { key: "consultations", label: "Consultations", icon: <ClipboardList className="h-4 w-4" /> },
-    { key: "prescriptions", label: "Prescriptions", icon: <Pill className="h-4 w-4" /> },
+    {
+      key: "consultations",
+      label: "Consultations",
+      icon: <ClipboardList className="h-4 w-4" />,
+    },
+    {
+      key: "prescriptions",
+      label: "Prescriptions",
+      icon: <Pill className="h-4 w-4" />,
+    },
   ]
 
   // Current tab state
-  const isLoading = activeTab === "consultations" ? consultationsLoading : prescriptionsLoading
-  const error = activeTab === "consultations" ? consultationsError : prescriptionsError
-  const refetch = activeTab === "consultations" ? refetchConsultations : refetchPrescriptions
+  const isLoading =
+    activeTab === "consultations" ? consultationsLoading : prescriptionsLoading
+  const error =
+    activeTab === "consultations" ? consultationsError : prescriptionsError
+  const refetch =
+    activeTab === "consultations" ? refetchConsultations : refetchPrescriptions
   const isEmpty =
     activeTab === "consultations"
-      ? !consultationsLoading && !consultationsError && sortedConsultations.length === 0
-      : !prescriptionsLoading && !prescriptionsError && sortedPrescriptions.length === 0
+      ? !consultationsLoading &&
+        !consultationsError &&
+        sortedConsultations.length === 0
+      : !prescriptionsLoading &&
+        !prescriptionsError &&
+        sortedPrescriptions.length === 0
 
   return (
     <div className="space-y-6">
@@ -363,7 +381,10 @@ export default function MedicalRecordsPage() {
           <AlertCircle className="h-6 w-6 shrink-0" />
           <div className="space-y-1 flex-1">
             <h3 className="font-semibold text-sm">
-              Failed to load {activeTab === "consultations" ? "consultations" : "prescriptions"}
+              Failed to load{" "}
+              {activeTab === "consultations"
+                ? "consultations"
+                : "prescriptions"}
             </h3>
             <p className="text-xs text-destructive/80 leading-relaxed">
               {error.message ||
@@ -389,10 +410,12 @@ export default function MedicalRecordsPage() {
             <ClipboardList className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="font-semibold text-sm text-foreground">No consultations yet</h3>
+            <h3 className="font-semibold text-sm text-foreground">
+              No consultations yet
+            </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Your consultation records will appear here after you complete an appointment with a
-              doctor.
+              Your consultation records will appear here after you complete an
+              appointment with a doctor.
             </p>
           </div>
         </div>
@@ -404,10 +427,12 @@ export default function MedicalRecordsPage() {
             <Pill className="h-6 w-6" />
           </div>
           <div className="space-y-1">
-            <h3 className="font-semibold text-sm text-foreground">No prescriptions yet</h3>
+            <h3 className="font-semibold text-sm text-foreground">
+              No prescriptions yet
+            </h3>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Prescriptions from your consultations will appear here once your doctor prescribes
-              medication.
+              Prescriptions from your consultations will appear here once your
+              doctor prescribes medication.
             </p>
           </div>
         </div>
@@ -423,7 +448,9 @@ export default function MedicalRecordsPage() {
               <ConsultationCard
                 key={consultation.id}
                 consultation={consultation}
-                onClick={() => router.push(`/medical-records/${consultation.id}`)}
+                onClick={() =>
+                  router.push(`/medical-records/${consultation.id}`)
+                }
               />
             ))}
           </div>
