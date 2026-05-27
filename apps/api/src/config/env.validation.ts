@@ -6,7 +6,7 @@ export const envSchema = z.object({
     .string({
       required_error: "DATABASE_URL is required",
     })
-    .url("DATABASE_URL must be a valid connection URL"),
+    .min(1, "DATABASE_URL must not be empty"),
 
   // ── Server ────────────────────────────────────────────────────────────────
   PORT: z.coerce.number().min(1).max(65535).default(3000),
@@ -21,10 +21,9 @@ export const envSchema = z.object({
     })
     .min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
   BETTER_AUTH_URL: z
-    .string({
-      required_error: "BETTER_AUTH_URL is required",
-    })
-    .url("BETTER_AUTH_URL must be a valid URL"),
+    .string()
+    .optional()
+    .default("http://localhost:3000"),
 
   // ── OAuth ─────────────────────────────────────────────────────────────────
   GOOGLE_CLIENT_ID: z.string().optional(),
@@ -47,18 +46,11 @@ export const envSchema = z.object({
 
   // ── LiveKit (self-hosted on AWS EC2) ───────────────────────────────────────
   LIVEKIT_URL: z
-    .string({
-      required_error: "LIVEKIT_URL is required",
-    })
-    .url(
-      "LIVEKIT_URL must be a valid WebSocket URL (e.g., wss://livekit.example.com)",
-    ),
-  LIVEKIT_API_KEY: z.string({
-    required_error: "LIVEKIT_API_KEY is required",
-  }),
-  LIVEKIT_API_SECRET: z.string({
-    required_error: "LIVEKIT_API_SECRET is required",
-  }),
+    .string()
+    .optional()
+    .default("wss://localhost:7881"),
+  LIVEKIT_API_KEY: z.string().optional().default("devkey"),
+  LIVEKIT_API_SECRET: z.string().optional().default("devsecret"),
 
   // ── AI Recommendations (optional; endpoint returns 503 when absent) ───────
   NIM_API_KEY: z.string().optional(),

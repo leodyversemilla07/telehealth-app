@@ -15,21 +15,36 @@ export class VideoService {
   private readonly livekitApiSecret: string
   private readonly roomServiceClient: RoomServiceClient
 
+  private readonly livekitConfigured: boolean
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
   ) {
-    this.livekitUrl = this.configService.getOrThrow<string>("LIVEKIT_URL")
-    this.livekitApiKey =
-      this.configService.getOrThrow<string>("LIVEKIT_API_KEY")
+    this.livekitUrl = this.configService.get<string>("LIVEKIT_URL") ?? ""
+    this.livekitApiKey = this.configService.get<string>("LIVEKIT_API_KEY") ?? ""
     this.livekitApiSecret =
-      this.configService.getOrThrow<string>("LIVEKIT_API_SECRET")
+      this.configService.get<string>("LIVEKIT_API_SECRET") ?? ""
 
-    this.roomServiceClient = new RoomServiceClient(
-      this.livekitUrl,
-      this.livekitApiKey,
-      this.livekitApiSecret,
-    )
+    this.livekitConfigured =
+      !!this.livekitUrl &&
+      !!this.livekitApiKey &&
+      !!this.livekitApiSecret &&
+      !this.livekitApiKey.startsWith("dev")
+
+    if (this.livekitConfigured) {
+      this.roomServiceClient = new RoomServiceClient(
+        this.livekitUrl,
+        this.livekitApiKey,
+        this.livekitApiSecret,
+      )
+    } else {
+      // Stub client — video endpoints will return 503
+      this.roomServiceClient = null as unknown as RoomServiceClient
+      console.warn(
+        "⚠️  LiveKit not configured — video consultation endpoints will return 503",
+      )
+    }
   }
 
   /**
@@ -41,6 +56,9 @@ export class VideoService {
     doctorName: string,
     patientName: string,
   ) {
+    if (!this.livekitConfigured) {
+      throw new ForbiddenException("Video consultation is not configured")
+    }
     const roomName = `appointment-${appointmentId}`
 
     const room = await this.roomServiceClient.createRoom({
@@ -68,6 +86,9 @@ export class VideoService {
     roomName: string,
     isDoctor: boolean,
   ): Promise<string> {
+    if (!this.livekitConfigured) {
+      throw new ForbiddenException("Video consultation is not configured")
+    }
     const token = new AccessToken(this.livekitApiKey, this.livekitApiSecret, {
       identity: participantIdentity,
     })
