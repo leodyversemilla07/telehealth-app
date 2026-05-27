@@ -1,6 +1,6 @@
 # ── Production docker-compose for AWS Elastic Beanstalk ──
-# Pre-built images in ECR — no on-instance Docker build needed.
-# Environment variables are passed via EB environment properties.
+# API only — Web is deployed on Vercel, Proxy not needed
+# Pre-built image in ECR. Env vars via EB environment properties.
 
 services:
   api:
@@ -13,30 +13,9 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN}
       BETTER_AUTH_URL: ${BETTER_AUTH_URL}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-    expose:
-      - "3001"
-    restart: unless-stopped
-
-  web:
-    image: 341738837383.dkr.ecr.us-east-1.amazonaws.com/telehealth-web:latest
-    container_name: telehealth-web
-    environment:
-      NODE_ENV: production
-      NEXT_PUBLIC_API_URL: "/api"
-    expose:
-      - "3000"
-    depends_on:
-      - api
-    restart: unless-stopped
-
-  proxy:
-    image: 341738837383.dkr.ecr.us-east-1.amazonaws.com/telehealth-proxy:latest
-    container_name: telehealth-proxy
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
     ports:
-      - "80:80"
-    volumes:
-      - "/var/log/nginx:/var/log/nginx"
-    depends_on:
-      - api
-      - web
+      - "3001:3001"
     restart: unless-stopped
