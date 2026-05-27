@@ -1,0 +1,31 @@
+# Local dev files — not needed on EB
+docker-compose.override.yml
+
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+
+# IDE
+.idea
+.vscode
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dist / build artifacts
+dist
+tmp
+
+# Env files (secrets set via EB environment properties)
+.env
+.env.*
+!.env.example
+
+# Docs (not needed at runtime)
+docs
+AWS.md

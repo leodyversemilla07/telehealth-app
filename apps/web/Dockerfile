@@ -1,9 +1,10 @@
 # ──────────────────────────────────────────────────────────────
-#  Builder stage
+# Builder stage
 # ──────────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
 
-RUN corepack enable && corepack install
+# Install pnpm directly (more reliable than corepack on Alpine)
+RUN npm install -g pnpm@11.3.0
 
 WORKDIR /app
 
@@ -24,11 +25,12 @@ COPY turbo.json biome.json ./
 RUN pnpm --filter web build
 
 # ──────────────────────────────────────────────────────────────
-#  Runner stage
+# Runner stage
 # ──────────────────────────────────────────────────────────────
 FROM node:22-alpine
 
-RUN corepack enable && corepack install
+# Install pnpm directly
+RUN npm install -g pnpm@11.3.0
 
 WORKDIR /app
 

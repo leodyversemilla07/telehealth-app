@@ -1,71 +1,42 @@
-services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: telehealth-app-postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-johndoe}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-randompassword}
-      POSTGRES_DB: ${POSTGRES_DB:-mydb}
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-johndoe} -d ${POSTGRES_DB:-mydb}",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-    networks:
-      - app-net
+# ── Production docker-compose for AWS Elastic Beanstalk ──
+# Pre-built images in ECR — no on-instance Docker build needed.
+# Environment variables are passed via EB environment properties.
 
+services:
   api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: telehealth-app-api
+    image: 341738837383.dkr.ecr.us-east-1.amazonaws.com/telehealth-api:latest
+    container_name: telehealth-api
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: postgresql://${POSTGRES_USER:-johndoe}:${POSTGRES_PASSWORD:-randompassword}@postgres:5432/${POSTGRES_DB:-mydb}
-      CORS_ORIGIN: http://localhost:3000
-      BETTER_AUTH_URL: http://localhost:3001
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-development-secret-change-me-32}
-      LIVEKIT_URL: ${LIVEKIT_URL:-wss://livekit.local}
-      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:-devkey}
-      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:-devsecret}
-    ports:
-      - "3001:3001"
-    depends_on:
-      postgres:
-        condition: service_healthy
+      DATABASE_URL: ${DATABASE_URL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+    expose:
+      - "3001"
     restart: unless-stopped
-    networks:
-      - app-net
 
   web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    container_name: telehealth-app-web
+    image: 341738837383.dkr.ecr.us-east-1.amazonaws.com/telehealth-web:latest
+    container_name: telehealth-web
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: http://localhost:3001
-    ports:
-      - "3000:3000"
+      NEXT_PUBLIC_API_URL: "/api"
+    expose:
+      - "3000"
     depends_on:
       - api
     restart: unless-stopped
-    networks:
-      - app-net
 
-networks:
-  app-net:
-    driver: bridge
-
-volumes:
-  pgdata:
+  proxy:
+    image: 341738837383.dkr.ecr.us-east-1.amazonaws.com/telehealth-proxy:latest
+    container_name: telehealth-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - "/var/log/nginx:/var/log/nginx"
+    depends_on:
+      - api
+      - web
+    restart: unless-stopped

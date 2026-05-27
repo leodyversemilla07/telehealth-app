@@ -1,9 +1,10 @@
 # ──────────────────────────────────────────────────────────────
-#  Builder stage
+# Builder stage
 # ──────────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
 
-RUN corepack enable && corepack install
+# Install pnpm directly (more reliable than corepack on Alpine)
+RUN npm install -g pnpm@11.3.0
 
 WORKDIR /app
 
@@ -18,6 +19,9 @@ COPY apps/api apps/api
 COPY packages packages
 COPY turbo.json biome.json ./
 
+# Copy RDS CA bundle for SSL
+COPY apps/api/certs apps/api/certs
+
 # Generate Prisma client
 RUN cd apps/api && npx prisma generate
 
@@ -25,11 +29,12 @@ RUN cd apps/api && npx prisma generate
 RUN pnpm --filter api build
 
 # ──────────────────────────────────────────────────────────────
-#  Production stage
+# Production stage
 # ──────────────────────────────────────────────────────────────
 FROM node:22-alpine
 
-RUN corepack enable && corepack install
+# Install pnpm directly
+RUN npm install -g pnpm@11.3.0
 
 WORKDIR /app
 
@@ -45,6 +50,9 @@ COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/apps/api/generated ./apps/api/generated
 COPY --from=builder /app/packages ./packages
+
+# Copy RDS CA bundle for SSL connections
+COPY apps/api/certs/rds-ca-bundle.pem ./apps/api/certs/rds-ca-bundle.pem
 
 EXPOSE 3001
 
