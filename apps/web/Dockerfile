@@ -1,7 +1,7 @@
 # ──────────────────────────────────────────────────────────────
 # Builder stage
 # ──────────────────────────────────────────────────────────────
-FROM node:22-alpine AS builder
+FROM node:26-alpine AS builder
 
 # Install pnpm directly (more reliable than corepack on Alpine)
 RUN npm install -g pnpm@11.3.0
@@ -27,7 +27,7 @@ RUN pnpm --filter web build
 # ──────────────────────────────────────────────────────────────
 # Runner stage
 # ──────────────────────────────────────────────────────────────
-FROM node:22-alpine
+FROM node:26-alpine
 
 # Install pnpm directly
 RUN npm install -g pnpm@11.3.0
