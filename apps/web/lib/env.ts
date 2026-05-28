@@ -18,7 +18,9 @@ function getEnv(name: string, fallback: string): string {
     if (process.env.NODE_ENV === "production") {
       // In production build, use fallback instead of crashing
       // This lets `next build` succeed for static prerendering
-      console.warn(`⚠️ ${name} is not set, using "${fallback}" (production fallback)`)
+      console.warn(
+        `⚠️ ${name} is not set, using "${fallback}" (production fallback)`,
+      )
       return fallback
     }
     console.warn(`⚠️ ${name} is not set, using "${fallback}" (dev default)`)
@@ -33,10 +35,7 @@ export const env = {
    * Empty string = same-origin proxy (Vercel rewrites handle it).
    * The trailing slash is stripped.
    */
-  NEXT_PUBLIC_API_URL: getEnv(
-    "NEXT_PUBLIC_API_URL",
-    "",
-  ).replace(/\/$/, ""),
+  NEXT_PUBLIC_API_URL: getEnv("NEXT_PUBLIC_API_URL", "").replace(/\/$/, ""),
 } as const
 
 export type Env = typeof env

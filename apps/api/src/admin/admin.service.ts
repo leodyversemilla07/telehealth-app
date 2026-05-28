@@ -11,102 +11,102 @@ import { UsersService } from "@/users/users.service"
  */
 @Injectable()
 export class AdminService {
- constructor(
- private readonly usersService: UsersService,
- private readonly doctorsService: DoctorsService,
- private readonly prisma: PrismaService,
- ) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly doctorsService: DoctorsService,
+    private readonly prisma: PrismaService,
+  ) {}
 
- // ─── User management (delegated) ───────────────────────────────────────
+  // ─── User management (delegated) ───────────────────────────────────────
 
- async listUsers() {
- return this.usersService.findAll()
- }
+  async listUsers() {
+    return this.usersService.findAll()
+  }
 
- async getUser(id: string) {
- return this.usersService.findById(id)
- }
+  async getUser(id: string) {
+    return this.usersService.findById(id)
+  }
 
- async updateUser(
- targetId: string,
- actorId: string,
- actorRole: Role,
- data: { name?: string; image?: string },
- ) {
- return this.usersService.updateProfile(targetId, actorId, actorRole, data)
- }
+  async updateUser(
+    targetId: string,
+    actorId: string,
+    actorRole: Role,
+    data: { name?: string; image?: string },
+  ) {
+    return this.usersService.updateProfile(targetId, actorId, actorRole, data)
+  }
 
- async banUser(
- actorId: string,
- targetId: string,
- data: { reason?: string; expiresAt?: Date },
- ) {
- return this.usersService.banUser(actorId, targetId, data)
- }
+  async banUser(
+    actorId: string,
+    targetId: string,
+    data: { reason?: string; expiresAt?: Date },
+  ) {
+    return this.usersService.banUser(actorId, targetId, data)
+  }
 
- async unbanUser(actorId: string, targetId: string) {
- return this.usersService.unbanUser(actorId, targetId)
- }
+  async unbanUser(actorId: string, targetId: string) {
+    return this.usersService.unbanUser(actorId, targetId)
+  }
 
- async setRole(actorId: string, targetId: string, role: Role) {
- return this.usersService.setRole(actorId, targetId, role)
- }
+  async setRole(actorId: string, targetId: string, role: Role) {
+    return this.usersService.setRole(actorId, targetId, role)
+  }
 
- // ─── Doctor management (delegated) ─────────────────────────────────────
+  // ─── Doctor management (delegated) ─────────────────────────────────────
 
- async listAllDoctors() {
- return this.doctorsService.findAll()
- }
+  async listAllDoctors() {
+    return this.doctorsService.findAll()
+  }
 
- async approveDoctor(id: string) {
- return this.doctorsService.approve(id)
- }
+  async approveDoctor(id: string) {
+    return this.doctorsService.approve(id)
+  }
 
- async rejectDoctor(id: string) {
- return this.doctorsService.reject(id)
- }
+  async rejectDoctor(id: string) {
+    return this.doctorsService.reject(id)
+  }
 
- // ─── Dashboard stats ───────────────────────────────────────────────────
+  // ─── Dashboard stats ───────────────────────────────────────────────────
 
- async getDashboardStats() {
- const [
- totalUsers,
- totalDoctors,
- totalPatients,
- totalAppointments,
- pendingDoctors,
- approvedDoctors,
- bannedUsers,
- recentAppointments,
- ] = await Promise.all([
- this.prisma.user.count(),
- this.prisma.doctorProfile.count(),
- this.prisma.user.count({ where: { role: "PATIENT" } }),
- this.prisma.appointment.count(),
- this.prisma.doctorProfile.count({ where: { isApproved: false } }),
- this.prisma.doctorProfile.count({ where: { isApproved: true } }),
- this.prisma.user.count({ where: { banned: true } }),
- this.prisma.appointment.findMany({
- take: 5,
- orderBy: { createdAt: "desc" },
- include: {
- patient: { select: { name: true } },
- doctor: {
- select: { user: { select: { name: true } } },
- },
- },
- }),
- ])
+  async getDashboardStats() {
+    const [
+      totalUsers,
+      totalDoctors,
+      totalPatients,
+      totalAppointments,
+      pendingDoctors,
+      approvedDoctors,
+      bannedUsers,
+      recentAppointments,
+    ] = await Promise.all([
+      this.prisma.user.count(),
+      this.prisma.doctorProfile.count(),
+      this.prisma.user.count({ where: { role: "PATIENT" } }),
+      this.prisma.appointment.count(),
+      this.prisma.doctorProfile.count({ where: { isApproved: false } }),
+      this.prisma.doctorProfile.count({ where: { isApproved: true } }),
+      this.prisma.user.count({ where: { banned: true } }),
+      this.prisma.appointment.findMany({
+        take: 5,
+        orderBy: { createdAt: "desc" },
+        include: {
+          patient: { select: { name: true } },
+          doctor: {
+            select: { user: { select: { name: true } } },
+          },
+        },
+      }),
+    ])
 
- return {
- totalUsers,
- totalDoctors,
- totalPatients,
- totalAppointments,
- pendingDoctors,
- approvedDoctors,
- bannedUsers,
- recentAppointments,
- }
- }
+    return {
+      totalUsers,
+      totalDoctors,
+      totalPatients,
+      totalAppointments,
+      pendingDoctors,
+      approvedDoctors,
+      bannedUsers,
+      recentAppointments,
+    }
+  }
 }

@@ -63,8 +63,8 @@ export const updateAppointmentStatusSchema = z.object({
 })
 
 export const availableSlotSchema = z.object({
- startTime: z.string(),
- endTime: z.string(),
- scheduleId: z.string(),
- available: z.boolean().optional(),
+  startTime: z.string(),
+  endTime: z.string(),
+  scheduleId: z.string(),
+  available: z.boolean().optional(),
 })

@@ -88,12 +88,22 @@ export function useAddPrescription(consultationId: string) {
   })
 }
 
+export function useAppointmentConsultation(appointmentId: string) {
+  return useQuery({
+    queryKey: [...recordKeys.all, "appointment", appointmentId],
+    queryFn: () =>
+      apiClient.get<ConsultationWithPrescriptionsDto | null>(
+        `/records/appointment/${appointmentId}`,
+      ),
+    enabled: !!appointmentId,
+  })
+}
+
 // ─── Patient Prescriptions ───────────────────────────────────
 
 export function usePatientPrescriptions() {
   return useQuery({
     queryKey: recordKeys.prescriptions(),
-    queryFn: () =>
-      apiClient.get<PrescriptionDto[]>("/records/prescriptions"),
+    queryFn: () => apiClient.get<PrescriptionDto[]>("/records/prescriptions"),
   })
 }

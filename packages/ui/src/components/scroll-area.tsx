@@ -1,8 +1,6 @@
 "use client"
 
-import * as React from "react"
 import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area"
-
 import { cn } from "@workspace/ui/lib/utils"
 
 function ScrollArea({
@@ -40,7 +38,7 @@ function ScrollBar({
       orientation={orientation}
       className={cn(
         "flex touch-none p-px transition-colors select-none data-horizontal:h-2.5 data-horizontal:flex-col data-horizontal:border-t data-horizontal:border-t-transparent data-vertical:h-full data-vertical:w-2.5 data-vertical:border-l data-vertical:border-l-transparent",
-        className
+        className,
       )}
       {...props}
     >

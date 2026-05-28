@@ -93,6 +93,13 @@ export default function Page() {
   }
 
   const user = session?.user as unknown as UserDto | undefined
+  const workspacePath =
+    user?.role === "ADMIN"
+      ? "/admin/dashboard"
+      : user?.role === "DOCTOR"
+        ? "/doctor/dashboard"
+        : "/patient/dashboard"
+
   const dashboardLabel =
     user?.role === "ADMIN"
       ? "Open admin dashboard"
@@ -144,7 +151,7 @@ export default function Page() {
                 <>
                   <Button
                     size="lg"
-                    onClick={() => router.push("/dashboard")}
+                    onClick={() => router.push(workspacePath)}
                     className="bg-white text-[oklch(0.15_0.03_215)] hover:bg-white/90"
                   >
                     {dashboardLabel}
@@ -415,7 +422,7 @@ export default function Page() {
       <HomepageFooter
         isAuthenticated={Boolean(session)}
         onCreateAccount={() => router.push("/sign-up")}
-        onOpenDashboard={() => router.push("/dashboard")}
+        onOpenDashboard={() => router.push(workspacePath)}
       />
     </main>
   )

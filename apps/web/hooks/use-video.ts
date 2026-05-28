@@ -46,10 +46,9 @@ export function useEndRoom() {
 
   return useMutation({
     mutationFn: ({ appointmentId }: { appointmentId: string }) =>
-      apiClient.post<EndRoomResponse, { appointmentId: string }>(
-        "/video/end",
-        { appointmentId },
-      ),
+      apiClient.post<EndRoomResponse, { appointmentId: string }>("/video/end", {
+        appointmentId,
+      }),
     onSuccess: (_data, { appointmentId }) => {
       queryClient.invalidateQueries({
         queryKey: videoKeys.room(appointmentId),

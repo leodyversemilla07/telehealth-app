@@ -14,11 +14,10 @@ const workspaceRoot = path.resolve(__dirname, "..", "..")
  *   Example: https://telehealth-env.eba-ncicpaui.us-east-1.elasticbeanstalk.com
  *
  * NEXT_PUBLIC_API_URL (client-side):
- *   Should be empty or "/api" so the browser sends relative requests
- *   that hit Vercel's rewrites → proxied to the API.
+ *   - Empty string (recommended): same-origin mode via Next rewrites.
+ *   - Absolute URL: direct API calls (e.g. local dev: http://localhost:3001).
  */
-const apiBaseUrl =
-  process.env.API_URL || "http://localhost:3001"
+const apiBaseUrl = process.env.API_URL || "http://localhost:3001"
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -29,9 +28,20 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      // Better Auth endpoints already live under /api/auth on the Nest app
+      {
+        source: "/api/auth/:path*",
+        destination: `${apiBaseUrl}/api/auth/:path*`,
+      },
+      // App API endpoints are exposed at root on Nest (e.g. /appointments)
       {
         source: "/api/:path*",
-        destination: `${apiBaseUrl}/api/:path*`,
+        destination: `${apiBaseUrl}/:path*`,
+      },
+      // WebSocket / polling transport for notifications gateway
+      {
+        source: "/socket.io/:path*",
+        destination: `${apiBaseUrl}/socket.io/:path*`,
       },
     ]
   },

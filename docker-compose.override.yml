@@ -1,7 +1,7 @@
 # ── Local development overrides ──
 # Docker Compose auto-merges this file on top of docker-compose.yml.
 # This file is EXCLUDED from EB deployment via .ebignore.
-# Run `docker compose up` locally to get postgres + dev env vars.
+# Run `docker compose up -d postgres` locally for the database only.
 
 services:
   postgres:
@@ -30,30 +30,15 @@ services:
 
   api:
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:***@postgres:5432/${POSTGRES_DB:-mydb}
-      CORS_ORIGIN: http://localhost:3000
-      BETTER_AUTH_URL: http://localhost:3001
+      DATABASE_URL: postgresql://${POSTGRES_USER:-johndoe}:${POSTGRES_PASSWORD:-randompassword}@postgres:5432/${POSTGRES_DB:-mydb}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3001}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-local-development-secret-change-me-32}
-    ports:
-      - "3001:3001"
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - app-net
-
-  web:
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
-    ports:
-      - "3000:3000"
-    networks:
-      - app-net
-
-  # Disable proxy in local dev — use direct ports instead
-  proxy:
-    ports: []
-    entrypoint: ["echo", "Proxy disabled in local dev"]
 
 networks:
   app-net:

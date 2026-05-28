@@ -20,10 +20,7 @@ export const envSchema = z.object({
       required_error: "BETTER_AUTH_SECRET is required",
     })
     .min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
-  BETTER_AUTH_URL: z
-    .string()
-    .optional()
-    .default("http://localhost:3000"),
+  BETTER_AUTH_URL: z.string().optional().default("http://localhost:3000"),
 
   // ── OAuth ─────────────────────────────────────────────────────────────────
   GOOGLE_CLIENT_ID: z.string().optional(),
@@ -45,10 +42,7 @@ export const envSchema = z.object({
   S3_PUBLIC_URL: z.string().url().optional(),
 
   // ── LiveKit (self-hosted on AWS EC2) ───────────────────────────────────────
-  LIVEKIT_URL: z
-    .string()
-    .optional()
-    .default("wss://localhost:7881"),
+  LIVEKIT_URL: z.string().optional().default("wss://localhost:7881"),
   LIVEKIT_API_KEY: z.string().optional().default("devkey"),
   LIVEKIT_API_SECRET: z.string().optional().default("devsecret"),
 

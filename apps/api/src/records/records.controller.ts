@@ -1,10 +1,12 @@
-import { Body, Controller, ForbiddenException, Get, Param, Post } from "@nestjs/common"
 import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiParam,
-  ApiTags,
-} from "@nestjs/swagger"
+  Body,
+  Controller,
+  ForbiddenException,
+  Get,
+  Param,
+  Post,
+} from "@nestjs/common"
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import type { CreateConsultationDto, CreatePrescriptionDto } from "./dto"
@@ -30,11 +32,31 @@ export class RecordsController {
     return this.recordsService.createConsultation(session.user.id, dto)
   }
 
+  // ─── Get consultation by appointment ID ─────────────────────────────
+
+  @Get("appointment/:appointmentId")
+  @ApiOperation({
+    summary: "Get consultation details by appointment ID (Patient or Doctor)",
+  })
+  @ApiParam({ name: "appointmentId", description: "Appointment ID" })
+  async getConsultationByAppointment(
+    @Session() session: UserSession,
+    @Param("appointmentId") appointmentId: string,
+  ) {
+    return this.recordsService.getConsultationByAppointment(
+      appointmentId,
+      session.user.id,
+      session.user.role as string,
+    )
+  }
+
   // ─── Patient: Get own medical records ───────────────────────────────
 
   @Get("consultations")
   @Roles(["PATIENT"])
-  @ApiOperation({ summary: "Get all my medical records / consultations (Patient)" })
+  @ApiOperation({
+    summary: "Get all my medical records / consultations (Patient)",
+  })
   async getMyRecords(@Session() session: UserSession) {
     return this.recordsService.getPatientRecords(session.user.id)
   }
@@ -42,7 +64,9 @@ export class RecordsController {
   // ─── Get single consultation detail ─────────────────────────────────
 
   @Get("consultations/:id")
-  @ApiOperation({ summary: "Get a single consultation detail (Patient or Doctor)" })
+  @ApiOperation({
+    summary: "Get a single consultation detail (Patient or Doctor)",
+  })
   @ApiParam({ name: "id", description: "Consultation ID" })
   async getConsultation(
     @Session() session: UserSession,

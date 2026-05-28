@@ -56,27 +56,27 @@ export class AvailabilityService {
    * Set (upsert) weekly availability schedule for a doctor.
    */
   async setAvailability(userId: string, dto: SetAvailabilityDto) {
-  const doctor = await this.getDoctorProfile(userId)
+    const doctor = await this.getDoctorProfile(userId)
 
-  const data: Record<string, unknown> = {}
-  for (const day of DAYS) {
-  const value = dto[day]
-  if (value !== undefined) {
-  data[day] = typeof value === "string" ? value : JSON.stringify(value)
-  }
-  }
-  if (dto.slotDuration !== undefined) {
-  data.slotDuration = dto.slotDuration
-  }
+    const data: Record<string, unknown> = {}
+    for (const day of DAYS) {
+      const value = dto[day]
+      if (value !== undefined) {
+        data[day] = typeof value === "string" ? value : JSON.stringify(value)
+      }
+    }
+    if (dto.slotDuration !== undefined) {
+      data.slotDuration = dto.slotDuration
+    }
 
-  return this.prisma.availabilitySchedule.upsert({
-  where: { doctorId: doctor.id },
-  update: data,
-  create: {
-  doctorId: doctor.id,
-  ...data,
-  },
-  })
+    return this.prisma.availabilitySchedule.upsert({
+      where: { doctorId: doctor.id },
+      update: data,
+      create: {
+        doctorId: doctor.id,
+        ...data,
+      },
+    })
   }
 
   /**
@@ -120,12 +120,12 @@ export class AvailabilityService {
     }
 
     return this.prisma.timeOff.create({
-    data: {
-    scheduleId: schedule.id,
-    startDate: new Date(dto.startDate),
-    endDate: new Date(dto.endDate),
-    reason: dto.reason,
-    },
+      data: {
+        scheduleId: schedule.id,
+        startDate: new Date(dto.startDate),
+        endDate: new Date(dto.endDate),
+        reason: dto.reason,
+      },
     })
   }
 
@@ -189,14 +189,14 @@ export class AvailabilityService {
 
     const targetDate = new Date(date)
     const dayOfWeek = targetDate.getDay()
- const dayKey = DAY_BY_INDEX[dayOfWeek]
- if (!dayKey) return []
+    const dayKey = DAY_BY_INDEX[dayOfWeek]
+    if (!dayKey) return []
 
- const daySlots: string[] = (() => {
- try {
- return JSON.parse(
- ((schedule as Record<string, unknown>)[dayKey] as string) || "[]",
- )
+    const daySlots: string[] = (() => {
+      try {
+        return JSON.parse(
+          ((schedule as Record<string, unknown>)[dayKey] as string) || "[]",
+        )
       } catch {
         return []
       }
@@ -249,12 +249,12 @@ export class AvailabilityService {
         })
 
         if (!isBooked) {
- slots.push({
- startTime: `${date}T${slotStart}:00`,
- endTime: `${date}T${slotEnd}:00`,
- scheduleId: schedule.id,
- available: true,
- })
+          slots.push({
+            startTime: `${date}T${slotStart}:00`,
+            endTime: `${date}T${slotEnd}:00`,
+            scheduleId: schedule.id,
+            available: true,
+          })
         }
       }
     }

@@ -1,5 +1,5 @@
-import { IsEnum, IsOptional, IsString } from "class-validator"
 import { ApiPropertyOptional } from "@nestjs/swagger"
+import { IsEnum, IsOptional, IsString } from "class-validator"
 
 export enum SortOption {
   PRICE = "price",
@@ -16,7 +16,8 @@ export class SearchDoctorsDto {
   specialty?: string
 
   @ApiPropertyOptional({
-    description: "Search by doctor name or specialty (case-insensitive partial match)",
+    description:
+      "Search by doctor name or specialty (case-insensitive partial match)",
     example: "Del Cruz",
   })
   @IsOptional()

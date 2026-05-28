@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common"
 import type { NotificationType } from "@generated/prisma/client.js"
+import { Injectable } from "@nestjs/common"
 import { PrismaService } from "@/prisma/prisma.service"
 import { NotificationsGateway } from "./notifications.gateway"
 

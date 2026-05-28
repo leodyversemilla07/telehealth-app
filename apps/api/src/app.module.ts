@@ -11,49 +11,49 @@ import { auth } from "@/auth/auth"
 import { AvailabilityModule } from "@/availability/availability.module"
 import { validate } from "@/config/env.validation"
 import {
- throttlerConfig,
- throttlerGuardProvider,
+  throttlerConfig,
+  throttlerGuardProvider,
 } from "@/config/throttler.config"
 import { ConsentModule } from "@/consent/consent.module"
+import { DoctorsModule } from "@/doctors/doctors.module"
+import { NotificationsModule } from "@/notifications/notifications.module"
 import { PatientsModule } from "@/patients/patients.module"
 import { PrismaModule } from "@/prisma/prisma.module"
-import { DoctorsModule } from "@/doctors/doctors.module"
+import { RecommendationsModule } from "@/recommendations/recommendations.module"
+import { RecordsModule } from "@/records/records.module"
 import { SecurityAlertsModule } from "@/security-alerts/security-alerts.module"
 import { StorageModule } from "@/storage/storage.module"
 import { UsersModule } from "@/users/users.module"
-import { RecordsModule } from "@/records/records.module"
-import { RecommendationsModule } from "@/recommendations/recommendations.module"
 import { VideoModule } from "@/video/video.module"
-import { NotificationsModule } from "@/notifications/notifications.module"
 
 @Module({
- imports: [
- ThrottlerModule.forRoot(throttlerConfig),
- ConfigModule.forRoot({ isGlobal: true, validate }),
- PrismaModule,
- StorageModule,
- AuthModule.forRoot({
- auth,
- bodyParser: {
- json: { limit: "2mb" },
- urlencoded: { limit: "2mb", extended: true },
- },
- }),
- UsersModule,
- AuditLogsModule,
- SecurityAlertsModule,
- DoctorsModule,
- AdminModule,
- PatientsModule,
- ConsentModule,
- AvailabilityModule,
- AppointmentsModule,
- RecordsModule,
- RecommendationsModule,
- VideoModule,
- NotificationsModule,
- ],
- controllers: [AppController],
- providers: [AppService, throttlerGuardProvider],
+  imports: [
+    ThrottlerModule.forRoot(throttlerConfig),
+    ConfigModule.forRoot({ isGlobal: true, validate }),
+    PrismaModule,
+    StorageModule,
+    AuthModule.forRoot({
+      auth,
+      bodyParser: {
+        json: { limit: "2mb" },
+        urlencoded: { limit: "2mb", extended: true },
+      },
+    }),
+    UsersModule,
+    AuditLogsModule,
+    SecurityAlertsModule,
+    DoctorsModule,
+    AdminModule,
+    PatientsModule,
+    ConsentModule,
+    AvailabilityModule,
+    AppointmentsModule,
+    RecordsModule,
+    RecommendationsModule,
+    VideoModule,
+    NotificationsModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService, throttlerGuardProvider],
 })
 export class AppModule {}

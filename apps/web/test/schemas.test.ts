@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest"
 import {
   appointmentSchema,
   availableSlotSchema,
   createAppointmentSchema,
 } from "@workspace/shared"
+import { describe, expect, it } from "vitest"
 
 describe("Shared Schemas — Appointment", () => {
   describe("createAppointmentSchema", () => {

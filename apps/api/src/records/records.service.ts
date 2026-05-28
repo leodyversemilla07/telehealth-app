@@ -5,10 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import { PrismaService } from "@/prisma/prisma.service"
-import type {
-  CreateConsultationDto,
-  CreatePrescriptionDto,
-} from "./dto"
+import type { CreateConsultationDto, CreatePrescriptionDto } from "./dto"
 
 @Injectable()
 export class RecordsService {
@@ -37,7 +34,9 @@ export class RecordsService {
 
     // Verify the appointment belongs to this doctor
     if (appointment.doctorId !== doctorProfile.id) {
-      throw new ForbiddenException("You are not the doctor for this appointment")
+      throw new ForbiddenException(
+        "You are not the doctor for this appointment",
+      )
     }
 
     // Verify the appointment is completed
@@ -66,10 +65,16 @@ export class RecordsService {
       instructions: p.instructions ?? null,
     }))
 
+    // Preserve intake context from the appointment itself.
+    // Avoid using appointment.notes because video call metadata is stored there.
+    const intakeNotes = [appointment.reason, appointment.symptoms]
+      .filter((value): value is string => !!value)
+      .join(" | ")
+
     return this.prisma.consultation.create({
       data: {
         appointmentId: dto.appointmentId,
-        patientNotes: appointment.notes ?? null,
+        patientNotes: intakeNotes || null,
         doctorNotes: dto.doctorNotes ?? null,
         diagnosis: dto.diagnosis ?? null,
         plan: dto.plan ?? null,
@@ -200,11 +205,73 @@ export class RecordsService {
   /**
    * Check whether a doctor (by user ID) is authorized for a given doctor profile ID.
    */
-  async isDoctorAuthorized(doctorUserId: string, doctorProfileId: string): Promise<boolean> {
+  async isDoctorAuthorized(
+    doctorUserId: string,
+    doctorProfileId: string,
+  ): Promise<boolean> {
     const profile = await this.prisma.doctorProfile.findUnique({
       where: { userId: doctorUserId },
     })
     return !!profile && profile.id === doctorProfileId
+  }
+
+  /**
+   * Get a consultation by its associated appointment ID.
+   */
+  async getConsultationByAppointment(
+    appointmentId: string,
+    userId: string,
+    role: string,
+  ) {
+    const consultation = await this.prisma.consultation.findUnique({
+      where: { appointmentId },
+      include: {
+        prescriptions: true,
+        appointment: {
+          select: {
+            id: true,
+            patientId: true,
+            doctorId: true,
+            startTime: true,
+            endTime: true,
+            patient: { select: { id: true, name: true, email: true } },
+            doctor: {
+              select: {
+                id: true,
+                specialty: true,
+                user: { select: { name: true } },
+              },
+            },
+          },
+        },
+      },
+    })
+    if (!consultation) {
+      return null
+    }
+
+    // Authorization checks
+    if (role === "ADMIN") return consultation
+
+    if (role === "PATIENT") {
+      if (consultation.appointment.patientId !== userId) {
+        throw new ForbiddenException("Not your medical record")
+      }
+      return consultation
+    }
+
+    if (role === "DOCTOR") {
+      const isAuthorized = await this.isDoctorAuthorized(
+        userId,
+        consultation.appointment.doctorId,
+      )
+      if (!isAuthorized) {
+        throw new ForbiddenException("Not your medical record")
+      }
+      return consultation
+    }
+
+    throw new ForbiddenException("Not your medical record")
   }
 
   /**

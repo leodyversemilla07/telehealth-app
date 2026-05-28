@@ -1,132 +1,124 @@
 import {
- Body,
- Controller,
- Delete,
- Get,
- Param,
- Patch,
- Post,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
 } from "@nestjs/common"
-import {
- ApiBearerAuth,
- ApiOperation,
- ApiParam,
- ApiTags,
-} from "@nestjs/swagger"
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
-import type { BanUserDto, SetRoleDto, UpdateProfileDto } from "@/admin/dto"
 import { AdminService } from "@/admin/admin.service"
+import type { BanUserDto, SetRoleDto, UpdateProfileDto } from "@/admin/dto"
 
 @ApiTags("Admin")
 @ApiBearerAuth("session-token")
 @Controller("admin")
 export class AdminController {
- constructor(private readonly adminService: AdminService) {}
+  constructor(private readonly adminService: AdminService) {}
 
- // ─── Dashboard ──────────────────────────────────────────────────────────
+  // ─── Dashboard ──────────────────────────────────────────────────────────
 
- @Get("dashboard")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "Get admin dashboard statistics" })
- async getDashboard() {
- return this.adminService.getDashboardStats()
- }
+  @Get("dashboard")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Get admin dashboard statistics" })
+  async getDashboard() {
+    return this.adminService.getDashboardStats()
+  }
 
- // ─── User management ───────────────────────────────────────────────────
+  // ─── User management ───────────────────────────────────────────────────
 
- @Get("users")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "List all users (admin)" })
- async listUsers() {
- return this.adminService.listUsers()
- }
+  @Get("users")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "List all users (admin)" })
+  async listUsers() {
+    return this.adminService.listUsers()
+  }
 
- @Get("users/:id")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "Get user by ID (admin)" })
- @ApiParam({ name: "id", description: "Target user ID" })
- async getUser(@Param("id") id: string) {
- return this.adminService.getUser(id)
- }
+  @Get("users/:id")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Get user by ID (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
+  async getUser(@Param("id") id: string) {
+    return this.adminService.getUser(id)
+  }
 
- @Patch("users/:id")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "Update a user's profile (admin)" })
- @ApiParam({ name: "id", description: "Target user ID" })
- async updateUser(
- @Session() session: UserSession,
- @Param("id") id: string,
- @Body() dto: UpdateProfileDto,
- ) {
- return this.adminService.updateUser(
- id,
- session.user.id,
- session.user.role as "PATIENT" | "DOCTOR" | "ADMIN",
- dto,
- )
- }
+  @Patch("users/:id")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Update a user's profile (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
+  async updateUser(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.adminService.updateUser(
+      id,
+      session.user.id,
+      session.user.role as "PATIENT" | "DOCTOR" | "ADMIN",
+      dto,
+    )
+  }
 
- @Post("users/:id/ban")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "Ban a user (admin)" })
- @ApiParam({ name: "id", description: "Target user ID" })
- async banUser(
- @Session() session: UserSession,
- @Param("id") id: string,
- @Body() dto: BanUserDto,
- ) {
- return this.adminService.banUser(session.user.id, id, {
- reason: dto.reason,
- expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
- })
- }
+  @Post("users/:id/ban")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Ban a user (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
+  async banUser(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+    @Body() dto: BanUserDto,
+  ) {
+    return this.adminService.banUser(session.user.id, id, {
+      reason: dto.reason,
+      expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
+    })
+  }
 
- @Delete("users/:id/ban")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "Unban a user (admin)" })
- @ApiParam({ name: "id", description: "Target user ID" })
- async unbanUser(
- @Session() session: UserSession,
- @Param("id") id: string,
- ) {
- return this.adminService.unbanUser(session.user.id, id)
- }
+  @Delete("users/:id/ban")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Unban a user (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
+  async unbanUser(@Session() session: UserSession, @Param("id") id: string) {
+    return this.adminService.unbanUser(session.user.id, id)
+  }
 
- @Patch("users/:id/role")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "Set user role (admin)" })
- @ApiParam({ name: "id", description: "Target user ID" })
- async setRole(
- @Session() session: UserSession,
- @Param("id") id: string,
- @Body() dto: SetRoleDto,
- ) {
- return this.adminService.setRole(session.user.id, id, dto.role)
- }
+  @Patch("users/:id/role")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Set user role (admin)" })
+  @ApiParam({ name: "id", description: "Target user ID" })
+  async setRole(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+    @Body() dto: SetRoleDto,
+  ) {
+    return this.adminService.setRole(session.user.id, id, dto.role)
+  }
 
- // ─── Doctor management ─────────────────────────────────────────────────
+  // ─── Doctor management ─────────────────────────────────────────────────
 
- @Get("doctors")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "List all doctors including unapproved (admin)" })
- async listAllDoctors() {
- return this.adminService.listAllDoctors()
- }
+  @Get("doctors")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "List all doctors including unapproved (admin)" })
+  async listAllDoctors() {
+    return this.adminService.listAllDoctors()
+  }
 
- @Patch("doctors/:id/approve")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "Approve a doctor after PRC verification" })
- @ApiParam({ name: "id", description: "Doctor profile ID" })
- async approveDoctor(@Param("id") id: string) {
- return this.adminService.approveDoctor(id)
- }
+  @Patch("doctors/:id/approve")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Approve a doctor after PRC verification" })
+  @ApiParam({ name: "id", description: "Doctor profile ID" })
+  async approveDoctor(@Param("id") id: string) {
+    return this.adminService.approveDoctor(id)
+  }
 
- @Patch("doctors/:id/reject")
- @Roles(["ADMIN"])
- @ApiOperation({ summary: "Reject / unapprove a doctor" })
- @ApiParam({ name: "id", description: "Doctor profile ID" })
- async rejectDoctor(@Param("id") id: string) {
- return this.adminService.rejectDoctor(id)
- }
+  @Patch("doctors/:id/reject")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Reject / unapprove a doctor" })
+  @ApiParam({ name: "id", description: "Doctor profile ID" })
+  async rejectDoctor(@Param("id") id: string) {
+    return this.adminService.rejectDoctor(id)
+  }
 }

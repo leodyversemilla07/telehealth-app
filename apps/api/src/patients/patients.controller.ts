@@ -1,12 +1,13 @@
 import { Body, Controller, Get, Patch } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
-import { Session } from "@thallesp/nestjs-better-auth"
+import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { PatientsService } from "@/patients/patients.service"
 
 @ApiTags("Patients")
 @ApiBearerAuth("session-token")
 @Controller("patients")
+@Roles(["PATIENT"])
 export class PatientsController {
   constructor(private readonly patientsService: PatientsService) {}
 

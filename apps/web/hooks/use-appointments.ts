@@ -11,7 +11,11 @@ import type {
 import { apiClient } from "@/lib/api-client"
 
 // Re-export doctor hooks from dedicated module for backward compatibility
-export { doctorKeys, useDoctors as useApprovedDoctors, useDoctor } from "./use-doctors"
+export {
+  doctorKeys,
+  useDoctor,
+  useDoctors as useApprovedDoctors,
+} from "./use-doctors"
 
 // ─── Query Keys ──────────────────────────────────────────────
 
@@ -22,7 +26,6 @@ export const appointmentKeys = {
   slots: (doctorId: string, date: string) =>
     [...appointmentKeys.all, "slots", doctorId, date] as const,
 }
-
 
 // ─── Appointments ────────────────────────────────────────────
 
@@ -46,7 +49,10 @@ export function useBookAppointment() {
 
   return useMutation({
     mutationFn: (dto: CreateAppointmentDto) =>
-      apiClient.post<AppointmentDto, CreateAppointmentDto>("/appointments", dto),
+      apiClient.post<AppointmentDto, CreateAppointmentDto>(
+        "/appointments",
+        dto,
+      ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: appointmentKeys.lists() })
     },
@@ -110,5 +116,3 @@ export function useAvailableSlots(doctorId: string, date: string) {
     enabled: !!doctorId && !!date,
   })
 }
-
-

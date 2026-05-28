@@ -1,5 +1,10 @@
-import { IsOptional, IsString, MaxLength, ValidateNested } from "class-validator"
 import { Type } from "class-transformer"
+import {
+  IsOptional,
+  IsString,
+  MaxLength,
+  ValidateNested,
+} from "class-validator"
 import { CreatePrescriptionDto } from "./create-prescription.dto.js"
 
 export class CreateConsultationDto {

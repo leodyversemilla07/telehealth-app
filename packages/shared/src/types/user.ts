@@ -1,7 +1,7 @@
 import type { z } from "zod"
 import type {
-  patientProfileSchema,
   doctorProfileSchema,
+  patientProfileSchema,
   publicUserSchema,
   roleSchema,
   userSchema,

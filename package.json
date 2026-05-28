@@ -11,7 +11,7 @@
     "typecheck": "turbo typecheck",
     "seed": "pnpm --filter api exec tsx prisma/seed.ts",
     "migrate": "pnpm --filter api exec prisma migrate deploy",
-    "db:start": "docker compose up -d",
+    "db:start": "docker compose up -d postgres",
     "db:stop": "docker compose down",
     "db:reset": "pnpm --filter api exec prisma migrate reset --force && pnpm seed"
   },

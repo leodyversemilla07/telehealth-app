@@ -16,7 +16,18 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = env.NEXT_PUBLIC_API_URL
+const RAW_BASE_URL = env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")
+const isAbsoluteBaseUrl = /^https?:\/\//i.test(RAW_BASE_URL)
+
+// Same-origin mode uses Next.js rewrites via /api/*.
+// Absolute URLs call the API directly (useful for local dev or separate domains).
+const API_BASE_URL = !RAW_BASE_URL
+  ? "/api"
+  : isAbsoluteBaseUrl
+    ? RAW_BASE_URL
+    : RAW_BASE_URL.endsWith("/api")
+      ? RAW_BASE_URL
+      : `${RAW_BASE_URL}/api`
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>
@@ -32,7 +43,7 @@ async function request<TResponse>(
   const { params, headers, ...rest } = options
 
   // Append query string if params are provided
-  let url = `${BASE_URL}${path.startsWith("/") ? path : `/${path}`}`
+  let url = `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`
   if (params) {
     const searchParams = new URLSearchParams()
     for (const [key, value] of Object.entries(params)) {
@@ -109,6 +120,18 @@ export const apiClient = {
     return request<TResponse>(path, {
       ...options,
       method: "POST",
+      body: body instanceof FormData ? body : JSON.stringify(body),
+    })
+  },
+
+  put<TResponse, TBody = unknown>(
+    path: string,
+    body?: TBody,
+    options?: RequestOptions,
+  ) {
+    return request<TResponse>(path, {
+      ...options,
+      method: "PUT",
       body: body instanceof FormData ? body : JSON.stringify(body),
     })
   },

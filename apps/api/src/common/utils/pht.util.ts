@@ -14,7 +14,10 @@ export const PHT_OFFSET_HOURS = 8
  * Convert a UTC Date/string to a PHT-formatted string.
  * Uses Intl.DateTimeFormat for reliable timezone conversion.
  */
-export function toPHT(date: Date | string, opts?: Intl.DateTimeFormatOptions): string {
+export function toPHT(
+  date: Date | string,
+  opts?: Intl.DateTimeFormatOptions,
+): string {
   const d = typeof date === "string" ? new Date(date) : date
   return d.toLocaleString("en-PH", { timeZone: PHT_TZ, ...opts })
 }

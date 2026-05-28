@@ -4,8 +4,17 @@ import { createAuthMiddleware, getSessionFromCtx } from "better-auth/api"
 import { twoFactor } from "better-auth/plugins/two-factor"
 import { prisma } from "@/prisma/prisma-client"
 
+const trustedOrigins = (
+  process.env.CORS_ORIGIN || "http://localhost:3000,http://localhost:3001"
+)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
 export const auth = betterAuth({
   appName: "Telehealth Platform",
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",
+  trustedOrigins,
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -20,11 +29,6 @@ export const auth = betterAuth({
       clientId: process.env.GOOGLE_CLIENT_ID || "placeholder_google_id",
       clientSecret:
         process.env.GOOGLE_CLIENT_SECRET || "placeholder_google_secret",
-    },
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID || "placeholder_github_id",
-      clientSecret:
-        process.env.GITHUB_CLIENT_SECRET || "placeholder_github_secret",
     },
   },
   plugins: [twoFactor()],
@@ -48,7 +52,7 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       enabled: false,
-      trustedProviders: ["github", "google"],
+      trustedProviders: ["google"],
     },
   },
   /**
@@ -57,6 +61,15 @@ export const auth = betterAuth({
   rateLimit: {
     window: 60, // 60-second window
     max: 20, // max 20 auth requests per window
+  },
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        required: false,
+        defaultValue: "PATIENT",
+      },
+    },
   },
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
@@ -84,7 +97,6 @@ export const auth = betterAuth({
           )
         }
       }
-      return ctx
     }),
   },
 })

@@ -69,11 +69,8 @@ export class RecommendationsService {
           `Model ${model} returned empty specialties, trying fallback`,
         )
       } catch (error) {
-        const message =
-          error instanceof Error ? error.message : String(error)
-        this.logger.warn(
-          `NIM API call failed for model ${model}: ${message}`,
-        )
+        const message = error instanceof Error ? error.message : String(error)
+        this.logger.warn(`NIM API call failed for model ${model}: ${message}`)
       }
     }
 
@@ -143,8 +140,7 @@ export class RecommendationsService {
 
       if (Array.isArray(parsed)) {
         return parsed.filter(
-          (item): item is string =>
-            typeof item === "string" && item.length > 0,
+          (item): item is string => typeof item === "string" && item.length > 0,
         )
       }
 

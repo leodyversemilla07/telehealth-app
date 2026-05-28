@@ -8,8 +8,11 @@ import { apiClient } from "@/lib/api-client"
 
 export const doctorKeys = {
   all: ["doctors"] as const,
-  list: (filters?: { specialty?: string; search?: string; sort?: "price" | "name" }) =>
-    [...doctorKeys.all, "list", filters] as const,
+  list: (filters?: {
+    specialty?: string
+    search?: string
+    sort?: "price" | "name"
+  }) => [...doctorKeys.all, "list", filters] as const,
   detail: (id: string) => [...doctorKeys.all, "detail", id] as const,
 }
 

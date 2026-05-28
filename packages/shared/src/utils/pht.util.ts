@@ -9,7 +9,10 @@ export const PHT_TZ = "Asia/Manila"
 export const PHT_OFFSET_HOURS = 8
 
 /** Format a UTC Date/string to PHT datetime string */
-export function toPHT(date: Date | string, opts?: Intl.DateTimeFormatOptions): string {
+export function toPHT(
+  date: Date | string,
+  opts?: Intl.DateTimeFormatOptions,
+): string {
   const d = typeof date === "string" ? new Date(date) : date
   return d.toLocaleString("en-PH", { timeZone: PHT_TZ, ...opts })
 }
