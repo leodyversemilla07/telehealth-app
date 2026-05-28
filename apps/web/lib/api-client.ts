@@ -16,18 +16,24 @@ export class ApiError extends Error {
   }
 }
 
-const RAW_BASE_URL = env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")
-const isAbsoluteBaseUrl = /^https?:\/\//i.test(RAW_BASE_URL)
+const getApiBaseUrl = () => {
+  if (typeof window === "undefined") {
+    const serverUrl = process.env.API_URL || "http://localhost:3001"
+    const cleaned = serverUrl.replace(/\/$/, "")
+    return cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`
+  }
 
-// Same-origin mode uses Next.js rewrites via /api/*.
-// Absolute URLs call the API directly (useful for local dev or separate domains).
-const API_BASE_URL = !RAW_BASE_URL
-  ? "/api"
-  : isAbsoluteBaseUrl
-    ? RAW_BASE_URL
-    : RAW_BASE_URL.endsWith("/api")
-      ? RAW_BASE_URL
-      : `${RAW_BASE_URL}/api`
+  const rawBaseUrl = env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")
+  if (!rawBaseUrl) {
+    return "/api"
+  }
+  const isAbsolute = /^https?:\/\//i.test(rawBaseUrl)
+  return isAbsolute
+    ? rawBaseUrl
+    : rawBaseUrl.endsWith("/api")
+      ? rawBaseUrl
+      : `${rawBaseUrl}/api`
+}
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>
@@ -43,7 +49,7 @@ async function request<TResponse>(
   const { params, headers, ...rest } = options
 
   // Append query string if params are provided
-  let url = `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`
+  let url = `${getApiBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`
   if (params) {
     const searchParams = new URLSearchParams()
     for (const [key, value] of Object.entries(params)) {
