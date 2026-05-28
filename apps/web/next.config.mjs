@@ -33,10 +33,10 @@ const nextConfig = {
         source: "/api/auth/:path*",
         destination: `${apiBaseUrl}/api/auth/:path*`,
       },
-      // App API endpoints are exposed at root on Nest (e.g. /appointments)
+      // App API endpoints are exposed under /api prefix on Nest (e.g. /api/appointments)
       {
         source: "/api/:path*",
-        destination: `${apiBaseUrl}/:path*`,
+        destination: `${apiBaseUrl}/api/:path*`,
       },
       // WebSocket / polling transport for notifications gateway
       {
