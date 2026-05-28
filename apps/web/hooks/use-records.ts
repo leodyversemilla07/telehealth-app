@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
   ConsultationWithPrescriptionsDto,
   PrescriptionDto,
+  PrescriptionWithConsultationDto,
 } from "@workspace/shared"
 import { apiClient } from "@/lib/api-client"
 
@@ -104,6 +105,9 @@ export function useAppointmentConsultation(appointmentId: string) {
 export function usePatientPrescriptions() {
   return useQuery({
     queryKey: recordKeys.prescriptions(),
-    queryFn: () => apiClient.get<PrescriptionDto[]>("/records/prescriptions"),
+    queryFn: () =>
+      apiClient.get<PrescriptionWithConsultationDto[]>(
+        "/records/prescriptions",
+      ),
   })
 }

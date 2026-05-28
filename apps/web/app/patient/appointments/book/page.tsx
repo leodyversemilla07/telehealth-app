@@ -1,5 +1,6 @@
 "use client"
 
+import type { AvailableSlotDto, DoctorProfileDto } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -83,11 +84,15 @@ export default function BookAppointmentPage() {
   >([])
 
   // Booking Modal States
-  const [selectedDoctor, setSelectedDoctor] = useState<any>(null)
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorProfileDto | null>(
+    null,
+  )
   const [bookingDate, setBookingDate] = useState<string>(
     new Date().toISOString().split("T")[0] ?? "",
   )
-  const [selectedSlot, setSelectedSlot] = useState<any>(null)
+  const [selectedSlot, setSelectedSlot] = useState<AvailableSlotDto | null>(
+    null,
+  )
   const [visitReason, setVisitReason] = useState("")
   const [visitSymptoms, setVisitSymptoms] = useState("")
   const [visitType, setVisitType] = useState<"VIDEO" | "PHONE" | "IN_PERSON">(
@@ -133,7 +138,7 @@ export default function BookAppointmentPage() {
           toast.dismiss("ai-triage")
           if (data.specialties && data.specialties.length > 0) {
             setAiSpecialties(data.specialties)
-            const matchedIds = data.doctors?.map((doc: any) => doc.id) ?? []
+            const matchedIds = data.doctors?.map((doc) => doc.id) ?? []
             setAiRecommendedDoctorIds(matchedIds)
             toast.success(
               `AI identified: ${data.specialties.join(", ")}. Rerouting to recommended providers.`,
@@ -144,7 +149,7 @@ export default function BookAppointmentPage() {
             )
           }
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           toast.dismiss("ai-triage")
           toast.error(
             err.message ||
@@ -164,7 +169,7 @@ export default function BookAppointmentPage() {
   }
 
   // Handle Booking Trigger
-  const handleOpenBooking = (doctor: any) => {
+  const handleOpenBooking = (doctor: DoctorProfileDto) => {
     setSelectedDoctor(doctor)
     setBookingDate(new Date().toISOString().split("T")[0] ?? "")
     setSelectedSlot(null)
@@ -176,6 +181,10 @@ export default function BookAppointmentPage() {
 
   // Handle Booking Execution Transaction
   const handleConfirmBooking = () => {
+    if (!selectedDoctor) {
+      toast.error("Please select a doctor")
+      return
+    }
     if (!selectedSlot) {
       toast.error("Please select a time slot")
       return
@@ -201,7 +210,7 @@ export default function BookAppointmentPage() {
           setSelectedDoctor(null)
           router.push("/patient/appointments")
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           toast.error(
             err.message || "Failed to book appointment. Slot may be taken.",
           )
@@ -323,7 +332,10 @@ export default function BookAppointmentPage() {
                   >
                     Sort By
                   </Label>
-                  <Select value={sort} onValueChange={(v: any) => setSort(v)}>
+                  <Select
+                    value={sort}
+                    onValueChange={(v) => setSort(v as "name" | "price")}
+                  >
                     <SelectTrigger
                       id="sort-filter"
                       className="bg-muted/10 border-border/60"
@@ -343,7 +355,7 @@ export default function BookAppointmentPage() {
 
         {/* AI Symptom recommendations tab */}
         <TabsContent value="ai" className="space-y-6 outline-none">
-          <Card className="border-amber-500/10 bg-amber-500/[0.01] shadow-xs relative overflow-hidden">
+          <Card className="border-amber-500/10 bg-amber-500/1 shadow-xs relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
             <CardHeader>
               <CardTitle className="text-lg font-bold flex items-center gap-2 text-amber-600 dark:text-amber-500">
@@ -535,7 +547,7 @@ export default function BookAppointmentPage() {
                         {doctor.user.name?.[0] || doctor.user.email[0]}
                       </div>
                       <div className="truncate">
-                        <CardTitle className="text-base font-bold truncate max-w-[160px] text-foreground">
+                        <CardTitle className="text-base font-bold truncate max-w-40 text-foreground">
                           {doctor.user.name || "Doctor"}
                         </CardTitle>
                         <Badge
@@ -565,7 +577,7 @@ export default function BookAppointmentPage() {
                       <div className="flex justify-between gap-1 items-start text-muted-foreground pt-1 border-t border-border/10">
                         <span>Location:</span>
                         <span
-                          className="text-foreground text-right truncate max-w-[130px]"
+                          className="text-foreground text-right truncate max-w-32.5"
                           title={doctor.clinicAddress}
                         >
                           {doctor.clinicAddress}
@@ -620,7 +632,9 @@ export default function BookAppointmentPage() {
               </Label>
               <Select
                 value={visitType}
-                onValueChange={(v: any) => setVisitType(v)}
+                onValueChange={(v) =>
+                  setVisitType(v as "VIDEO" | "PHONE" | "IN_PERSON")
+                }
               >
                 <SelectTrigger
                   id="visit-type"

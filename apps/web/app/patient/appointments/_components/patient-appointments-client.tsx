@@ -7,7 +7,6 @@ import {
   CardContent,
   CardFooter,
   CardHeader,
-  CardTitle,
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
 import {
@@ -50,7 +49,7 @@ export function PatientAppointmentsClient() {
           id: "cancel-appt",
         })
       },
-      onError: (err: any) => {
+      onError: (err: Error) => {
         toast.error(err.message || "Failed to cancel appointment", {
           id: "cancel-appt",
         })

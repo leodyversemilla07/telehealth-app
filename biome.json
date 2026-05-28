@@ -74,6 +74,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["apps/web/**/*.{tsx,ts}"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noArrayIndexKey": "off"
+          }
+        }
+      }
     }
   ]
 }

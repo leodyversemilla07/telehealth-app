@@ -46,7 +46,16 @@ interface DayConfig {
   end: string
 }
 
-const WEEKDAYS = [
+type DayKey =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday"
+
+const WEEKDAYS: { key: DayKey; label: string }[] = [
   { key: "monday", label: "Monday" },
   { key: "tuesday", label: "Tuesday" },
   { key: "wednesday", label: "Wednesday" },
@@ -61,7 +70,6 @@ export default function DoctorSchedulePage() {
   const {
     data: schedule,
     isPending: scheduleLoading,
-    error: scheduleError,
     refetch: refetchSchedule,
   } = useMyAvailability()
 
@@ -101,7 +109,7 @@ export default function DoctorSchedulePage() {
 
       const loadedDays = { ...days }
       for (const day of WEEKDAYS) {
-        const rawJson = (schedule as any)[day.key]
+        const rawJson = schedule[day.key]
         try {
           const parsed = JSON.parse(rawJson || "[]") as string[]
           if (parsed.length > 0 && parsed[0]) {
@@ -127,22 +135,22 @@ export default function DoctorSchedulePage() {
   }, [schedule, days])
 
   // Handle Day Toggle Checkbox
-  const handleToggleDay = (key: string) => {
+  const handleToggleDay = (key: DayKey) => {
     setDays((prev) => ({
       ...prev,
-      [key]: { ...prev[key]!, active: !prev[key]?.active },
+      [key]: { ...prev[key], active: !(prev[key]?.active ?? false) },
     }))
   }
 
   // Handle Time input changes
   const handleTimeChange = (
-    key: string,
+    key: DayKey,
     field: "start" | "end",
     val: string,
   ) => {
     setDays((prev) => ({
       ...prev,
-      [key]: { ...prev[key]!, [field]: val },
+      [key]: { ...prev[key], [field]: val },
     }))
   }
 
@@ -152,7 +160,7 @@ export default function DoctorSchedulePage() {
 
     toast.loading("Saving weekly schedule shifts...", { id: "save-sched" })
 
-    const payload: any = { slotDuration }
+    const payload: Record<string, unknown> = { slotDuration }
     for (const day of WEEKDAYS) {
       const config = days[day.key]
       if (config?.active) {
@@ -181,7 +189,7 @@ export default function DoctorSchedulePage() {
         })
         refetchSchedule()
       },
-      onError: (err: any) => {
+      onError: (err: Error) => {
         toast.error(err.message || "Failed to update availability schedule.", {
           id: "save-sched",
         })
@@ -220,7 +228,7 @@ export default function DoctorSchedulePage() {
           setToReason("")
           refetchTimeOff()
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           toast.error(err.message || "Failed to register time off.", {
             id: "add-to",
           })
@@ -240,7 +248,7 @@ export default function DoctorSchedulePage() {
         toast.success("Time block removed successfully!", { id: "del-to" })
         refetchTimeOff()
       },
-      onError: (err: any) => {
+      onError: (err: Error) => {
         toast.error(err.message || "Failed to remove time block.", {
           id: "del-to",
         })
@@ -310,7 +318,7 @@ export default function DoctorSchedulePage() {
                 >
                   <SelectTrigger
                     id="slot-duration"
-                    className="bg-card border-border/60 font-semibold max-w-[200px] sm:ml-auto"
+                    className="bg-card border-border/60 font-semibold max-w-50 sm:ml-auto"
                   >
                     <SelectValue placeholder="30 Minutes" />
                   </SelectTrigger>
@@ -327,7 +335,7 @@ export default function DoctorSchedulePage() {
               <Separator className="bg-border/30" />
 
               {/* Weekly Day Columns List */}
-              <div className="space-y-3.5 max-h-[380px] overflow-y-auto pr-1">
+              <div className="space-y-3.5 max-h-95 overflow-y-auto pr-1">
                 {WEEKDAYS.map((day) => {
                   const config = days[day.key] ?? {
                     active: false,
@@ -380,7 +388,7 @@ export default function DoctorSchedulePage() {
                                   e.target.value,
                                 )
                               }
-                              className="h-9 font-medium max-w-[120px]"
+                              className="h-9 font-medium max-w-30"
                               required
                             />
                           </div>
@@ -403,7 +411,7 @@ export default function DoctorSchedulePage() {
                               onChange={(e) =>
                                 handleTimeChange(day.key, "end", e.target.value)
                               }
-                              className="h-9 font-medium max-w-[120px]"
+                              className="h-9 font-medium max-w-30"
                               required
                             />
                           </div>
@@ -538,7 +546,7 @@ export default function DoctorSchedulePage() {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="px-4 pb-4 max-h-[220px] overflow-y-auto pr-1">
+            <CardContent className="px-4 pb-4 max-h-55 overflow-y-auto pr-1">
               {timeOffLoading ? (
                 <div className="space-y-3 py-1">
                   {Array.from({ length: 2 }).map((_, idx) => (

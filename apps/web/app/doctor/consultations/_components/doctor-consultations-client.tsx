@@ -63,7 +63,7 @@ export function DoctorConsultationsClient() {
             id: "confirm-appt",
           })
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           toast.error(err.message || "Failed to confirm appointment", {
             id: "confirm-appt",
           })
@@ -83,7 +83,7 @@ export function DoctorConsultationsClient() {
           toast.success("Consultation started!", { id: "start-appt" })
           router.push(`/doctor/consultations/${id}`)
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           toast.error(err.message || "Failed to start consultation", {
             id: "start-appt",
           })

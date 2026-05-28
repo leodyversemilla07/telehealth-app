@@ -7,5 +7,14 @@ const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
 })
 
-export const prismaPgAdapter = new PrismaPg(pool)
+const prismaPgAdapter = new PrismaPg(pool)
+
+/**
+ * Single shared PrismaClient instance.
+ * Prisma docs: "Create one instance of PrismaClient and re-use it across
+ * your application." Each instance creates its own connection pool, so
+ * multiple instances can exhaust the database connection limit.
+ *
+ * @see https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections
+ */
 export const prisma = new PrismaClient({ adapter: prismaPgAdapter })

@@ -44,7 +44,7 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
-import { type ApiError, apiClient } from "@/lib/api-client"
+import { apiClient } from "@/lib/api-client"
 
 export default function AdminUsersPage() {
   const queryClient = useQueryClient()
@@ -89,7 +89,7 @@ export default function AdminUsersPage() {
       queryClient.invalidateQueries({ queryKey: ["users"] })
       setSelectedUserForRole(null)
     },
-    onError: (err: ApiError) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Failed to update user role")
     },
   })
@@ -108,7 +108,7 @@ export default function AdminUsersPage() {
       setSelectedUserForBan(null)
       setBanReason("")
     },
-    onError: (err: ApiError) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Failed to ban user")
     },
   })
@@ -122,7 +122,7 @@ export default function AdminUsersPage() {
       toast.success(`User ${res.email} has been unbanned`)
       queryClient.invalidateQueries({ queryKey: ["users"] })
     },
-    onError: (err: ApiError) => {
+    onError: (err: Error) => {
       toast.error(err.message || "Failed to unban user")
     },
   })

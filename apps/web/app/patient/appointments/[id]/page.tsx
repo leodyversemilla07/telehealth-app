@@ -71,7 +71,7 @@ export default function AppointmentDetailPage() {
             )
           }
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           toast.dismiss("video-join")
           toast.error(
             err.message ||
@@ -94,7 +94,7 @@ export default function AppointmentDetailPage() {
           id: "cancel-appt",
         })
       },
-      onError: (err: any) => {
+      onError: (err: Error) => {
         toast.error(err.message || "Failed to cancel appointment", {
           id: "cancel-appt",
         })
@@ -407,11 +407,11 @@ export default function AppointmentDetailPage() {
                     {formatPrice(Number(appt.doctor.pricePerVisit))}
                   </strong>
                 </div>
-                {(appt.doctor as any).clinicAddress && (
+                {appt.doctor.clinicAddress && (
                   <div className="space-y-1">
                     <span>Clinic Address:</span>
                     <p className="text-foreground font-medium text-right truncate">
-                      {(appt.doctor as any).clinicAddress}
+                      {appt.doctor.clinicAddress}
                     </p>
                   </div>
                 )}

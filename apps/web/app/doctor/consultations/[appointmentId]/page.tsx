@@ -111,7 +111,7 @@ export default function DoctorConsultationDetailPage() {
           toast.success("Consultation room closed successfully.")
           refetchAppt()
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           toast.dismiss("video-end-doc")
           // Fallback cleanup of local state so the doctor is not stuck
           setActiveCallToken(null)
@@ -145,7 +145,7 @@ export default function DoctorConsultationDetailPage() {
             )
           }
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           toast.dismiss("video-join-doc")
           toast.error(
             err.message || "Failed to initialize Webrtc relay connection",
@@ -233,8 +233,12 @@ export default function DoctorConsultationDetailPage() {
       })
       refetchAppt()
       refetchRecord()
-    } catch (err: any) {
-      toast.error(err.message || "Failed to finalize consultation chart.", {
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to finalize consultation chart."
+      toast.error(message, {
         id: "chart-sub",
       })
     }
@@ -694,7 +698,7 @@ export default function DoctorConsultationDetailPage() {
                       placeholder="Subjective: Patient reports sore throat and pain on swallowing.&#10;Objective: Ertyhematous tonsillar pillars, no active exudates. Lungs clear."
                       value={doctorNotes}
                       onChange={(e) => setDoctorNotes(e.target.value)}
-                      className="bg-muted/10 border-border/60 text-xs min-h-[100px] leading-relaxed"
+                      className="bg-muted/10 border-border/60 text-xs min-h-25 leading-relaxed"
                     />
                   </div>
 
@@ -712,7 +716,7 @@ export default function DoctorConsultationDetailPage() {
                       placeholder="Increase oral fluid intake. Rest. Take medications as prescribed below. Follow up in 5 days if fever persists."
                       value={plan}
                       onChange={(e) => setPlan(e.target.value)}
-                      className="bg-muted/10 border-border/60 text-xs min-h-[80px] leading-relaxed"
+                      className="bg-muted/10 border-border/60 text-xs min-h-20 leading-relaxed"
                     />
                   </div>
 

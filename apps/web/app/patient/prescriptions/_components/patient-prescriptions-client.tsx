@@ -192,22 +192,19 @@ export function PatientPrescriptionsClient() {
                   )}
 
                   {/* Consultation Diagnosis Context */}
-                  {(rx as any).consultation && (
+                  {rx.consultation && (
                     <div className="mt-4 pt-4 border-t border-border/30 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                       <div className="space-y-1">
                         <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
                           <User className="h-3 w-3" /> Prescribing Doctor
                         </span>
                         <p className="text-foreground font-semibold">
-                          {(rx as any).consultation.appointment?.doctor?.user
-                            ?.name || "Verified Doctor"}
+                          {rx.consultation.appointment?.doctor?.user?.name ||
+                            "Verified Doctor"}
                         </p>
                         <p className="text-[10px] text-muted-foreground font-medium">
                           Specialization:{" "}
-                          {
-                            (rx as any).consultation.appointment?.doctor
-                              ?.specialty
-                          }
+                          {rx.consultation.appointment?.doctor?.specialty}
                         </p>
                       </div>
                       <div className="space-y-1">
@@ -215,12 +212,10 @@ export function PatientPrescriptionsClient() {
                           <HeartPulse className="h-3 w-3" /> Diagnosis Context
                         </span>
                         <p
-                          className="text-foreground font-medium truncate max-w-[250px]"
-                          title={
-                            (rx as any).consultation.diagnosis ?? "Unspecified"
-                          }
+                          className="text-foreground font-medium truncate max-w-62.5"
+                          title={rx.consultation.diagnosis ?? "Unspecified"}
                         >
-                          {(rx as any).consultation.diagnosis || "Unspecified"}
+                          {rx.consultation.diagnosis || "Unspecified"}
                         </p>
                       </div>
                     </div>

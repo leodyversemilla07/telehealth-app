@@ -22,6 +22,27 @@ export const prescriptionSchema = z.object({
   createdAt: z.coerce.date(),
 })
 
+/**
+ * Prescription with nested consultation data.
+ * Returned by GET /records/prescriptions for patients.
+ */
+export const prescriptionWithConsultationSchema = prescriptionSchema.extend({
+  consultation: z.object({
+    id: z.string(),
+    diagnosis: z.string().nullable(),
+    appointment: z.object({
+      startTime: z.coerce.date(),
+      doctor: z.object({
+        id: z.string(),
+        specialty: z.string(),
+        user: z.object({
+          name: z.string().nullable(),
+        }),
+      }),
+    }),
+  }),
+})
+
 export const consultationWithPrescriptionsSchema = consultationSchema.extend({
   prescriptions: z.array(prescriptionSchema),
   appointment: z.object({

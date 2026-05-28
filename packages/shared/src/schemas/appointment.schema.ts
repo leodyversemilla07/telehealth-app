@@ -34,6 +34,7 @@ export const appointmentSchema = z.object({
     id: z.string(),
     specialty: z.string(),
     pricePerVisit: z.number().nullable().optional(),
+    clinicAddress: z.string().nullable().optional(),
     user: z.object({
       id: z.string().optional(),
       name: z.string().nullable(),
