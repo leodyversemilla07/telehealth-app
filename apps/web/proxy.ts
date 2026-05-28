@@ -1,7 +1,7 @@
 import { getSessionCookie } from "better-auth/cookies"
 import { type NextRequest, NextResponse } from "next/server"
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const sessionCookie = getSessionCookie(request)
   const { pathname } = request.nextUrl
 
@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
-// Ensure middleware only intercepts application pages (ignoring assets & api routes)
+// Ensure proxy only intercepts application pages (ignoring assets & api routes)
 export const config = {
   matcher: [
     "/patient/:path*",
