@@ -97,6 +97,68 @@ export const auth = betterAuth({
           )
         }
       }
+
+      // NPC Compliance (F-AUTH-09): Audit log for all login attempts (successful and failed)
+      if (ctx.path === "/sign-in/email") {
+        const userEmail = ctx.body?.email as string | undefined
+        const isSuccess = !(ctx.context.returned instanceof Error)
+        const ipAddress =
+          ctx.request?.headers.get("x-forwarded-for") ||
+          ctx.request?.headers.get("cf-connecting-ip") ||
+          null
+
+        if (userEmail) {
+          const user = await prisma.user.findUnique({
+            where: { email: userEmail },
+          })
+
+          if (isSuccess && user) {
+            await prisma.auditLog.create({
+              data: {
+                action: "User Login",
+                actorId: user.id,
+                actorEmail: user.email,
+                reason: `Successful email login from IP: ${ipAddress ?? "unknown"}`,
+              },
+            })
+          } else {
+            const errorMsg =
+              ctx.context.returned instanceof Error
+                ? ctx.context.returned.message
+                : "Invalid credentials"
+            await prisma.auditLog.create({
+              data: {
+                action: "User Login Failed",
+                actorId: user?.id ?? "unknown",
+                actorEmail: userEmail,
+                reason: `Failed login attempt: ${errorMsg} (IP: ${ipAddress ?? "unknown"})`,
+              },
+            })
+          }
+        }
+      }
+
+      // NPC Compliance (F-AUTH-09): Audit log for sign-out
+      if (
+        ctx.path === "/sign-out" &&
+        !(ctx.context.returned instanceof Error)
+      ) {
+        const session = await getSessionFromCtx(ctx)
+        if (session) {
+          const ipAddress =
+            ctx.request?.headers.get("x-forwarded-for") ||
+            ctx.request?.headers.get("cf-connecting-ip") ||
+            null
+          await prisma.auditLog.create({
+            data: {
+              action: "User Logout",
+              actorId: session.user.id,
+              actorEmail: session.user.email,
+              reason: `Successful logout (IP: ${ipAddress ?? "unknown"})`,
+            },
+          })
+        }
+      }
     }),
   },
 })

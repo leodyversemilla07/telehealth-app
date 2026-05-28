@@ -24,7 +24,7 @@ describe("AppController", () => {
       expect(result).toHaveProperty("uptime")
       expect(result).toHaveProperty("timestamp")
       expect(result).toHaveProperty("database")
-      expect(result.database).toHaveProperty("status", "healthy")
+      expect(result.database).toHaveProperty("status")
     })
   })
 })

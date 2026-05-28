@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Session } from "@thallesp/nestjs-better-auth"
 import { ConsentService } from "@/consent/consent.service"
+import { RecordConsentDto } from "@/consent/dto"
 
 @ApiTags("Consent")
 @ApiBearerAuth("session-token")
@@ -16,7 +17,7 @@ export class ConsentController {
   })
   async recordConsent(
     @Session() session: UserSession,
-    @Body() body: { consentType: string; granted: boolean },
+    @Body() body: RecordConsentDto,
   ) {
     const ipAddress =
       session.session && typeof session.session === "object"

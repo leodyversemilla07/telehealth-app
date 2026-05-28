@@ -1,4 +1,5 @@
 import { GalleryVerticalEnd } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 
 export function AuthLayout({ children }: { children: React.ReactNode }) {
@@ -18,10 +19,13 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         </div>
       </div>
       <div className="relative hidden bg-muted lg:block">
-        <img
+        <Image
           src="/placeholder.svg"
           alt="Image"
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+          fill
+          priority
+          sizes="(max-width: 1024px) 100vw, 50vw"
+          className="object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>
     </div>

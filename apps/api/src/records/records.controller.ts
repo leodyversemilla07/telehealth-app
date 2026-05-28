@@ -9,7 +9,8 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
-import type { CreateConsultationDto, CreatePrescriptionDto } from "./dto"
+import { CreateConsultationDto } from "./dto/create-consultation.dto"
+import { CreatePrescriptionDto } from "./dto/create-prescription.dto"
 import { RecordsService } from "./records.service"
 
 @ApiTags("Medical Records")

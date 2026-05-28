@@ -2,6 +2,7 @@ import { Body, Controller, Get, Patch } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
+import { UpdatePatientProfileDto } from "@/patients/dto"
 import { PatientsService } from "@/patients/patients.service"
 
 @ApiTags("Patients")
@@ -21,17 +22,7 @@ export class PatientsController {
   @ApiOperation({ summary: "Update current user's patient profile" })
   async updateMyProfile(
     @Session() session: UserSession,
-    @Body()
-    data: {
-      dob?: string
-      sex?: string
-      phone?: string
-      address?: string
-      philhealthNumber?: string
-      weight?: number
-      height?: number
-      medicalHistory?: Record<string, unknown> | unknown[]
-    },
+    @Body() data: UpdatePatientProfileDto,
   ) {
     return this.patientsService.updateProfile(session.user.id, data)
   }

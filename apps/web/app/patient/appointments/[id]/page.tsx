@@ -65,7 +65,6 @@ export default function AppointmentDetailPage() {
             setActiveCallToken(data.token)
             setActiveCallUrl(data.url)
             toast.success("Joined video room!")
-            refetch()
           } else {
             toast.error(
               "Invalid token payload returned from video room service",
@@ -94,7 +93,6 @@ export default function AppointmentDetailPage() {
         toast.success("Appointment successfully cancelled", {
           id: "cancel-appt",
         })
-        refetch()
       },
       onError: (err: any) => {
         toast.error(err.message || "Failed to cancel appointment", {

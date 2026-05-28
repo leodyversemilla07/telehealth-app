@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import { Test, TestingModule } from "@nestjs/testing"
+import { NotificationsService } from "@/notifications/notifications.service"
 import { PrismaService } from "@/prisma/prisma.service"
 import { AppointmentsService } from "./appointments.service"
 
@@ -35,6 +36,9 @@ type MockModel = {
     findMany: jest.Mock
     create: jest.Mock
     update: jest.Mock
+  }
+  timeOff: {
+    findFirst: jest.Mock
   }
   user: {
     findUnique: jest.Mock
@@ -79,6 +83,9 @@ describe("AppointmentsService", () => {
         create: jest.fn(),
         update: jest.fn(),
       },
+      timeOff: {
+        findFirst: jest.fn(),
+      },
       user: {
         findUnique: jest.fn(),
         findMany: jest.fn(),
@@ -101,6 +108,12 @@ describe("AppointmentsService", () => {
         {
           provide: PrismaService,
           useValue: prismaMock as unknown as PrismaService,
+        },
+        {
+          provide: NotificationsService,
+          useValue: {
+            createNotification: jest.fn(),
+          },
         },
       ],
     }).compile()
@@ -185,7 +198,10 @@ describe("AppointmentsService", () => {
       prisma.availabilitySchedule.findUnique.mockResolvedValue({
         id: dto.scheduleId,
         doctorId: dto.doctorId,
+        slotDuration: 30,
+        saturday: '["09:00-17:00"]',
       })
+      prisma.timeOff.findFirst.mockResolvedValue(null)
       prisma.appointment.findFirst.mockResolvedValue({
         id: "existing-apt",
         startTime: new Date(dto.startTime),
@@ -203,6 +219,13 @@ describe("AppointmentsService", () => {
         doctorId: dto.doctorId,
         patientId: userId,
         status: "BOOKED",
+        type: "VIDEO",
+        startTime: new Date(dto.startTime),
+        patient: { id: userId, name: "Patient" },
+        doctor: {
+          id: dto.doctorId,
+          user: { id: "doctor-user-1", name: "Doctor" },
+        },
       }
 
       prisma.patientProfile.findUnique.mockResolvedValue({
@@ -216,7 +239,10 @@ describe("AppointmentsService", () => {
       prisma.availabilitySchedule.findUnique.mockResolvedValue({
         id: dto.scheduleId,
         doctorId: dto.doctorId,
+        slotDuration: 30,
+        saturday: '["09:00-17:00"]',
       })
+      prisma.timeOff.findFirst.mockResolvedValue(null)
       prisma.appointment.findFirst.mockResolvedValue(null)
       prisma.appointment.create.mockResolvedValue(createdApt)
 

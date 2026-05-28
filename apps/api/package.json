@@ -81,11 +81,13 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "moduleNameMapper": {
-      "^@/(.*)$": "<rootDir>/$1",
       "^@generated/prisma/client\\.js$": "<rootDir>/../test/mocks/prisma-client.ts",
       "^@thallesp/nestjs-better-auth$": "<rootDir>/../test/mocks/nestjs-better-auth.ts",
       "^@/prisma/prisma\\.service$": "<rootDir>/../test/mocks/prisma.service.ts",
-      "generated/prisma/client\\.js$": "<rootDir>/../test/mocks/prisma-client.ts"
+      "^@/notifications/notifications\\.service$": "<rootDir>/../test/mocks/notifications.service.ts",
+      "^@workspace/shared$": "<rootDir>/../test/mocks/workspace-shared.ts",
+      "generated/prisma/client\\.js$": "<rootDir>/../test/mocks/prisma-client.ts",
+      "^@/(.*)$": "<rootDir>/$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

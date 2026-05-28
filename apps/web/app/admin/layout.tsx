@@ -14,7 +14,6 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { Loader2, ShieldAlert } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 import { SidebarAdmin } from "@/components/sidebar-admin"
 import { authClient } from "@/lib/auth-client"
 
@@ -25,12 +24,6 @@ export default function AdminLayout({
 }) {
   const router = useRouter()
   const { data: session, isPending } = authClient.useSession()
-
-  useEffect(() => {
-    if (!isPending && !session) {
-      router.replace("/sign-in")
-    }
-  }, [session, isPending, router])
 
   if (isPending) {
     return (

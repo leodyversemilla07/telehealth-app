@@ -11,7 +11,9 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { AdminService } from "@/admin/admin.service"
-import type { BanUserDto, SetRoleDto, UpdateProfileDto } from "@/admin/dto"
+import { BanUserDto } from "@/admin/dto/ban-user.dto"
+import { SetRoleDto } from "@/admin/dto/set-role.dto"
+import { UpdateProfileDto } from "@/admin/dto/update-profile.dto"
 
 @ApiTags("Admin")
 @ApiBearerAuth("session-token")

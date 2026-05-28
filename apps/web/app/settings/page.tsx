@@ -194,7 +194,6 @@ export default function SettingsPage() {
     onSuccess: async () => {
       toast.success("Profile updated successfully!")
       await refetch()
-      refetchAlerts()
       queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
     },
     onError: (err: { message?: string }) => {
@@ -214,7 +213,6 @@ export default function SettingsPage() {
       setImageUrl(data.image)
       setPreviewUrl(null)
       await refetch()
-      refetchAlerts()
       queryClient.invalidateQueries({ queryKey: ["users"] })
       queryClient.invalidateQueries({ queryKey: ["audit-logs"] })
       queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
@@ -248,7 +246,6 @@ export default function SettingsPage() {
       setConfirmPassword("")
       setRevokeOtherDevices(false)
       refetchSessions()
-      refetchAlerts()
       queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
     },
     onError: (err: { message?: string }) => {
@@ -285,7 +282,6 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast.success("Device session revoked successfully")
       refetchSessions()
-      refetchAlerts()
       queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
     },
     onError: (err: { message?: string }) => {
@@ -299,7 +295,6 @@ export default function SettingsPage() {
     onSuccess: () => {
       toast.success("All other active device sessions revoked")
       refetchSessions()
-      refetchAlerts()
       queryClient.invalidateQueries({ queryKey: ["security-alerts"] })
     },
     onError: (err: { message?: string }) => {

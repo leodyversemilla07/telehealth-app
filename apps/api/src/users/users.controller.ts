@@ -23,7 +23,7 @@ import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Session } from "@thallesp/nestjs-better-auth"
 import type { PublicUserDto } from "@workspace/shared/types/user"
 import { StorageService } from "@/storage/storage.service"
-import type { UpdateProfileDto } from "@/users/dto/index.js"
+import { UpdateProfileDto } from "@/users/dto/update-profile.dto"
 import { UsersService } from "@/users/users.service"
 
 @ApiTags("Users")

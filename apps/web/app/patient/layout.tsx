@@ -27,11 +27,7 @@ export default function PatientLayout({
   const { data: session, isPending } = authClient.useSession()
 
   useEffect(() => {
-    if (isPending) return
-    if (!session) {
-      router.replace("/sign-in")
-      return
-    }
+    if (isPending || !session) return
     const role = (session.user as { role?: string } | undefined)?.role
     if (role === "DOCTOR") {
       router.replace("/doctor/dashboard")

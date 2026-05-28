@@ -107,7 +107,7 @@ describe("DoctorsService", () => {
 
   describe("findById", () => {
     it("should throw NotFoundException if doctor not found", async () => {
-      prisma.doctorProfile.findUnique.mockResolvedValue(null)
+      prisma.doctorProfile.findFirst.mockResolvedValue(null)
 
       await expect(service.findById("nonexistent")).rejects.toThrow(
         NotFoundException,
@@ -116,7 +116,7 @@ describe("DoctorsService", () => {
 
     it("should return doctor when found", async () => {
       const profile = { id: "doc-1", specialty: "Cardiology", isApproved: true }
-      prisma.doctorProfile.findUnique.mockResolvedValue(profile)
+      prisma.doctorProfile.findFirst.mockResolvedValue(profile)
 
       const result = await service.findById("doc-1")
       expect(result).toEqual(profile)

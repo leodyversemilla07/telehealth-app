@@ -44,7 +44,7 @@ import {
   useAppointmentConsultation,
   useCreateConsultation,
 } from "@/hooks/use-records"
-import { useJoinRoom } from "@/hooks/use-video"
+import { useEndRoom, useJoinRoom } from "@/hooks/use-video"
 import "@livekit/components-styles"
 
 interface PrescriptionInput {
@@ -93,7 +93,35 @@ export default function DoctorConsultationDetailPage() {
   // 2. Mutations
   const updateStatusMutation = useUpdateAppointmentStatus()
   const joinRoomMutation = useJoinRoom()
+  const endRoomMutation = useEndRoom()
   const createConsultationMutation = useCreateConsultation()
+
+  // Handle Video Calling End (F-CONSULT-06: Terminate room cleanly on server)
+  const handleEndCall = () => {
+    toast.loading("Terminating virtual consultation session...", {
+      id: "video-end-doc",
+    })
+    endRoomMutation.mutate(
+      { appointmentId },
+      {
+        onSuccess: () => {
+          toast.dismiss("video-end-doc")
+          setActiveCallToken(null)
+          setActiveCallUrl(null)
+          toast.success("Consultation room closed successfully.")
+          refetchAppt()
+        },
+        onError: (err: any) => {
+          toast.dismiss("video-end-doc")
+          // Fallback cleanup of local state so the doctor is not stuck
+          setActiveCallToken(null)
+          setActiveCallUrl(null)
+          toast.warning(err.message || "Cleaned up local connection state.")
+          refetchAppt()
+        },
+      },
+    )
+  }
 
   // Handle Video Calling Init
   const handleJoinCall = () => {
@@ -305,12 +333,7 @@ export default function DoctorConsultationDetailPage() {
             size="sm"
             variant="destructive"
             className="text-xs h-8 font-semibold shadow-xs"
-            onClick={() => {
-              setActiveCallToken(null)
-              setActiveCallUrl(null)
-              toast.info("Disconnected from calling room.")
-              refetchAppt()
-            }}
+            onClick={handleEndCall}
           >
             Leave Calling Room
           </Button>
@@ -323,11 +346,7 @@ export default function DoctorConsultationDetailPage() {
             audio={true}
             token={activeCallToken}
             serverUrl={activeCallUrl}
-            onDisconnected={() => {
-              setActiveCallToken(null)
-              setActiveCallUrl(null)
-              refetchAppt()
-            }}
+            onDisconnected={handleEndCall}
             data-lk-theme="default"
             className="h-full w-full"
           >

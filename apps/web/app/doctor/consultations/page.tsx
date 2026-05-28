@@ -62,7 +62,6 @@ export default function DoctorConsultationsPage() {
           toast.success("Appointment confirmed successfully!", {
             id: "confirm-appt",
           })
-          refetch()
         },
         onError: (err: any) => {
           toast.error(err.message || "Failed to confirm appointment", {
@@ -82,7 +81,6 @@ export default function DoctorConsultationsPage() {
       {
         onSuccess: () => {
           toast.success("Consultation started!", { id: "start-appt" })
-          refetch()
           router.push(`/doctor/consultations/${id}`)
         },
         onError: (err: any) => {

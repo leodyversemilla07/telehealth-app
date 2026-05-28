@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
@@ -10,6 +11,7 @@ import type { JoinRoomDto } from "./dto"
 
 @Injectable()
 export class VideoService {
+  private readonly logger = new Logger(VideoService.name)
   private readonly livekitUrl: string
   private readonly livekitApiKey: string
   private readonly livekitApiSecret: string
@@ -33,15 +35,25 @@ export class VideoService {
       !this.livekitApiKey.startsWith("dev")
 
     if (this.livekitConfigured) {
+      // RoomServiceClient (backend REST client) requires an HTTP/HTTPS URL,
+      // whereas the client SDK (frontend) requires the wss:// protocol.
+      // Automatically normalize the protocol for RoomServiceClient to prevent connection failures.
+      let host = this.livekitUrl
+      if (host.startsWith("wss://")) {
+        host = host.replace("wss://", "https://")
+      } else if (host.startsWith("ws://")) {
+        host = host.replace("ws://", "http://")
+      }
+
       this.roomServiceClient = new RoomServiceClient(
-        this.livekitUrl,
+        host,
         this.livekitApiKey,
         this.livekitApiSecret,
       )
     } else {
       // Stub client — video endpoints will return 503
       this.roomServiceClient = null as unknown as RoomServiceClient
-      console.warn(
+      this.logger.warn(
         "⚠️  LiveKit not configured — video consultation endpoints will return 503",
       )
     }
@@ -63,6 +75,8 @@ export class VideoService {
 
     const room = await this.roomServiceClient.createRoom({
       name: roomName,
+      emptyTimeout: 120, // Clean up room 2 minutes after last participant leaves
+      maxParticipants: 2, // Explicitly restrict 1-on-1 virtual consultations
       metadata: JSON.stringify({
         appointmentId,
         doctorName,
@@ -91,6 +105,7 @@ export class VideoService {
     }
     const token = new AccessToken(this.livekitApiKey, this.livekitApiSecret, {
       identity: participantIdentity,
+      ttl: "1h", // Limit token validity duration to 1 hour (Default was 6 hours)
     })
 
     token.addGrant({

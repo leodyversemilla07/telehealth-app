@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import { PrismaService } from "@/prisma/prisma.service"
 import type { Prisma } from "../../generated/prisma/client.js"
+import type { UpdatePatientProfileDto } from "./dto"
 
 @Injectable()
 export class PatientsService {
@@ -27,19 +28,7 @@ export class PatientsService {
   /**
    * Update patient profile fields.
    */
-  async updateProfile(
-    userId: string,
-    data: {
-      dob?: string
-      sex?: string
-      phone?: string
-      address?: string
-      philhealthNumber?: string
-      weight?: number
-      height?: number
-      medicalHistory?: Record<string, unknown> | unknown[]
-    },
-  ) {
+  async updateProfile(userId: string, data: UpdatePatientProfileDto) {
     await this.getOrCreateProfile(userId)
 
     return this.prisma.patientProfile.update({

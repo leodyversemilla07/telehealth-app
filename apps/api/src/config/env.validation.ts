@@ -9,7 +9,7 @@ export const envSchema = z.object({
     .min(1, "DATABASE_URL must not be empty"),
 
   // ── Server ────────────────────────────────────────────────────────────────
-  PORT: z.coerce.number().min(1).max(65535).default(3000),
+  PORT: z.coerce.number().min(1).max(65535).default(3001),
   NODE_ENV: z
     .enum(["development", "production", "test"])
     .default("development"),
@@ -20,7 +20,7 @@ export const envSchema = z.object({
       required_error: "BETTER_AUTH_SECRET is required",
     })
     .min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
-  BETTER_AUTH_URL: z.string().optional().default("http://localhost:3000"),
+  BETTER_AUTH_URL: z.string().optional().default("http://localhost:3001"),
 
   // ── OAuth ─────────────────────────────────────────────────────────────────
   GOOGLE_CLIENT_ID: z.string().optional(),

@@ -4,6 +4,7 @@ import { ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import express from "express"
 import { AppModule } from "@/app.module"
+import { HttpExceptionFilter } from "@/common/filters/http-exception.filter"
 import { PhtDateInterceptor } from "@/common/interceptors/pht-date.interceptor"
 import { setupSwagger } from "@/config/swagger.config"
 
@@ -11,6 +12,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bodyParser: false,
   })
+
+  // Enforce API route namespacing
+  app.setGlobalPrefix("api")
+
+  // Enable shutdown hooks to prevent database pool leaks on SIGTERM/SIGINT
+  app.enableShutdownHooks()
+
+  // Apply standardized exception formatting globally
+  app.useGlobalFilters(new HttpExceptionFilter())
 
   // Ensure uploads directory exists
   const uploadsDir = join(process.cwd(), "uploads")
@@ -57,6 +67,6 @@ async function bootstrap() {
     setupSwagger(app)
   }
 
-  await app.listen(process.env.PORT ?? 3000)
+  await app.listen(process.env.PORT ?? 3001)
 }
 bootstrap()

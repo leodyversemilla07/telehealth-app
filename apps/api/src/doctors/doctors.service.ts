@@ -6,6 +6,12 @@ import {
 import type { RegisterDoctorDto, SearchDoctorsDto } from "@/doctors/dto"
 import { PrismaService } from "@/prisma/prisma.service"
 
+const PUBLIC_USER_SELECT = {
+  id: true,
+  name: true,
+  image: true,
+} as const
+
 @Injectable()
 export class DoctorsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -123,12 +129,7 @@ export class DoctorsService {
       where,
       include: {
         user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
+          select: PUBLIC_USER_SELECT,
         },
       },
       orderBy,
@@ -139,16 +140,11 @@ export class DoctorsService {
    * Get a single doctor profile by ID.
    */
   async findById(id: string) {
-    const profile = await this.prisma.doctorProfile.findUnique({
-      where: { id },
+    const profile = await this.prisma.doctorProfile.findFirst({
+      where: { id, isApproved: true },
       include: {
         user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-          },
+          select: PUBLIC_USER_SELECT,
         },
       },
     })

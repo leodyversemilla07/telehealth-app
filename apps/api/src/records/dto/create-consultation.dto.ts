@@ -5,7 +5,7 @@ import {
   MaxLength,
   ValidateNested,
 } from "class-validator"
-import { CreatePrescriptionDto } from "./create-prescription.dto.js"
+import { CreatePrescriptionDto } from "./create-prescription.dto"
 
 export class CreateConsultationDto {
   @IsString()

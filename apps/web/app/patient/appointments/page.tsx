@@ -53,7 +53,6 @@ export default function PatientAppointmentsPage() {
         toast.success("Appointment successfully cancelled", {
           id: "cancel-appt",
         })
-        refetch()
       },
       onError: (err: any) => {
         toast.error(err.message || "Failed to cancel appointment", {

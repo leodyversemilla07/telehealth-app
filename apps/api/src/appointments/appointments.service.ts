@@ -1,10 +1,14 @@
 import type { AppointmentStatus } from "@generated/prisma/client.js"
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from "@nestjs/common"
+import { formatPHTFull } from "@workspace/shared"
+import { NotificationsService } from "@/notifications/notifications.service"
 import { PrismaService } from "@/prisma/prisma.service"
 import type { CreateAppointmentDto, RescheduleAppointmentDto } from "./dto"
 
@@ -29,9 +33,129 @@ const PATIENT_INCLUDE = {
   select: { id: true, name: true, email: true, image: true },
 }
 
+type DayKey =
+  | "monday"
+  | "tuesday"
+  | "wednesday"
+  | "thursday"
+  | "friday"
+  | "saturday"
+  | "sunday"
+
+const DAY_BY_INDEX: Record<number, DayKey> = {
+  0: "sunday",
+  1: "monday",
+  2: "tuesday",
+  3: "wednesday",
+  4: "thursday",
+  5: "friday",
+  6: "saturday",
+}
+
 @Injectable()
 export class AppointmentsService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(AppointmentsService.name)
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
+
+  private parseIsoTimeRange(startIso: string, endIso: string) {
+    const start = new Date(startIso)
+    const end = new Date(endIso)
+
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      throw new BadRequestException("Invalid appointment datetime")
+    }
+
+    if (end <= start) {
+      throw new BadRequestException("endTime must be later than startTime")
+    }
+
+    return { start, end }
+  }
+
+  private toUtcMinutes(date: Date): number {
+    return date.getUTCHours() * 60 + date.getUTCMinutes()
+  }
+
+  private parseScheduleWindows(
+    raw: string,
+  ): Array<{ start: number; end: number }> {
+    try {
+      const parsed = JSON.parse(raw)
+      if (!Array.isArray(parsed)) return []
+
+      const windows: Array<{ start: number; end: number }> = []
+
+      for (const entry of parsed) {
+        if (typeof entry !== "string") continue
+        const [startStr, endStr] = entry.split("-")
+        if (!startStr || !endStr) continue
+
+        const [startH, startM] = startStr.split(":").map(Number)
+        const [endH, endM] = endStr.split(":").map(Number)
+
+        if (
+          [startH, startM, endH, endM].some(
+            (value) => Number.isNaN(value) || value === undefined,
+          )
+        ) {
+          continue
+        }
+
+        const start = (startH ?? 0) * 60 + (startM ?? 0)
+        const end = (endH ?? 0) * 60 + (endM ?? 0)
+
+        if (end > start) {
+          windows.push({ start, end })
+        }
+      }
+
+      return windows
+    } catch {
+      return []
+    }
+  }
+
+  private isWithinSchedule(
+    schedule: Record<string, unknown> & { slotDuration: number },
+    start: Date,
+    end: Date,
+  ): boolean {
+    if (
+      start.getUTCFullYear() !== end.getUTCFullYear() ||
+      start.getUTCMonth() !== end.getUTCMonth() ||
+      start.getUTCDate() !== end.getUTCDate()
+    ) {
+      return false
+    }
+
+    const dayKey = DAY_BY_INDEX[start.getUTCDay()]
+    if (!dayKey) return false
+
+    const rawDaySchedule = schedule[dayKey]
+    if (typeof rawDaySchedule !== "string") return false
+
+    const windows = this.parseScheduleWindows(rawDaySchedule)
+    if (windows.length === 0) return false
+
+    const startMinutes = this.toUtcMinutes(start)
+    const endMinutes = this.toUtcMinutes(end)
+    const duration = endMinutes - startMinutes
+
+    if (duration <= 0) return false
+
+    return windows.some((window) => {
+      const insideWindow =
+        startMinutes >= window.start && endMinutes <= window.end
+      const slotAligned =
+        (startMinutes - window.start) % schedule.slotDuration === 0 &&
+        duration % schedule.slotDuration === 0
+      return insideWindow && slotAligned
+    })
+  }
 
   /**
    * Book a new appointment.
@@ -45,6 +169,8 @@ export class AppointmentsService {
         "Patient profile not found. Complete your profile first.",
       )
     }
+
+    const { start, end } = this.parseIsoTimeRange(dto.startTime, dto.endTime)
 
     // Verify doctor exists and is approved
     const doctor = await this.prisma.doctorProfile.findUnique({
@@ -62,26 +188,46 @@ export class AppointmentsService {
     if (!schedule || schedule.doctorId !== dto.doctorId)
       throw new NotFoundException("Schedule not found for this doctor")
 
+    if (!this.isWithinSchedule(schedule, start, end)) {
+      throw new BadRequestException(
+        "Selected appointment time is outside doctor availability",
+      )
+    }
+
+    const overlappingTimeOff = await this.prisma.timeOff.findFirst({
+      where: {
+        scheduleId: schedule.id,
+        startDate: { lt: end },
+        endDate: { gt: start },
+      },
+    })
+
+    if (overlappingTimeOff) {
+      throw new ConflictException(
+        "Doctor is unavailable during the selected time window",
+      )
+    }
+
     // Check for double-booking (overlapping appointment)
     const overlapping = await this.prisma.appointment.findFirst({
       where: {
         doctorId: dto.doctorId,
         status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
-        startTime: { lt: new Date(dto.endTime) },
-        endTime: { gt: new Date(dto.startTime) },
+        startTime: { lt: end },
+        endTime: { gt: start },
       },
     })
     if (overlapping) {
       throw new ConflictException("This time slot is already booked")
     }
 
-    return this.prisma.appointment.create({
+    const appointment = await this.prisma.appointment.create({
       data: {
         patientId: userId,
         doctorId: dto.doctorId,
         scheduleId: dto.scheduleId,
-        startTime: new Date(dto.startTime),
-        endTime: new Date(dto.endTime),
+        startTime: start,
+        endTime: end,
         reason: dto.reason ?? null,
         symptoms: dto.symptoms ?? null,
         type: dto.type ?? "VIDEO",
@@ -91,6 +237,29 @@ export class AppointmentsService {
         doctor: DOCTOR_INCLUDE,
       },
     })
+
+    // Trigger push notifications
+    try {
+      const formattedTime = formatPHTFull(appointment.startTime)
+      // Notify the Doctor
+      await this.notifications.createNotification(
+        appointment.doctor.user.id,
+        "APPOINTMENT_CONFIRMATION",
+        "New Appointment Booked",
+        `Patient ${appointment.patient.name ?? "Someone"} has booked a ${appointment.type.toLowerCase()} consultation with you on ${formattedTime}.`,
+      )
+      // Notify the Patient
+      await this.notifications.createNotification(
+        appointment.patientId,
+        "APPOINTMENT_CONFIRMATION",
+        "Appointment Booked Successfully",
+        `Your ${appointment.type.toLowerCase()} consultation with Dr. ${appointment.doctor.user.name ?? "Doctor"} is booked for ${formattedTime}.`,
+      )
+    } catch (err) {
+      this.logger.error("Failed to send booking notifications:", err)
+    }
+
+    return appointment
   }
 
   /**
@@ -180,7 +349,7 @@ export class AppointmentsService {
         throw new ForbiddenException("Not your appointment")
     }
 
-    return this.prisma.appointment.update({
+    const updated = await this.prisma.appointment.update({
       where: { id },
       data: { status },
       include: {
@@ -188,6 +357,38 @@ export class AppointmentsService {
         doctor: DOCTOR_INCLUDE,
       },
     })
+
+    // Trigger status change notifications
+    try {
+      const formattedTime = formatPHTFull(updated.startTime)
+      const doctorName = updated.doctor.user.name ?? "Doctor"
+      if (status === "CONFIRMED") {
+        await this.notifications.createNotification(
+          updated.patientId,
+          "APPOINTMENT_CONFIRMATION",
+          "Appointment Confirmed",
+          `Your consultation on ${formattedTime} has been confirmed by Dr. ${doctorName}.`,
+        )
+      } else if (status === "IN_PROGRESS") {
+        await this.notifications.createNotification(
+          updated.patientId,
+          "APPOINTMENT_REMINDER",
+          "Consultation Started",
+          `Your consultation room with Dr. ${doctorName} is ready. Join the call now!`,
+        )
+      } else if (status === "COMPLETED") {
+        await this.notifications.createNotification(
+          updated.patientId,
+          "SYSTEM",
+          "Consultation Completed",
+          `Your consultation with Dr. ${doctorName} has ended. You can view your medical records under the Medical Records tab.`,
+        )
+      }
+    } catch (err) {
+      this.logger.error("Failed to send status update notifications:", err)
+    }
+
+    return updated
   }
 
   /**
@@ -214,7 +415,7 @@ export class AppointmentsService {
       }
     }
 
-    return this.prisma.appointment.update({
+    const cancelled = await this.prisma.appointment.update({
       where: { id },
       data: { status: "CANCELLED" },
       include: {
@@ -222,6 +423,32 @@ export class AppointmentsService {
         doctor: DOCTOR_INCLUDE,
       },
     })
+
+    // Trigger cancellation notification
+    try {
+      const formattedTime = formatPHTFull(cancelled.startTime)
+      if (userId === cancelled.patientId) {
+        // Patient cancelled -> Notify doctor
+        await this.notifications.createNotification(
+          cancelled.doctor.user.id,
+          "APPOINTMENT_CANCELLED",
+          "Appointment Cancelled by Patient",
+          `Patient ${cancelled.patient.name ?? "Someone"} has cancelled the appointment scheduled for ${formattedTime}.`,
+        )
+      } else {
+        // Doctor or admin cancelled -> Notify patient
+        await this.notifications.createNotification(
+          cancelled.patientId,
+          "APPOINTMENT_CANCELLED",
+          "Appointment Cancelled",
+          `Your appointment with Dr. ${cancelled.doctor.user.name ?? "Doctor"} scheduled for ${formattedTime} has been cancelled.`,
+        )
+      }
+    } catch (err) {
+      this.logger.error("Failed to send cancellation notifications:", err)
+    }
+
+    return cancelled
   }
 
   /**
@@ -240,25 +467,55 @@ export class AppointmentsService {
       throw new ConflictException("Cannot reschedule this appointment")
     }
 
+    const { start, end } = this.parseIsoTimeRange(dto.startTime, dto.endTime)
+
+    const schedule = await this.prisma.availabilitySchedule.findUnique({
+      where: { id: appt.scheduleId },
+    })
+
+    if (!schedule || schedule.doctorId !== appt.doctorId) {
+      throw new NotFoundException("Schedule not found for this doctor")
+    }
+
+    if (!this.isWithinSchedule(schedule, start, end)) {
+      throw new BadRequestException(
+        "Selected appointment time is outside doctor availability",
+      )
+    }
+
+    const overlappingTimeOff = await this.prisma.timeOff.findFirst({
+      where: {
+        scheduleId: schedule.id,
+        startDate: { lt: end },
+        endDate: { gt: start },
+      },
+    })
+
+    if (overlappingTimeOff) {
+      throw new ConflictException(
+        "Doctor is unavailable during the selected time window",
+      )
+    }
+
     // Check new slot availability
     const conflict = await this.prisma.appointment.findFirst({
       where: {
         doctorId: appt.doctorId,
         status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
         id: { not: id },
-        startTime: { lt: new Date(dto.endTime) },
-        endTime: { gt: new Date(dto.startTime) },
+        startTime: { lt: end },
+        endTime: { gt: start },
       },
     })
     if (conflict) {
       throw new ConflictException("This time slot is already booked")
     }
 
-    return this.prisma.appointment.update({
+    const rescheduled = await this.prisma.appointment.update({
       where: { id },
       data: {
-        startTime: new Date(dto.startTime),
-        endTime: new Date(dto.endTime),
+        startTime: start,
+        endTime: end,
         status: "BOOKED",
       },
       include: {
@@ -266,5 +523,20 @@ export class AppointmentsService {
         doctor: DOCTOR_INCLUDE,
       },
     })
+
+    // Trigger reschedule notification to the doctor
+    try {
+      const formattedTime = formatPHTFull(rescheduled.startTime)
+      await this.notifications.createNotification(
+        rescheduled.doctor.user.id,
+        "SCHEDULE_UPDATED",
+        "Appointment Rescheduled",
+        `Patient ${rescheduled.patient.name ?? "Someone"} has rescheduled their appointment. New slot: ${formattedTime}.`,
+      )
+    } catch (err) {
+      this.logger.error("Failed to send reschedule notification:", err)
+    }
+
+    return rescheduled
   }
 }

@@ -3,8 +3,8 @@ import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
 import { DoctorsService } from "@/doctors/doctors.service"
-import type { RegisterDoctorDto } from "@/doctors/dto"
-import { SearchDoctorsDto } from "@/doctors/dto"
+import { RegisterDoctorDto } from "@/doctors/dto/register-doctor.dto"
+import { SearchDoctorsDto } from "@/doctors/dto/search-doctors.dto"
 
 @ApiTags("Doctors")
 @ApiBearerAuth("session-token")
