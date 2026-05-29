@@ -25,16 +25,20 @@ telehealth-app/
 
 | Layer       | Technology                                                    |
 | ----------- | ------------------------------------------------------------- |
-| Frontend    | Next.js 16 + React 19 + Tailwind CSS v4 + shadcn/ui          |
-| Backend     | NestJS 11 + Express                                           |
-| Database    | PostgreSQL 16 (via Prisma ORM + `@prisma/adapter-pg`)        |
-| Auth        | Better Auth (email/password, 2FA) |
-| Validation  | Zod (shared) + class-validator (API)                          |
-| API Client  | TanStack React Query v5                                       |
-| Icons       | Lucide React                                                  |
-| Linting     | Biome (linter + formatter)                                    |
-| Monorepo    | Turborepo + pnpm workspaces                                   |
-| Deployment  | Docker / AWS Elastic Beanstalk                                |
+| Frontend    | Next.js 16 + React 19 + Tailwind CSS v4 + shadcn/ui              |
+| Backend     | NestJS 11 + Express                                               |
+| Database    | PostgreSQL 16 (via Prisma ORM + `@prisma/adapter-pg`)            |
+| Auth        | Better Auth (email/password, 2FA, account lockout)               |
+| Video       | LiveKit (self-hosted on AWS EC2)                                  |
+| AI          | NVIDIA NIM (Nemotron-3-Super-120B / Qwen3.5-122B)                |
+| Notifications| WebSocket via Socket.io (NestJS Gateway)                         |
+| Storage     | AWS S3                                                            |
+| Validation  | Zod (shared) + class-validator (API)                              |
+| API Client  | TanStack React Query v5                                           |
+| Icons       | Lucide React                                                      |
+| Linting     | Biome (linter + formatter)                                        |
+| Monorepo    | Turborepo + pnpm workspaces                                       |
+| Deployment  | Docker / AWS Elastic Beanstalk                                    |
 
 ## Prerequisites
 
@@ -67,7 +71,7 @@ pnpm dev
 | Email                  | Password          | Role     |
 | ---------------------- | ----------------- | -------- |
 | admin@example.com      | Set via sign-up   | ADMIN    |
-| doctor@example.com     | Set via sign-up   | PROVIDER |
+| doctor@example.com     | Set via sign-up   | DOCTOR   |
 | alice@example.com      | Set via sign-up   | PATIENT  |
 | bob@example.com        | Set via sign-up   | PATIENT  |
 
@@ -122,7 +126,7 @@ pnpm --filter web test  # Web tests (Vitest)
 ### `@workspace/ui` (`packages/ui`)
 - shadcn/ui components with `base-nova` style
 - Tailwind CSS v4 with OKLCH color tokens
-- Available components: Badge, Button, Card, Dialog, Input, Label, Select, Separator, Sonner (toast)
+- Available components: Badge, Button, Card, Dialog, Input, Label, Select, Separator, Sonner, DatePicker, DateRangePicker, DateTimePicker, Empty, Spinner, NavigationMenu, Item, Field
 - [Components JSON](./apps/web/components.json) for shadcn CLI
 
 ### `@workspace/shared` (`packages/shared`)
@@ -130,60 +134,108 @@ pnpm --filter web test  # Web tests (Vitest)
 - Shared TypeScript types (`UserDto`, `ProviderProfileDto`, etc.)
 - Exported via subpath exports: `@workspace/shared/schemas/*`, `@workspace/shared/types/*`
 
-## Premium Features
+## Key Features
 
-### 🌟 Doctor Ratings & Reviews
-- **Average Ratings & Review Counts**: Mapped dynamically from patient reviews in both search and public profile views.
-- **Credential Transparencies**: Star ratings displayed prominently on doctor discovery cards to establish immediate visual trust.
+### 👤 Patient Module
+- **Account Creation** — Email/password registration with email verification
+- **Profile Management** — Name, birthday, weight, height, photo, contact details, medical history
+- **Doctor Discovery** — Browse doctors, filter by specialization, search by name
+- **AI Symptom Checker** — Describe symptoms → AI recommends specialists (NVIDIA NIM)
+- **Appointment Booking** — Book, reschedule, cancel consultations with real-time availability
+- **Video Consultations** — Join LiveKit-powered video calls directly in browser
+- **Medical Records** — View consultation history, prescriptions, and doctor notes
+- **In-app Chat** — Real-time secure messaging with doctors
 
-## Auth & Security
+### 🩺 Doctor Module
+- **Registration** — Email/password with PRC license submission
+- **Profile Management** — Bio, specialty, credentials, clinic address, pricing
+- **Schedule Management** — Weekly availability, time-off blocks, slot duration
+- **Consultations** — Video calls, notes, diagnosis, treatment plans
+- **Prescriptions** — eRx with medication name, dosage, frequency, duration
+- **Patient Records** — Access consultation history and records
+- **In-app Chat** — Real-time messaging with patients
 
-- **Better Auth** handles authentication with email/password and OAuth (Google, GitHub)
-- **2FA** via TOTP authenticator apps (Google Authenticator, Authy) with backup codes
-- **Session rotation** — 7-day expiry, refreshed every 24 hours
-- **Rate limiting** — 30 requests/60s API-wide, 20 auth requests/minute
-- **RBAC** — Three roles: `PATIENT`, `PROVIDER`, `ADMIN`
-- **Security alerts** — Password changes, profile updates, session revocations trigger notifications
-- **Audit logging** — All admin actions (bans, role changes) are immutably logged
+### 🔒 Auth & Security
+- **Better Auth** — Email/password with email verification
+- **2FA** — TOTP via authenticator apps (Google Authenticator, Authy) with backup codes
+- **Account Lockout** — Auto-lock after 5 failed login attempts
+- **Password Policy** — Min 8 chars, complexity validation
+- **Session Rotation** — 7-day expiry, refreshed every 24h, fresh token every 5min
+- **Rate Limiting** — 30 requests/60s API-wide, 20 auth requests/min
+- **RBAC** — Three roles: `PATIENT`, `DOCTOR`, `ADMIN`
+- **Security Alerts** — Password changes trigger email + in-app alert
+- **Audit Logging** — All auth events (login, logout, failed attempts) immutably logged
+
+### ⭐ Bonus Features
+- **Doctor Reviews & Ratings** — 1-5 star ratings with comments post-consultation
+- **AI Symptom Checker** — NVIDIA NIM-powered analysis with condition assessment
+- **Design System** — Custom telehealth-themed oklch color palette
+- **Theme Toggle** — Light/dark mode across all roles
+- **Admin Dashboard** — User management, doctor approval, audit logs, reports, security alerts
 
 ## API Routes
 
 ### Authentication (`/api/auth`)
 - Sign in / Sign up (email + password)
-- OAuth (Google, GitHub)
-- Password reset flow
-- 2FA enable/disable/verify
+- Email verification / Password reset
+- Forgot password / Change password
+- 2FA enable/disable/verify/backup-codes
 
-### Users (`/users`)
-- `GET /users/me` — Current user profile
-- `PATCH /users/me` — Update profile
-- `POST /users/me/avatar` — Upload avatar
-- `GET /users/me/sessions` — Active sessions
-- `DELETE /users/me/sessions/:id` — Revoke session
-- Admin: list, get by ID, ban, unban, set role
+### Doctors (`/api/doctors`)
+- `GET /api/doctors` — List/search approved doctors (filter by specialty, name, sort by price)
+- `GET /api/doctors/:id` — Doctor profile with average rating
+- `POST /api/doctors/register` — Register as doctor
+- `POST /api/recommendations` — AI symptom → doctor recommendation
 
-### Providers (`/providers`)
-- `POST /providers/register` — Register as provider
-- `GET /providers` — List approved providers (public)
-- `GET /providers/:id` — Provider profile (public)
-- `PATCH /providers/:id/approve` — Admin approval
-- `PATCH /providers/:id/reject` — Admin rejection
+### Availability (`/api/availability`)
+- `GET /api/availability/:doctorId` — Weekly schedule
+- `GET /api/availability/:doctorId/slots?date=` — Available time slots
+- `PUT /api/availability` — Set weekly schedule (Doctor)
+- `POST /api/availability/time-off` — Block unavailable time (Doctor)
 
-### Patients (`/patients`)
-- `GET /patients/me` — Get patient profile
-- `PATCH /patients/me` — Update patient profile
+### Appointments (`/api/appointments`)
+- `POST /api/appointments` — Book appointment (Patient)
+- `GET /api/appointments` — My appointments list
+- `GET /api/appointments/:id` — Appointment detail
+- `PATCH /api/appointments/:id/status` — Update status (Doctor/Admin)
+- `PATCH /api/appointments/:id/cancel` — Cancel
+- `PATCH /api/appointments/:id/reschedule` — Reschedule (Patient)
 
-### Consent (`/consent`)
-- `POST /consent` — Record privacy consent (RA 10173)
-- `GET /consent` — View consent history
+### Medical Records (`/api/records`)
+- `GET /api/records/consultations` — My consultations
+- `POST /api/records/consultations` — Create consultation notes (Doctor)
+- `POST /api/records/consultations/:id/prescriptions` — Add prescription (Doctor)
+- `GET /api/records/prescriptions` — My prescriptions (Patient)
 
-### Admin (`/audit-logs`, `/users/me/security-alerts`)
-- Audit log with search and filtering
-- Security alerts inbox
+### Video Consultation (`/api/video`)
+- `POST /api/video/rooms` — Create room
+- `POST /api/video/rooms/:roomName/join` — Join with token
+- `PATCH /api/video/rooms/:roomName/end` — End call
+
+### Chat (`/api/chat`)
+- `GET /api/chat/conversations` — List conversations
+- `GET /api/chat/messages/:userId` — Get messages
+- `POST /api/chat/messages` — Send message
+- `POST /api/chat/messages/:userId/read` — Mark as read
+
+### Notifications (`/api/notifications`)
+- `GET /api/notifications` — List notifications
+- `PATCH /api/notifications/:id/read` — Mark read
+- `PATCH /api/notifications/read-all` — Mark all read
+
+### Admin (`/api/admin`)
+- `GET /api/admin/users` — List all users
+- `PATCH /api/admin/doctors/:id/approve` — Approve doctor
+- `PATCH /api/admin/doctors/:id/reject` — Reject doctor
+- `GET /api/admin/audit-logs` — Audit trail
+- `GET /api/admin/security-alerts` — Security alerts
+- `GET /api/admin/reports` — Platform analytics
 
 ## Documentation
 
 - **SRS**: [docs/SRS.md](./docs/SRS.md) — Full Software Requirements Specification covering Philippine regulatory compliance (RA 10173, DOH AO 2021-0037, PRC, PDEA, PhilHealth)
+- **Design System**: [docs/DESIGN-SYSTEM.md](./docs/DESIGN-SYSTEM.md) — Telehealth-themed design system with oklch color tokens
+- **Deployment**: [AWS.md](./AWS.md) — AWS Elastic Beanstalk deployment guide
 
 ## Deployment
 

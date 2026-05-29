@@ -90,6 +90,7 @@ model Session {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("sessions")
 }
 
@@ -110,6 +111,8 @@ model Account {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([providerId])
+  @@index([userId])
   @@map("accounts")
 }
 
@@ -121,6 +124,7 @@ model Verification {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  @@index([identifier])
   @@map("verifications")
 }
 
@@ -196,6 +200,7 @@ model TimeOff {
   reason    String?
   createdAt DateTime @default(now())
 
+  @@index([scheduleId])
   @@map("time_offs")
 }
 
@@ -255,6 +260,7 @@ model Prescription {
   instructions   String?
   createdAt      DateTime @default(now())
 
+  @@index([consultationId])
   @@map("prescriptions")
 }
 
@@ -269,6 +275,7 @@ model Notification {
   readAt    DateTime?
   createdAt DateTime         @default(now())
 
+  @@index([userId])
   @@map("notifications")
 }
 
@@ -281,6 +288,7 @@ model ConsentLog {
   ipAddress   String?
   createdAt   DateTime @default(now())
 
+  @@index([userId])
   @@map("consent_logs")
 }
 
@@ -294,6 +302,9 @@ model AuditLog {
   reason      String?
   timestamp   DateTime @default(now())
 
+  @@index([actorId])
+  @@index([action])
+  @@index([timestamp])
   @@map("audit_logs")
 }
 
@@ -309,6 +320,7 @@ model SecurityAlert {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
   @@map("security_alerts")
 }
 

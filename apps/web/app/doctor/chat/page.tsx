@@ -1,13 +1,17 @@
 "use client"
 
-import { Card, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
-import { MessageSquare, Plus, Search, Send, UserPlus } from "lucide-react"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { MessageSquare, Plus, Search, Send, UserPlus } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import type { Contact, Conversation } from "@/hooks/use-chat"
 import {
   useChatMessages,
   useContacts,
@@ -31,7 +35,7 @@ export default function DoctorChatPage() {
   })
 
   const currentUserId = userData?.user?.id || ""
-  const userRole = "DOCTOR" as const
+  const userRole: string = "DOCTOR"
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [message, setMessage] = useState("")
@@ -135,7 +139,11 @@ export default function DoctorChatPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={showContacts ? "Search patients..." : "Search conversations..."}
+                placeholder={
+                  showContacts
+                    ? "Search patients..."
+                    : "Search conversations..."
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-8 text-xs bg-muted/20"

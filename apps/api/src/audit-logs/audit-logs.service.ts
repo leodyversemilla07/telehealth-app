@@ -40,9 +40,15 @@ export class AuditLogsService {
     })
   }
 
-  async getLogs() {
-    return this.prisma.auditLog.findMany({
-      orderBy: { timestamp: "desc" },
-    })
+  async getLogs(limit = 50, offset = 0) {
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.auditLog.findMany({
+        take: limit,
+        skip: offset,
+        orderBy: { timestamp: "desc" },
+      }),
+      this.prisma.auditLog.count(),
+    ])
+    return { items, total, limit, offset }
   }
 }

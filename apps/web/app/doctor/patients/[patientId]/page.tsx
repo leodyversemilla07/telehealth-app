@@ -78,10 +78,10 @@ interface PatientRecord {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  CONFIRMED: "text-emerald-600 bg-emerald-50 border-emerald-200",
-  COMPLETED: "text-blue-600 bg-blue-50 border-blue-200",
-  CANCELLED: "text-red-600 bg-red-50 border-red-200",
-  PENDING: "text-amber-600 bg-amber-50 border-amber-200",
+  CONFIRMED: "text-success bg-success/10 border-success/30",
+  COMPLETED: "text-info bg-info/10 border-info/30",
+  CANCELLED: "text-destructive bg-destructive/10 border-destructive/30",
+  PENDING: "text-warning bg-warning/10 border-warning/30",
 }
 
 export default function PatientDetailPage() {
@@ -135,7 +135,7 @@ export default function PatientDetailPage() {
                 The requested patient could not be found.
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm" render={<Link href="/doctor/patients" />} className="sm:w-fit">
+            <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/doctor/patients" />} className="sm:w-fit">
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back to patients
             </Button>
@@ -167,7 +167,7 @@ export default function PatientDetailPage() {
               </CardDescription>
             </div>
           </div>
-          <Button variant="outline" size="sm" render={<Link href="/doctor/patients" />} className="sm:w-fit">
+          <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/doctor/patients" />} className="sm:w-fit">
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to patients
           </Button>
@@ -265,7 +265,7 @@ export default function PatientDetailPage() {
             {patientRecords.patient.patientProfile.medicalHistory.conditions &&
               patientRecords.patient.patientProfile.medicalHistory.conditions.length > 0 && (
                 <div>
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
                     <Heart className="h-3 w-3" />
                     Conditions
                   </span>
@@ -281,7 +281,7 @@ export default function PatientDetailPage() {
             {patientRecords.patient.patientProfile.medicalHistory.allergies &&
               patientRecords.patient.patientProfile.medicalHistory.allergies.length > 0 && (
                 <div>
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
                     <AlertTriangle className="h-3 w-3" />
                     Allergies
                   </span>
@@ -297,7 +297,7 @@ export default function PatientDetailPage() {
             {patientRecords.patient.patientProfile.medicalHistory.medications &&
               patientRecords.patient.patientProfile.medicalHistory.medications.length > 0 && (
                 <div>
-                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
                     <Pill className="h-3 w-3" />
                     Current Medications
                   </span>
@@ -343,11 +343,11 @@ export default function PatientDetailPage() {
                     </div>
                     <Badge
                       variant="outline"
-                      className={`text-[9px] h-5 font-bold ${STATUS_COLORS[appt.status] || ""}`}
+                      className={`text-xs font-bold ${STATUS_COLORS[appt.status] || ""}`}
                     >
                       {appt.status}
                     </Badge>
-                    <Badge variant="outline" className="text-[9px] h-5">
+                    <Badge variant="outline" className="text-xs">
                       {appt.type}
                     </Badge>
                   </div>
@@ -356,7 +356,7 @@ export default function PatientDetailPage() {
                 <div className="p-4 space-y-3">
                   {appt.reason && (
                     <div>
-                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Reason
                       </span>
                       <p className="text-sm mt-0.5">{appt.reason}</p>
@@ -364,7 +364,7 @@ export default function PatientDetailPage() {
                   )}
                   {appt.symptoms && (
                     <div>
-                      <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         Symptoms
                       </span>
                       <p className="text-sm mt-0.5">{appt.symptoms}</p>
@@ -380,7 +380,7 @@ export default function PatientDetailPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {appt.consultation.diagnosis && (
                           <div>
-                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                               Diagnosis
                             </span>
                             <p className="text-sm mt-0.5">
@@ -390,7 +390,7 @@ export default function PatientDetailPage() {
                         )}
                         {appt.consultation.plan && (
                           <div>
-                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                               Plan
                             </span>
                             <p className="text-sm mt-0.5">
@@ -400,7 +400,7 @@ export default function PatientDetailPage() {
                         )}
                         {appt.consultation.doctorNotes && (
                           <div className="md:col-span-2">
-                            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                               Doctor Notes
                             </span>
                             <p className="text-sm mt-0.5">

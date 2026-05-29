@@ -9,6 +9,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty"
 import { Search } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -181,26 +189,26 @@ export default function AdminUsersPage() {
 
       {/* Empty State */}
       {!isPending && !error && filteredUsers.length === 0 && (
-        <div className="bg-card border border-border/40 rounded-xl p-12 text-center max-w-md mx-auto shadow-sm space-y-4">
-          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mx-auto">
-            <Search className="h-6 w-6" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="font-semibold text-sm text-foreground">
-              No matching users found
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+        <Empty className="py-12">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Search className="h-4 w-4" />
+            </EmptyMedia>
+            <EmptyTitle>No matching users found</EmptyTitle>
+            <EmptyDescription>
               Your search for &ldquo;{searchQuery}&rdquo; yielded no results.
-            </p>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setSearchQuery("")}
-          >
-            Reset search filter
-          </Button>
-        </div>
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSearchQuery("")}
+            >
+              Reset search filter
+            </Button>
+          </EmptyContent>
+        </Empty>
       )}
 
       {/* User Table Dashboard */}

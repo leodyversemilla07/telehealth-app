@@ -89,19 +89,19 @@ export default function PatientDashboardPage() {
     switch (status) {
       case "BOOKED":
         return (
-          <Badge className="text-xs bg-sky-500 text-white font-bold uppercase">
+          <Badge className="text-xs bg-info text-info-foreground font-bold uppercase">
             Booked
           </Badge>
         )
       case "CONFIRMED":
         return (
-          <Badge className="text-xs bg-emerald-500 text-white font-bold uppercase">
+          <Badge className="text-xs bg-success text-success-foreground font-bold uppercase">
             Confirmed
           </Badge>
         )
       case "IN_PROGRESS":
         return (
-          <Badge className="text-xs bg-amber-500 text-white font-bold uppercase animate-pulse">
+          <Badge className="text-xs bg-warning text-warning-foreground font-bold uppercase animate-pulse">
             In Progress
           </Badge>
         )
@@ -389,6 +389,7 @@ export default function PatientDashboardPage() {
               <EmptyContent>
                 <Button
                   size="sm"
+                  nativeButton={false}
                   className="text-xs h-8 font-semibold"
                   render={<Link href="/patient/appointments/book" />}
                 >

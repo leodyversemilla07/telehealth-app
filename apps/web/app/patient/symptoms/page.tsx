@@ -45,24 +45,24 @@ const SEVERITY_CONFIG: Record<
   { color: string; icon: typeof Clock; bg: string }
 > = {
   low: {
-    color: "text-emerald-600",
+    color: "text-success",
     icon: CheckCircle,
-    bg: "bg-emerald-50 border-emerald-200",
+    bg: "bg-success/10 border-success/30",
   },
   moderate: {
-    color: "text-amber-600",
+    color: "text-warning",
     icon: Clock,
-    bg: "bg-amber-50 border-amber-200",
+    bg: "bg-warning/10 border-warning/30",
   },
   high: {
-    color: "text-orange-600",
+    color: "text-orange-600 dark:text-orange-400",
     icon: AlertTriangle,
-    bg: "bg-orange-50 border-orange-200",
+    bg: "bg-orange-50 dark:bg-orange-950/50 border-orange-200 dark:border-orange-800",
   },
   urgent: {
-    color: "text-red-600",
+    color: "text-destructive",
     icon: AlertCircle,
-    bg: "bg-red-50 border-red-200",
+    bg: "bg-destructive/10 border-destructive/30",
   },
 }
 
@@ -109,7 +109,7 @@ export default function SymptomCheckerPage() {
       </Card>
 
       {/* Input Card */}
-      <Card className="border border-border/40">
+      <Card>
         <CardHeader>
           <CardTitle className="text-sm">Describe Your Symptoms</CardTitle>
           <CardDescription className="text-xs">
@@ -175,7 +175,7 @@ export default function SymptomCheckerPage() {
           </div>
 
           {/* Possible Conditions */}
-          <Card className="border border-border/40">
+          <Card>
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <Stethoscope className="h-4 w-4 text-primary" />
@@ -211,7 +211,7 @@ export default function SymptomCheckerPage() {
           </Card>
 
           {/* Recommended Action */}
-          <Card className="border border-border/40">
+          <Card>
             <CardHeader>
               <CardTitle className="text-sm flex items-center gap-2">
                 <CheckCircle className="h-4 w-4 text-primary" />
@@ -227,7 +227,7 @@ export default function SymptomCheckerPage() {
 
           {/* Recommended Doctors */}
           {result.doctors && result.doctors.length > 0 && (
-            <Card className="border border-border/40">
+            <Card>
               <CardHeader>
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Users className="h-4 w-4 text-primary" />
@@ -262,6 +262,7 @@ export default function SymptomCheckerPage() {
                       <Button
                         size="sm"
                         variant="outline"
+                        nativeButton={false}
                         render={<Link href="/patient/appointments/book" />}
                       >
                         Book

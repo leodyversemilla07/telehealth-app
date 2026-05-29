@@ -13,6 +13,11 @@ import { config } from "dotenv"
 
 config()
 
+if (process.env.NODE_ENV === "production") {
+  console.error("Refusing to seed database in production. Set NODE_ENV=development to run seed.")
+  process.exit(1)
+}
+
 import { PrismaPg } from "@prisma/adapter-pg"
 import { hashPassword } from "better-auth/crypto"
 import pg from "pg"

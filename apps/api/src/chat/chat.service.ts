@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
+import { sanitize } from "@/common/utils/sanitize"
 import { PrismaService } from "@/prisma/prisma.service"
 
 @Injectable()
@@ -22,11 +23,13 @@ export class ChatService {
       throw new NotFoundException("Receiver not found")
     }
 
+    const safeContent = sanitize(content, 5000) ?? ""
+
     return this.prisma.chatMessage.create({
       data: {
         senderId,
         receiverId,
-        content,
+        content: safeContent,
         appointmentId: appointmentId || null,
       },
       include: {

@@ -42,13 +42,20 @@ export const envSchema = z.object({
   S3_BUCKET: z.string().optional(),
   S3_PUBLIC_URL: z.string().url().optional(),
 
-  // ── LiveKit (self-hosted on AWS EC2) ───────────────────────────────────────
-  LIVEKIT_URL: z.string().optional().default("wss://localhost:7881"),
-  LIVEKIT_API_KEY: z.string().optional().default("devkey"),
-  LIVEKIT_API_SECRET: z.string().optional().default("devsecret"),
+  // ── Email (required in production) ─────────────────────────────────────────
+  SMTP_USER: z.string().min(1, "SMTP_USER is required for password resets and email verification").optional(),
+  SMTP_PASS: z.string().min(1, "SMTP_PASS is required for password resets and email verification").optional(),
+
+  // ── LiveKit (required in production) ───────────────────────────────────────
+  LIVEKIT_URL: z.string().url("LIVEKIT_URL must be a valid URL").optional().default("wss://localhost:7881"),
+  LIVEKIT_API_KEY: z.string().min(1, "LIVEKIT_API_KEY is required for video consultations").optional(),
+  LIVEKIT_API_SECRET: z.string().min(1, "LIVEKIT_API_SECRET is required for video consultations").optional(),
 
   // ── AI Recommendations (optional; endpoint returns 503 when absent) ───────
   NIM_API_KEY: z.string().optional(),
+
+  // ── Session ──────────────────────────────────────────────────────────────
+  SESSION_EXPIRY_SECONDS: z.coerce.number().min(300).max(2592000).default(604800),
 
   // ── Data Retention (optional; defaults below) ──────────────────────────────
   RETENTION_NOTIFICATIONS_DAYS: z.coerce.number().min(1).default(90),
@@ -65,5 +72,22 @@ export function validate(config: Record<string, unknown>) {
     logger.error(JSON.stringify(result.error.format(), null, 2))
     throw new Error("Invalid API Environment Configuration")
   }
-  return result.data
+
+  const env = result.data
+
+  // Enforce production-required vars
+  if (env.NODE_ENV === "production") {
+    const missing: string[] = []
+    if (!env.SMTP_USER) missing.push("SMTP_USER")
+    if (!env.SMTP_PASS) missing.push("SMTP_PASS")
+    if (!env.LIVEKIT_API_KEY) missing.push("LIVEKIT_API_KEY")
+    if (!env.LIVEKIT_API_SECRET) missing.push("LIVEKIT_API_SECRET")
+    if (missing.length > 0) {
+      throw new Error(
+        `Missing required environment variables in production: ${missing.join(", ")}`,
+      )
+    }
+  }
+
+  return env
 }

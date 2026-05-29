@@ -6,8 +6,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
-import { Skeleton } from "@workspace/ui/components/skeleton"
-import { Spinner } from "@workspace/ui/components/spinner"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
@@ -47,33 +45,18 @@ export default function DoctorLayout({
 
   return (
     <SidebarProvider>
-      {user ? (
-        <SidebarDoctor
-          user={{
-            name: user.name || "Doctor",
-            email: user.email,
-            avatar: user.image || "",
-          }}
-          role={(user.role?.toLowerCase() ?? "doctor") as "doctor" | "patient" | "admin"}
-          onLogout={async () => {
-            await authClient.signOut()
-            router.replace("/sign-in")
-          }}
-        />
-      ) : (
-        <div className="w-64 border-r border-border/50 bg-sidebar flex flex-col">
-          <div className="h-16 border-b border-border/50 px-4 flex items-center">
-            <Skeleton className="h-6 w-24" />
-          </div>
-          <div className="flex-1 p-4 space-y-3">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-        </div>
-      )}
+      <SidebarDoctor
+        user={{
+          name: user?.name || "Doctor",
+          email: user?.email || "",
+          avatar: user?.image || "",
+        }}
+        role={(user?.role?.toLowerCase() ?? "doctor") as "doctor" | "patient" | "admin"}
+        onLogout={async () => {
+          await authClient.signOut()
+          router.replace("/sign-in")
+        }}
+      />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/50 px-4 md:px-6">
           <div className="flex items-center gap-2 flex-1">
@@ -87,13 +70,7 @@ export default function DoctorLayout({
           <NotificationBell />
         </header>
         <div className="flex-1">
-          {isPending ? (
-            <div className="flex h-full items-center justify-center p-6">
-              <Spinner className="size-6 text-muted-foreground" />
-            </div>
-          ) : (
-            children
-          )}
+          {children}
         </div>
       </SidebarInset>
     </SidebarProvider>

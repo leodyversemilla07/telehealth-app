@@ -97,7 +97,7 @@ export default function PrescriptionDetailPage() {
           <span className="font-bold tracking-tight text-sm text-foreground flex items-center gap-1.5">
             Prescription Details
           </span>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Electronic Prescription (eRx)
           </p>
         </div>
@@ -115,7 +115,7 @@ export default function PrescriptionDetailPage() {
               <div>
                 <Badge
                   variant="outline"
-                  className="text-[10px] text-primary border-primary/20 bg-primary/5 font-extrabold uppercase py-0 leading-none mb-1"
+                  className="text-xs text-primary border-primary/20 bg-primary/5 font-extrabold uppercase py-0 leading-none mb-1"
                 >
                   Verified eRx
                 </Badge>
@@ -136,7 +136,7 @@ export default function PrescriptionDetailPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-muted/20 border border-border/20 rounded-xl p-4">
             <div className="space-y-1">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+              <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                 Dosage / Quantity
               </span>
               <p className="text-foreground text-base font-bold">
@@ -144,7 +144,7 @@ export default function PrescriptionDetailPage() {
               </p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+              <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                 Frequency
               </span>
               <p className="text-foreground text-base font-bold">
@@ -152,7 +152,7 @@ export default function PrescriptionDetailPage() {
               </p>
             </div>
             <div className="space-y-1">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+              <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                 Duration
               </span>
               <p className="text-foreground text-base font-bold">
@@ -163,7 +163,7 @@ export default function PrescriptionDetailPage() {
 
           {prescription.instructions && (
             <div className="space-y-1">
-              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+              <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                 Directions for Use
               </span>
               <div className="bg-muted/10 border border-border/10 rounded-xl p-4 text-sm leading-relaxed text-foreground italic">
@@ -177,7 +177,7 @@ export default function PrescriptionDetailPage() {
               <Separator className="bg-border/30" />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
                     <User className="h-3 w-3" /> Prescribing Doctor
                   </span>
                   <p className="text-foreground font-semibold">
@@ -190,7 +190,7 @@ export default function PrescriptionDetailPage() {
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
                     <HeartPulse className="h-3 w-3" /> Diagnosis Context
                   </span>
                   <p className="text-foreground font-medium">
@@ -203,7 +203,7 @@ export default function PrescriptionDetailPage() {
         </CardContent>
 
         <div className="border-t border-border/20 bg-muted/15 px-8 py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-left">
-          <div className="text-[10px] text-muted-foreground font-medium flex items-center gap-1.5">
+          <div className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
             <FileCheck className="h-3.5 w-3.5 text-primary shrink-0" />
             PDEA S2 / PRC Credentials Verified. Electronic Signature Encrypted.
           </div>
@@ -211,6 +211,7 @@ export default function PrescriptionDetailPage() {
             <Button
               variant="outline"
               size="sm"
+              nativeButton={false}
               className="text-xs h-8 border-border/60"
               render={<Link href="/patient/prescriptions" />}
             >

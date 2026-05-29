@@ -254,7 +254,7 @@ export default function AdminDoctorsPage() {
                     {doc.isApproved ? (
                       <Badge
                         variant="outline"
-                        className="gap-1 text-emerald-600 border-emerald-200 bg-emerald-50/50 font-medium"
+                        className="gap-1 text-success border-success/30 bg-success/10 font-medium"
                       >
                         <CheckCircle className="h-3 w-3" />
                         Approved
@@ -262,7 +262,7 @@ export default function AdminDoctorsPage() {
                     ) : (
                       <Badge
                         variant="outline"
-                        className="gap-1 text-amber-600 border-amber-200 bg-amber-50/50 font-medium"
+                        className="gap-1 text-warning border-warning/30 bg-warning/10 font-medium"
                       >
                         <Clock className="h-3 w-3" />
                         Pending

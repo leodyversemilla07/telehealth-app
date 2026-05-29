@@ -56,10 +56,10 @@ interface ReportsData {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  CONFIRMED: "text-emerald-600 bg-emerald-50 border-emerald-200",
-  PENDING: "text-amber-600 bg-amber-50 border-amber-200",
-  COMPLETED: "text-blue-600 bg-blue-50 border-blue-200",
-  CANCELLED: "text-red-600 bg-red-50 border-red-200",
+  CONFIRMED: "text-success bg-success/10 border-success/30",
+  PENDING: "text-warning bg-warning/10 border-warning/30",
+  COMPLETED: "text-info bg-info/10 border-info/30",
+  CANCELLED: "text-destructive bg-destructive/10 border-destructive/30",
 }
 
 const STATUS_ICONS: Record<string, typeof CheckCircle> = {
@@ -167,7 +167,7 @@ export default function AdminReportsPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border border-border/40">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Completion Rate
@@ -183,7 +183,7 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/40">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Cancellation Rate
@@ -200,7 +200,7 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/40">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Users
@@ -219,7 +219,7 @@ export default function AdminReportsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border border-border/40">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Audit Events
@@ -237,7 +237,7 @@ export default function AdminReportsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Appointments by Status */}
-        <Card className="border border-border/40">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
               <CalendarCheck className="h-4 w-4 text-primary" />
@@ -284,7 +284,7 @@ export default function AdminReportsPage() {
         </Card>
 
         {/* Appointments by Type */}
-        <Card className="border border-border/40">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
               <Video className="h-4 w-4 text-primary" />
@@ -328,7 +328,7 @@ export default function AdminReportsPage() {
         </Card>
 
         {/* Users by Role */}
-        <Card className="border border-border/40">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
               <Users className="h-4 w-4 text-primary" />
@@ -379,7 +379,7 @@ export default function AdminReportsPage() {
         </Card>
 
         {/* Audit Events */}
-        <Card className="border border-border/40">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-sm">
               <ShieldCheck className="h-4 w-4 text-primary" />
@@ -430,7 +430,7 @@ export default function AdminReportsPage() {
       </div>
 
       {/* Recent Audit Log */}
-      <Card className="border border-border/40">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-sm">
             <FileText className="h-4 w-4 text-primary" />

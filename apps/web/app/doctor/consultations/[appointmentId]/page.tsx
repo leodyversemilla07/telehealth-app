@@ -432,7 +432,7 @@ export default function DoctorConsultationDetailPage() {
             <span className="font-bold tracking-tight text-sm text-foreground flex items-center gap-1.5">
               Clinical Consultation Room
             </span>
-            <p className="text-[10px] text-muted-foreground truncate">
+            <p className="text-xs text-muted-foreground truncate">
               Patient ID: {appt.patient.id} | Consult Ref: {appt.id}
             </p>
           </div>
@@ -456,7 +456,7 @@ export default function DoctorConsultationDetailPage() {
                     {appt.type} Session
                   </span>
                 </div>
-                <CardTitle className="text-lg font-black mt-3">
+                <CardTitle className="text-lg font-bold mt-3">
                   Patient: {appt.patient.name}
                 </CardTitle>
                 <CardDescription className="text-xs font-semibold text-muted-foreground">
@@ -491,7 +491,7 @@ export default function DoctorConsultationDetailPage() {
                 {/* Reason / Symptoms Intake */}
                 <div className="space-y-3">
                   <div className="space-y-1">
-                    <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                       Reason for Consult
                     </span>
                     <div className="bg-muted/10 border border-border/20 rounded-lg p-2.5 leading-relaxed">
@@ -501,7 +501,7 @@ export default function DoctorConsultationDetailPage() {
 
                   {appt.symptoms && (
                     <div className="space-y-1">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                      <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                         Patient Reported Symptoms
                       </span>
                       <div className="bg-muted/10 border border-border/20 rounded-lg p-2.5 leading-relaxed italic">
@@ -541,11 +541,11 @@ export default function DoctorConsultationDetailPage() {
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2">
                         <FileCheck className="h-5 w-5 text-emerald-600" />
-                        <CardTitle className="text-base font-bold text-emerald-800">
+                        <CardTitle className="text-base font-bold text-success">
                           Signed EHR Clinical Chart
                         </CardTitle>
                       </div>
-                      <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white font-bold text-[10px]">
+                      <Badge className="bg-success text-success-foreground font-bold text-xs">
                         SIGNED & FINALIZED
                       </Badge>
                     </div>
@@ -561,7 +561,7 @@ export default function DoctorConsultationDetailPage() {
                         {/* SOAP Fields */}
                         <div className="space-y-4.5">
                           <div className="space-y-1">
-                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                            <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                               Diagnostic Assessment (Diagnosis)
                             </span>
                             <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 text-sm font-bold text-foreground">
@@ -571,7 +571,7 @@ export default function DoctorConsultationDetailPage() {
                           </div>
 
                           <div className="space-y-1">
-                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                            <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                               Doctor's Subjective & Objective Findings
                             </span>
                             <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 leading-relaxed whitespace-pre-wrap">
@@ -581,7 +581,7 @@ export default function DoctorConsultationDetailPage() {
                           </div>
 
                           <div className="space-y-1">
-                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                            <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                               Treatment & Recommendation Plan
                             </span>
                             <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 leading-relaxed whitespace-pre-wrap">
@@ -612,27 +612,27 @@ export default function DoctorConsultationDetailPage() {
                                   className="border border-border/20 bg-muted/5 rounded-xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden"
                                 >
                                   {/* R symbol signature watermark */}
-                                  <span className="absolute -right-3 -bottom-4 text-6xl font-black text-muted-foreground/5 pointer-events-none select-none italic font-serif">
+                                  <span className="absolute -right-3 -bottom-4 text-6xl font-bold text-muted-foreground/5 pointer-events-none select-none italic font-serif">
                                     ℞
                                   </span>
 
                                   <div className="space-y-1 text-left">
-                                    <h5 className="font-black text-sm text-foreground flex items-center gap-1">
+                                    <h5 className="font-bold text-sm text-foreground flex items-center gap-1">
                                       <span className="text-primary italic font-serif">
                                         ℞
                                       </span>
                                       {rx.medicationName}
                                     </h5>
-                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                                    <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
                                       {rx.dosage} — {rx.frequency}
                                     </p>
-                                    <p className="text-[10px] text-foreground font-semibold">
+                                    <p className="text-xs text-foreground font-semibold">
                                       Duration: {rx.duration}
                                     </p>
                                   </div>
 
                                   {rx.instructions && (
-                                    <p className="text-[10px] text-muted-foreground bg-muted/20 border border-border/10 rounded-lg p-2 leading-relaxed">
+                                    <p className="text-xs text-muted-foreground bg-muted/20 border border-border/10 rounded-lg p-2 leading-relaxed">
                                       Instructions: {rx.instructions}
                                     </p>
                                   )}
@@ -936,7 +936,7 @@ export default function DoctorConsultationDetailPage() {
 
                     {/* E-Prescriptions Module */}
                     <div className="space-y-4">
-                      <h4 className="text-xs font-black text-foreground flex items-center gap-1.5 uppercase tracking-wider">
+                      <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wider">
                         <Pill className="h-4 w-4 text-primary" />
                         Dispense e-Prescription (eRx)
                       </h4>
@@ -944,7 +944,7 @@ export default function DoctorConsultationDetailPage() {
                       {/* Medications list draft */}
                       {prescriptions.length > 0 && (
                         <div className="space-y-2 border border-border/20 rounded-xl p-3 bg-muted/10">
-                          <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                          <Label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
                             Drafted Prescriptions List ({prescriptions.length})
                           </Label>
                           <div className="space-y-2 divide-y divide-border/10">
@@ -960,7 +960,7 @@ export default function DoctorConsultationDetailPage() {
                                     </span>
                                     {rx.medicationName} ({rx.dosage})
                                   </h5>
-                                  <p className="text-[10px] text-muted-foreground">
+                                  <p className="text-xs text-muted-foreground">
                                     {rx.frequency} for {rx.duration}
                                   </p>
                                 </div>
@@ -981,14 +981,14 @@ export default function DoctorConsultationDetailPage() {
 
                       {/* Medication Adder Form Grid */}
                       <div className="bg-muted/15 border border-border/10 rounded-xl p-4.5 space-y-3.5">
-                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
                           Add Pharmacological Agent
                         </span>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                           <div className="space-y-1">
                             <Label
                               htmlFor="med-name"
-                              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                              className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
                             >
                               Medication Name
                             </Label>
@@ -1004,7 +1004,7 @@ export default function DoctorConsultationDetailPage() {
                           <div className="space-y-1">
                             <Label
                               htmlFor="med-dosage"
-                              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                              className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
                             >
                               Dosage / Concentration
                             </Label>
@@ -1020,7 +1020,7 @@ export default function DoctorConsultationDetailPage() {
                           <div className="space-y-1">
                             <Label
                               htmlFor="med-freq"
-                              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                              className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
                             >
                               Frequency
                             </Label>
@@ -1036,7 +1036,7 @@ export default function DoctorConsultationDetailPage() {
                           <div className="space-y-1">
                             <Label
                               htmlFor="med-dur"
-                              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                              className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
                             >
                               Duration
                             </Label>
@@ -1053,7 +1053,7 @@ export default function DoctorConsultationDetailPage() {
                         <div className="space-y-1">
                           <Label
                             htmlFor="med-inst"
-                            className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                            className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
                           >
                             Specific Instructions (Optional)
                           </Label>
@@ -1072,7 +1072,7 @@ export default function DoctorConsultationDetailPage() {
                             size="sm"
                             variant="secondary"
                             onClick={handleAddMedication}
-                            className="text-[10px] h-7 font-bold flex items-center gap-1 shadow-sm px-3"
+                            className="text-xs h-7 font-bold flex items-center gap-1 shadow-sm px-3"
                           >
                             <Plus className="h-3 w-3" />
                             Add Medication
@@ -1086,7 +1086,7 @@ export default function DoctorConsultationDetailPage() {
                     <Button
                       type="submit"
                       size="sm"
-                      className="text-xs h-9 bg-primary hover:bg-primary/95 text-primary-foreground font-black flex items-center gap-1.5 shadow-sm"
+                      className="text-xs h-9 bg-primary hover:bg-primary/95 text-primary-foreground font-bold flex items-center gap-1.5 shadow-sm"
                       disabled={
                         createConsultationMutation.isPending ||
                         updateStatusMutation.isPending

@@ -246,6 +246,7 @@ export default function PatientRecordsPage() {
                     <Button
                       variant="outline"
                       size="sm"
+                      nativeButton={false}
                       className="text-xs h-8 border-border/60"
                       render={<Link href="/patient/prescriptions" />}
                     >

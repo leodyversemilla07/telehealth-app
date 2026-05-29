@@ -2,11 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
+import { DatePicker } from "@workspace/ui/components/date-picker"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import {
-  Field,
-  FieldLabel,
-} from "@workspace/ui/components/field"
+import { Label } from "@workspace/ui/components/label"
 import {
   Select,
   SelectContent,
@@ -16,9 +15,8 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Separator } from "@workspace/ui/components/separator"
-import { Textarea } from "@workspace/ui/components/textarea"
-import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { Textarea } from "@workspace/ui/components/textarea"
 import { Save, Stethoscope } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -215,14 +213,14 @@ export function ProfessionalContent() {
                 Contact admin to update your license information
               </p>
             </div>
-             <div className="space-y-2">
-               <Label htmlFor="prcLicenseExpiry">PRC License Expiry</Label>
-               <DatePicker
-                 id="prcLicenseExpiry"
-                 value={prcLicenseExpiry}
-                 disabled
-               />
-             </div>
+            <div className="space-y-2">
+              <Label htmlFor="prcLicenseExpiry">PRC License Expiry</Label>
+              <DatePicker
+                id="prcLicenseExpiry"
+                value={prcLicenseExpiry}
+                disabled
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

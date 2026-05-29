@@ -6,8 +6,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
-import { Skeleton } from "@workspace/ui/components/skeleton"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { ShieldAlert } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
@@ -26,7 +24,7 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { data: session, isPending } = authClient.useSession()
+  const { data: session } = authClient.useSession()
 
   const user = session?.user as {
     name?: string | null
@@ -63,33 +61,18 @@ export default function AdminLayout({
 
   return (
     <SidebarProvider>
-      {user ? (
-        <SidebarAdmin
-          user={{
-            name: user.name || "Admin",
-            email: user.email,
-            avatar: user.image || "",
-          }}
-          role={(user.role?.toLowerCase() ?? "admin") as "admin" | "patient" | "doctor"}
-          onLogout={async () => {
-            await authClient.signOut()
-            router.replace("/sign-in")
-          }}
-        />
-      ) : (
-        <div className="w-64 border-r border-border/50 bg-sidebar flex flex-col">
-          <div className="h-16 border-b border-border/50 px-4 flex items-center">
-            <Skeleton className="h-6 w-24" />
-          </div>
-          <div className="flex-1 p-4 space-y-3">
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-            <Skeleton className="h-8 w-full" />
-          </div>
-        </div>
-      )}
+      <SidebarAdmin
+        user={{
+          name: user?.name || "Admin",
+          email: user?.email || "",
+          avatar: user?.image || "",
+        }}
+        role={(user?.role?.toLowerCase() ?? "admin") as "admin" | "patient" | "doctor"}
+        onLogout={async () => {
+          await authClient.signOut()
+          router.replace("/sign-in")
+        }}
+      />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/50 px-4 md:px-6">
           <div className="flex items-center gap-2 flex-1">
@@ -103,13 +86,7 @@ export default function AdminLayout({
           <NotificationBell />
         </header>
         <div className="flex-1">
-          {isPending ? (
-            <div className="flex h-full items-center justify-center p-6">
-              <Spinner className="size-6 text-muted-foreground" />
-            </div>
-          ) : (
-            children
-          )}
+          {children}
         </div>
       </SidebarInset>
     </SidebarProvider>

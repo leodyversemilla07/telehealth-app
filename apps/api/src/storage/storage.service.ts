@@ -5,6 +5,12 @@ import type { StorageProvider } from "@/storage/storage.interface"
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 
+function sanitizeExtension(filename: string): string {
+  const ext = extname(filename).toLowerCase()
+  if (!ext) return ".jpg"
+  return ext.replace(/[^a-z0-9.]/g, "")
+}
+
 export type AllowedMimeType = (typeof ALLOWED_MIME_TYPES)[number]
 
 @Injectable()
@@ -43,7 +49,7 @@ export class StorageService {
     originalName: string,
     mimeType: string,
   ): Promise<string> {
-    const extension = extname(originalName) || ".jpg"
+    const extension = sanitizeExtension(originalName)
     const key = `avatar-${userId}-${Date.now()}${extension}`
     return this.provider.save(key, buffer, mimeType)
   }

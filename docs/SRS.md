@@ -68,20 +68,23 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 ### 1.2 Product Scope
 
 | Feature | Description | Priority |
-|---|---|---|
-| Patient Account | Register using email and password | Required |
-| Patient Profile | Name, birthday, weight, height, profile picture, contact details, basic medical history | Required |
-| Doctor Discovery | Browse doctors, view availability, filter by specialization | Required |
-| AI Recommendation | AI recommends doctors based on patient symptoms/needs | Required |
-| Appointment Booking | Book, reschedule, cancel consultations online | Required |
-| Real-time Notifications | Push notifications for booked, upcoming, and updated appointments | Required |
-| Consultation Session | Join video call for virtual consultation | Required |
-| Appointment History | View past consultations and records | Required |
-| Medical Records | View basic medical records and prescriptions | Required |
-| Doctor Account | Register using email and password | Required |
-| Doctor Profile | Add profile details, bio, and specialization | Required |
-| Schedule Management | Manage consultation schedules, restrict unavailable time slots | Required |
-| Consultation Notes | Add medical notes and/or prescriptions after appointments | Required |
+|---|---|---|---|
+| Patient Account | Register using email and password | ✅ Implemented |
+| Patient Profile | Name, birthday, weight, height, profile picture, contact details, basic medical history | ✅ Implemented |
+| Doctor Discovery | Browse doctors, view availability, filter by specialization | ✅ Implemented |
+| AI Recommendation | AI recommends doctors based on patient symptoms/needs via NVIDIA NIM | ✅ Implemented |
+| Appointment Booking | Book, reschedule, cancel consultations online | ✅ Implemented |
+| Real-time Notifications | Push notifications for booked, upcoming, and updated appointments | ✅ Implemented |
+| Consultation Session | Join video call for virtual consultation (LiveKit) | ✅ Implemented |
+| Appointment History | View past consultations and records | ✅ Implemented |
+| Medical Records | View basic medical records and prescriptions | ✅ Implemented |
+| Doctor Account | Register using email and password | ✅ Implemented |
+| Doctor Profile | Add profile details, bio, and specialization | ✅ Implemented |
+| Schedule Management | Manage consultation schedules, restrict unavailable time slots | ✅ Implemented |
+| Consultation Notes | Add medical notes and/or prescriptions after appointments | ✅ Implemented |
+| In-app Chat | Secure real-time messaging between patient and doctor | ✅ Implemented |
+| Doctor Reviews | Rate and review doctors after consultations | ✅ Implemented |
+| Admin Dashboard | Manage users, approve doctors, view audit logs | ✅ Implemented |
 
 ### 1.3 Definitions, Acronyms, and Abbreviations
 
@@ -555,108 +558,107 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 ### Appendix A: Data Models (Prisma)
 
-```prisma
-// Core models are fully implemented in apps/api/prisma/schema.prisma
-// Key updates to the schema and JSON structure:
-//
-// 1. Review Model (Doctor reviews & star ratings):
-//    model Review {
-//      id             String        @id @default(cuid())
-//      patientId      String
-//      doctorId       String
-//      appointmentId  String
-//      rating         Int           // 1 to 5
-//      comment        String?
-//      createdAt      DateTime      @default(now())
-//      patient        User          @relation("PatientReviews", fields: [patientId], references: [id])
-//      doctor         DoctorProfile @relation(fields: [doctorId], references: [id])
-//      appointment    Appointment   @relation(fields: [appointmentId], references: [id])
-//    }
-//
-// Additional relations for appointments, consultations, prescriptions, and notifications:
+The complete schema is maintained at `apps/api/prisma/schema.prisma`. All primary keys use `uuid()` (migrated from `cuid()`). Key models:
 
-model Appointment {
-  id                String            @id @default(cuid())
-  patientId         String
-  patient           User              @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
-  doctorId          String
-  doctor            DoctorProfile     @relation("DoctorAppointments", fields: [doctorId], references: [id], onDelete: Cascade)
-  scheduleId        String
-  schedule          AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
-  startTime         DateTime          // PHT (UTC+8)
-  endTime           DateTime          // PHT (UTC+8)
-  status            AppointmentStatus @default(BOOKED)
-  reason            String?
-  symptoms          String?
-  type              VisitType         @default(VIDEO)
-  roomUrl           String?
-  notes             String?
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+**User Model:**
+```
+- id: String @id @default(uuid())
+- email, emailVerified, mobile, mobileVerified
+- name, image, role (PATIENT/DOCTOR/ADMIN)
+- banned, banReason, banExpires
+- failedLoginAttempts, lockoutUntil          // Account lockout
+- twoFactorEnabled, twoFactorSecret, twoFactorBackupCodes  // 2FA
+- Relationships: sessions, accounts, securityAlerts,
+  patientProfile, doctorProfile, consentLogs,
+  appointments (as Patient), notifications,
+  sentMessages/receivedMessages, reviews
+```
 
-  consultation      Consultation?
-}
+**PatientProfile Model:**
+```
+- id, userId (unique), dob, sex, phone, address
+- philhealthNumber, weight, height, medicalHistory (Json?)
+```
 
-model Consultation {
-  id              String        @id @default(cuid())
-  appointmentId   String        @unique
-  appointment     Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
-  patientNotes    String?
-  doctorNotes     String?
-  diagnosis       String?
-  plan            String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+**DoctorProfile Model:**
+```
+- id, userId (unique), specialty, prcLicenseNumber
+- prcLicenseExpiry, philhealthAccreditation
+- pdeaS2License, pdeaS2Expiry, bio, clinicAddress
+- pricePerVisit (Decimal), isApproved (default false)
+- Relationships: appointments, availabilitySchedule, reviews
+```
 
-  prescriptions   Prescription[]
-}
+**AvailabilitySchedule Model:**
+```
+- id, doctorId (unique)
+- monday..sunday: String (JSON array of time slots, default "[]")
+- slotDuration: Int (default 30)
+- Relationships: appointments, timeOffs
+```
 
-model Prescription {
-  id              String       @id @default(cuid())
-  consultationId  String
-  consultation    Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
-  medicationName  String
-  dosage          String
-  frequency       String
-  duration        String
-  instructions    String?
-  createdAt       DateTime     @default(now())
-}
+**TimeOff Model:**
+```
+- id, scheduleId, startDate, endDate, reason?
+```
 
-enum AppointmentStatus {
-  BOOKED
-  CONFIRMED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
+**Appointment Model:**
+```
+- id @default(uuid()), patientId, doctorId, scheduleId
+- startTime, endTime, status (AppointmentStatus)
+- reason?, symptoms?, type (VIDEO/PHONE/IN_PERSON)
+- roomUrl?, notes?
+- Relationships: patient, doctor, schedule, consultation,
+  chatMessages[], reviews[]
+```
 
-enum VisitType {
-  VIDEO
-  PHONE
-  IN_PERSON
-}
+**Consultation Model:**
+```
+- id, appointmentId (unique)
+- patientNotes?, doctorNotes?, diagnosis?, plan?
+- Relationships: appointment, prescriptions[]
+```
 
-model Notification {
-  id        String           @id @default(cuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id])
-  type      NotificationType
-  title     String
-  body      String?
-  isRead    Boolean          @default(false)
-  readAt    DateTime?
-  createdAt DateTime         @default(now())
-}
+**Prescription Model:**
+```
+- id, consultationId, medicationName, dosage
+- frequency, duration, instructions?
+```
 
-enum NotificationType {
-  APPOINTMENT_REMINDER
-  APPOINTMENT_CONFIRMATION
-  APPOINTMENT_CANCELLED
-  NEW_MESSAGE
-  SCHEDULE_UPDATED
-  SYSTEM
-}
+**Review Model:**
+```
+- id @default(uuid()), patientId, doctorId, appointmentId
+- rating (Int 1-5), comment?
+- @@unique([patientId, appointmentId])
+```
+
+**ChatMessage Model:**
+```
+- id @default(uuid()), senderId, receiverId
+- appointmentId?, content, isRead (default false)
+```
+
+**Notification Model:**
+```
+- id @default(uuid()), userId, type (NotificationType enum)
+- title, body?, isRead, readAt?
+```
+
+**NotificationType enum:** APPOINTMENT_REMINDER, APPOINTMENT_CONFIRMATION, APPOINTMENT_CANCELLED, NEW_MESSAGE, SCHEDULE_UPDATED, SYSTEM
+
+**SecurityAlert Model:**
+```
+- id, userId, title, message, ipAddress?, userAgent?, read
+```
+
+**AuditLog Model:**
+```
+- id, action, actorId, actorEmail, targetId?, targetEmail?, reason?, timestamp
+```
+
+**ConsentLog Model:**
+```
+- id, userId, consentType, granted, ipAddress?
 ```
 
 ### Appendix B: API Route Map
@@ -667,64 +669,100 @@ POST /api/auth/sign-in
 POST /api/auth/sign-up
 POST /api/auth/sign-out
 POST /api/auth/reset-password
+POST /api/auth/forgot-password
+POST /api/auth/change-password
 GET /api/auth/session
 
+# 2FA (Better Auth)
+POST /api/auth/two-factor/verify
+POST /api/auth/two-factor/enable
+POST /api/auth/two-factor/disable
+POST /api/auth/two-factor/backup-codes
+
 # Doctor Discovery (public)
-GET /api/doctors # Search approved doctors (filter by specialty, search by name)
-GET /api/doctors/:id # Doctor profile detail
-POST /api/recommendations # AI doctor recommendation (symptoms → doctors) via NVIDIA NIM Nemotron-3-Super-120B
+GET /api/doctors                       # Search approved doctors (specialty, search, sort)
+GET /api/doctors/:id                   # Doctor profile detail (with avg rating)
+POST /api/recommendations              # AI recommendation (symptoms → doctors)
 
 # Availability (public + doctor)
-GET /api/availability/:doctorId # Doctor's weekly schedule
-GET /api/availability/:doctorId/slots?date= # Available slots for a date
-PUT /api/availability # Set weekly availability (Doctor)
-GET /api/availability/mine # Get my availability (Doctor)
-POST /api/availability/time-off # Block specific time (Doctor)
-GET /api/availability/time-off # Get my time-off blocks (Doctor)
-DELETE /api/availability/time-off/:id # Remove a time-off entry (Doctor)
+GET /api/availability/:doctorId        # Doctor's weekly schedule
+GET /api/availability/:doctorId/slots?date=  # Available slots for a date
+PUT /api/availability                  # Set weekly availability (Doctor)
+GET /api/availability/mine             # Get my availability (Doctor)
+POST /api/availability/time-off        # Block specific time (Doctor)
+GET /api/availability/time-off         # Get my time-off blocks (Doctor)
+DELETE /api/availability/time-off/:id  # Remove a time-off entry (Doctor)
 
 # Appointments
-POST /api/appointments # Create appointment (Patient)
-GET /api/appointments # My appointments list (Patient or Doctor)
-GET /api/appointments/:id # Appointment detail
-PATCH /api/appointments/:id/status # Update appointment status (Doctor/Admin)
-PATCH /api/appointments/:id/cancel # Cancel appointment (Patient or Doctor)
+POST /api/appointments                 # Create appointment (Patient)
+GET /api/appointments                  # My appointments list (Patient or Doctor)
+GET /api/appointments/:id              # Appointment detail
+PATCH /api/appointments/:id/status     # Update status (Doctor/Admin)
+PATCH /api/appointments/:id/cancel     # Cancel appointment
 PATCH /api/appointments/:id/reschedule # Reschedule appointment (Patient)
+GET /api/appointments/upcoming         # Upcoming appointments
+GET /api/appointments/history          # Past appointments
 
 # Medical Records & Prescriptions
-GET /api/records/consultations # My medical records / consultations (Patient)
-GET /api/records/consultations/:id # Single consultation detail (Patient or Doctor)
-POST /api/records/consultations # Create consultation notes (Doctor)
-POST /api/records/consultations/:id/prescriptions # Add prescription to consultation (Doctor)
-GET /api/records/prescriptions # My prescriptions across all consultations (Patient)
+GET /api/records/consultations         # My consultations list
+GET /api/records/consultations/:id     # Single consultation detail
+POST /api/records/consultations        # Create consultation notes (Doctor)
+POST /api/records/consultations/:id/prescriptions  # Add prescription (Doctor)
+GET /api/records/prescriptions         # My prescriptions (Patient)
 
 # Video Consultation (LiveKit)
-POST /api/video/rooms # Create video room for appointment
-POST /api/video/rooms/:roomName/join # Get token to join room
-PATCH /api/video/rooms/:roomName/end # End consultation
-GET /api/video/rooms/:roomName # Get room metadata
+POST /api/video/rooms                  # Create video room
+POST /api/video/rooms/:roomName/join   # Get token to join room
+PATCH /api/video/rooms/:roomName/end   # End consultation
+GET /api/video/rooms/:roomName         # Get room metadata
 
 # Notifications (Socket.IO Gateway)
-GET /api/notifications # List my notifications
-PATCH /api/notifications/:id/read # Mark notification as read
-PATCH /api/notifications/read-all # Mark all as read
+GET /api/notifications                 # List notifications
+GET /api/notifications/unread-count    # Unread count
+PATCH /api/notifications/:id/read      # Mark as read
+PATCH /api/notifications/read-all      # Mark all as read
 
-# Patients (Doctor-facing)
-POST /api/patients/profile # Create/update patient profile (Patient)
-GET /api/patients/profile # Get my patient profile (Patient)
+# Chat
+GET /api/chat/conversations            # List conversations
+GET /api/chat/messages/:userId         # Get messages with user
+POST /api/chat/messages                # Send message
+POST /api/chat/messages/:userId/read   # Mark messages as read
 
-# Doctors (registration)
-POST /api/doctors/register # Register as doctor (Doctor role)
+# Patient Profile
+POST /api/patients/profile             # Create/update patient profile
+GET /api/patients/profile              # Get patient profile
+
+# Doctor Registration
+POST /api/doctors/register             # Register as doctor
+
+# Doctor Reviews
+GET /api/reviews/doctors/:doctorId     # Get doctor reviews
+POST /api/reviews                      # Submit review (Patient)
+
+# User Management (Self)
+GET /api/users/me                      # Current user profile
+PATCH /api/users/me                    # Update profile
 
 # Consent
-POST /api/consent # Record consent action
-GET /api/consent # Get my consent history
+POST /api/consent                      # Record consent action
+GET /api/consent                       # Get consent history
 
 # Admin Routes
-GET /api/admin/users # List all users
-PATCH /api/admin/doctors/:id/approve # Approve doctor (verify PRC)
-GET /api/admin/appointments # All appointments
-GET /api/admin/audit-logs # Audit trail (NPC compliance)
+GET /api/admin/users                   # List all users
+PATCH /api/admin/users/:id/ban         # Ban user
+PATCH /api/admin/users/:id/role        # Change user role
+PATCH /api/admin/doctors/:id/approve   # Approve doctor (verify PRC)
+PATCH /api/admin/doctors/:id/reject    # Reject doctor
+GET /api/admin/appointments            # All appointments
+GET /api/admin/audit-logs              # Audit trail (NPC compliance)
+GET /api/admin/security-alerts         # Security alerts
+GET /api/admin/reports                 # Platform analytics/reports
+
+# Security Alerts (User-facing)
+GET /api/security-alerts               # My security alerts
+
+# Storage (S3)
+POST /api/storage/upload               # Upload file (profile photo, etc.)
 ```
 
 ### Appendix C: Error Codes
@@ -747,29 +785,51 @@ GET /api/admin/audit-logs # Audit trail (NPC compliance)
 
 | Requirement | Law/Regulation | Status |
 |---|---|---|
-| Data privacy consent during registration | RA 10173 Sec. 13 | Required |
-| Privacy notice prominently displayed | NPC Advisory 2020-01 | Required |
-| Patient right to data access | RA 10173 Sec. 16 | Required |
-| Patient right to data correction | RA 10173 Sec. 17 | Required |
-| Patient right to data deletion | RA 10173 Sec. 18 | Required |
-| Patient right to data portability | RA 10173 Sec. 19 | Required |
-| Appointment of Data Protection Officer | NPC Circular 16-01 | Required |
-| Register as Personal Information Controller | NPC | Required |
-| PRC license verification for all doctors | PRC | Required |
-| Minimum 5-year record retention | NPC | Required |
-| Data stored in PH or equivalent jurisdiction | NPC | Required |
+| Data privacy consent during registration | RA 10173 Sec. 13 | ✅ ConsentLog model + consent collection |
+| Privacy notice prominently displayed | NPC Advisory 2020-01 | ✅ Privacy notice during sign-up flow |
+| Patient right to data access | RA 10173 Sec. 16 | ✅ Records/consultation history available via API |
+| Patient right to data correction | RA 10173 Sec. 17 | ✅ Profile settings update endpoints |
+| Patient right to data deletion | RA 10173 Sec. 18 | 🔧 Account deletion endpoint planned |
+| Patient right to data portability | RA 10173 Sec. 19 | ✅ All data accessible via API for export |
+| Appointment of Data Protection Officer | NPC Circular 16-01 | ⬜ Contact displayed on privacy page |
+| Register as Personal Information Controller | NPC | ⬜ Production requirement |
+| PRC license verification for all doctors | PRC | ✅ Doctor registration with PRC license + admin approval workflow |
+| Account lockout after failed attempts | NPC | ✅ Lockout after 5 failed attempts (configurable) |
+| Audit logging of all auth events | NPC | ✅ AuditLog table — login, logout, failed attempts |
+| Password complexity enforcement | NPC | ✅ Min 8 chars, uppercase, lowercase, number, special char |
+| Session management with expiry | NPC | ✅ 7-day session expiry, rotation every 24h |
+| Email verification required | NPC | ✅ requireEmailVerification: true |
+| Security alerts for sensitive actions | NPC | ✅ SecurityAlert model — password change, etc. |
+| Minimum 5-year record retention | NPC | Retention scheduling service (`retention/`) |
+| Data stored in PH or equivalent jurisdiction | NPC | ✅ AWS deployment (AP-Southeast-1 Singapore) |
 
 ### Appendix E: Deliverables Checklist (WC Launchpad Submission — SE Track)
 
-| Deliverable | Required | Status |
+| Deliverable | Details | Status |
 |---|---|---|
-| Pair Programming Session | Required | Scheduled |
-| Video Recording (walkthrough, code overview, challenges) | Required | Pending |
-| Deployed Application URL | Required | Pending |
-| Git Repository (public or accessible) | Required | ✅ [repo URL] |
-| Deadline: 11:59 PM, May 30, 2026 | — | — |
+| Pair Programming Session | Schedule via booking link | ⬜ To be scheduled |
+| Video Recording | Max 15 min — app walkthrough, code overview, challenges | ⬜ To be recorded |
+| Deployed Application URL | AWS Elastic Beanstalk | ⬜ To be deployed |
+| Git Repository | https://github.com/leodyversemilla07/telehealth-app | ✅ Private/accessible |
 
+**Deadline:** 11:59 PM, May 30, 2026  
 **Submission:** https://forms.gle/2QrDQ17KBhHqWqBK9
+
+### Bonus Features Implemented
+
+| Feature | Description |
+|---|---|
+| In-app Chat | Real-time secure messaging via Socket.io between patient and doctor |
+| Doctor Reviews & Ratings | Patients can rate (1-5) and review doctors post-consultation |
+| AI Symptom Checker | NVIDIA NIM-powered symptom analysis with condition assessment |
+| Two-Factor Authentication (2FA) | TOTP via authenticator apps with backup codes |
+| Account Lockout | Auto-lock after 5 failed login attempts |
+| Admin Dashboard | User management, doctor approval, audit logs, security alerts, reports |
+| Appearance/Theme Toggle | Light/dark mode across all roles (admin, doctor, patient) |
+| Dynamic Breadcrumbs | Context-aware navigation breadcrumbs |
+| Design System | Custom telehealth-themed design system (oklch color palette) |
+| Shared UI Components | Empty states, spinners, date pickers, navigation menus |
+| Philippine Compliance | Consent logging, audit trails, PRC license validation, PDEA S2 support |
 
 ---
 
@@ -780,6 +840,7 @@ GET /api/admin/audit-logs # Audit trail (NPC compliance)
 | 1.0 | 2026-05-30 | System | Updated for WC Launchpad Builder Round — focused MVP with Patient/Doctor modules, AI recommendation, real-time notifications, and RA 10173 compliance |
 | 1.1 | 2026-05-27 | System | Provider→Doctor rename throughout; updated Appendix A (normalized Consultation/Prescription models); updated Appendix B (API routes to match implementation: /doctors, /availability, /records, /video, /notifications, /consent) |
 | 1.2 | 2026-05-29 | System | Added Doctor Reviews/Ratings schema and JSON structures in Appendix A. |
+| 1.3 | 2026-05-30 | System | Updated schema to uuid(); added lockout, 2FA, chat, review, security models. Added bonus features. Final deliverable checklist. |
 
 ---
 

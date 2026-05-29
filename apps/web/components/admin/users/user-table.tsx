@@ -4,6 +4,7 @@ import type { UserDto } from "@workspace/shared"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { Card } from "@workspace/ui/components/card"
 import {
   Table,
   TableBody,
@@ -66,9 +67,9 @@ export function UserTable({
   isUnbanPending,
 }: UserTableProps) {
   return (
-    <div className="border border-border/40 rounded-xl bg-card shadow-sm overflow-hidden">
+    <Card>
       <Table>
-        <TableHeader className="bg-muted/15">
+        <TableHeader>
           <TableRow>
             <TableHead className="w-[220px]">User</TableHead>
             <TableHead className="hidden md:table-cell">Email</TableHead>
@@ -104,7 +105,7 @@ export function UserTable({
                         {user.name || "User"}
                       </span>
                       <span className="md:hidden flex items-center gap-1 text-xs text-muted-foreground truncate">
-                        <Mail className="h-2.5 w-2.5 shrink-0" />
+                        <Mail className="h-3 w-3 shrink-0" />
                         {user.email}
                       </span>
                     </div>
@@ -116,7 +117,7 @@ export function UserTable({
                 <TableCell>
                   <Badge
                     variant={getRoleBadgeColor(user.role)}
-                    className="text-[9px] h-5 gap-1 font-bold tracking-wider"
+                    className="gap-1 font-medium"
                   >
                     {getRoleIcon(user.role)}
                     {user.role}
@@ -126,17 +127,18 @@ export function UserTable({
                   {isBanned ? (
                     <Badge
                       variant="destructive"
-                      className="text-[9px] h-5 gap-1 font-bold"
+                      className="gap-1 font-medium"
                     >
-                      <ShieldAlert className="h-2.5 w-2.5" />
-                      BANNED
+                      <ShieldAlert className="h-3 w-3" />
+                      Banned
                     </Badge>
                   ) : (
                     <Badge
                       variant="outline"
-                      className="text-[9px] h-5 text-emerald-600 border-emerald-200 bg-emerald-50/50 font-bold"
+                      className="gap-1 text-success border-success/30 bg-success/10 font-medium"
                     >
-                      ACTIVE
+                      <UserCheck className="h-3 w-3" />
+                      Active
                     </Badge>
                   )}
                 </TableCell>
@@ -205,16 +207,13 @@ export function UserTable({
           })}
         </TableBody>
       </Table>
-    </div>
+    </Card>
   )
 }
 
 export function UserTableSkeleton() {
   return (
-    <div className="border border-border/45 rounded-xl bg-card overflow-hidden">
-      <div className="p-4 bg-muted/20 border-b border-border/40">
-        <Skeleton className="h-6 w-32 rounded" />
-      </div>
+    <Card>
       <div className="p-6 space-y-4">
         {Array.from({ length: 5 }).map((_, idx) => (
           <div
@@ -232,6 +231,6 @@ export function UserTableSkeleton() {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }

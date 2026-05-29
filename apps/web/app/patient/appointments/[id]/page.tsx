@@ -385,7 +385,7 @@ export default function AppointmentDetailPage() {
           <span className="font-bold tracking-tight text-sm text-foreground flex items-center gap-1.5">
             Appointment Details
           </span>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Appointment ID: {appt.id}
           </p>
         </div>
@@ -474,7 +474,7 @@ export default function AppointmentDetailPage() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-muted/20 border border-border/20 rounded-xl p-4 space-y-1">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                      <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                         Diagnosis
                       </span>
                       <p className="text-foreground font-medium text-sm">
@@ -483,7 +483,7 @@ export default function AppointmentDetailPage() {
                     </div>
                     {consultation.plan && (
                       <div className="bg-muted/20 border border-border/20 rounded-xl p-4 space-y-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                           Treatment Plan
                         </span>
                         <p className="text-foreground text-sm">
@@ -495,7 +495,7 @@ export default function AppointmentDetailPage() {
 
                   {consultation.doctorNotes && (
                     <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 text-sm leading-relaxed text-foreground italic space-y-1">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider not-italic">
+                      <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider not-italic">
                         Doctor&apos;s Notes
                       </span>
                       <p className="mt-1">
@@ -506,7 +506,7 @@ export default function AppointmentDetailPage() {
 
                   {consultation.prescriptions?.length > 0 && (
                     <div className="space-y-2">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                      <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                         Prescriptions ({consultation.prescriptions?.length})
                       </span>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -726,7 +726,7 @@ export default function AppointmentDetailPage() {
                   </h4>
                   <Badge
                     variant="secondary"
-                    className="text-[10px] mt-0.5 leading-none"
+                    className="text-xs mt-0.5 leading-none"
                   >
                     {appt.doctor.specialty}
                   </Badge>
@@ -755,13 +755,13 @@ export default function AppointmentDetailPage() {
           </Card>
 
           {/* DPA Info Card */}
-          <Card className="border border-border/40 bg-muted/20 shadow-xs text-left">
+          <Card className="bg-muted/20 shadow-xs text-left">
             <CardContent className="pt-6 space-y-3">
-              <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
                 Data Protection Verified
               </h4>
-              <p className="text-[10px] text-muted-foreground leading-normal">
+              <p className="text-xs text-muted-foreground leading-normal">
                 This consultation operates in strict compliance with RA 10173.
                 Communication channels and video calling are encrypted in
                 transit and secured with WebRTC protocols via self-hosted

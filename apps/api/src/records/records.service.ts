@@ -50,16 +50,6 @@ export class RecordsService {
       )
     }
 
-    // Check if a consultation already exists for this appointment
-    const existing = await this.prisma.consultation.findUnique({
-      where: { appointmentId: dto.appointmentId },
-    })
-    if (existing) {
-      throw new ConflictException(
-        "Consultation notes already exist for this appointment",
-      )
-    }
-
     // Build prescriptions data if provided
     const prescriptionsData = dto.prescriptions?.map((p) => ({
       medicationName: p.medicationName,
@@ -75,29 +65,41 @@ export class RecordsService {
       .filter((value): value is string => !!value)
       .join(" | ")
 
-    const consultation = await this.prisma.consultation.create({
-      data: {
-        appointmentId: dto.appointmentId,
-        patientNotes: intakeNotes || null,
-        doctorNotes: dto.doctorNotes ?? null,
-        diagnosis: dto.diagnosis ?? null,
-        plan: dto.plan ?? null,
-        prescriptions: prescriptionsData
-          ? { create: prescriptionsData }
-          : undefined,
-      },
-      include: {
-        prescriptions: true,
-        appointment: {
-          select: {
-            id: true,
-            patientId: true,
-            doctorId: true,
-            startTime: true,
-            endTime: true,
+    // Check for existing consultation and create atomically
+    const consultation = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.consultation.findUnique({
+        where: { appointmentId: dto.appointmentId },
+      })
+      if (existing) {
+        throw new ConflictException(
+          "Consultation notes already exist for this appointment",
+        )
+      }
+
+      return tx.consultation.create({
+        data: {
+          appointmentId: dto.appointmentId,
+          patientNotes: intakeNotes || null,
+          doctorNotes: dto.doctorNotes ?? null,
+          diagnosis: dto.diagnosis ?? null,
+          plan: dto.plan ?? null,
+          prescriptions: prescriptionsData
+            ? { create: prescriptionsData }
+            : undefined,
+        },
+        include: {
+          prescriptions: true,
+          appointment: {
+            select: {
+              id: true,
+              patientId: true,
+              doctorId: true,
+              startTime: true,
+              endTime: true,
+            },
           },
         },
-      },
+      })
     })
 
     // Audit log

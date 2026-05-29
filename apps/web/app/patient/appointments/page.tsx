@@ -110,7 +110,7 @@ export default function PatientAppointmentsPage() {
         )
       case "IN_PROGRESS":
         return (
-          <Badge className="text-xs bg-amber-500 hover:bg-amber-600 text-white font-bold uppercase animate-pulse">
+          <Badge className="text-xs bg-warning text-warning-foreground font-bold uppercase animate-pulse">
             In Progress
           </Badge>
         )

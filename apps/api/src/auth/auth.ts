@@ -100,9 +100,9 @@ export const auth = betterAuth({
    * - Fresh tokens are issued if more than 1 day has elapsed since last update.
    */
   session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24, // refresh token every 24h
-    freshAge: 60 * 5, // treat sessions <5 min old as "fresh"
+    expiresIn: Number(process.env.SESSION_EXPIRY_SECONDS) || 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+    freshAge: 60 * 5,
   },
   /**
    * Account linking: do not auto-link OAuth accounts by default;

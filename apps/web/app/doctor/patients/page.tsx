@@ -39,10 +39,10 @@ interface Patient {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  CONFIRMED: "text-emerald-600 bg-emerald-50 border-emerald-200",
-  COMPLETED: "text-blue-600 bg-blue-50 border-blue-200",
-  CANCELLED: "text-red-600 bg-red-50 border-red-200",
-  PENDING: "text-amber-600 bg-amber-50 border-amber-200",
+  CONFIRMED: "text-success bg-success/10 border-success/30",
+  COMPLETED: "text-info bg-info/10 border-info/30",
+  CANCELLED: "text-destructive bg-destructive/10 border-destructive/30",
+  PENDING: "text-warning bg-warning/10 border-warning/30",
 }
 
 export default function DoctorPatientsPage() {
@@ -173,7 +173,7 @@ export default function DoctorPatientsPage() {
                     {patient.appointmentCount}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button variant="outline" size="sm" className="gap-1 font-medium" render={<Link href={`/doctor/patients/${patient.id}`} />}>
+                    <Button variant="outline" size="sm" className="gap-1 font-medium" nativeButton={false} render={<Link href={`/doctor/patients/${patient.id}`} />}>
                       <FileText className="h-4 w-4" />
                       View Records
                     </Button>

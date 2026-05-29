@@ -151,13 +151,16 @@ export default function AdminAuditLogsPage() {
   const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>({})
 
   const {
-    data: logs = [],
+    data: logsData,
     isPending,
     error,
-  } = useQuery<AuditLog[]>({
+  } = useQuery<{ items: AuditLog[]; total: number }>({
     queryKey: ["audit-logs"],
-    queryFn: () => apiClient.get<AuditLog[]>("/audit-logs"),
+    queryFn: () => apiClient.get<{ items: AuditLog[]; total: number }>("/audit-logs"),
   })
+
+  const logs = logsData?.items ?? []
+  const total = logsData?.total ?? 0
 
   const filtered = logs.filter((log) => {
     const term = searchQuery.toLowerCase()
@@ -219,7 +222,7 @@ export default function AdminAuditLogsPage() {
           <span>
             Showing:{" "}
             <strong className="text-foreground">{filtered.length}</strong> /{" "}
-            {logs.length}
+            {total}
           </span>
           {(searchQuery || dateRange.from) && (
             <Button
@@ -292,7 +295,7 @@ export default function AdminAuditLogsPage() {
               Audit Events
             </CardTitle>
             <CardDescription className="text-xs">
-              Showing {filtered.length} of {logs.length} events
+              Showing {filtered.length} of {total} events
             </CardDescription>
           </CardHeader>
           <CardContent>

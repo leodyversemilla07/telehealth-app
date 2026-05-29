@@ -10,6 +10,7 @@ import {
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common"
+import { Throttle } from "@nestjs/throttler"
 import { FileInterceptor } from "@nestjs/platform-express"
 import {
   ApiBearerAuth,
@@ -60,6 +61,7 @@ export class UsersController {
   }
 
   @Post("me/avatar")
+  @Throttle({ default: { limit: 5, ttl: 3600000 } })
   @UseInterceptors(
     FileInterceptor("file", {
       limits: { fileSize: 2 * 1024 * 1024 },

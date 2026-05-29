@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
-import { Session } from "@thallesp/nestjs-better-auth"
-import { IsOptional, IsString } from "class-validator"
+import { Roles, Session } from "@thallesp/nestjs-better-auth"
+import { IsOptional, IsString, MaxLength } from "class-validator"
 import { ChatService } from "./chat.service"
 
 class SendMessageDto {
@@ -10,6 +10,7 @@ class SendMessageDto {
   receiverId!: string
 
   @IsString()
+  @MaxLength(5000)
   content!: string
 
   @IsOptional()
@@ -19,6 +20,7 @@ class SendMessageDto {
 
 @ApiTags("Chat")
 @ApiBearerAuth("session-token")
+@Roles(["PATIENT", "DOCTOR"])
 @Controller("chat")
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}

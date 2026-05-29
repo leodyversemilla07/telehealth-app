@@ -211,34 +211,36 @@ export class AppointmentsService {
       )
     }
 
-    // Check for double-booking (overlapping appointment)
-    const overlapping = await this.prisma.appointment.findFirst({
-      where: {
-        doctorId: dto.doctorId,
-        status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
-        startTime: { lt: end },
-        endTime: { gt: start },
-      },
-    })
-    if (overlapping) {
-      throw new ConflictException("This time slot is already booked")
-    }
+    // Check for double-booking and create appointment atomically
+    const appointment = await this.prisma.$transaction(async (tx) => {
+      const overlapping = await tx.appointment.findFirst({
+        where: {
+          doctorId: dto.doctorId,
+          status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
+          startTime: { lt: end },
+          endTime: { gt: start },
+        },
+      })
+      if (overlapping) {
+        throw new ConflictException("This time slot is already booked")
+      }
 
-    const appointment = await this.prisma.appointment.create({
-      data: {
-        patientId: userId,
-        doctorId: dto.doctorId,
-        scheduleId: dto.scheduleId,
-        startTime: start,
-        endTime: end,
-        reason: dto.reason ?? null,
-        symptoms: dto.symptoms ?? null,
-        type: dto.type ?? "VIDEO",
-      },
-      include: {
-        patient: PATIENT_INCLUDE,
-        doctor: DOCTOR_INCLUDE,
-      },
+      return tx.appointment.create({
+        data: {
+          patientId: userId,
+          doctorId: dto.doctorId,
+          scheduleId: dto.scheduleId,
+          startTime: start,
+          endTime: end,
+          reason: dto.reason ?? null,
+          symptoms: dto.symptoms ?? null,
+          type: dto.type ?? "VIDEO",
+        },
+        include: {
+          patient: PATIENT_INCLUDE,
+          doctor: DOCTOR_INCLUDE,
+        },
+      })
     })
 
     // Audit log

@@ -22,7 +22,27 @@ async function bootstrap() {
   app.enableShutdownHooks()
 
   // Security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, etc.)
-  app.use(helmet())
+  app.use(
+    helmet({
+      hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true,
+      },
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          imgSrc: ["'self'", "data:", "https:"],
+          connectSrc: ["'self'", "wss:", "https:"],
+          fontSrc: ["'self'"],
+          objectSrc: ["'none'"],
+          frameSrc: ["'self'"],
+        },
+      },
+    }),
+  )
 
   // Apply standardized exception formatting globally
   app.useGlobalFilters(new HttpExceptionFilter())
