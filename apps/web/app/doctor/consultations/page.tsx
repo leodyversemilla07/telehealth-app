@@ -25,6 +25,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Table,
   TableBody,
@@ -51,13 +52,12 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { ErrorAlert } from "@/components/error-alert"
 import {
   useCancelAppointment,
   useMyAppointments,
   useUpdateAppointmentStatus,
 } from "@/hooks/use-appointments"
-import { ErrorAlert } from "@/components/error-alert"
 
 export default function DoctorConsultationsPage() {
   const router = useRouter()
@@ -70,12 +70,8 @@ export default function DoctorConsultationsPage() {
     patientName: string
   } | null>(null)
 
-  const {
-    data: appointments = [],
-    isPending,
-    error,
-    refetch,
-  } = useMyAppointments()
+  const { data, isPending, error, refetch } = useMyAppointments()
+  const appointments = data?.appointments ?? []
 
   const updateStatusMutation = useUpdateAppointmentStatus()
   const cancelMutation = useCancelAppointment()
@@ -149,10 +145,7 @@ export default function DoctorConsultationsPage() {
     switch (status) {
       case "BOOKED":
         return (
-          <Badge
-            variant="outline"
-            className="text-xs font-bold uppercase"
-          >
+          <Badge variant="outline" className="text-xs font-bold uppercase">
             Booked
           </Badge>
         )
@@ -173,10 +166,7 @@ export default function DoctorConsultationsPage() {
         )
       case "COMPLETED":
         return (
-          <Badge
-            variant="secondary"
-            className="text-xs font-bold uppercase"
-          >
+          <Badge variant="secondary" className="text-xs font-bold uppercase">
             Completed
           </Badge>
         )
@@ -281,8 +271,8 @@ export default function DoctorConsultationsPage() {
               Consultations Queue
             </CardTitle>
             <CardDescription className="text-sm mt-1">
-              Manage upcoming appointments, launch virtual consultations, and review
-              patient charts.
+              Manage upcoming appointments, launch virtual consultations, and
+              review patient charts.
             </CardDescription>
           </div>
         </CardHeader>
@@ -491,12 +481,17 @@ export default function DoctorConsultationsPage() {
                   return (
                     <TableRow
                       key={appt.id}
-                      className={appt.status === "IN_PROGRESS" ? "bg-warning/5" : ""}
+                      className={
+                        appt.status === "IN_PROGRESS" ? "bg-warning/5" : ""
+                      }
                     >
                       {/* Patient */}
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <Avatar size="sm" className="border border-primary/20 shrink-0">
+                          <Avatar
+                            size="sm"
+                            className="border border-primary/20 shrink-0"
+                          >
                             <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
                               {appt.patient?.name?.[0] ||
                                 appt.patient?.email?.[0] ||
@@ -538,9 +533,7 @@ export default function DoctorConsultationsPage() {
                       </TableCell>
 
                       {/* Status */}
-                      <TableCell>
-                        {getStatusBadge(appt.status)}
-                      </TableCell>
+                      <TableCell>{getStatusBadge(appt.status)}</TableCell>
 
                       {/* Actions */}
                       <TableCell className="text-right">

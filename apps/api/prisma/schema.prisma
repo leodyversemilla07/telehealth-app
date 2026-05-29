@@ -72,7 +72,8 @@ model User {
   doctorProfile   DoctorProfile?
   consentLogs     ConsentLog[]
   appointments    Appointment[] @relation("PatientAppointments")
-  notifications   Notification[]
+  notifications      Notification[]
+  pushSubscriptions  PushSubscription[]
   sentMessages     ChatMessage[] @relation("ChatSender")
   receivedMessages ChatMessage[] @relation("ChatReceiver")
   reviews          Review[]      @relation("PatientReviews")
@@ -277,6 +278,20 @@ model Notification {
 
   @@index([userId])
   @@map("notifications")
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@map("push_subscriptions")
 }
 
 model ConsentLog {

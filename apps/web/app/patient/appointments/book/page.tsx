@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
 import { Textarea } from "@workspace/ui/components/textarea"
@@ -303,20 +304,17 @@ export default function BookAppointmentPage() {
         {doctorsLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 3 }).map((_, idx) => (
-              <Card
-                key={idx}
-                className="animate-pulse bg-card/60 border border-border/40"
-              >
+              <Card key={idx}>
                 <CardHeader className="space-y-3">
                   <div className="flex gap-4 items-center">
-                    <div className="h-12 w-12 rounded-full bg-muted shrink-0" />
+                    <Skeleton className="h-12 w-12 rounded-full shrink-0" />
                     <div className="space-y-2 flex-1">
-                      <div className="h-4 w-28 bg-muted rounded" />
-                      <div className="h-3 w-16 bg-muted rounded" />
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-3 w-16" />
                     </div>
                   </div>
-                  <div className="h-3.5 w-full bg-muted rounded mt-2" />
-                  <div className="h-3.5 w-4/5 bg-muted rounded" />
+                  <Skeleton className="h-3.5 w-full" />
+                  <Skeleton className="h-3.5 w-4/5" />
                 </CardHeader>
               </Card>
             ))}
@@ -359,13 +357,16 @@ export default function BookAppointmentPage() {
                 <CardHeader className="pb-3">
                   <div className="flex gap-4 items-start justify-between">
                     <div className="flex gap-3 items-center">
-                      <Avatar size="lg" className="border border-primary/20 shrink-0">
+                      <Avatar
+                        size="lg"
+                        className="border border-primary/20 shrink-0"
+                      >
                         <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase">
                           {doctor.user.name?.[0] || doctor.user.email[0]}
                         </AvatarFallback>
                       </Avatar>
                       <div className="truncate">
-                        <CardTitle className="text-base font-bold truncate max-w-40 text-foreground">
+                        <CardTitle className="text-base font-bold truncate max-w-[140px] sm:max-w-[180px] text-foreground">
                           {doctor.user.name || "Doctor"}
                         </CardTitle>
                         <div className="flex items-center gap-2 mt-1">

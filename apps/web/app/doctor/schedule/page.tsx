@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { DateTimePicker } from "@workspace/ui/components/date-time-picker"
 import {
   Dialog,
   DialogContent,
@@ -36,8 +37,9 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Separator } from "@workspace/ui/components/separator"
+import { Skeleton } from "@workspace/ui/components/skeleton"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
-import { DateTimePicker } from "@workspace/ui/components/date-time-picker"
 import {
   CalendarRange,
   CheckCircle2,
@@ -46,10 +48,8 @@ import {
   Plus,
   Trash2,
 } from "lucide-react"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   useAddTimeOff,
   useDeleteTimeOff,
@@ -433,7 +433,7 @@ export default function DoctorSchedulePage() {
                                   e.target.value,
                                 )
                               }
-                              className="h-9 font-medium max-w-30"
+                              className="h-9 font-medium min-w-24 max-w-30"
                               required
                             />
                           </div>
@@ -456,7 +456,7 @@ export default function DoctorSchedulePage() {
                               onChange={(e) =>
                                 handleTimeChange(day.key, "end", e.target.value)
                               }
-                              className="h-9 font-medium max-w-30"
+                              className="h-9 font-medium min-w-24 max-w-30"
                               required
                             />
                           </div>
@@ -521,9 +521,7 @@ export default function DoctorSchedulePage() {
                   </Field>
 
                   <Field>
-                    <FieldLabel htmlFor="to-end">
-                      End DateTime (PHT)
-                    </FieldLabel>
+                    <FieldLabel htmlFor="to-end">End DateTime (PHT)</FieldLabel>
                     <DateTimePicker
                       id="to-end"
                       min={toStart || new Date().toISOString().slice(0, 16)}

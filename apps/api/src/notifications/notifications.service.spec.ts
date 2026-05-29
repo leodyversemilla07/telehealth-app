@@ -1,5 +1,7 @@
 import { Test, type TestingModule } from "@nestjs/testing"
 import { PrismaService } from "@/prisma/prisma.service"
+import { PushService } from "@/push/push.service"
+import type { Mockify } from "../../test/mocks/prisma-client"
 
 jest.mock("./notifications.gateway", () => ({
   NotificationsGateway: jest.fn().mockImplementation(() => ({
@@ -12,8 +14,9 @@ import { NotificationsService } from "./notifications.service"
 
 describe("NotificationsService", () => {
   let service: NotificationsService
-  let prisma: jest.Mocked<Pick<PrismaService, "notification">>
-  let gateway: jest.Mocked<Pick<NotificationsGateway, "emitToUser">>
+  let prisma: Mockify<Pick<PrismaService, "notification">>
+  let gateway: Mockify<Pick<NotificationsGateway, "emitToUser">>
+  let push: { sendToUser: jest.Mock }
 
   beforeEach(async () => {
     const prismaMock = {
@@ -27,22 +30,25 @@ describe("NotificationsService", () => {
       },
     }
     const gatewayMock = { emitToUser: jest.fn() }
+    const pushMock = { sendToUser: jest.fn().mockResolvedValue(undefined) }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationsService,
         { provide: PrismaService, useValue: prismaMock },
         { provide: NotificationsGateway, useValue: gatewayMock },
+        { provide: PushService, useValue: pushMock },
       ],
     }).compile()
 
     service = module.get<NotificationsService>(NotificationsService)
-    prisma = module.get(PrismaService) as jest.Mocked<
+    prisma = module.get(PrismaService) as Mockify<
       Pick<PrismaService, "notification">
     >
-    gateway = module.get(NotificationsGateway) as jest.Mocked<
+    gateway = module.get(NotificationsGateway) as Mockify<
       Pick<NotificationsGateway, "emitToUser">
     >
+    push = module.get(PushService) as unknown as { sendToUser: jest.Mock }
   })
 
   describe("getNotifications", () => {
@@ -182,25 +188,33 @@ describe("NotificationsService", () => {
         "notification",
         expect.objectContaining({ id: "n1" }),
       )
+      expect(push.sendToUser).toHaveBeenCalledWith("u1", {
+        title: "Reminder",
+        body: "Your appointment is tomorrow",
+      })
     })
 
     it("should create notification without body", async () => {
       prisma.notification.create.mockResolvedValue({
         id: "n2",
         userId: "u1",
-        type: "SYSTEM_ALERT",
+        type: "SYSTEM",
         title: "Alert",
       })
 
-      await service.createNotification("u1", "SYSTEM_ALERT", "Alert")
+      await service.createNotification("u1", "SYSTEM", "Alert")
 
       expect(prisma.notification.create).toHaveBeenCalledWith({
         data: {
           userId: "u1",
-          type: "SYSTEM_ALERT",
+          type: "SYSTEM",
           title: "Alert",
           body: undefined,
         },
+      })
+      expect(push.sendToUser).toHaveBeenCalledWith("u1", {
+        title: "Alert",
+        body: undefined,
       })
     })
   })

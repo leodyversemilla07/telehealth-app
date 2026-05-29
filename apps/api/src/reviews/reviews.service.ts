@@ -65,25 +65,32 @@ export class ReviewsService {
   /**
    * Get all reviews for a doctor (public).
    */
-  async getDoctorReviews(doctorId: string) {
-    const reviews = await this.prisma.review.findMany({
-      where: { doctorId },
-      include: {
-        patient: { select: { id: true, name: true, image: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    })
+  async getDoctorReviews(doctorId: string, limit = 50, offset = 0) {
+    const where = { doctorId }
+    const [items, total] = await Promise.all([
+      this.prisma.review.findMany({
+        where,
+        include: {
+          patient: { select: { id: true, name: true, image: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.review.count({ where }),
+    ])
 
-    // Calculate average rating
     const avgRating =
-      reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+      items.length > 0
+        ? items.reduce((sum, r) => sum + r.rating, 0) / items.length
         : 0
 
     return {
-      reviews,
+      items,
+      total,
+      limit,
+      offset,
       averageRating: Math.round(avgRating * 10) / 10,
-      totalReviews: reviews.length,
     }
   }
 

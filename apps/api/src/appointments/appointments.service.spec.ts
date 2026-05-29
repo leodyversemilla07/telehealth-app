@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import { Test, TestingModule } from "@nestjs/testing"
+import { AuditLogsService } from "@/audit-logs/audit-logs.service"
 import { NotificationsService } from "@/notifications/notifications.service"
 import { PrismaService } from "@/prisma/prisma.service"
 import { AppointmentsService } from "./appointments.service"
@@ -114,6 +115,10 @@ describe("AppointmentsService", () => {
           useValue: {
             createNotification: jest.fn(),
           },
+        },
+        {
+          provide: AuditLogsService,
+          useValue: { createLog: jest.fn() },
         },
       ],
     }).compile()

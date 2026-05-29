@@ -4,6 +4,7 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
+import { AuditLogsService } from "@/audit-logs/audit-logs.service"
 import { PrismaService } from "@/prisma/prisma.service"
 import { RecordsService } from "./records.service"
 
@@ -13,6 +14,7 @@ type MockPrisma = {
   }
   appointment: {
     findUnique: jest.Mock
+    update: jest.Mock
   }
   consultation: {
     findUnique: jest.Mock
@@ -21,6 +23,7 @@ type MockPrisma = {
   prescription: {
     create: jest.Mock
   }
+  $transaction: jest.Mock
 }
 
 describe("RecordsService", () => {
@@ -28,12 +31,13 @@ describe("RecordsService", () => {
   let prisma: MockPrisma
 
   function buildMock(): MockPrisma {
-    return {
+    const mock: MockPrisma = {
       doctorProfile: {
         findUnique: jest.fn(),
       },
       appointment: {
         findUnique: jest.fn(),
+        update: jest.fn(),
       },
       consultation: {
         findUnique: jest.fn(),
@@ -42,7 +46,12 @@ describe("RecordsService", () => {
       prescription: {
         create: jest.fn(),
       },
+      $transaction: jest.fn(),
     }
+    mock.$transaction.mockImplementation((fn: (m: MockPrisma) => unknown) =>
+      fn(mock),
+    )
+    return mock
   }
 
   beforeEach(async () => {
@@ -54,6 +63,10 @@ describe("RecordsService", () => {
         {
           provide: PrismaService,
           useValue: prismaMock as unknown as PrismaService,
+        },
+        {
+          provide: AuditLogsService,
+          useValue: { createLog: jest.fn() },
         },
       ],
     }).compile()

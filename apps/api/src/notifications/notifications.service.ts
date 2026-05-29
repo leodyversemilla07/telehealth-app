@@ -1,6 +1,7 @@
 import type { NotificationType } from "@generated/prisma/client.js"
 import { Injectable } from "@nestjs/common"
 import { PrismaService } from "@/prisma/prisma.service"
+import { PushService } from "@/push/push.service"
 import { NotificationsGateway } from "./notifications.gateway"
 
 @Injectable()
@@ -8,6 +9,7 @@ export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly gateway: NotificationsGateway,
+    private readonly push: PushService,
   ) {}
 
   async getNotifications(
@@ -75,6 +77,11 @@ export class NotificationsService {
     })
 
     this.gateway.emitToUser(userId, "notification", notification)
+
+    // Fire-and-forget browser push (non-blocking)
+    this.push.sendToUser(userId, { title, body }).catch(() => {
+      // swallow — push failure must never break the primary flow
+    })
 
     return notification
   }

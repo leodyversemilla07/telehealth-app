@@ -27,6 +27,7 @@ import {
   EmptyTitle,
 } from "@workspace/ui/components/empty"
 import { Separator } from "@workspace/ui/components/separator"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Tabs,
   TabsContent,
@@ -57,7 +58,8 @@ export default function PatientAppointmentsPage() {
   const router = useRouter()
 
   // 1. Fetch patient appointments (Consumes hydrated server cache instantly)
-  const { data: appointments = [], isPending, error } = useMyAppointments()
+  const { data, isPending, error } = useMyAppointments()
+  const appointments = data?.appointments ?? []
 
   // 2. Cancel appointment mutation
   const cancelMutation = useCancelAppointment()
@@ -298,7 +300,7 @@ export default function PatientAppointmentsPage() {
   }
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       {/* Header */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -325,12 +327,7 @@ export default function PatientAppointmentsPage() {
       {isPending && (
         <div className="space-y-4">
           {Array.from({ length: 2 }).map((_, idx) => (
-            <Card
-              key={idx}
-              className="animate-pulse bg-card/60 border border-border/40"
-            >
-              <CardContent className="h-32" />
-            </Card>
+            <Skeleton key={idx} className="h-32 rounded-xl" />
           ))}
         </div>
       )}

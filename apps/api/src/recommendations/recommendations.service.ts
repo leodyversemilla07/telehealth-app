@@ -151,23 +151,23 @@ export class RecommendationsService {
         }),
       })
 
-    if (!response.ok) {
-      const body = await response.text().catch(() => "")
-      throw new Error(
-        `NIM API returned ${response.status}: ${body.slice(0, 200)}`,
-      )
-    }
+      if (!response.ok) {
+        const body = await response.text().catch(() => "")
+        throw new Error(
+          `NIM API returned ${response.status}: ${body.slice(0, 200)}`,
+        )
+      }
 
-    const data = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
-    }
+      const data = (await response.json()) as {
+        choices?: Array<{ message?: { content?: string } }>
+      }
 
-    const content = data.choices?.[0]?.message?.content
-    if (!content) {
-      throw new Error("Empty response content from NIM API")
-    }
+      const content = data.choices?.[0]?.message?.content
+      if (!content) {
+        throw new Error("Empty response content from NIM API")
+      }
 
-    return this.parseSymptomResponse(content)
+      return this.parseSymptomResponse(content)
     } finally {
       clearTimeout(timeout)
     }

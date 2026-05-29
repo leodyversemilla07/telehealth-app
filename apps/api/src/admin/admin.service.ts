@@ -21,8 +21,8 @@ export class AdminService {
 
   // ─── User management (delegated) ───────────────────────────────────────
 
-  async listUsers() {
-    return this.usersService.findAll()
+  async listUsers(limit?: number, offset?: number) {
+    return this.usersService.findAll(limit, offset)
   }
 
   async getUser(id: string) {
@@ -56,8 +56,8 @@ export class AdminService {
 
   // ─── Doctor management (delegated) ─────────────────────────────────────
 
-  async listAllDoctors() {
-    return this.doctorsService.findAll()
+  async listAllDoctors(limit?: number, offset?: number) {
+    return this.doctorsService.findAll(limit, offset)
   }
 
   async approveDoctor(id: string, actorId: string) {

@@ -17,6 +17,15 @@ export {
   useDoctors as useApprovedDoctors,
 } from "./use-doctors"
 
+// ─── Types ────────────────────────────────────────────────────
+
+export interface PaginatedResponse<T> {
+  items: T[]
+  total: number
+  limit: number
+  offset: number
+}
+
 // ─── Query Keys ──────────────────────────────────────────────
 
 export const appointmentKeys = {
@@ -29,10 +38,17 @@ export const appointmentKeys = {
 
 // ─── Appointments ────────────────────────────────────────────
 
-export function useMyAppointments() {
+export function useMyAppointments(limit?: number, offset?: number) {
   return useQuery({
-    queryKey: appointmentKeys.lists(),
-    queryFn: () => apiClient.get<AppointmentDto[]>("/appointments"),
+    queryKey: [...appointmentKeys.lists(), { limit, offset }],
+    queryFn: () =>
+      apiClient.get<PaginatedResponse<AppointmentDto>>("/appointments", {
+        params: { limit, offset },
+      }),
+    select: (data) => ({
+      ...data,
+      appointments: data.items,
+    }),
   })
 }
 

@@ -3,7 +3,6 @@
 import { LiveKitRoom, VideoConference } from "@livekit/components-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { StatusBadge } from "@/components/status-badge"
 import {
   Card,
   CardContent,
@@ -29,6 +28,7 @@ import {
 } from "@workspace/ui/components/item"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   AlertCircle,
@@ -46,10 +46,10 @@ import {
   Trash2,
   Video,
 } from "lucide-react"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { StatusBadge } from "@/components/status-badge"
 import {
   useAppointment,
   useUpdateAppointmentStatus,
@@ -1169,17 +1169,24 @@ export default function DoctorConsultationDetailPage() {
               variant="outline"
               size="sm"
               onClick={() => setShowFinalizeDialog(false)}
-              disabled={createConsultationMutation.isPending || updateStatusMutation.isPending}
+              disabled={
+                createConsultationMutation.isPending ||
+                updateStatusMutation.isPending
+              }
             >
               Review Again
             </Button>
             <Button
               size="sm"
               onClick={handleConfirmFinalize}
-              disabled={createConsultationMutation.isPending || updateStatusMutation.isPending}
+              disabled={
+                createConsultationMutation.isPending ||
+                updateStatusMutation.isPending
+              }
               className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
             >
-              {createConsultationMutation.isPending || updateStatusMutation.isPending
+              {createConsultationMutation.isPending ||
+              updateStatusMutation.isPending
                 ? "Signing..."
                 : "Yes, Finalize Chart"}
             </Button>

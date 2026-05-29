@@ -17,18 +17,13 @@ import {
 } from "@workspace/ui/components/empty"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
-import {
-  Calendar,
-  ClipboardList,
-  Clock,
-  HeartPulse,
-  User,
-} from "lucide-react"
+import { Calendar, ClipboardList, Clock, HeartPulse, User } from "lucide-react"
 import { ErrorAlert } from "@/components/error-alert"
 import { useMyAppointments } from "@/hooks/use-appointments"
 
 export default function DoctorRecordsPage() {
-  const { data: appointments = [], isPending, error } = useMyAppointments()
+  const { data, isPending, error } = useMyAppointments()
+  const appointments = data?.appointments ?? []
 
   const completed = appointments.filter((a) => a.status === "COMPLETED")
 

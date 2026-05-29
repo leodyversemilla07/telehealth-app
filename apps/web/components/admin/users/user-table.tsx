@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Table,
   TableBody,
@@ -23,7 +24,6 @@ import {
   UserCheck,
   UserX,
 } from "lucide-react"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface UserTableProps {
   users: UserDto[]
@@ -95,7 +95,10 @@ export function UserTable({
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-3">
-                    <Avatar size="sm" className="border border-primary/20 shrink-0">
+                    <Avatar
+                      size="sm"
+                      className="border border-primary/20 shrink-0"
+                    >
                       <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
                         {user.name?.[0] || user.email[0]}
                       </AvatarFallback>
@@ -125,10 +128,7 @@ export function UserTable({
                 </TableCell>
                 <TableCell>
                   {isBanned ? (
-                    <Badge
-                      variant="destructive"
-                      className="gap-1 font-medium"
-                    >
+                    <Badge variant="destructive" className="gap-1 font-medium">
                       <ShieldAlert className="h-3 w-3" />
                       Banned
                     </Badge>
@@ -150,7 +150,7 @@ export function UserTable({
                   })}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex flex-wrap items-center justify-end gap-1.5">
                     {/* Role Switch */}
                     {isAdmin ? (
                       <Button

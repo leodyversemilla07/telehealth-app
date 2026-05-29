@@ -10,7 +10,6 @@ import {
   UploadedFile,
   UseInterceptors,
 } from "@nestjs/common"
-import { Throttle } from "@nestjs/throttler"
 import { FileInterceptor } from "@nestjs/platform-express"
 import {
   ApiBearerAuth,
@@ -20,6 +19,7 @@ import {
   ApiParam,
   ApiTags,
 } from "@nestjs/swagger"
+import { Throttle } from "@nestjs/throttler"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Session } from "@thallesp/nestjs-better-auth"
 import type { PublicUserDto } from "@workspace/shared/types/user"

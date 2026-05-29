@@ -1,5 +1,6 @@
 import { NotFoundException } from "@nestjs/common"
 import { Test, TestingModule } from "@nestjs/testing"
+import { AuditLogsService } from "@/audit-logs/audit-logs.service"
 import { DoctorsService } from "@/doctors/doctors.service"
 import { PrismaService } from "@/prisma/prisma.service"
 import { UsersService } from "@/users/users.service"
@@ -57,12 +58,15 @@ describe("AdminService", () => {
       },
     }
 
+    const auditLogsMock = { createLog: jest.fn() }
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AdminService,
         { provide: UsersService, useValue: usersMock },
         { provide: DoctorsService, useValue: doctorsMock },
         { provide: PrismaService, useValue: prismaMock },
+        { provide: AuditLogsService, useValue: auditLogsMock },
       ],
     }).compile()
 
@@ -150,7 +154,7 @@ describe("AdminService", () => {
       const result = { id: "doc-1", isApproved: true }
       doctorsService.approve.mockResolvedValue(result)
 
-      const approved = await service.approveDoctor("doc-1")
+      const approved = await service.approveDoctor("doc-1", "admin-1")
       expect(approved).toEqual(result)
     })
   })
@@ -160,7 +164,7 @@ describe("AdminService", () => {
       const result = { id: "doc-1", isApproved: false }
       doctorsService.reject.mockResolvedValue(result)
 
-      const rejected = await service.rejectDoctor("doc-1")
+      const rejected = await service.rejectDoctor("doc-1", "admin-1")
       expect(rejected).toEqual(result)
     })
   })

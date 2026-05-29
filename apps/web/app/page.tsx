@@ -4,17 +4,17 @@ import type { UserDto } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
+  Activity,
   ArrowRight,
   CalendarClock,
   CheckCircle2,
   ClipboardList,
+  FileText,
+  LockKeyhole,
+  MessageSquareText,
   ShieldCheck,
   Star,
   Video,
-  Activity,
-  LockKeyhole,
-  MessageSquareText,
-  FileText,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/homepage/footer"
@@ -155,8 +155,6 @@ export default function Page() {
     <main className="min-h-svh bg-[oklch(0.12_0.025_220)] text-white">
       {/* Hero Section */}
       <section id="top" className="relative isolate overflow-hidden">
-
-
         <Header
           isAuthenticated={Boolean(session)}
           onCreateAccount={() => router.push("/sign-up")}
@@ -179,9 +177,7 @@ export default function Page() {
           </div>
 
           <h1 className="max-w-4xl text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl">
-            <span className="text-white">
-              Care moves faster
-            </span>
+            <span className="text-white">Care moves faster</span>
             <br />
             <span className="text-[oklch(0.75_0.15_195)]">
               when every handoff is visible.
@@ -264,12 +260,12 @@ export default function Page() {
                   key={feature.title}
                   className="group relative overflow-hidden rounded-2xl border border-white/8 bg-white/2 p-6 transition hover:border-white/15 hover:bg-white/4"
                 >
-                  <div
-                    className="mb-4 flex size-12 items-center justify-center rounded-xl bg-[oklch(0.65_0.15_195/0.15)]"
-                  >
+                  <div className="mb-4 flex size-12 items-center justify-center rounded-xl bg-[oklch(0.65_0.15_195/0.15)]">
                     <Icon className="size-6 text-white" />
                   </div>
-                  <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
+                  <h3 className="mb-2 text-lg font-semibold">
+                    {feature.title}
+                  </h3>
                   <p className="text-sm leading-relaxed text-white/50">
                     {feature.description}
                   </p>
@@ -281,10 +277,7 @@ export default function Page() {
       </section>
 
       {/* Doctors Section */}
-      <section
-        id="doctors"
-        className="relative overflow-hidden py-24 sm:py-32"
-      >
+      <section id="doctors" className="relative overflow-hidden py-24 sm:py-32">
         <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
           <div className="mb-16 text-center">
             <Badge
@@ -425,7 +418,8 @@ export default function Page() {
               </h2>
               <p className="mt-4 text-white/50">
                 We built Telehealth with healthcare-grade security from day one.
-                Every feature is designed to protect your sensitive medical data.
+                Every feature is designed to protect your sensitive medical
+                data.
               </p>
 
               <div className="mt-8 space-y-4">

@@ -1,8 +1,8 @@
 "use client"
 
-import { useTheme } from "next-themes"
-import { Monitor, Moon, Sun } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
+import { Monitor, Moon, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
 
 interface ThemeToggleProps {
   variant?: "default" | "outline" | "ghost"

@@ -11,7 +11,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty"
 import { Input } from "@workspace/ui/components/input"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Table,
   TableBody,
@@ -31,9 +39,8 @@ import {
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
-import { apiClient } from "@/lib/api-client"
 import { ErrorAlert } from "@/components/error-alert"
-import { Skeleton } from "@workspace/ui/components/skeleton"
+import { apiClient } from "@/lib/api-client"
 
 interface DoctorProfile {
   id: string
@@ -59,14 +66,14 @@ export default function AdminDoctorsPage() {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("")
 
-  const {
-    data: doctors = [],
-    isPending,
-    error,
-  } = useQuery<DoctorProfile[]>({
+  const { data, isPending, error } = useQuery({
     queryKey: ["admin-doctors"],
-    queryFn: () => apiClient.get<DoctorProfile[]>("/admin/doctors"),
+    queryFn: () =>
+      apiClient.get<{ items: DoctorProfile[]; total: number }>(
+        "/admin/doctors",
+      ),
   })
+  const doctors = data?.items ?? []
 
   const approveMutation = useMutation({
     mutationFn: (id: string) =>
@@ -173,18 +180,18 @@ export default function AdminDoctorsPage() {
       )}
 
       {!isPending && !error && filtered.length === 0 && (
-        <div className="bg-card border border-border/40 rounded-xl p-12 text-center max-w-md mx-auto shadow-sm space-y-4">
-          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mx-auto">
-            <Stethoscope className="h-6 w-6" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="font-semibold text-sm">No doctors found</h3>
-            <p className="text-xs text-muted-foreground">
+        <Empty className="py-12">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Stethoscope className="h-4 w-4" />
+            </EmptyMedia>
+            <EmptyTitle>No doctors found</EmptyTitle>
+            <EmptyDescription>
               {searchQuery
                 ? `No results for "${searchQuery}"`
                 : "No doctor profiles yet."}
-            </p>
-          </div>
+            </EmptyDescription>
+          </EmptyHeader>
           {searchQuery && (
             <Button
               variant="outline"
@@ -194,7 +201,7 @@ export default function AdminDoctorsPage() {
               Clear search
             </Button>
           )}
-        </div>
+        </Empty>
       )}
 
       {!isPending && !error && filtered.length > 0 && (
@@ -210,96 +217,99 @@ export default function AdminDoctorsPage() {
           </CardHeader>
           <CardContent>
             <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Doctor</TableHead>
-                <TableHead className="hidden md:table-cell">
-                  Specialty
-                </TableHead>
-                <TableHead className="hidden md:table-cell">
-                  PRC License
-                </TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((doc) => (
-                <TableRow key={doc.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-3">
-                      <Avatar size="sm" className="border border-primary/20 shrink-0">
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
-                          {doc.user.name?.[0] || doc.user.email[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="truncate">
-                        <span className="block font-medium text-sm text-foreground truncate max-w-[180px]">
-                          {doc.user.name || "Doctor"}
-                        </span>
-                        <span className="flex items-center gap-1 text-xs text-muted-foreground truncate">
-                          <Mail className="h-3 w-3 shrink-0" />
-                          {doc.user.email}
-                        </span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                    {doc.specialty}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell text-sm font-mono text-muted-foreground">
-                    {doc.prcLicenseNumber}
-                  </TableCell>
-                  <TableCell>
-                    {doc.isApproved ? (
-                      <Badge
-                        variant="outline"
-                        className="gap-1 text-success border-success/30 bg-success/10 font-medium"
-                      >
-                        <CheckCircle className="h-3 w-3" />
-                        Approved
-                      </Badge>
-                    ) : (
-                      <Badge
-                        variant="outline"
-                        className="gap-1 text-warning border-warning/30 bg-warning/10 font-medium"
-                      >
-                        <Clock className="h-3 w-3" />
-                        Pending
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      {doc.isApproved ? (
-                        <Button
-                          variant="outline"
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Doctor</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Specialty
+                  </TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    PRC License
+                  </TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((doc) => (
+                  <TableRow key={doc.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <Avatar
                           size="sm"
-                          className="gap-1 font-medium text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
-                          disabled={rejectMutation.isPending}
-                          onClick={() => rejectMutation.mutate(doc.id)}
+                          className="border border-primary/20 shrink-0"
                         >
-                          <XCircle className="h-4 w-4" />
-                          Revoke
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="text-xs gap-1 h-7 font-medium px-2.5"
-                          disabled={approveMutation.isPending}
-                          onClick={() => approveMutation.mutate(doc.id)}
+                          <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
+                            {doc.user.name?.[0] || doc.user.email[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="truncate">
+                          <span className="block font-medium text-sm text-foreground truncate max-w-[180px]">
+                            {doc.user.name || "Doctor"}
+                          </span>
+                          <span className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                            <Mail className="h-3 w-3 shrink-0" />
+                            {doc.user.email}
+                          </span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                      {doc.specialty}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-sm font-mono text-muted-foreground">
+                      {doc.prcLicenseNumber}
+                    </TableCell>
+                    <TableCell>
+                      {doc.isApproved ? (
+                        <Badge
+                          variant="outline"
+                          className="gap-1 text-success border-success/30 bg-success/10 font-medium"
                         >
                           <CheckCircle className="h-3 w-3" />
-                          Approve
-                        </Button>
+                          Approved
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="gap-1 text-warning border-warning/30 bg-warning/10 font-medium"
+                        >
+                          <Clock className="h-3 w-3" />
+                          Pending
+                        </Badge>
                       )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        {doc.isApproved ? (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 font-medium text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
+                            disabled={rejectMutation.isPending}
+                            onClick={() => rejectMutation.mutate(doc.id)}
+                          >
+                            <XCircle className="h-4 w-4" />
+                            Revoke
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="text-xs gap-1 h-7 font-medium px-2.5"
+                            disabled={approveMutation.isPending}
+                            onClick={() => approveMutation.mutate(doc.id)}
+                          >
+                            <CheckCircle className="h-3 w-3" />
+                            Approve
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}

@@ -1,10 +1,8 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { useState } from "react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { DateRangePicker } from "@workspace/ui/components/date-range-picker"
 import {
   Card,
   CardContent,
@@ -12,6 +10,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { DateRangePicker } from "@workspace/ui/components/date-range-picker"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Table,
   TableBody,
@@ -33,8 +33,9 @@ import {
   Users,
   Video,
 } from "lucide-react"
-import { apiClient } from "@/lib/api-client"
+import { useState } from "react"
 import { ErrorAlert } from "@/components/error-alert"
+import { apiClient } from "@/lib/api-client"
 
 interface ReportsData {
   appointmentsByStatus: Array<{ status: string; count: number }>
@@ -96,12 +97,12 @@ export default function AdminReportsPage() {
         </Card>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="animate-pulse">
+            <Card key={i}>
               <CardHeader className="pb-2">
-                <div className="h-4 w-24 bg-muted rounded" />
+                <Skeleton className="h-4 w-24" />
               </CardHeader>
               <CardContent>
-                <div className="h-8 w-16 bg-muted rounded" />
+                <Skeleton className="h-8 w-16" />
               </CardContent>
             </Card>
           ))}
@@ -138,30 +139,31 @@ export default function AdminReportsPage() {
               Reports
             </CardTitle>
             <CardDescription className="text-sm">
-              Platform analytics, appointment utilization, and compliance overview.
+              Platform analytics, appointment utilization, and compliance
+              overview.
             </CardDescription>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
-          <div className="w-72">
-            <DateRangePicker
-              from={dateRange.from}
-              to={dateRange.to}
-              onChange={setDateRange}
-              placeholder="Filter audit events by date"
-            />
+            <div className="w-72">
+              <DateRangePicker
+                from={dateRange.from}
+                to={dateRange.to}
+                onChange={setDateRange}
+                placeholder="Filter audit events by date"
+              />
+            </div>
+            {(dateRange.from || dateRange.to) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 text-xs"
+                onClick={() => setDateRange({})}
+              >
+                Clear
+              </Button>
+            )}
           </div>
-          {(dateRange.from || dateRange.to) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 text-xs"
-              onClick={() => setDateRange({})}
-            >
-              Clear
-            </Button>
-          )}
-        </div>
         </CardHeader>
       </Card>
 
@@ -404,10 +406,7 @@ export default function AdminReportsPage() {
                   {reports.auditLogsByAction.map((a) => (
                     <TableRow key={a.action}>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className="font-medium"
-                        >
+                        <Badge variant="outline" className="font-medium">
                           {a.action}
                         </Badge>
                       </TableCell>
@@ -479,10 +478,7 @@ export default function AdminReportsPage() {
                   {filteredLogs.map((log) => (
                     <TableRow key={log.id}>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className="font-medium"
-                        >
+                        <Badge variant="outline" className="font-medium">
                           {log.action}
                         </Badge>
                       </TableCell>

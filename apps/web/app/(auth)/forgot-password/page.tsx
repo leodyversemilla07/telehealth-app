@@ -3,13 +3,8 @@
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Mail,
-  ShieldAlert,
-} from "lucide-react"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { ArrowLeft, CheckCircle2, Mail, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"

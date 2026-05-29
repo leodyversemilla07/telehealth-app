@@ -1,6 +1,5 @@
 "use client"
 
-import { useTheme } from "next-themes"
 import {
   Avatar,
   AvatarFallback,
@@ -30,6 +29,7 @@ import {
   SunIcon,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useTheme } from "next-themes"
 
 export function NavUser({
   user,

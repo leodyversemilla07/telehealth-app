@@ -16,6 +16,7 @@ type MockPrisma = {
     create: jest.Mock
     findMany: jest.Mock
     findUnique: jest.Mock
+    count: jest.Mock
   }
 }
 
@@ -26,6 +27,7 @@ function buildMock(): MockPrisma {
       create: jest.fn(),
       findMany: jest.fn(),
       findUnique: jest.fn(),
+      count: jest.fn(),
     },
   }
 }
@@ -152,13 +154,16 @@ describe("ReviewsService", () => {
   describe("getDoctorReviews", () => {
     it("should return empty stats when no reviews", async () => {
       prisma.review.findMany.mockResolvedValue([])
+      prisma.review.count.mockResolvedValue(0)
 
       const result = await service.getDoctorReviews("doc-1")
 
       expect(result).toEqual({
-        reviews: [],
+        items: [],
+        total: 0,
+        limit: 50,
+        offset: 0,
         averageRating: 0,
-        totalReviews: 0,
       })
     })
 
@@ -167,11 +172,13 @@ describe("ReviewsService", () => {
         { rating: 5, patient: { id: "p1", name: "A", image: null } },
         { rating: 4, patient: { id: "p2", name: "B", image: null } },
       ])
+      prisma.review.count.mockResolvedValue(2)
 
       const result = await service.getDoctorReviews("doc-1")
 
       expect(result.averageRating).toBe(4.5)
-      expect(result.totalReviews).toBe(2)
+      expect(result.total).toBe(2)
+      expect(result.items).toHaveLength(2)
     })
   })
 

@@ -10,8 +10,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { Input } from "@workspace/ui/components/input"
 import { DateRangePicker } from "@workspace/ui/components/date-range-picker"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty"
+import { Input } from "@workspace/ui/components/input"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Table,
   TableBody,
@@ -39,9 +47,8 @@ import {
   XCircle,
 } from "lucide-react"
 import { useState } from "react"
-import { apiClient } from "@/lib/api-client"
 import { ErrorAlert } from "@/components/error-alert"
-import { Skeleton } from "@workspace/ui/components/skeleton"
+import { apiClient } from "@/lib/api-client"
 
 interface AuditLog {
   id: string
@@ -156,7 +163,8 @@ export default function AdminAuditLogsPage() {
     error,
   } = useQuery<{ items: AuditLog[]; total: number }>({
     queryKey: ["audit-logs"],
-    queryFn: () => apiClient.get<{ items: AuditLog[]; total: number }>("/audit-logs"),
+    queryFn: () =>
+      apiClient.get<{ items: AuditLog[]; total: number }>("/audit-logs"),
   })
 
   const logs = logsData?.items ?? []
@@ -229,7 +237,10 @@ export default function AdminAuditLogsPage() {
               variant="ghost"
               size="sm"
               className="h-6 text-xs"
-              onClick={() => { setSearchQuery(""); setDateRange({}) }}
+              onClick={() => {
+                setSearchQuery("")
+                setDateRange({})
+              }}
             >
               Clear all
             </Button>
@@ -263,18 +274,18 @@ export default function AdminAuditLogsPage() {
       )}
 
       {!isPending && !error && filtered.length === 0 && (
-        <div className="bg-card border border-border/40 rounded-xl p-12 text-center max-w-md mx-auto shadow-sm space-y-4">
-          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mx-auto">
-            <Clock className="h-6 w-6" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="font-semibold text-sm">No logs found</h3>
-            <p className="text-xs text-muted-foreground">
+        <Empty className="py-12">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <Clock className="h-4 w-4" />
+            </EmptyMedia>
+            <EmptyTitle>No logs found</EmptyTitle>
+            <EmptyDescription>
               {searchQuery
                 ? `No results for "${searchQuery}"`
                 : "No audit events recorded yet."}
-            </p>
-          </div>
+            </EmptyDescription>
+          </EmptyHeader>
           {searchQuery && (
             <Button
               variant="outline"
@@ -284,7 +295,7 @@ export default function AdminAuditLogsPage() {
               Clear search
             </Button>
           )}
-        </div>
+        </Empty>
       )}
 
       {!isPending && !error && filtered.length > 0 && (
@@ -300,54 +311,51 @@ export default function AdminAuditLogsPage() {
           </CardHeader>
           <CardContent>
             <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[60px]">Type</TableHead>
-                <TableHead>Action</TableHead>
-                <TableHead className="hidden md:table-cell">Actor</TableHead>
-                <TableHead className="hidden md:table-cell">Target</TableHead>
-                <TableHead className="hidden md:table-cell">Reason</TableHead>
-                <TableHead className="text-right">Time</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((log) => {
-                const config = getActionConfig(log.action)
-                const Icon = config.icon
-                return (
-                  <TableRow key={log.id}>
-                    <TableCell>
-                      <div
-                        className={`h-8 w-8 rounded-lg border flex items-center justify-center ${config.bg}`}
-                      >
-                        <Icon className={`h-4 w-4 ${config.color}`} />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className="font-medium"
-                      >
-                        {log.action}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                      {log.actorEmail}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                      {log.targetEmail || "—"}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground max-w-[200px] truncate">
-                      {log.reason || "—"}
-                    </TableCell>
-                    <TableCell className="text-right text-sm text-muted-foreground whitespace-nowrap">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[60px]">Type</TableHead>
+                  <TableHead>Action</TableHead>
+                  <TableHead className="hidden md:table-cell">Actor</TableHead>
+                  <TableHead className="hidden md:table-cell">Target</TableHead>
+                  <TableHead className="hidden md:table-cell">Reason</TableHead>
+                  <TableHead className="text-right">Time</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((log) => {
+                  const config = getActionConfig(log.action)
+                  const Icon = config.icon
+                  return (
+                    <TableRow key={log.id}>
+                      <TableCell>
+                        <div
+                          className={`h-8 w-8 rounded-lg border flex items-center justify-center ${config.bg}`}
+                        >
+                          <Icon className={`h-4 w-4 ${config.color}`} />
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="font-medium">
+                          {log.action}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                        {log.actorEmail}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                        {log.targetEmail || "—"}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-sm text-muted-foreground max-w-[200px] truncate">
+                        {log.reason || "—"}
+                      </TableCell>
+                      <TableCell className="text-right text-sm text-muted-foreground whitespace-nowrap">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}

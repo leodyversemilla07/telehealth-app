@@ -6,6 +6,8 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
+import { Skeleton } from "@workspace/ui/components/skeleton"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertTriangle,
   Camera,
@@ -22,7 +24,6 @@ import {
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
 
@@ -895,7 +896,7 @@ function SessionsSection() {
       {isPending ? (
         <div className="space-y-2">
           {[1, 2].map((i) => (
-            <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />
+            <Skeleton key={i} className="h-16 rounded-lg" />
           ))}
         </div>
       ) : sessions.length === 0 ? (
@@ -964,7 +965,7 @@ function SecurityAlertsSection() {
       {isPending ? (
         <div className="space-y-2">
           {[1, 2].map((i) => (
-            <div key={i} className="h-12 rounded-lg bg-muted animate-pulse" />
+            <Skeleton key={i} className="h-12 rounded-lg" />
           ))}
         </div>
       ) : alerts.length === 0 ? (

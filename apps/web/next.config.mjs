@@ -38,7 +38,14 @@ const nextConfig = {
         source: "/api/:path*",
         destination: `${apiBaseUrl}/api/:path*`,
       },
-      // WebSocket / polling transport for notifications gateway
+      // WebSocket / polling transport for notifications gateway.
+      // The bare /socket.io rule handles the initial polling handshake
+      // (/socket.io?EIO=4&transport=polling — no trailing path segment).
+      // The :path* rule handles all subsequent requests (/socket.io/abc...).
+      {
+        source: "/socket.io",
+        destination: `${apiBaseUrl}/socket.io`,
+      },
       {
         source: "/socket.io/:path*",
         destination: `${apiBaseUrl}/socket.io/:path*`,

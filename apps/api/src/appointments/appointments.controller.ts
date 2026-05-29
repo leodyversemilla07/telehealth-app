@@ -1,7 +1,22 @@
-import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common"
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from "@nestjs/common"
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
+import { PaginationDto } from "@/common/dto/pagination.dto"
 import { AppointmentsService } from "./appointments.service"
 import { CreateAppointmentDto } from "./dto/create-appointment.dto"
 import { RescheduleAppointmentDto } from "./dto/reschedule-appointment.dto"
@@ -25,10 +40,17 @@ export class AppointmentsController {
 
   @Get()
   @ApiOperation({ summary: "List my appointments (Patient or Doctor)" })
-  async findMine(@Session() session: UserSession) {
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiQuery({ name: "offset", required: false, type: Number })
+  async findMine(
+    @Session() session: UserSession,
+    @Query() query: PaginationDto,
+  ) {
     return this.appointmentsService.findMyAppointments(
       session.user.id,
       session.user.role as string,
+      query.limit,
+      query.offset,
     )
   }
 

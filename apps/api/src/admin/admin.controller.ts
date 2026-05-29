@@ -6,14 +6,22 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from "@nestjs/common"
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { AdminService } from "@/admin/admin.service"
 import { BanUserDto } from "@/admin/dto/ban-user.dto"
 import { SetRoleDto } from "@/admin/dto/set-role.dto"
 import { UpdateProfileDto } from "@/admin/dto/update-profile.dto"
+import { PaginationDto } from "@/common/dto/pagination.dto"
 
 @ApiTags("Admin")
 @ApiBearerAuth("session-token")
@@ -44,8 +52,10 @@ export class AdminController {
   @Get("users")
   @Roles(["ADMIN"])
   @ApiOperation({ summary: "List all users (admin)" })
-  async listUsers() {
-    return this.adminService.listUsers()
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiQuery({ name: "offset", required: false, type: Number })
+  async listUsers(@Query() query: PaginationDto) {
+    return this.adminService.listUsers(query.limit, query.offset)
   }
 
   @Get("users/:id")
@@ -113,8 +123,10 @@ export class AdminController {
   @Get("doctors")
   @Roles(["ADMIN"])
   @ApiOperation({ summary: "List all doctors including unapproved (admin)" })
-  async listAllDoctors() {
-    return this.adminService.listAllDoctors()
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiQuery({ name: "offset", required: false, type: Number })
+  async listAllDoctors(@Query() query: PaginationDto) {
+    return this.adminService.listAllDoctors(query.limit, query.offset)
   }
 
   @Patch("doctors/:id/approve")
@@ -132,10 +144,7 @@ export class AdminController {
   @Roles(["ADMIN"])
   @ApiOperation({ summary: "Reject / unapprove a doctor" })
   @ApiParam({ name: "id", description: "Doctor profile ID" })
-  async rejectDoctor(
-    @Session() session: UserSession,
-    @Param("id") id: string,
-  ) {
+  async rejectDoctor(@Session() session: UserSession, @Param("id") id: string) {
     return this.adminService.rejectDoctor(id, session.user.id)
   }
 }

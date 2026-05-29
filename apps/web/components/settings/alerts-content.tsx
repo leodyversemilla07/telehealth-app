@@ -1,8 +1,8 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { apiClient } from "@/lib/api-client"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { apiClient } from "@/lib/api-client"
 
 export function AlertsContent() {
   const { data: alerts = [], isPending } = useQuery({

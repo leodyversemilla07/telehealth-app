@@ -5,7 +5,6 @@ import type { AvailableSlotDto } from "@workspace/shared"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
-import { StatusBadge } from "@/components/status-badge"
 import {
   Card,
   CardContent,
@@ -14,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 import {
   Dialog,
   DialogContent,
@@ -25,8 +25,8 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { DatePicker } from "@workspace/ui/components/date-picker"
 import {
   ArrowLeft,
   Calendar,
@@ -43,10 +43,11 @@ import {
   User,
   Video,
 } from "lucide-react"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { ErrorAlert } from "@/components/error-alert"
+import { StatusBadge } from "@/components/status-badge"
 import { TimeSlotPicker } from "@/components/time-slot-picker"
 import {
   useAppointment,
@@ -55,7 +56,6 @@ import {
   useRescheduleAppointment,
 } from "@/hooks/use-appointments"
 import { useAppointmentConsultation } from "@/hooks/use-records"
-import { ErrorAlert } from "@/components/error-alert"
 import { useCheckReview, useCreateReview } from "@/hooks/use-reviews"
 import { useJoinRoom } from "@/hooks/use-video"
 import "@livekit/components-styles"

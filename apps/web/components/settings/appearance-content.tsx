@@ -1,8 +1,13 @@
 "use client"
 
-import { useTheme } from "next-themes"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 import { Monitor, Moon, Palette, Sun } from "lucide-react"
+import { useTheme } from "next-themes"
 
 export function AppearanceContent() {
   const { theme, setTheme } = useTheme()

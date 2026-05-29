@@ -19,7 +19,6 @@ import {
   LifeBuoy,
   MessageSquare,
   Send,
-  Sparkles,
   Stethoscope,
 } from "lucide-react"
 import Image from "next/image"
@@ -62,12 +61,7 @@ const data = {
       icon: <FileText />,
     },
     {
-      title: "AI Recommendations",
-      url: "/patient/recommendations",
-      icon: <Sparkles />,
-    },
-    {
-      title: "Symptom Checker",
+      title: "AI Symptom Checker",
       url: "/patient/symptoms",
       icon: <Brain />,
     },

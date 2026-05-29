@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { Test, type TestingModule } from "@nestjs/testing"
+import type { Mockify } from "../../test/mocks/prisma-client"
 import { PrismaService } from "../prisma/prisma.service"
 import { VideoService } from "./video.service"
 
@@ -17,7 +18,7 @@ jest.mock("livekit-server-sdk", () => ({
 
 describe("VideoService", () => {
   let service: VideoService
-  let prisma: jest.Mocked<Pick<PrismaService, "appointment">>
+  let prisma: Mockify<Pick<PrismaService, "appointment">>
 
   function mockConfig(
     overrides: Record<string, string> = {},
@@ -33,10 +34,10 @@ describe("VideoService", () => {
     } as unknown as jest.Mocked<ConfigService>
   }
 
-  function mockPrisma(): jest.Mocked<Pick<PrismaService, "appointment">> {
+  function mockPrisma(): Mockify<Pick<PrismaService, "appointment">> {
     return {
       appointment: { findUnique: jest.fn(), update: jest.fn() },
-    } as unknown as jest.Mocked<Pick<PrismaService, "appointment">>
+    } as unknown as Mockify<Pick<PrismaService, "appointment">>
   }
 
   function makeAppointment(overrides: Record<string, unknown> = {}) {

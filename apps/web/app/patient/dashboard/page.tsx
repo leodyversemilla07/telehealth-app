@@ -48,8 +48,9 @@ export default function PatientDashboardPage() {
     queryFn: () => apiClient.get("/patients/me"),
   })
 
-  const { data: appointments = [], isPending: apptsLoading } =
+  const { data: appointmentsData, isPending: apptsLoading } =
     useMyAppointments()
+  const appointments = appointmentsData?.appointments ?? []
   const { data: records = [], isLoading: recordsLoading } = usePatientRecords()
   const { data: prescriptions = [], isLoading: rxLoading } =
     usePatientPrescriptions()
@@ -122,7 +123,7 @@ export default function PatientDashboardPage() {
   }
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       {/* Welcome Header */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

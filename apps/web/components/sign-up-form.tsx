@@ -9,9 +9,9 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 import { ShieldAlert } from "lucide-react"
-import { Spinner } from "@workspace/ui/components/spinner"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -32,8 +32,6 @@ export function SignUpForm({
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-
-
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -69,8 +67,6 @@ export function SignUpForm({
       router.push("/patient/dashboard")
     }
   }
-
-
 
   return (
     <>
@@ -220,7 +216,6 @@ export function SignUpForm({
           </Field>
         </FieldGroup>
       </form>
-
     </>
   )
 }

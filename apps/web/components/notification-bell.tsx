@@ -7,12 +7,19 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Bell, CheckCheck } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@workspace/ui/components/tooltip"
+import { Bell, BellOff, BellRing, CheckCheck } from "lucide-react"
 import { useEffect, useRef } from "react"
 import { type Socket, io as socketIO } from "socket.io-client"
+import { usePushNotifications } from "@/hooks/use-push-notifications"
 import { apiClient } from "@/lib/api-client"
 import { env } from "@/lib/env"
 
@@ -25,14 +32,21 @@ interface Notification {
 }
 
 function getSocketUrl(): string {
-  const apiUrl = env.NEXT_PUBLIC_API_URL
-  if (!apiUrl) return "http://localhost:3001"
-  return apiUrl.replace(/\/api\/?$/, "")
+  // Connect directly to the API if NEXT_PUBLIC_API_URL is configured.
+  // This bypasses Next.js dev server rewrite limitations with WebSocket upgrades.
+  if (env.NEXT_PUBLIC_API_URL) {
+    return env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, "")
+  }
+  if (typeof window !== "undefined") {
+    return window.location.origin
+  }
+  return ""
 }
 
 export function NotificationBell() {
   const queryClient = useQueryClient()
   const socketRef = useRef<Socket | null>(null)
+  const push = usePushNotifications()
 
   // Fetch notifications
   const { data: notificationsResponse, isPending } = useQuery({
@@ -74,7 +88,8 @@ export function NotificationBell() {
 
     socketRef.current = socketIO(url, {
       withCredentials: true,
-      transports: ["websocket", "polling"],
+      // polling first so requests go through Next.js rewrite proxy
+      transports: ["polling", "websocket"],
     })
 
     socketRef.current.on("notification", () => {
@@ -94,6 +109,15 @@ export function NotificationBell() {
 
   const unreadCount = unreadData?.count ?? 0
 
+  // Push toggle label & icon
+  const pushLabel = push.isSubscribed
+    ? "Push notifications on"
+    : push.permission === "denied"
+      ? "Push blocked (check browser settings)"
+      : "Enable push notifications"
+
+  const PushIcon = push.isSubscribed ? BellRing : BellOff
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="relative h-9 w-9 inline-flex items-center justify-center rounded-lg hover:bg-muted">
@@ -107,23 +131,65 @@ export function NotificationBell() {
           </Badge>
         )}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent
+        align="end"
+        className="w-[min(320px,calc(100vw-2rem))]"
+      >
+        {/* Header */}
         <div className="flex items-center justify-between px-4 py-2 border-b">
           <span className="text-sm font-semibold">Notifications</span>
-          {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-7 text-xs"
-              onClick={() => markAllReadMutation.mutate()}
-              disabled={markAllReadMutation.isPending}
-            >
-              <CheckCheck className="h-3 w-3 mr-1" />
-              Mark all read
-            </Button>
-          )}
+          <div className="flex items-center gap-1">
+            {/* Push toggle */}
+            {push.isSupported && (
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      disabled={push.isLoading || push.permission === "denied"}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        if (push.isSubscribed) {
+                          push.unsubscribe()
+                        } else {
+                          push.subscribe()
+                        }
+                      }}
+                      aria-label={pushLabel}
+                    >
+                      {push.isLoading ? (
+                        <Spinner className="h-3 w-3" />
+                      ) : (
+                        <PushIcon
+                          className={`h-3.5 w-3.5 ${push.isSubscribed ? "text-primary" : "text-muted-foreground"}`}
+                        />
+                      )}
+                    </Button>
+                  }
+                />
+                <TooltipContent side="bottom">{pushLabel}</TooltipContent>
+              </Tooltip>
+            )}
+            {/* Mark all read */}
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={() => markAllReadMutation.mutate()}
+                disabled={markAllReadMutation.isPending}
+              >
+                <CheckCheck className="h-3 w-3 mr-1" />
+                Mark all read
+              </Button>
+            )}
+          </div>
         </div>
 
+        {/* Notification list */}
         {isPending ? (
           <div className="flex justify-center py-8">
             <Spinner className="h-5 w-5 text-muted-foreground" />
@@ -165,6 +231,17 @@ export function NotificationBell() {
               </DropdownMenuItem>
             ))}
           </div>
+        )}
+
+        {/* Push permission denied hint */}
+        {push.isSupported && push.permission === "denied" && (
+          <>
+            <DropdownMenuSeparator />
+            <div className="px-4 py-2 text-xs text-muted-foreground">
+              Push blocked in browser settings. Enable in Site Settings to
+              receive alerts.
+            </div>
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

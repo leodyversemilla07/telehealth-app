@@ -27,7 +27,8 @@ import { useMyAppointments } from "@/hooks/use-appointments"
 
 export default function DoctorDashboardPage() {
   const router = useRouter()
-  const { data: appointments = [], isPending } = useMyAppointments()
+  const { data, isPending } = useMyAppointments()
+  const appointments = data?.appointments ?? []
 
   const totalAppts = appointments.length
   const activeConsults = appointments.filter(
@@ -52,7 +53,7 @@ export default function DoctorDashboardPage() {
     )[0]
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       {/* Header */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -221,11 +222,7 @@ export default function DoctorDashboardPage() {
                   <Button
                     size="sm"
                     className="text-xs h-8 font-semibold"
-                    render={
-                      <Link
-                        href={`/doctor/consultations`}
-                      />
-                    }
+                    render={<Link href={`/doctor/consultations`} />}
                   >
                     <Play className="h-3.5 w-3.5 mr-1" />
                     Start Consult

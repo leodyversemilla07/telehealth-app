@@ -31,12 +31,30 @@ export const Role = {
   ADMIN: "ADMIN",
 } as const
 
-export type NotificationType = "APPOINTMENT" | "SYSTEM" | "SECURITY"
+export type NotificationType =
+  | "APPOINTMENT_REMINDER"
+  | "APPOINTMENT_CONFIRMATION"
+  | "APPOINTMENT_CANCELLED"
+  | "NEW_MESSAGE"
+  | "SCHEDULE_UPDATED"
+  | "SYSTEM"
 export const NotificationType = {
-  APPOINTMENT: "APPOINTMENT",
+  APPOINTMENT_REMINDER: "APPOINTMENT_REMINDER",
+  APPOINTMENT_CONFIRMATION: "APPOINTMENT_CONFIRMATION",
+  APPOINTMENT_CANCELLED: "APPOINTMENT_CANCELLED",
+  NEW_MESSAGE: "NEW_MESSAGE",
+  SCHEDULE_UPDATED: "SCHEDULE_UPDATED",
   SYSTEM: "SYSTEM",
-  SECURITY: "SECURITY",
 } as const
+
+// Helper type that turns all object methods into jest.Mock so tests can call .mockResolvedValue()
+export type Mockify<T> = {
+  [K in keyof T]: T[K] extends (...args: unknown[]) => unknown
+    ? jest.Mock
+    : T[K] extends Record<string, unknown>
+      ? Mockify<T[K]>
+      : T[K]
+}
 
 // Mock PrismaClient constructor — just returns an empty object with jest fns
 export class PrismaClient {
@@ -54,6 +72,7 @@ export class PrismaClient {
     findFirst: jest.fn(),
     findMany: jest.fn(),
     update: jest.fn(),
+    count: jest.fn(),
   }
   patientProfile = {
     findFirst: jest.fn(),
@@ -65,6 +84,28 @@ export class PrismaClient {
     findUnique: jest.fn(),
     findMany: jest.fn(),
     update: jest.fn(),
+    count: jest.fn(),
+  }
+  notification = {
+    findMany: jest.fn(),
+    count: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
+    updateMany: jest.fn(),
+    create: jest.fn(),
+  }
+  review = {
+    findMany: jest.fn(),
+    findUnique: jest.fn(),
+    create: jest.fn(),
+    count: jest.fn(),
+  }
+  timeOff = {
+    findFirst: jest.fn(),
+    delete: jest.fn(),
+  }
+  availabilitySchedule = {
+    findUnique: jest.fn(),
   }
   $transaction = jest.fn((fn: (tx: unknown) => unknown) => fn(this))
   $connect = jest.fn()

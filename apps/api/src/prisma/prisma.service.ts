@@ -78,6 +78,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get review() {
     return this.client.review
   }
+  get pushSubscription() {
+    return this.client.pushSubscription
+  }
 
   // Proxy PrismaClient utility methods
   get $queryRaw() {

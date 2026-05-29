@@ -1,11 +1,16 @@
 "use client"
 
-import { Card, CardDescription, CardHeader, CardTitle } from "@workspace/ui/components/card"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
-import { MessageSquare, Plus, Search, Send, UserPlus } from "lucide-react"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { MessageSquare, Plus, Search, Send, UserPlus } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import type { Contact, Conversation } from "@/hooks/use-chat"
 import {
@@ -94,7 +99,7 @@ export default function PatientChatPage() {
   })
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold tracking-tight">
@@ -106,9 +111,13 @@ export default function PatientChatPage() {
         </CardHeader>
       </Card>
 
-      <div className="flex flex-1 gap-4 min-h-0">
-        {/* Conversations List */}
-        <div className="w-80 border border-border/40 rounded-xl bg-card shadow-sm flex flex-col">
+      <div className="flex flex-1 gap-4 min-h-0 overflow-hidden">
+        {/* Conversations List — hidden on mobile when a chat is selected */}
+        <div
+          className={`${
+            selectedUserId ? "hidden lg:flex" : "flex"
+          } w-full lg:w-80 border border-border/40 rounded-xl bg-card shadow-sm flex-col`}
+        >
           <div className="p-3 border-b border-border/20">
             <div className="flex items-center gap-2 mb-2">
               <Button
@@ -133,7 +142,9 @@ export default function PatientChatPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={showContacts ? "Search doctors..." : "Search conversations..."}
+                placeholder={
+                  showContacts ? "Search doctors..." : "Search conversations..."
+                }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-8 text-xs bg-muted/20"
@@ -179,7 +190,7 @@ export default function PatientChatPage() {
               )
             ) : isPending ? (
               <div className="p-6 text-center">
-                    <Spinner className="size-5 text-muted-foreground mx-auto" />
+                <Spinner className="size-5 text-muted-foreground mx-auto" />
               </div>
             ) : filteredConversations.length === 0 ? (
               <div className="p-6 text-center text-xs text-muted-foreground">
@@ -220,8 +231,12 @@ export default function PatientChatPage() {
           </div>
         </div>
 
-        {/* Chat Window */}
-        <div className="flex-1 border border-border/40 rounded-xl bg-card shadow-sm flex flex-col">
+        {/* Chat Window — hidden on mobile when no chat is selected */}
+        <div
+          className={`${
+            !selectedUserId ? "hidden lg:flex" : "flex"
+          } flex-1 border border-border/40 rounded-xl bg-card shadow-sm flex-col`}
+        >
           {!selectedUserId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
@@ -233,8 +248,28 @@ export default function PatientChatPage() {
             </div>
           ) : (
             <>
-              {/* Header */}
+              {/* Header with back button on mobile */}
               <div className="p-3 border-b border-border/20 flex items-center gap-3">
+                <button
+                  type="button"
+                  className="lg:hidden mr-1 p-1 rounded-lg hover:bg-muted/50 text-muted-foreground transition-colors"
+                  onClick={() => setSelectedUserId(null)}
+                  aria-label="Back to conversations"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                   {selectedUser?.name?.[0] || selectedUser?.email?.[0] || "?"}
                 </div>
@@ -252,7 +287,7 @@ export default function PatientChatPage() {
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messagesLoading ? (
                   <div className="text-center py-8">
-                <Spinner className="size-5 text-muted-foreground mx-auto" />
+                    <Spinner className="size-5 text-muted-foreground mx-auto" />
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="text-center py-8 text-xs text-muted-foreground">

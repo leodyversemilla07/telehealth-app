@@ -10,9 +10,9 @@ import {
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
 import {
-  LayoutDashboard,
   FileText,
   History,
+  LayoutDashboard,
   LifeBuoy,
   Send,
   Stethoscope,

@@ -13,9 +13,11 @@ import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs"
 import { SidebarDoctor } from "@/components/sidebar-doctor"
 
 const NotificationBell = dynamic(
-  () => import("@/components/notification-bell").then((m) => m.NotificationBell),
+  () =>
+    import("@/components/notification-bell").then((m) => m.NotificationBell),
   { ssr: false },
 )
+
 import { authClient } from "@/lib/auth-client"
 
 export default function DoctorLayout({
@@ -36,12 +38,14 @@ export default function DoctorLayout({
     }
   }, [session, isPending, router])
 
-  const user = session?.user as {
-    name?: string | null
-    email: string
-    role?: string | null
-    image?: string | null
-  } | undefined
+  const user = session?.user as
+    | {
+        name?: string | null
+        email: string
+        role?: string | null
+        image?: string | null
+      }
+    | undefined
 
   return (
     <SidebarProvider>
@@ -51,7 +55,12 @@ export default function DoctorLayout({
           email: user?.email || "",
           avatar: user?.image || "",
         }}
-        role={(user?.role?.toLowerCase() ?? "doctor") as "doctor" | "patient" | "admin"}
+        role={
+          (user?.role?.toLowerCase() ?? "doctor") as
+            | "doctor"
+            | "patient"
+            | "admin"
+        }
         onLogout={async () => {
           await authClient.signOut()
           router.replace("/sign-in")
@@ -69,9 +78,7 @@ export default function DoctorLayout({
           </div>
           <NotificationBell />
         </header>
-        <div className="flex-1">
-          {children}
-        </div>
+        <div className="flex-1">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   ArrowLeft,
   Calendar,
@@ -18,12 +19,11 @@ import {
   Printer,
   User,
 } from "lucide-react"
-import { Spinner } from "@workspace/ui/components/spinner"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { usePatientPrescriptions } from "@/hooks/use-records"
 import { ErrorAlert } from "@/components/error-alert"
+import { usePatientPrescriptions } from "@/hooks/use-records"
 
 export default function PrescriptionDetailPage() {
   const params = useParams()

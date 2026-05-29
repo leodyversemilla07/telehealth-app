@@ -1,7 +1,5 @@
 "use client"
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -10,6 +8,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@workspace/ui/components/breadcrumb"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 const LABEL_MAP: Record<string, string> = {
   dashboard: "Dashboard",
@@ -92,7 +92,8 @@ export function DynamicBreadcrumbs({ rootLabel }: { rootLabel: string }) {
         items.push({
           label:
             LABEL_MAP[segment] ||
-            segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, " "),
+            segment.charAt(0).toUpperCase() +
+              segment.slice(1).replace(/-/g, " "),
           href: currentPath,
         })
       }

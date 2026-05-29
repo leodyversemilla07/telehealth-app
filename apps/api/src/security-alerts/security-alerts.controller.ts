@@ -1,12 +1,13 @@
 import { Controller, Get, Post } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
-import { Session } from "@thallesp/nestjs-better-auth"
+import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { SecurityAlertsService } from "@/security-alerts/security-alerts.service"
 
 @ApiTags("Security Alerts")
 @ApiBearerAuth("session-token")
 @Controller("users/me/security-alerts")
+@Roles(["PATIENT", "DOCTOR", "ADMIN"])
 export class SecurityAlertsController {
   constructor(private readonly alertsService: SecurityAlertsService) {}
 

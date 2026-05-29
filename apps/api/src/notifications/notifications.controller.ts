@@ -1,13 +1,14 @@
 import { Controller, Get, Param, Patch, Query } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
-import { Session } from "@thallesp/nestjs-better-auth"
+import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { NotificationQueryDto } from "./dto/notification-query.dto"
 import { NotificationsService } from "./notifications.service"
 
 @ApiTags("Notifications")
 @ApiBearerAuth("session-token")
 @Controller("notifications")
+@Roles(["PATIENT", "DOCTOR", "ADMIN"])
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 

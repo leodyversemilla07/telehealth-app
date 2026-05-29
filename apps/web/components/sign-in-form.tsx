@@ -9,14 +9,9 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { cn } from "@workspace/ui/lib/utils"
-import {
-  ArrowLeft,
-  Key,
-  Shield,
-  ShieldAlert,
-} from "lucide-react"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { cn } from "@workspace/ui/lib/utils"
+import { ArrowLeft, Key, Shield, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -36,8 +31,6 @@ export function SignInForm({
   const [twoFactorCode, setTwoFactorCode] = useState("")
   const [twoFactorLoading, setTwoFactorLoading] = useState(false)
   const [twoFactorError, setTwoFactorError] = useState<string | null>(null)
-
-
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -129,8 +122,6 @@ export function SignInForm({
       setTwoFactorLoading(false)
     }
   }
-
-
 
   if (showTwoFactor) {
     return (
@@ -301,7 +292,6 @@ export function SignInForm({
           </Field>
         </FieldGroup>
       </form>
-
     </>
   )
 }

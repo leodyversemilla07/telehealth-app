@@ -60,13 +60,13 @@ export default function DoctorChatPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+  }, [])
 
   useEffect(() => {
     if (selectedUserId) {
       markAsRead.mutate(selectedUserId)
     }
-  }, [selectedUserId])
+  }, [selectedUserId, markAsRead.mutate])
 
   const handleSend = () => {
     if (!message.trim() || !selectedUserId) return
@@ -98,7 +98,7 @@ export default function DoctorChatPage() {
   })
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -112,9 +112,13 @@ export default function DoctorChatPage() {
         </CardHeader>
       </Card>
 
-      <div className="flex flex-1 gap-4 min-h-0">
-        {/* Conversations List */}
-        <div className="w-80 border border-border/40 rounded-xl bg-card shadow-sm flex flex-col">
+      <div className="flex flex-1 gap-4 min-h-0 overflow-hidden">
+        {/* Conversations List — hidden on mobile when a chat is selected */}
+        <div
+          className={`${
+            selectedUserId ? "hidden lg:flex" : "flex"
+          } w-full lg:w-80 border border-border/40 rounded-xl bg-card shadow-sm flex-col`}
+        >
           <div className="p-3 border-b border-border/20">
             <div className="flex items-center gap-2 mb-2">
               <Button
@@ -163,6 +167,7 @@ export default function DoctorChatPage() {
               ) : (
                 filteredContacts.map((contact) => (
                   <button
+                    type="button"
                     key={contact.id}
                     onClick={() => {
                       setSelectedUserId(contact.id)
@@ -198,6 +203,7 @@ export default function DoctorChatPage() {
             ) : (
               filteredConversations.map((conv) => (
                 <button
+                  type="button"
                   key={conv.otherUser.id}
                   onClick={() => setSelectedUserId(conv.otherUser.id)}
                   className={`w-full p-3 text-left hover:bg-muted/30 transition-colors border-b border-border/10 ${
@@ -230,8 +236,12 @@ export default function DoctorChatPage() {
           </div>
         </div>
 
-        {/* Chat Window */}
-        <div className="flex-1 border border-border/40 rounded-xl bg-card shadow-sm flex flex-col">
+        {/* Chat Window — hidden on mobile when no chat is selected */}
+        <div
+          className={`${
+            !selectedUserId ? "hidden lg:flex" : "flex"
+          } flex-1 border border-border/40 rounded-xl bg-card shadow-sm flex-col`}
+        >
           {!selectedUserId ? (
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
@@ -243,8 +253,28 @@ export default function DoctorChatPage() {
             </div>
           ) : (
             <>
-              {/* Header */}
+              {/* Header with back button on mobile */}
               <div className="p-3 border-b border-border/20 flex items-center gap-3">
+                <button
+                  type="button"
+                  className="lg:hidden mr-1 p-1 rounded-lg hover:bg-muted/50 text-muted-foreground transition-colors"
+                  onClick={() => setSelectedUserId(null)}
+                  aria-label="Back to conversations"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </button>
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                   {selectedUser?.name?.[0] || selectedUser?.email?.[0] || "?"}
                 </div>

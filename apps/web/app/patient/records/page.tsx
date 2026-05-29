@@ -17,6 +17,7 @@ import {
   EmptyTitle,
 } from "@workspace/ui/components/empty"
 import { Separator } from "@workspace/ui/components/separator"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Calendar,
   ClipboardList,
@@ -28,14 +29,14 @@ import {
   User,
 } from "lucide-react"
 import Link from "next/link"
-import { usePatientRecords } from "@/hooks/use-records"
 import { ErrorAlert } from "@/components/error-alert"
+import { usePatientRecords } from "@/hooks/use-records"
 
 export default function PatientRecordsPage() {
   const { data: consultations = [], isPending, error } = usePatientRecords()
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -51,12 +52,7 @@ export default function PatientRecordsPage() {
       {isPending && (
         <div className="space-y-4">
           {Array.from({ length: 2 }).map((_, idx) => (
-            <Card
-              key={idx}
-              className="animate-pulse bg-card/60 border border-border/40"
-            >
-              <CardContent className="h-32" />
-            </Card>
+            <Skeleton key={idx} className="h-32 rounded-xl" />
           ))}
         </div>
       )}
@@ -88,7 +84,7 @@ export default function PatientRecordsPage() {
       )}
 
       {!isPending && !error && consultations.length > 0 && (
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {consultations.map((record) => {
             const visitDate = new Date(
               record.appointment.startTime,
@@ -102,13 +98,11 @@ export default function PatientRecordsPage() {
             return (
               <Card
                 key={record.id}
-                className="border border-border/40 bg-card hover:shadow-md transition-all overflow-hidden relative group"
+                className="border border-border/40 bg-card hover:shadow-md transition-all overflow-hidden"
               >
-                <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-primary" />
-
-                <CardHeader className="pb-3 pl-8">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3 text-left">
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
                         <Stethoscope className="h-5 w-5" />
                       </div>
@@ -124,17 +118,17 @@ export default function PatientRecordsPage() {
                         </CardTitle>
                       </div>
                     </div>
-                    <div className="bg-muted/30 border border-border/25 rounded-xl px-4 py-2 text-xs flex items-center gap-1.5 w-fit shrink-0 font-medium text-muted-foreground">
+                    <div className="bg-muted/30 border border-border/25 rounded-xl px-3 py-1.5 text-xs flex items-center gap-1.5 shrink-0 font-medium text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5" />
                       {visitDate}
                     </div>
                   </div>
                 </CardHeader>
 
-                <CardContent className="pl-8 pb-4 text-left">
-                  <Separator className="bg-border/30 mb-4" />
+                <CardContent className="space-y-4">
+                  <Separator className="bg-border/30" />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-muted/20 border border-border/20 rounded-xl p-4 space-y-3">
                       <div className="space-y-1">
                         <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
@@ -200,7 +194,7 @@ export default function PatientRecordsPage() {
                   </div>
 
                   {record.doctorNotes && (
-                    <div className="mb-4 space-y-1">
+                    <div className="space-y-1">
                       <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                         Doctor&apos;s Notes
                       </span>
@@ -239,22 +233,22 @@ export default function PatientRecordsPage() {
                       </div>
                     </div>
                   )}
-                </CardContent>
 
-                <div className="px-8 pb-4 flex gap-2">
                   {record.prescriptions.length > 0 && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      nativeButton={false}
-                      className="text-xs h-8 border-border/60"
-                      render={<Link href="/patient/prescriptions" />}
-                    >
-                      <FileText className="h-3.5 w-3.5 mr-1" />
-                      View All Prescriptions
-                    </Button>
+                    <div className="pt-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        nativeButton={false}
+                        className="text-xs h-8 border-border/60"
+                        render={<Link href="/patient/prescriptions" />}
+                      >
+                        <FileText className="h-3.5 w-3.5 mr-1" />
+                        View All Prescriptions
+                      </Button>
+                    </div>
                   )}
-                </div>
+                </CardContent>
               </Card>
             )
           })}

@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   AlertTriangle,
   ArrowLeft,
@@ -27,7 +28,6 @@ import {
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { apiClient } from "@/lib/api-client"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface MedicalHistory {
   allergies?: string[]
@@ -135,7 +135,13 @@ export default function PatientDetailPage() {
                 The requested patient could not be found.
               </CardDescription>
             </div>
-            <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/doctor/patients" />} className="sm:w-fit">
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              render={<Link href="/doctor/patients" />}
+              className="sm:w-fit"
+            >
               <ArrowLeft className="h-4 w-4 mr-1" />
               Back to patients
             </Button>
@@ -167,7 +173,13 @@ export default function PatientDetailPage() {
               </CardDescription>
             </div>
           </div>
-          <Button variant="outline" size="sm" nativeButton={false} render={<Link href="/doctor/patients" />} className="sm:w-fit">
+          <Button
+            variant="outline"
+            size="sm"
+            nativeButton={false}
+            render={<Link href="/doctor/patients" />}
+            className="sm:w-fit"
+          >
             <ArrowLeft className="h-4 w-4 mr-1" />
             Back to patients
           </Button>
@@ -188,7 +200,9 @@ export default function PatientDetailPage() {
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Calendar className="h-3.5 w-3.5 shrink-0" />
                 <span className="font-medium text-foreground">DOB:</span>{" "}
-                {new Date(patientRecords.patient.patientProfile.dob).toLocaleDateString()}
+                {new Date(
+                  patientRecords.patient.patientProfile.dob,
+                ).toLocaleDateString()}
               </div>
             )}
             {patientRecords.patient.patientProfile?.sex && (
@@ -263,50 +277,63 @@ export default function PatientDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {patientRecords.patient.patientProfile.medicalHistory.conditions &&
-              patientRecords.patient.patientProfile.medicalHistory.conditions.length > 0 && (
+              patientRecords.patient.patientProfile.medicalHistory.conditions
+                .length > 0 && (
                 <div>
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
                     <Heart className="h-3 w-3" />
                     Conditions
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {patientRecords.patient.patientProfile.medicalHistory.conditions.map((c, i) => (
-                      <Badge key={i} variant="outline" className="text-xs">
-                        {c}
-                      </Badge>
-                    ))}
+                    {patientRecords.patient.patientProfile.medicalHistory.conditions.map(
+                      (c, i) => (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {c}
+                        </Badge>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
             {patientRecords.patient.patientProfile.medicalHistory.allergies &&
-              patientRecords.patient.patientProfile.medicalHistory.allergies.length > 0 && (
+              patientRecords.patient.patientProfile.medicalHistory.allergies
+                .length > 0 && (
                 <div>
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
                     <AlertTriangle className="h-3 w-3" />
                     Allergies
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {patientRecords.patient.patientProfile.medicalHistory.allergies.map((a, i) => (
-                      <Badge key={i} variant="outline" className="text-xs text-destructive border-destructive/30">
-                        {a}
-                      </Badge>
-                    ))}
+                    {patientRecords.patient.patientProfile.medicalHistory.allergies.map(
+                      (a, i) => (
+                        <Badge
+                          key={i}
+                          variant="outline"
+                          className="text-xs text-destructive border-destructive/30"
+                        >
+                          {a}
+                        </Badge>
+                      ),
+                    )}
                   </div>
                 </div>
               )}
             {patientRecords.patient.patientProfile.medicalHistory.medications &&
-              patientRecords.patient.patientProfile.medicalHistory.medications.length > 0 && (
+              patientRecords.patient.patientProfile.medicalHistory.medications
+                .length > 0 && (
                 <div>
                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
                     <Pill className="h-3 w-3" />
                     Current Medications
                   </span>
                   <div className="flex flex-wrap gap-1.5">
-                    {patientRecords.patient.patientProfile.medicalHistory.medications.map((m, i) => (
-                      <Badge key={i} variant="outline" className="text-xs">
-                        {m}
-                      </Badge>
-                    ))}
+                    {patientRecords.patient.patientProfile.medicalHistory.medications.map(
+                      (m, i) => (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {m}
+                        </Badge>
+                      ),
+                    )}
                   </div>
                 </div>
               )}

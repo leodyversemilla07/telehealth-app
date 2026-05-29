@@ -1,13 +1,14 @@
 import { Body, Controller, Get, Post } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
-import { Session } from "@thallesp/nestjs-better-auth"
+import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { ConsentService } from "@/consent/consent.service"
 import { RecordConsentDto } from "@/consent/dto"
 
 @ApiTags("Consent")
 @ApiBearerAuth("session-token")
 @Controller("consent")
+@Roles(["PATIENT", "DOCTOR", "ADMIN"])
 export class ConsentController {
   constructor(private readonly consentService: ConsentService) {}
 

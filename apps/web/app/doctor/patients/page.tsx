@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -11,7 +10,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty"
 import { Input } from "@workspace/ui/components/input"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Table,
   TableBody,
@@ -20,16 +27,10 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
-import {
-  FileText,
-  Search,
-  User,
-  Users,
-} from "lucide-react"
+import { FileText, Search, User, Users } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
 import { apiClient } from "@/lib/api-client"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface Patient {
   id: string
@@ -38,7 +39,7 @@ interface Patient {
   appointmentCount: number
 }
 
-const STATUS_COLORS: Record<string, string> = {
+const _STATUS_COLORS: Record<string, string> = {
   CONFIRMED: "text-success bg-success/10 border-success/30",
   COMPLETED: "text-info bg-info/10 border-info/30",
   CANCELLED: "text-destructive bg-destructive/10 border-destructive/30",
@@ -110,19 +111,19 @@ export default function DoctorPatientsPage() {
       )}
 
       {!isPending && filtered.length === 0 && (
-        <div className="bg-card border border-border/40 rounded-xl p-12 text-center max-w-md mx-auto shadow-sm space-y-4">
-          <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mx-auto">
-            <User className="h-6 w-6" />
-          </div>
-          <div className="space-y-1">
-            <h3 className="font-semibold text-sm">No patients found</h3>
-            <p className="text-xs text-muted-foreground">
+        <Empty className="py-12">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <User className="h-4 w-4" />
+            </EmptyMedia>
+            <EmptyTitle>No patients found</EmptyTitle>
+            <EmptyDescription>
               {searchQuery
                 ? `No results for "${searchQuery}"`
                 : "You haven't seen any patients yet."}
-            </p>
-          </div>
-        </div>
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       )}
 
       {!isPending && filtered.length > 0 && (
@@ -138,50 +139,61 @@ export default function DoctorPatientsPage() {
           </CardHeader>
           <CardContent>
             <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Patient</TableHead>
-                <TableHead className="hidden md:table-cell">Email</TableHead>
-                <TableHead className="text-right">Appointments</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((patient) => (
-                <TableRow key={patient.id} className="cursor-pointer">
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/doctor/patients/${patient.id}`}
-                      className="flex items-center gap-3"
-                    >
-                      <Avatar size="sm" className="border border-primary/20 shrink-0">
-                        <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
-                          {patient.name?.[0] || patient.email[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-sm">
-                        {patient.name || "Patient"}
-                      </span>
-                    </Link>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                    <Link href={`/doctor/patients/${patient.id}`}>
-                      {patient.email}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="text-right text-sm font-medium">
-                    {patient.appointmentCount}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="outline" size="sm" className="gap-1 font-medium" nativeButton={false} render={<Link href={`/doctor/patients/${patient.id}`} />}>
-                      <FileText className="h-4 w-4" />
-                      View Records
-                    </Button>
-                  </TableCell>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Patient</TableHead>
+                  <TableHead className="hidden md:table-cell">Email</TableHead>
+                  <TableHead className="text-right">Appointments</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((patient) => (
+                  <TableRow key={patient.id} className="cursor-pointer">
+                    <TableCell className="font-medium">
+                      <Link
+                        href={`/doctor/patients/${patient.id}`}
+                        className="flex items-center gap-3"
+                      >
+                        <Avatar
+                          size="sm"
+                          className="border border-primary/20 shrink-0"
+                        >
+                          <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
+                            {patient.name?.[0] || patient.email[0]}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm">
+                          {patient.name || "Patient"}
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                      <Link href={`/doctor/patients/${patient.id}`}>
+                        {patient.email}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-right text-sm font-medium">
+                      {patient.appointmentCount}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1 font-medium"
+                        nativeButton={false}
+                        render={
+                          <Link href={`/doctor/patients/${patient.id}`} />
+                        }
+                      >
+                        <FileText className="h-4 w-4" />
+                        View Records
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}

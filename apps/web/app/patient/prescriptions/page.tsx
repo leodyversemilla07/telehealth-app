@@ -18,6 +18,7 @@ import {
   EmptyTitle,
 } from "@workspace/ui/components/empty"
 import { Separator } from "@workspace/ui/components/separator"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Calendar,
   FileCheck,
@@ -28,8 +29,8 @@ import {
   User,
 } from "lucide-react"
 import { toast } from "sonner"
-import { usePatientPrescriptions } from "@/hooks/use-records"
 import { ErrorAlert } from "@/components/error-alert"
+import { usePatientPrescriptions } from "@/hooks/use-records"
 
 export default function PatientPrescriptionsPage() {
   // 1. Fetch patient prescriptions (Consumes hydrated server cache instantly)
@@ -64,12 +65,7 @@ export default function PatientPrescriptionsPage() {
       {isPending && (
         <div className="space-y-4">
           {Array.from({ length: 2 }).map((_, idx) => (
-            <Card
-              key={idx}
-              className="animate-pulse bg-card/60 border border-border/40"
-            >
-              <CardContent className="h-28" />
-            </Card>
+            <Skeleton key={idx} className="h-28 rounded-xl" />
           ))}
         </div>
       )}

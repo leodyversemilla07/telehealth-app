@@ -43,19 +43,45 @@ export const envSchema = z.object({
   S3_PUBLIC_URL: z.string().url().optional(),
 
   // ── Email (required in production) ─────────────────────────────────────────
-  SMTP_USER: z.string().min(1, "SMTP_USER is required for password resets and email verification").optional(),
-  SMTP_PASS: z.string().min(1, "SMTP_PASS is required for password resets and email verification").optional(),
+  SMTP_USER: z
+    .string()
+    .min(1, "SMTP_USER is required for password resets and email verification")
+    .optional(),
+  SMTP_PASS: z
+    .string()
+    .min(1, "SMTP_PASS is required for password resets and email verification")
+    .optional(),
 
   // ── LiveKit (required in production) ───────────────────────────────────────
-  LIVEKIT_URL: z.string().url("LIVEKIT_URL must be a valid URL").optional().default("wss://localhost:7881"),
-  LIVEKIT_API_KEY: z.string().min(1, "LIVEKIT_API_KEY is required for video consultations").optional(),
-  LIVEKIT_API_SECRET: z.string().min(1, "LIVEKIT_API_SECRET is required for video consultations").optional(),
+  LIVEKIT_URL: z
+    .string()
+    .url("LIVEKIT_URL must be a valid URL")
+    .optional()
+    .default("wss://localhost:7881"),
+  LIVEKIT_API_KEY: z
+    .string()
+    .min(1, "LIVEKIT_API_KEY is required for video consultations")
+    .optional(),
+  LIVEKIT_API_SECRET: z
+    .string()
+    .min(1, "LIVEKIT_API_SECRET is required for video consultations")
+    .optional(),
 
   // ── AI Recommendations (optional; endpoint returns 503 when absent) ───────
   NIM_API_KEY: z.string().optional(),
 
+  // ── Web Push (VAPID) ─────────────────────────────────────────────────────
+  // Generate once: node -e "const wp=require('web-push');const k=wp.generateVAPIDKeys();console.log(JSON.stringify(k))"
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().optional().default("mailto:admin@telehealth.app"),
+
   // ── Session ──────────────────────────────────────────────────────────────
-  SESSION_EXPIRY_SECONDS: z.coerce.number().min(300).max(2592000).default(604800),
+  SESSION_EXPIRY_SECONDS: z.coerce
+    .number()
+    .min(300)
+    .max(2592000)
+    .default(604800),
 
   // ── Data Retention (optional; defaults below) ──────────────────────────────
   RETENTION_NOTIFICATIONS_DAYS: z.coerce.number().min(1).default(90),

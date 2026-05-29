@@ -101,7 +101,7 @@ export function SettingsLayout({
   const navItems = getSettingsNavItems(resolvedRole || "patient")
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
@@ -111,8 +111,12 @@ export function SettingsLayout({
         </div>
 
         <div className="flex flex-col lg:flex-row lg:space-x-12">
-          <aside className="w-full max-w-xl lg:w-48 shrink-0">
-            <nav className="flex flex-col space-y-1" aria-label="Settings">
+          {/* Mobile/tablet: horizontal scrollable nav */}
+          <aside className="w-full lg:w-48 shrink-0">
+            <nav
+              className="flex lg:flex-col gap-1 overflow-x-auto pb-2 lg:pb-0 lg:overflow-x-visible"
+              aria-label="Settings"
+            >
               {navItems.map((item) => {
                 const isActive =
                   pathname === item.href || pathname.startsWith(`${item.href}/`)
@@ -124,7 +128,7 @@ export function SettingsLayout({
                     nativeButton={false}
                     render={<Link href={item.href} />}
                     className={cn(
-                      "w-full justify-start gap-2",
+                      "shrink-0 lg:w-full justify-start gap-2",
                       isActive && "bg-muted font-medium",
                     )}
                   >
@@ -136,9 +140,9 @@ export function SettingsLayout({
             </nav>
           </aside>
 
-          <Separator className="my-6 lg:hidden" />
+          <Separator className="my-4 lg:hidden" />
 
-          <div className="flex-1 md:max-w-2xl">
+          <div className="flex-1 min-w-0">
             <section className="max-w-xl space-y-12">{children}</section>
           </div>
         </div>

@@ -1,8 +1,15 @@
-import { Body, Controller, Get, Param, Post } from "@nestjs/common"
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
+import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common"
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiQuery,
+  ApiTags,
+} from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
-import { Roles, Session } from "@thallesp/nestjs-better-auth"
+import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
 import { IsInt, IsOptional, IsString, Max, Min } from "class-validator"
+import { PaginationDto } from "@/common/dto/pagination.dto"
 import { ReviewsService } from "./reviews.service"
 
 class CreateReviewDto {
@@ -40,10 +47,20 @@ export class ReviewsController {
   }
 
   @Get("doctor/:doctorId")
+  @AllowAnonymous()
   @ApiOperation({ summary: "Get reviews for a doctor (public)" })
   @ApiParam({ name: "doctorId", description: "Doctor profile ID" })
-  async getDoctorReviews(@Param("doctorId") doctorId: string) {
-    return this.reviewsService.getDoctorReviews(doctorId)
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiQuery({ name: "offset", required: false, type: Number })
+  async getDoctorReviews(
+    @Param("doctorId") doctorId: string,
+    @Query() query: PaginationDto,
+  ) {
+    return this.reviewsService.getDoctorReviews(
+      doctorId,
+      query.limit,
+      query.offset,
+    )
   }
 
   @Get("patient")

@@ -27,8 +27,8 @@ import {
   UserTable,
   UserTableSkeleton,
 } from "@/components/admin/users/user-table"
-import { apiClient } from "@/lib/api-client"
 import { ErrorAlert } from "@/components/error-alert"
+import { apiClient } from "@/lib/api-client"
 
 export default function AdminUsersPage() {
   const queryClient = useQueryClient()
@@ -43,14 +43,12 @@ export default function AdminUsersPage() {
   } | null>(null)
 
   // 1. Fetch Users Query
-  const {
-    data: users = [],
-    isPending,
-    error,
-  } = useQuery<UserDto[]>({
+  const { data, isPending, error } = useQuery({
     queryKey: ["users"],
-    queryFn: () => apiClient.get<UserDto[]>("/admin/users"),
+    queryFn: () =>
+      apiClient.get<{ items: UserDto[]; total: number }>("/admin/users"),
   })
+  const users = data?.items ?? []
 
   // 2. Mutations
   const roleMutation = useMutation({
@@ -159,8 +157,8 @@ export default function AdminUsersPage() {
             Users Management
           </CardTitle>
           <CardDescription className="text-sm">
-            View, search, and manage registered patients, licensed providers, and
-            administrative staff accounts.
+            View, search, and manage registered patients, licensed providers,
+            and administrative staff accounts.
           </CardDescription>
         </CardHeader>
       </Card>

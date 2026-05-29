@@ -278,30 +278,30 @@ export class AppointmentsService {
   /**
    * List appointments for the current user (patient or doctor).
    */
-  async findMyAppointments(userId: string, role: string) {
-    if (role === "DOCTOR") {
-      const profile = await this.prisma.doctorProfile.findUnique({
-        where: { userId },
-      })
-      if (!profile) return []
-      return this.prisma.appointment.findMany({
-        where: { doctorId: profile.id },
+  async findMyAppointments(
+    userId: string,
+    role: string,
+    limit = 50,
+    offset = 0,
+  ) {
+    const where =
+      role === "DOCTOR" ? { doctor: { userId } } : { patientId: userId }
+
+    const [items, total] = await Promise.all([
+      this.prisma.appointment.findMany({
+        where,
         include: {
           patient: PATIENT_INCLUDE,
           doctor: DOCTOR_INCLUDE,
         },
         orderBy: { startTime: "asc" },
-      })
-    }
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.appointment.count({ where }),
+    ])
 
-    return this.prisma.appointment.findMany({
-      where: { patientId: userId },
-      include: {
-        patient: PATIENT_INCLUDE,
-        doctor: DOCTOR_INCLUDE,
-      },
-      orderBy: { startTime: "asc" },
-    })
+    return { items, total, limit, offset }
   }
 
   /**

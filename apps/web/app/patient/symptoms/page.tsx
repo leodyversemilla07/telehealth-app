@@ -1,6 +1,7 @@
 "use client"
 
 import { useMutation } from "@tanstack/react-query"
+import type { DoctorProfileDto } from "@workspace/shared"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -11,18 +12,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty"
 import { Label } from "@workspace/ui/components/label"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   AlertCircle,
   AlertTriangle,
   Brain,
+  Calendar,
   CheckCircle,
   Clock,
+  MapPin,
   Stethoscope,
   Users,
 } from "lucide-react"
-import { Spinner } from "@workspace/ui/components/spinner"
 import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -33,11 +44,7 @@ interface SymptomResult {
   severity: string
   recommendedAction: string
   specialties: string[]
-  doctors: Array<{
-    id: string
-    specialty: string
-    user: { name: string | null; image: string | null }
-  }>
+  doctors: DoctorProfileDto[]
 }
 
 const SEVERITY_CONFIG: Record<
@@ -64,6 +71,13 @@ const SEVERITY_CONFIG: Record<
     icon: AlertCircle,
     bg: "bg-destructive/10 border-destructive/30",
   },
+}
+
+function formatPrice(price: number): string {
+  return new Intl.NumberFormat("en-PH", {
+    style: "currency",
+    currency: "PHP",
+  }).format(price)
 }
 
 export default function SymptomCheckerPage() {
@@ -95,10 +109,11 @@ export default function SymptomCheckerPage() {
     : null
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
+    <div className="flex h-full flex-1 flex-col gap-6 rounded-xl p-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Brain className="h-6 w-6 text-primary" />
             AI Symptom Checker
           </CardTitle>
           <CardDescription className="text-sm">
@@ -196,9 +211,9 @@ export default function SymptomCheckerPage() {
                       variant="outline"
                       className={`text-xs font-bold ${
                         condition.likelihood === "high"
-                          ? "text-red-600 border-red-200 bg-red-50"
+                          ? "text-destructive border-destructive/30 bg-destructive/10"
                           : condition.likelihood === "medium"
-                            ? "text-amber-600 border-amber-200 bg-amber-50"
+                            ? "text-warning border-warning/30 bg-warning/10"
                             : "text-muted-foreground border-border"
                       }`}
                     >
@@ -238,11 +253,11 @@ export default function SymptomCheckerPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {result.doctors.map((doctor) => (
                     <div
                       key={doctor.id}
-                      className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                      className="flex items-center justify-between p-4 bg-muted/30 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
                         <Avatar className="shrink-0">
@@ -250,13 +265,25 @@ export default function SymptomCheckerPage() {
                             {doctor.user.name?.[0] || "?"}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
+                        <div className="space-y-1">
                           <p className="text-sm font-medium">
                             {doctor.user.name}
                           </p>
-                          <p className="text-xs text-muted-foreground">
+                          <Badge variant="secondary" className="text-xs">
                             {doctor.specialty}
-                          </p>
+                          </Badge>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatPrice(Number(doctor.pricePerVisit) || 0)}
+                            </span>
+                            {doctor.clinicAddress && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="h-3 w-3" />
+                                {doctor.clinicAddress}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <Button
@@ -274,8 +301,34 @@ export default function SymptomCheckerPage() {
             </Card>
           )}
 
+          {/* Empty state for doctors */}
+          {result.doctors && result.doctors.length === 0 && (
+            <Empty className="py-8">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Stethoscope className="h-4 w-4" />
+                </EmptyMedia>
+                <EmptyTitle>No specialists found</EmptyTitle>
+                <EmptyDescription>
+                  No approved doctors found for the identified specialties. Try
+                  describing your symptoms differently or browse all doctors.
+                </EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  nativeButton={false}
+                  render={<Link href="/patient/appointments/book" />}
+                >
+                  Browse All Doctors
+                </Button>
+              </EmptyContent>
+            </Empty>
+          )}
+
           {/* Disclaimer */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800">
+          <div className="bg-warning/10 border border-warning/30 rounded-xl p-4 text-xs text-warning-foreground">
             <p className="font-semibold mb-1">Medical Disclaimer</p>
             <p>
               This AI symptom checker is for informational purposes only and

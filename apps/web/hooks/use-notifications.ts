@@ -89,9 +89,15 @@ export function useMarkAllAsRead() {
 // ─── Socket.io Hook ────────────────────────────────────────────────────────
 
 function getSocketUrl(): string {
-  const apiUrl = env.NEXT_PUBLIC_API_URL
-  // Strip /api suffix if present (e.g. http://localhost:3001/api → http://localhost:3001)
-  return apiUrl.replace(/\/api\/?$/, "")
+  // Connect directly to the API if NEXT_PUBLIC_API_URL is configured.
+  // This bypasses Next.js dev server rewrite limitations with WebSocket upgrades.
+  if (env.NEXT_PUBLIC_API_URL) {
+    return env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, "")
+  }
+  if (typeof window !== "undefined") {
+    return window.location.origin
+  }
+  return ""
 }
 
 export function useNotificationSocket() {
@@ -108,7 +114,9 @@ export function useNotificationSocket() {
 
     socketRef.current = socketIO(url, {
       withCredentials: true,
-      transports: ["websocket", "polling"],
+      // Start with polling so the request goes through the Next.js /socket.io
+      // rewrite proxy. Socket.io will upgrade to WebSocket automatically.
+      transports: ["polling", "websocket"],
     })
 
     socketRef.current.on("notification", () => {

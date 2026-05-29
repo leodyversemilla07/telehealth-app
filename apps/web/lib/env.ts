@@ -11,22 +11,16 @@
  *   - Set in Vercel: API_URL=https://telehealth-env.eba-ncicpaui.us-east-1.elasticbeanstalk.com
  */
 
-function getEnv(name: string, fallback: string): string {
-  const value = process.env[name]
-  // Allow empty string as a valid value (e.g. NEXT_PUBLIC_API_URL="" for same-origin)
-  if (value === undefined || value === null) {
-    if (process.env.NODE_ENV === "production") {
-      // In production build, use fallback instead of crashing
-      // This lets `next build` succeed for static prerendering
-      console.warn(
-        `⚠️ ${name} is not set, using "${fallback}" (production fallback)`,
-      )
-      return fallback
-    }
-    console.warn(`⚠️ ${name} is not set, using "${fallback}" (dev default)`)
-    return fallback
+const apiWebUrl = process.env.NEXT_PUBLIC_API_URL
+const vapidKey = process.env.NEXT_PUBLIC_VAPID_KEY
+
+if (typeof window === "undefined") {
+  if (apiWebUrl === undefined) {
+    console.warn('⚠️ NEXT_PUBLIC_API_URL is not set, using "" (dev default)')
   }
-  return value
+  if (vapidKey === undefined) {
+    console.warn('⚠️ NEXT_PUBLIC_VAPID_KEY is not set, using "" (dev default)')
+  }
 }
 
 export const env = {
@@ -35,7 +29,12 @@ export const env = {
    * Empty string = same-origin proxy (Vercel rewrites handle it).
    * The trailing slash is stripped.
    */
-  NEXT_PUBLIC_API_URL: getEnv("NEXT_PUBLIC_API_URL", "").replace(/\/$/, ""),
+  NEXT_PUBLIC_API_URL: (apiWebUrl || "").replace(/\/$/, ""),
+  /**
+   * VAPID public key for Web Push subscriptions.
+   * Must match the VAPID_PUBLIC_KEY set in the API .env.
+   */
+  NEXT_PUBLIC_VAPID_KEY: vapidKey || "",
 } as const
 
 export type Env = typeof env

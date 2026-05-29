@@ -81,11 +81,17 @@ export function Footer({
         {/* Footer Rows */}
         <div className="flex flex-col gap-5">
           {FOOTER_ROWS.map((row) => (
-            <div key={row.label} className="flex flex-wrap items-baseline gap-x-8 gap-y-2">
+            <div
+              key={row.label}
+              className="flex flex-wrap items-baseline gap-x-8 gap-y-2"
+            >
               <span className="w-24 shrink-0 text-sm font-bold text-white">
                 {row.label}
               </span>
-              <nav aria-label={row.label} className="flex flex-wrap gap-x-6 gap-y-2">
+              <nav
+                aria-label={row.label}
+                className="flex flex-wrap gap-x-6 gap-y-2"
+              >
                 {row.links.map((link) => (
                   <a
                     key={link.href + link.label}

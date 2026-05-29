@@ -81,7 +81,7 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold tracking-tight text-foreground">

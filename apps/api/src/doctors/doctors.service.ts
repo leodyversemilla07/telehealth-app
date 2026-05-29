@@ -68,20 +68,28 @@ export class DoctorsService {
   /**
    * Get all doctors (with user info).
    */
-  async findAll() {
-    return this.prisma.doctorProfile.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
+  async findAll(limit = 50, offset = 0) {
+    const where = {}
+    const [items, total] = await Promise.all([
+      this.prisma.doctorProfile.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    })
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.doctorProfile.count({ where }),
+    ])
+    return { items, total, limit, offset }
   }
 
   /**

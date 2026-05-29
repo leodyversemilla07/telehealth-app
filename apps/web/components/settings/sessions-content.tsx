@@ -3,9 +3,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
-import { Skeleton } from "@workspace/ui/components/skeleton"
 
 export function SessionsContent() {
   const queryClient = useQueryClient()

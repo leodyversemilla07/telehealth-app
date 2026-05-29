@@ -13,9 +13,11 @@ import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs"
 import { SidebarAdmin } from "@/components/sidebar-admin"
 
 const NotificationBell = dynamic(
-  () => import("@/components/notification-bell").then((m) => m.NotificationBell),
+  () =>
+    import("@/components/notification-bell").then((m) => m.NotificationBell),
   { ssr: false },
 )
+
 import { authClient } from "@/lib/auth-client"
 
 export default function AdminLayout({
@@ -26,12 +28,14 @@ export default function AdminLayout({
   const router = useRouter()
   const { data: session } = authClient.useSession()
 
-  const user = session?.user as {
-    name?: string | null
-    email: string
-    role?: string | null
-    image?: string | null
-  } | undefined
+  const user = session?.user as
+    | {
+        name?: string | null
+        email: string
+        role?: string | null
+        image?: string | null
+      }
+    | undefined
 
   if (user && user.role !== "ADMIN") {
     return (
@@ -67,7 +71,12 @@ export default function AdminLayout({
           email: user?.email || "",
           avatar: user?.image || "",
         }}
-        role={(user?.role?.toLowerCase() ?? "admin") as "admin" | "patient" | "doctor"}
+        role={
+          (user?.role?.toLowerCase() ?? "admin") as
+            | "admin"
+            | "patient"
+            | "doctor"
+        }
         onLogout={async () => {
           await authClient.signOut()
           router.replace("/sign-in")
@@ -85,9 +94,7 @@ export default function AdminLayout({
           </div>
           <NotificationBell />
         </header>
-        <div className="flex-1">
-          {children}
-        </div>
+        <div className="flex-1">{children}</div>
       </SidebarInset>
     </SidebarProvider>
   )

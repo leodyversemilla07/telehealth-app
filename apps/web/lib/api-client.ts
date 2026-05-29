@@ -27,12 +27,8 @@ const getApiBaseUrl = () => {
   if (!rawBaseUrl) {
     return "/api"
   }
-  const isAbsolute = /^https?:\/\//i.test(rawBaseUrl)
-  return isAbsolute
-    ? rawBaseUrl
-    : rawBaseUrl.endsWith("/api")
-      ? rawBaseUrl
-      : `${rawBaseUrl}/api`
+
+  return rawBaseUrl.endsWith("/api") ? rawBaseUrl : `${rawBaseUrl}/api`
 }
 
 interface RequestOptions extends RequestInit {

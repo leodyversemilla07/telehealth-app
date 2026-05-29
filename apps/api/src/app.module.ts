@@ -22,6 +22,7 @@ import { DoctorsModule } from "@/doctors/doctors.module"
 import { NotificationsModule } from "@/notifications/notifications.module"
 import { PatientsModule } from "@/patients/patients.module"
 import { PrismaModule } from "@/prisma/prisma.module"
+import { PushModule } from "@/push/push.module"
 import { RecommendationsModule } from "@/recommendations/recommendations.module"
 import { RecordsModule } from "@/records/records.module"
 import { RetentionModule } from "@/retention/retention.module"
@@ -67,6 +68,7 @@ import { VideoModule } from "@/video/video.module"
     RecommendationsModule,
     VideoModule,
     NotificationsModule,
+    PushModule,
     ChatModule,
     ReviewsModule,
     RetentionModule,

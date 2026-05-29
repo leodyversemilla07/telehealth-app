@@ -19,24 +19,33 @@ export class UsersService {
   /**
    * Fetch all users (admin only).
    */
-  async findAll() {
-    return this.prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        emailVerified: true,
-        mobile: true,
-        preferredLang: true,
-        image: true,
-        role: true,
-        banned: true,
-        banReason: true,
-        banExpires: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    })
+  async findAll(limit = 50, offset = 0) {
+    const where = {}
+    const [items, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          emailVerified: true,
+          mobile: true,
+          preferredLang: true,
+          image: true,
+          role: true,
+          banned: true,
+          banReason: true,
+          banExpires: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.user.count({ where }),
+    ])
+    return { items, total, limit, offset }
   }
 
   /**

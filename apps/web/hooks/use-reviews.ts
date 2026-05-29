@@ -19,9 +19,11 @@ export interface Review {
 }
 
 export interface DoctorReviewsResponse {
-  reviews: Review[]
+  items: Review[]
+  total: number
+  limit: number
+  offset: number
   averageRating: number
-  totalReviews: number
 }
 
 export const reviewKeys = {
@@ -33,11 +35,17 @@ export const reviewKeys = {
     [...reviewKeys.all, "check", appointmentId] as const,
 }
 
-export function useDoctorReviews(doctorId: string) {
+export function useDoctorReviews(
+  doctorId: string,
+  limit?: number,
+  offset?: number,
+) {
   return useQuery({
-    queryKey: reviewKeys.doctor(doctorId),
+    queryKey: [...reviewKeys.doctor(doctorId), { limit, offset }],
     queryFn: () =>
-      apiClient.get<DoctorReviewsResponse>(`/reviews/doctor/${doctorId}`),
+      apiClient.get<DoctorReviewsResponse>(`/reviews/doctor/${doctorId}`, {
+        params: { limit, offset },
+      }),
     enabled: !!doctorId,
   })
 }
