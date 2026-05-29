@@ -2,8 +2,8 @@ import { Body, Controller, Post } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Session } from "@thallesp/nestjs-better-auth"
-import { JoinRoomDto } from "@/video/dto"
-import { VideoService } from "@/video/video.service"
+import { JoinRoomDto } from "./dto"
+import { VideoService } from "./video.service"
 
 @ApiTags("Video")
 @ApiBearerAuth("session-token")

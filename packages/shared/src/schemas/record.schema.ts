@@ -47,22 +47,31 @@ export const consultationWithPrescriptionsSchema = consultationSchema.extend({
   prescriptions: z.array(prescriptionSchema),
   appointment: z.object({
     id: z.string(),
-    patientId: z.string(),
-    doctorId: z.string(),
+    patientId: z.string().optional(),
+    doctorId: z.string().optional(),
     startTime: z.coerce.date(),
     endTime: z.coerce.date(),
-    status: z.string(),
-    type: z.string(),
-    reason: z.string().nullable(),
-    symptoms: z.string().nullable(),
-  }),
-  doctor: z.object({
-    id: z.string(),
-    specialty: z.string(),
-    user: z.object({
+    status: z.string().optional(),
+    type: z.string().optional(),
+    reason: z.string().nullable().optional(),
+    symptoms: z.string().nullable().optional(),
+    doctor: z.object({
       id: z.string(),
-      name: z.string().nullable(),
-      image: z.string().url().nullable(),
+      specialty: z.string(),
+      user: z.object({
+        name: z.string().nullable(),
+      }),
     }),
   }),
+  doctor: z
+    .object({
+      id: z.string(),
+      specialty: z.string(),
+      user: z.object({
+        id: z.string(),
+        name: z.string().nullable(),
+        image: z.string().url().nullable(),
+      }),
+    })
+    .optional(),
 })

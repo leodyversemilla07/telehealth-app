@@ -10,28 +10,33 @@ import {
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
 import {
-  Activity,
+  LayoutDashboard,
   FileText,
   History,
   LifeBuoy,
   Send,
-  Settings,
-  Shield,
   Stethoscope,
   Users,
 } from "lucide-react"
+import Image from "next/image"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 
 const data = {
-  navMain: [
+  overview: [
     {
       title: "Dashboard",
       url: "/admin/dashboard",
-      icon: <Activity />,
-      isActive: true,
+      icon: <LayoutDashboard />,
     },
+    {
+      title: "Reports",
+      url: "/admin/reports",
+      icon: <FileText />,
+    },
+  ],
+  management: [
     {
       title: "Users",
       url: "/admin/users",
@@ -43,19 +48,9 @@ const data = {
       icon: <Stethoscope />,
     },
     {
-      title: "Reports",
-      url: "/admin/reports",
-      icon: <FileText />,
-    },
-    {
       title: "Audit Logs",
       url: "/admin/audit-logs",
       icon: <History />,
-    },
-    {
-      title: "Settings",
-      url: "/admin/settings/profile",
-      icon: <Settings />,
     },
   ],
   navSecondary: [
@@ -67,10 +62,12 @@ const data = {
 export function SidebarAdmin({
   user,
   onLogout,
+  role = "admin",
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   user: { name: string; email: string; avatar: string }
   onLogout?: () => void
+  role?: "patient" | "doctor" | "admin"
 }) {
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
@@ -78,23 +75,28 @@ export function SidebarAdmin({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<a href="/admin/dashboard" />}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <Shield className="size-4" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Telehealth"
+                width={32}
+                height={32}
+                className="size-8 rounded-lg object-cover"
+              />
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Admin</span>
-                <span className="truncate text-xs">Telehealth Platform</span>
+                <span className="truncate font-medium">Telehealth</span>
+                <span className="truncate text-xs">Platform</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.overview} label="Overview" />
+        <NavMain items={data.management} label="Management" />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} onLogout={onLogout} />
+        <NavUser user={user} onLogout={onLogout} role={role} />
       </SidebarFooter>
     </Sidebar>
   )

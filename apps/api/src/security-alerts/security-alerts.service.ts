@@ -1,13 +1,14 @@
 import { Injectable } from "@nestjs/common"
+import { EmailService } from "@/common/services/email.service"
 import { PrismaService } from "@/prisma/prisma.service"
 
 @Injectable()
 export class SecurityAlertsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly emailService: EmailService,
+  ) {}
 
-  /**
-   * Create a security alert, save it to the database, and log simulated SMTP email dispatch.
-   */
   async createAlert(
     userId: string,
     title: string,
@@ -15,14 +16,12 @@ export class SecurityAlertsService {
     ipAddress?: string | null,
     userAgent?: string | null,
   ) {
-    // 1. Fetch user to get email for SMTP logs
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     })
 
     if (!user) return
 
-    // 2. Save alert to database
     const alert = await this.prisma.securityAlert.create({
       data: {
         userId,
@@ -33,10 +32,7 @@ export class SecurityAlertsService {
       },
     })
 
-    // 3. Print SMTP console logs
-    console.log(
-      `\x1b[33m[Security SMTP Send]\x1b[0m To: \x1b[36m${user.email}\x1b[0m | Subject: \x1b[1m[Telehealth Platform] Security Alert: ${title}\x1b[0m | Message: ${message}`,
-    )
+    await this.emailService.sendSecurityAlert(user.email, title, message)
 
     return alert
   }

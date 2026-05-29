@@ -92,3 +92,17 @@ export function useMarkAsRead() {
     },
   })
 }
+
+export interface Contact {
+  id: string
+  name: string | null
+  email: string
+  image: string | null
+}
+
+export function useContacts() {
+  return useQuery({
+    queryKey: ["chat", "contacts"],
+    queryFn: () => apiClient.get<Contact[]>("/chat/contacts"),
+  })
+}

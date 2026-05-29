@@ -2,6 +2,13 @@ import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { createAuthMiddleware, getSessionFromCtx } from "better-auth/api"
 import { twoFactor } from "better-auth/plugins/two-factor"
+import { sendEmail, sendSecurityAlertEmail } from "@/common/utils/email"
+import {
+  getLockoutDuration,
+  isLockedOut,
+  LOCKOUT_THRESHOLD,
+  validatePasswordComplexity,
+} from "@/common/utils/password.util"
 import { prisma } from "@/prisma/prisma-client"
 
 const trustedOrigins = (
@@ -20,9 +27,67 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
     minPasswordLength: 8,
     maxPasswordLength: 128,
+    sendResetPassword: async (data: {
+      user: { email: string }
+      url: string
+      token: string
+    }) => {
+      await sendEmail({
+        to: data.user.email,
+        subject: "[Telehealth Platform] Reset Your Password",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1a1a1a;">Reset Your Password</h2>
+            <p style="color: #333; line-height: 1.6;">
+              You requested a password reset. Click the link below to set a new password:
+            </p>
+            <a href="${data.url}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0;">
+              Reset Password
+            </a>
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+              If you did not request a password reset, you can safely ignore this email. This link expires in 1 hour.
+            </p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="color: #999; font-size: 11px;">
+              Telehealth Platform — This is an automated email.
+            </p>
+          </div>
+        `,
+      })
+    },
+  },
+  emailVerification: {
+    sendVerificationEmail: async (data: {
+      user: { email: string }
+      url: string
+      token: string
+    }) => {
+      await sendEmail({
+        to: data.user.email,
+        subject: "[Telehealth Platform] Verify Your Email Address",
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #1a1a1a;">Verify Your Email</h2>
+            <p style="color: #333; line-height: 1.6;">
+              Thank you for signing up! Please click the link below to verify your email address:
+            </p>
+            <a href="${data.url}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0;">
+              Verify Email
+            </a>
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">
+              If you did not create an account, you can safely ignore this email.
+            </p>
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
+            <p style="color: #999; font-size: 11px;">
+              Telehealth Platform — This is an automated email.
+            </p>
+          </div>
+        `,
+      })
+    },
   },
   socialProviders: {
     google: {
@@ -72,6 +137,42 @@ export const auth = betterAuth({
     },
   },
   hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      // Validate password complexity on sign-up and password change
+      if (ctx.path === "/sign-up/email" || ctx.path === "/change-password") {
+        const password = ctx.body?.password as string | undefined
+        if (password) {
+          const error = validatePasswordComplexity(password)
+          if (error) {
+            return new Response(JSON.stringify({ error }), {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            })
+          }
+        }
+      }
+
+      // Check account lockout before sign-in
+      if (ctx.path === "/sign-in/email") {
+        const userEmail = ctx.body?.email as string | undefined
+        if (userEmail) {
+          const user = await prisma.user.findUnique({
+            where: { email: userEmail },
+          })
+          if (user && isLockedOut(user.lockoutUntil)) {
+            return new Response(
+              JSON.stringify({
+                error: `Account temporarily locked due to ${LOCKOUT_THRESHOLD} failed login attempts. Try again later.`,
+              }),
+              {
+                status: 429,
+                headers: { "Content-Type": "application/json" },
+              },
+            )
+          }
+        }
+      }
+    }),
     after: createAuthMiddleware(async (ctx) => {
       // Record a SecurityAlert when the user's password changes successfully
       if (
@@ -92,13 +193,15 @@ export const auth = betterAuth({
               userAgent: ctx.request?.headers.get("user-agent") || null,
             },
           })
-          console.log(
-            `\x1b[33m[Security SMTP Send]\x1b[0m To: \x1b[36m${session.user.email}\x1b[0m | Subject: \x1b[1m[Telehealth Platform] Security Alert: Password Changed\x1b[0m | Message: Your password has been changed. If this wasn't you, please contact support immediately.`,
+          await sendSecurityAlertEmail(
+            session.user.email,
+            "Password Changed",
+            "Your account password was successfully updated. If this wasn't you, please contact support immediately.",
           )
         }
       }
 
-      // NPC Compliance (F-AUTH-09): Audit log for all login attempts (successful and failed)
+      // NPC Compliance (F-AUTH-09): Audit log + lockout tracking for login attempts
       if (ctx.path === "/sign-in/email") {
         const userEmail = ctx.body?.email as string | undefined
         const isSuccess = !(ctx.context.returned instanceof Error)
@@ -113,6 +216,14 @@ export const auth = betterAuth({
           })
 
           if (isSuccess && user) {
+            // Reset failed attempts on successful login
+            await prisma.user.update({
+              where: { id: user.id },
+              data: {
+                failedLoginAttempts: 0,
+                lockoutUntil: null,
+              },
+            })
             await prisma.auditLog.create({
               data: {
                 action: "User Login",
@@ -121,17 +232,37 @@ export const auth = betterAuth({
                 reason: `Successful email login from IP: ${ipAddress ?? "unknown"}`,
               },
             })
-          } else {
-            const errorMsg =
-              ctx.context.returned instanceof Error
-                ? ctx.context.returned.message
-                : "Invalid credentials"
+          } else if (user) {
+            // Increment failed attempts and lock if threshold reached
+            const newCount = user.failedLoginAttempts + 1
+            const updateData: {
+              failedLoginAttempts: number
+              lockoutUntil?: Date
+            } = {
+              failedLoginAttempts: newCount,
+            }
+            if (newCount >= LOCKOUT_THRESHOLD) {
+              updateData.lockoutUntil = getLockoutDuration()
+            }
+            await prisma.user.update({
+              where: { id: user.id },
+              data: updateData,
+            })
             await prisma.auditLog.create({
               data: {
                 action: "User Login Failed",
-                actorId: user?.id ?? "unknown",
+                actorId: user.id,
                 actorEmail: userEmail,
-                reason: `Failed login attempt: ${errorMsg} (IP: ${ipAddress ?? "unknown"})`,
+                reason: `Failed login attempt ${newCount}/${LOCKOUT_THRESHOLD} (IP: ${ipAddress ?? "unknown"})`,
+              },
+            })
+          } else {
+            await prisma.auditLog.create({
+              data: {
+                action: "User Login Failed",
+                actorId: "unknown",
+                actorEmail: userEmail,
+                reason: `Login attempt for non-existent user (IP: ${ipAddress ?? "unknown"})`,
               },
             })
           }

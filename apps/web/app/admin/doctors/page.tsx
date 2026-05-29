@@ -3,6 +3,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
 import {
   Table,
@@ -19,6 +26,7 @@ import {
   Mail,
   Search,
   Stethoscope,
+  Users,
   XCircle,
 } from "lucide-react"
 import { useState } from "react"
@@ -99,15 +107,17 @@ export default function AdminDoctorsPage() {
 
   return (
     <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Doctor Verification
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Review and approve licensed doctors after verifying their PRC
-          credentials.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+            Doctor Verification
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Review and approve licensed doctors after verifying their PRC
+            credentials.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       {/* Stats bar */}
       <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card border border-border/40 rounded-xl p-4 shadow-sm">
@@ -193,9 +203,19 @@ export default function AdminDoctorsPage() {
       )}
 
       {!isPending && !error && filtered.length > 0 && (
-        <div className="border border-border/40 rounded-xl bg-card shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader className="bg-muted/15">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Users className="h-4 w-4 text-primary" />
+              Doctors
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Showing {filtered.length} of {doctors.length} doctors
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+            <TableHeader>
               <TableRow>
                 <TableHead>Doctor</TableHead>
                 <TableHead className="hidden md:table-cell">
@@ -217,11 +237,11 @@ export default function AdminDoctorsPage() {
                         {doc.user.name?.[0] || doc.user.email[0]}
                       </div>
                       <div className="truncate">
-                        <span className="block font-semibold text-sm text-foreground truncate max-w-[180px]">
+                        <span className="block font-medium text-sm text-foreground truncate max-w-[180px]">
                           {doc.user.name || "Doctor"}
                         </span>
-                        <span className="flex items-center gap-1 text-[11px] text-muted-foreground truncate">
-                          <Mail className="h-2.5 w-2.5 shrink-0" />
+                        <span className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                          <Mail className="h-3 w-3 shrink-0" />
                           {doc.user.email}
                         </span>
                       </div>
@@ -230,25 +250,25 @@ export default function AdminDoctorsPage() {
                   <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                     {doc.specialty}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-xs font-mono text-muted-foreground">
+                  <TableCell className="hidden md:table-cell text-sm font-mono text-muted-foreground">
                     {doc.prcLicenseNumber}
                   </TableCell>
                   <TableCell>
                     {doc.isApproved ? (
                       <Badge
                         variant="outline"
-                        className="text-[9px] h-5 gap-1 text-emerald-600 border-emerald-200 bg-emerald-50/50 font-bold"
+                        className="gap-1 text-emerald-600 border-emerald-200 bg-emerald-50/50 font-medium"
                       >
-                        <CheckCircle className="h-2.5 w-2.5" />
-                        APPROVED
+                        <CheckCircle className="h-3 w-3" />
+                        Approved
                       </Badge>
                     ) : (
                       <Badge
                         variant="outline"
-                        className="text-[9px] h-5 gap-1 text-amber-600 border-amber-200 bg-amber-50/50 font-bold"
+                        className="gap-1 text-amber-600 border-amber-200 bg-amber-50/50 font-medium"
                       >
-                        <Clock className="h-2.5 w-2.5" />
-                        PENDING
+                        <Clock className="h-3 w-3" />
+                        Pending
                       </Badge>
                     )}
                   </TableCell>
@@ -258,11 +278,11 @@ export default function AdminDoctorsPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-[11px] gap-1 h-7 font-medium px-2.5 hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
+                          className="gap-1 font-medium text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
                           disabled={rejectMutation.isPending}
                           onClick={() => rejectMutation.mutate(doc.id)}
                         >
-                          <XCircle className="h-3 w-3" />
+                          <XCircle className="h-4 w-4" />
                           Revoke
                         </Button>
                       ) : (
@@ -283,7 +303,8 @@ export default function AdminDoctorsPage() {
               ))}
             </TableBody>
           </Table>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

@@ -1,9 +1,23 @@
 "use client"
 
-import { useMutation } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
+import { DatePicker } from "@workspace/ui/components/date-picker"
+import {
+  Field,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import { Separator } from "@workspace/ui/components/separator"
 import { Camera, Loader2, Save } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -31,12 +45,44 @@ const AVATAR_PRESETS = [
   },
 ]
 
+interface PatientProfile {
+  dob: string | null
+  sex: string | null
+  phone: string | null
+  address: string | null
+  philhealthNumber: string | null
+}
+
 export function ProfileContent() {
+  const queryClient = useQueryClient()
   const { data: session, refetch } = authClient.useSession()
   const [name, setName] = useState("")
   const [imageUrl, setImageUrl] = useState("")
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [dob, setDob] = useState("")
+  const [sex, setSex] = useState("")
+  const [phone, setPhone] = useState("")
+  const [address, setAddress] = useState("")
+  const [philhealthNumber, setPhilhealthNumber] = useState("")
+
+  const { data: profile } = useQuery({
+    queryKey: ["patient-profile"],
+    queryFn: () => apiClient.get<PatientProfile>("/patients/me"),
+  })
+
+  useEffect(() => {
+    if (profile) {
+      if (profile.dob) {
+        const d = new Date(profile.dob)
+        setDob(d.toISOString().split("T")[0] ?? "")
+      }
+      setSex(profile.sex ?? "")
+      setPhone(profile.phone ?? "")
+      setAddress(profile.address ?? "")
+      setPhilhealthNumber(profile.philhealthNumber ?? "")
+    }
+  }, [profile])
 
   useEffect(() => {
     if (session?.user) {
@@ -79,6 +125,22 @@ export function ProfileContent() {
       toast.error(err.message || "Upload failed"),
   })
 
+  const patientMutation = useMutation({
+    mutationFn: (data: {
+      dob?: string
+      sex?: string
+      phone?: string
+      address?: string
+      philhealthNumber?: string
+    }) => apiClient.patch("/patients/me", data),
+    onSuccess: () => {
+      toast.success("Personal details saved!")
+      queryClient.invalidateQueries({ queryKey: ["patient-profile"] })
+    },
+    onError: (err: { message?: string }) =>
+      toast.error(err.message || "Failed"),
+  })
+
   function handleUpload(file: File) {
     const allowed = ["image/jpeg", "image/png", "image/webp"]
     if (!allowed.includes(file.type)) {
@@ -100,7 +162,7 @@ export function ProfileContent() {
       <div>
         <h2 className="text-lg font-semibold">Profile</h2>
         <p className="text-sm text-muted-foreground">
-          Update your name and profile photo
+          Update your name, photo, and personal details
         </p>
       </div>
 
@@ -153,9 +215,11 @@ export function ProfileContent() {
         {/* Presets */}
         <div className="flex gap-2">
           {AVATAR_PRESETS.map((preset) => (
-            <button
+            <Button
               key={preset.name}
               type="button"
+              variant="outline"
+              size="icon"
               onClick={() => {
                 setImageUrl(preset.url)
                 profileMutation.mutate({ name: name || "", image: preset.url })
@@ -171,7 +235,7 @@ export function ProfileContent() {
                 alt={preset.name}
                 className="h-full w-full object-contain"
               />
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -198,6 +262,111 @@ export function ProfileContent() {
             <Save className="mr-2 h-4 w-4" />
           )}
           Save
+        </Button>
+      </div>
+
+      <Separator />
+
+      {/* Personal Details */}
+      <div className="space-y-4">
+        <p className="text-sm font-medium text-muted-foreground">
+          Personal Details
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label htmlFor="dob">Birthday</Label>
+            <DatePicker
+              id="dob"
+              value={dob}
+              onChange={(val) => setDob(val)}
+              max={new Date().toISOString().split("T")[0]}
+              placeholder="Select birthday"
+            />
+          </div>
+          <Field>
+            <FieldLabel htmlFor="sex">Sex</FieldLabel>
+            <Select value={sex} onValueChange={(v) => setSex(v ?? "")}>
+              <SelectTrigger id="sex">
+                <SelectValue placeholder="Select">
+                  {sex
+                    ? sex === "male"
+                      ? "Male"
+                      : sex === "female"
+                        ? "Female"
+                        : "Other"
+                    : null}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Contact Details */}
+      <div className="space-y-4">
+        <p className="text-sm font-medium text-muted-foreground">
+          Contact Details
+        </p>
+
+        <div className="space-y-2">
+          <Label htmlFor="phone">Phone Number</Label>
+          <Input
+            id="phone"
+            type="tel"
+            placeholder="e.g. +63 917 123 4567"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="address">Address</Label>
+          <Input
+            id="address"
+            placeholder="e.g. 123 Medical Plaza, Makati City"
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="philhealth">PhilHealth Number</Label>
+          <Input
+            id="philhealth"
+            placeholder="e.g. 12-3456789012"
+            value={philhealthNumber}
+            onChange={(e) => setPhilhealthNumber(e.target.value)}
+          />
+        </div>
+
+        <Button
+          onClick={() =>
+            patientMutation.mutate({
+              dob: dob || undefined,
+              sex: sex || undefined,
+              phone: phone || undefined,
+              address: address || undefined,
+              philhealthNumber: philhealthNumber || undefined,
+            })
+          }
+          disabled={patientMutation.isPending}
+        >
+          {patientMutation.isPending ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
+          Save Personal Details
         </Button>
       </div>
     </div>

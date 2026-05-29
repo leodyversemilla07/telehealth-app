@@ -23,6 +23,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 import {
   AlertCircle,
   ArrowLeft,
@@ -31,7 +32,6 @@ import {
   CheckCircle,
   ClipboardList,
   Clock,
-  Loader2,
   MapPin,
   Phone,
   RefreshCw,
@@ -41,6 +41,7 @@ import {
   User,
   Video,
 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -259,7 +260,7 @@ export default function AppointmentDetailPage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <Spinner className="size-10 text-primary" />
           <p className="text-muted-foreground text-sm font-semibold animate-pulse">
             Retrieving appointment details...
           </p>
@@ -397,7 +398,7 @@ export default function AppointmentDetailPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Primary Details Card */}
-        <Card className="lg:col-span-2 border border-border/40 bg-card shadow-sm text-left">
+        <Card className="lg:col-span-2 text-left">
           <CardHeader className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <Badge
@@ -600,7 +601,7 @@ export default function AppointmentDetailPage() {
                   >
                     {joinRoomMutation.isPending ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <Spinner className="size-4" />
                         Connecting...
                       </>
                     ) : (
@@ -636,15 +637,15 @@ export default function AppointmentDetailPage() {
             <div className="space-y-4 py-2">
               <div className="space-y-2">
                 <Label htmlFor="reschedule-date">New Date</Label>
-                <Input
+                <DatePicker
                   id="reschedule-date"
-                  type="date"
                   min={new Date().toISOString().split("T")[0]}
                   value={rescheduleDate}
-                  onChange={(e) => {
-                    setRescheduleDate(e.target.value)
+                  onChange={(val) => {
+                    setRescheduleDate(val)
                     setRescheduleSlot(null)
                   }}
+                  placeholder="Pick a date"
                 />
               </div>
 
@@ -678,7 +679,7 @@ export default function AppointmentDetailPage() {
               >
                 {rescheduleMutation.isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                    <Spinner className="mr-2 size-3.5" />
                     Rescheduling...
                   </>
                 ) : (
@@ -691,7 +692,7 @@ export default function AppointmentDetailPage() {
 
         {/* Doctor Summary Sidebar Card */}
         <div className="space-y-6">
-          <Card className="border border-border/40 bg-card shadow-sm text-left">
+          <Card className="text-left">
             <CardHeader>
               <CardTitle className="text-base font-bold flex items-center gap-1.5">
                 <User className="h-4 w-4 text-primary" />
@@ -758,7 +759,7 @@ export default function AppointmentDetailPage() {
         {appt.status === "COMPLETED" && (
           <div className="space-y-4">
             {reviewCheck?.hasReviewed ? (
-              <Card className="border border-border/40 bg-card shadow-sm">
+              <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <CheckCircle className="h-4 w-4 text-emerald-500" />
@@ -791,7 +792,7 @@ export default function AppointmentDetailPage() {
                 </CardContent>
               </Card>
             ) : (
-              <Card className="border border-border/40 bg-card shadow-sm">
+              <Card>
                 <CardContent className="pt-6 space-y-4">
                   <div>
                     <h3 className="text-sm font-semibold flex items-center gap-2">
@@ -848,7 +849,7 @@ export default function AppointmentDetailPage() {
                   >
                     {createReviewMutation.isPending ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Spinner className="mr-2 size-4" />
                         Submitting...
                       </>
                     ) : (

@@ -12,12 +12,17 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
+import {
+  Item,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "@workspace/ui/components/item"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   AlertCircle,
-  ArrowLeft,
   Calendar,
   CheckCircle2,
   Clock,
@@ -412,14 +417,6 @@ export default function DoctorConsultationDetailPage() {
       <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 text-muted-foreground hover:text-foreground shrink-0"
-            onClick={() => router.push("/doctor/consultations")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
           <Separator orientation="vertical" className="h-6" />
           <div className="truncate">
             <span className="font-bold tracking-tight text-sm text-foreground flex items-center gap-1.5">
@@ -436,7 +433,7 @@ export default function DoctorConsultationDetailPage() {
           {/* Left Column: Virtual Room or Overview (Span 5) */}
           <div className="lg:col-span-5 space-y-6">
             {/* Patient Card */}
-            <Card className="border border-border/40 bg-card shadow-sm">
+            <Card>
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
                   <Badge
@@ -520,19 +517,19 @@ export default function DoctorConsultationDetailPage() {
             </Card>
 
             {/* Verification compliant note */}
-            <Card className="border border-border/40 bg-muted/20 shadow-xs">
-              <CardContent className="pt-5 space-y-2 text-xs">
-                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+            <Item variant="muted" size="sm">
+              <ItemContent>
+                <ItemTitle className="flex items-center gap-1.5">
+                  <ShieldCheck />
                   Data Privacy RA 10173 Approved
-                </h4>
-                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                </ItemTitle>
+                <ItemDescription>
                   Consultation transcripts and visual sessions are securely
                   isolated in transit. Standardized medical charting documents
                   are encrypted and signed at rest.
-                </p>
-              </CardContent>
-            </Card>
+                </ItemDescription>
+              </ItemContent>
+            </Item>
           </div>
 
           {/* Right Column: SOAP Charting or Read-only completed preview (Span 7) */}
@@ -542,8 +539,8 @@ export default function DoctorConsultationDetailPage() {
               // COMPLETED CHART PREVIEW
               // ─────────────────────────────────────────────────────────────
               <>
-                <Card className="border border-emerald-500/20 bg-card shadow-md">
-                  <CardHeader className="bg-emerald-500/5 border-b border-border/10 px-6 pt-6 pb-4">
+                <Card className="border border-emerald-500/20 shadow-md">
+                  <CardHeader className="border-b border-border/10 px-6 pt-6 pb-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2">
                         <FileCheck className="h-5 w-5 text-emerald-600" />
@@ -868,7 +865,7 @@ export default function DoctorConsultationDetailPage() {
               // ACTIVE SOAP CLINICAL CHARTING FORM (after call ended)
               // ─────────────────────────────────────────────────────────────
               <form onSubmit={handleSubmitChart}>
-                <Card className="border border-border/40 bg-card shadow-md">
+                <Card className="shadow-md">
                   <CardHeader className="px-6 pt-6 pb-4 border-b border-border/10">
                     <div className="flex items-center gap-2">
                       <HeartPulse className="h-5 w-5 text-primary animate-pulse" />
@@ -1118,7 +1115,7 @@ export default function DoctorConsultationDetailPage() {
               // ─────────────────────────────────────────────────────────────
               // BEFORE CALL: Prompt to start consultation
               // ─────────────────────────────────────────────────────────────
-              <Card className="border border-border/40 bg-card shadow-sm">
+              <Card>
                 <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
                   <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
                     <Video className="h-8 w-8 text-primary" />

@@ -9,15 +9,21 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import {
+  Field,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Separator } from "@workspace/ui/components/separator"
+import { Textarea } from "@workspace/ui/components/textarea"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Loader2, ShieldAlert, Stethoscope } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
@@ -93,7 +99,7 @@ export default function DoctorRegisterPage() {
   return (
     <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <div className="max-w-2xl mx-auto w-full">
-        <Card className="border border-border/40 bg-card shadow-sm">
+        <Card>
           <CardHeader className="text-center pb-4">
             <div className="h-12 w-12 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto mb-3">
               <Stethoscope className="h-6 w-6" />
@@ -115,8 +121,8 @@ export default function DoctorRegisterPage() {
                   Professional Information
                 </p>
 
-                <div className="space-y-2">
-                  <Label htmlFor="specialty">Specialty *</Label>
+                <Field>
+                  <FieldLabel htmlFor="specialty">Specialty *</FieldLabel>
                   <Select
                     value={form.specialty}
                     onValueChange={(v) => update("specialty", v ?? "")}
@@ -125,14 +131,16 @@ export default function DoctorRegisterPage() {
                       <SelectValue placeholder="Select your specialty" />
                     </SelectTrigger>
                     <SelectContent>
-                      {SPECIALTIES.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
+                      <SelectGroup>
+                        {SPECIALTIES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {s}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
-                </div>
+                </Field>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -153,14 +161,10 @@ export default function DoctorRegisterPage() {
                     <Label htmlFor="prcLicenseExpiry">
                       PRC License Expiry *
                     </Label>
-                    <Input
+                    <DatePicker
                       id="prcLicenseExpiry"
-                      type="date"
                       value={form.prcLicenseExpiry}
-                      onChange={(e) =>
-                        update("prcLicenseExpiry", e.target.value)
-                      }
-                      required
+                      onChange={(val) => update("prcLicenseExpiry", val)}
                     />
                   </div>
                 </div>
@@ -193,11 +197,10 @@ export default function DoctorRegisterPage() {
                 {form.pdeaS2License && (
                   <div className="space-y-2">
                     <Label htmlFor="pdeaS2Expiry">PDEA S2 Expiry</Label>
-                    <Input
+                    <DatePicker
                       id="pdeaS2Expiry"
-                      type="date"
                       value={form.pdeaS2Expiry}
-                      onChange={(e) => update("pdeaS2Expiry", e.target.value)}
+                      onChange={(val) => update("pdeaS2Expiry", val)}
                     />
                   </div>
                 )}
@@ -236,9 +239,9 @@ export default function DoctorRegisterPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="bio">Bio</Label>
-                  <textarea
+                  <Textarea
                     id="bio"
-                    className="flex min-h-[100px] w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    className="min-h-[100px]"
                     placeholder="Tell patients about yourself, your experience, and your approach to care..."
                     value={form.bio}
                     onChange={(e) => update("bio", e.target.value)}

@@ -10,18 +10,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
+import { Textarea } from "@workspace/ui/components/textarea"
 import {
   AlertCircle,
   AlertTriangle,
   Brain,
   CheckCircle,
   Clock,
-  Loader2,
   Stethoscope,
   Users,
 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
 import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -95,16 +95,17 @@ export default function SymptomCheckerPage() {
 
   return (
     <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <Brain className="h-7 w-7 text-primary" />
-          AI Symptom Checker
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Describe your symptoms and get AI-powered health insights and doctor
-          recommendations.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            AI Symptom Checker
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Describe your symptoms and get AI-powered health insights and doctor
+            recommendations.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       {/* Input Card */}
       <Card className="border border-border/40">
@@ -118,9 +119,9 @@ export default function SymptomCheckerPage() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="symptoms">Symptoms</Label>
-            <textarea
+            <Textarea
               id="symptoms"
-              className="flex min-h-[120px] w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-30"
               placeholder="e.g., I've been experiencing a persistent headache for 3 days, along with mild fever and sensitivity to light. I also feel nauseous occasionally..."
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
@@ -137,7 +138,7 @@ export default function SymptomCheckerPage() {
           >
             {analyzeMutation.isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Spinner className="mr-2 size-4" />
                 Analyzing...
               </>
             ) : (

@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output = "../generated/prisma"
+  output = "../src/generated/prisma"
   moduleFormat = "cjs"
 }
 
@@ -43,7 +43,7 @@ enum NotificationType {
 }
 
 model User {
-  id            String   @id @default(cuid())
+  id            String   @id @default(uuid())
   email         String   @unique
   emailVerified Boolean  @default(false)
   mobile        String?  @unique
@@ -55,6 +55,8 @@ model User {
   banned        Boolean  @default(false)
   banReason     String?
   banExpires    DateTime?
+  failedLoginAttempts Int  @default(0)
+  lockoutUntil  DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -77,7 +79,7 @@ model User {
 }
 
 model Session {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   expiresAt DateTime
   token     String   @unique
   createdAt DateTime @default(now())
@@ -92,7 +94,7 @@ model Session {
 }
 
 model Account {
-  id                    String    @id @default(cuid())
+  id                    String    @id @default(uuid())
   accountId             String    @default("")
   providerId            String
   userId                String
@@ -112,7 +114,7 @@ model Account {
 }
 
 model Verification {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   identifier  String
   value       String
   expiresAt   DateTime
@@ -123,7 +125,7 @@ model Verification {
 }
 
 model PatientProfile {
-  id               String   @id @default(cuid())
+  id               String   @id @default(uuid())
   userId           String   @unique
   user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   dob              DateTime?
@@ -141,7 +143,7 @@ model PatientProfile {
 }
 
 model DoctorProfile {
-  id                   String   @id @default(cuid())
+  id                   String   @id @default(uuid())
   userId               String   @unique
   user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   specialty            String
@@ -165,7 +167,7 @@ model DoctorProfile {
 }
 
 model AvailabilitySchedule {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   doctorId     String   @unique
   doctor       DoctorProfile @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   monday       String   @default("[]")
@@ -186,7 +188,7 @@ model AvailabilitySchedule {
 }
 
 model TimeOff {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   scheduleId String
   schedule  AvailabilitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
   startDate DateTime
@@ -198,7 +200,7 @@ model TimeOff {
 }
 
 model Appointment {
-  id         String             @id @default(cuid())
+  id         String             @id @default(uuid())
   patientId  String
   patient    User               @relation("PatientAppointments", fields: [patientId], references: [id], onDelete: Cascade)
   doctorId   String
@@ -227,7 +229,7 @@ model Appointment {
 }
 
 model Consultation {
-  id            String   @id @default(cuid())
+  id            String   @id @default(uuid())
   appointmentId String   @unique
   appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   patientNotes  String?
@@ -243,7 +245,7 @@ model Consultation {
 }
 
 model Prescription {
-  id             String   @id @default(cuid())
+  id             String   @id @default(uuid())
   consultationId String
   consultation   Consultation @relation(fields: [consultationId], references: [id], onDelete: Cascade)
   medicationName String
@@ -257,7 +259,7 @@ model Prescription {
 }
 
 model Notification {
-  id        String           @id @default(cuid())
+  id        String           @id @default(uuid())
   userId    String
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   type      NotificationType
@@ -271,7 +273,7 @@ model Notification {
 }
 
 model ConsentLog {
-  id         String   @id @default(cuid())
+  id         String   @id @default(uuid())
   userId     String
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   consentType String // privacy_policy, data_sharing, recording, marketing
@@ -283,7 +285,7 @@ model ConsentLog {
 }
 
 model AuditLog {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   action      String
   actorId     String
   actorEmail  String
@@ -296,7 +298,7 @@ model AuditLog {
 }
 
 model SecurityAlert {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   userId    String
   title     String
   message   String
@@ -311,7 +313,7 @@ model SecurityAlert {
 }
 
 model ChatMessage {
-  id             String   @id @default(cuid())
+  id             String   @id @default(uuid())
   senderId       String
   receiverId     String
   appointmentId  String?
@@ -331,7 +333,7 @@ model ChatMessage {
 }
 
 model Review {
-  id             String   @id @default(cuid())
+  id             String   @id @default(uuid())
   patientId      String
   doctorId       String
   appointmentId  String

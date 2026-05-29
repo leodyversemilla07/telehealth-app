@@ -10,62 +10,47 @@ import {
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
 import {
-  Activity,
   Brain,
-  CalendarDays,
   CalendarPlus,
   ClipboardList,
   FileText,
+  HeartPulse,
   LayoutDashboard,
   LifeBuoy,
   MessageSquare,
-  Pill,
   Send,
-  Settings,
-  Shield,
   Sparkles,
   Stethoscope,
-  User,
-  UserRound,
-  Users,
 } from "lucide-react"
+import Image from "next/image"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 
 const data = {
-  navMain: [
+  overview: [
     {
       title: "Dashboard",
       url: "/patient/dashboard",
       icon: <LayoutDashboard />,
-      isActive: true,
     },
     {
-      title: "Find Doctors",
+      title: "Book Appointment",
       url: "/patient/appointments/book",
-      icon: <Stethoscope />,
-    },
-    {
-      title: "AI Recommendations",
-      url: "/patient/recommendations",
-      icon: <Sparkles />,
+      icon: <CalendarPlus />,
     },
     {
       title: "Appointments",
       url: "/patient/appointments",
-      icon: <CalendarPlus />,
+      icon: <Stethoscope />,
     },
     {
       title: "Messages",
       url: "/patient/chat",
       icon: <MessageSquare />,
     },
-    {
-      title: "Symptom Checker",
-      url: "/patient/symptoms",
-      icon: <Brain />,
-    },
+  ],
+  health: [
     {
       title: "Medical Records",
       url: "/patient/records",
@@ -77,9 +62,14 @@ const data = {
       icon: <FileText />,
     },
     {
-      title: "Profile",
-      url: "/patient/settings/profile",
-      icon: <Settings />,
+      title: "AI Recommendations",
+      url: "/patient/recommendations",
+      icon: <Sparkles />,
+    },
+    {
+      title: "Symptom Checker",
+      url: "/patient/symptoms",
+      icon: <Brain />,
     },
   ],
   navSecondary: [
@@ -91,10 +81,12 @@ const data = {
 export function SidebarPatient({
   user,
   onLogout,
+  role = "patient",
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   user: { name: string; email: string; avatar: string }
   onLogout?: () => void
+  role?: "patient" | "doctor" | "admin"
 }) {
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
@@ -105,23 +97,28 @@ export function SidebarPatient({
               size="lg"
               render={<a href="/patient/dashboard" />}
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <UserRound className="size-4" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Telehealth"
+                width={32}
+                height={32}
+                className="size-8 rounded-lg object-cover"
+              />
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Patient</span>
-                <span className="truncate text-xs">Telehealth Platform</span>
+                <span className="truncate font-medium">Telehealth</span>
+                <span className="truncate text-xs">Platform</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.overview} label="Overview" />
+        <NavMain items={data.health} label="Health Tools" />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} onLogout={onLogout} />
+        <NavUser user={user} onLogout={onLogout} role={role} />
       </SidebarFooter>
     </Sidebar>
   )

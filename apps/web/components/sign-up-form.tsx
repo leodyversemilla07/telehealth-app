@@ -204,14 +204,15 @@ export function SignUpForm({
           <Field>
             <FieldLabel>I want to join as</FieldLabel>
             <div className="grid grid-cols-2 gap-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setForm((f) => ({ ...f, role: "PATIENT" }))}
                 disabled={loading}
                 className={cn(
-                  "flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer",
+                  "flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer h-auto w-full",
                   form.role === "PATIENT"
-                    ? "border-primary bg-primary/10 text-primary"
+                    ? "border-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
                     : "border-border bg-background text-muted-foreground hover:bg-muted/30",
                 )}
               >
@@ -229,15 +230,16 @@ export function SignUpForm({
                   />
                 </svg>
                 Patient
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setForm((f) => ({ ...f, role: "DOCTOR" }))}
                 disabled={loading}
                 className={cn(
-                  "flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer",
+                  "flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer h-auto w-full",
                   form.role === "DOCTOR"
-                    ? "border-primary bg-primary/10 text-primary"
+                    ? "border-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
                     : "border-border bg-background text-muted-foreground hover:bg-muted/30",
                 )}
               >
@@ -255,7 +257,7 @@ export function SignUpForm({
                   />
                 </svg>
                 Doctor
-              </button>
+              </Button>
             </div>
           </Field>
 

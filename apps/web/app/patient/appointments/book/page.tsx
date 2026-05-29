@@ -12,6 +12,14 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty"
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -19,11 +27,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
+import {
+  Field,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -31,18 +44,19 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   Calendar,
-  CalendarDays,
   ChevronRight,
   Filter,
-  Loader2,
   Search,
   ShieldCheck,
+  Star,
   Stethoscope,
 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { TimeSlotPicker } from "@/components/time-slot-picker"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 import { useAvailableSlots, useBookAppointment } from "@/hooks/use-appointments"
 import { useDoctors } from "@/hooks/use-doctors"
 
@@ -165,16 +179,17 @@ export default function BookAppointmentPage() {
   return (
     <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       {/* Title */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <Stethoscope className="h-7 w-7 text-primary" />
-          Book a Consultation
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Find licensed healthcare providers and reserve secure video slots
-          instantly.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
+            Book a Consultation
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Find licensed healthcare providers and reserve secure video slots
+            instantly.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       {/* Directory Search & Filters */}
       <Card className="border-border/70">
@@ -210,13 +225,13 @@ export default function BookAppointmentPage() {
             </div>
 
             {/* Specialty select */}
-            <div className="space-y-1.5">
-              <Label
+            <Field>
+              <FieldLabel
                 htmlFor="specialty-filter"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
                 Specialty
-              </Label>
+              </FieldLabel>
               <Select
                 value={specialty}
                 onValueChange={(val) => setSpecialty(val ?? "all")}
@@ -225,27 +240,31 @@ export default function BookAppointmentPage() {
                   id="specialty-filter"
                   className="bg-muted/10 border-border/60"
                 >
-                  <SelectValue placeholder="All Specialties" />
+                  <SelectValue placeholder="All Specialties">
+                    {specialty === "all" ? "All Specialties" : specialty}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Specialties</SelectItem>
-                  {SPECIALTIES.map((spec) => (
-                    <SelectItem key={spec} value={spec}>
-                      {spec}
-                    </SelectItem>
-                  ))}
+                  <SelectGroup>
+                    <SelectItem value="all">All Specialties</SelectItem>
+                    {SPECIALTIES.map((spec) => (
+                      <SelectItem key={spec} value={spec}>
+                        {spec}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
 
             {/* Sort select */}
-            <div className="space-y-1.5">
-              <Label
+            <Field>
+              <FieldLabel
                 htmlFor="sort-filter"
                 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
               >
                 Sort By
-              </Label>
+              </FieldLabel>
               <Select
                 value={sort}
                 onValueChange={(v) => setSort(v as "name" | "price")}
@@ -254,14 +273,18 @@ export default function BookAppointmentPage() {
                   id="sort-filter"
                   className="bg-muted/10 border-border/60"
                 >
-                  <SelectValue placeholder="Name" />
+                  <SelectValue placeholder="Name">
+                    {sort === "name" ? "Doctor Name" : "Price (Low → High)"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="name">Doctor Name</SelectItem>
-                  <SelectItem value="price">Price (Low → High)</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="name">Doctor Name</SelectItem>
+                    <SelectItem value="price">Price (Low → High)</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
           </div>
         </CardContent>
       </Card>
@@ -300,33 +323,33 @@ export default function BookAppointmentPage() {
             ))}
           </div>
         ) : displayedDoctors.length === 0 ? (
-          <Card className="border border-border/70 p-12 text-center max-w-md mx-auto space-y-4">
-            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mx-auto">
-              <Stethoscope className="h-6 w-6" />
-            </div>
-            <div className="space-y-1">
-              <h3 className="font-semibold text-sm text-foreground">
-                No approved doctors available
-              </h3>
-              <p className="text-xs text-muted-foreground leading-relaxed">
+          <Empty className="py-12">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Stethoscope className="h-4 w-4" />
+              </EmptyMedia>
+              <EmptyTitle>No approved doctors available</EmptyTitle>
+              <EmptyDescription>
                 There are currently no approved providers listed matching your
                 query.
-              </p>
-            </div>
+              </EmptyDescription>
+            </EmptyHeader>
             {(specialty !== "all" || search) && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs border-border/60"
-                onClick={() => {
-                  setSearch("")
-                  setSpecialty("all")
-                }}
-              >
-                Reset Search Filters
-              </Button>
+              <EmptyContent>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-xs border-border/60"
+                  onClick={() => {
+                    setSearch("")
+                    setSpecialty("all")
+                  }}
+                >
+                  Reset Search Filters
+                </Button>
+              </EmptyContent>
             )}
-          </Card>
+          </Empty>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {displayedDoctors.map((doctor) => (
@@ -334,9 +357,6 @@ export default function BookAppointmentPage() {
                 key={doctor.id}
                 className="border border-border/40 bg-card hover:shadow-md transition-all flex flex-col justify-between overflow-hidden relative group"
               >
-                {/* Visual Accent */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-muted group-hover:bg-primary transition-colors" />
-
                 <CardHeader className="pb-3">
                   <div className="flex gap-4 items-start justify-between">
                     <div className="flex gap-3 items-center">
@@ -347,12 +367,26 @@ export default function BookAppointmentPage() {
                         <CardTitle className="text-base font-bold truncate max-w-40 text-foreground">
                           {doctor.user.name || "Doctor"}
                         </CardTitle>
-                        <Badge
-                          variant="secondary"
-                          className="text-[10px] mt-1 py-0.5 px-2 leading-none font-bold"
-                        >
-                          {doctor.specialty}
-                        </Badge>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge
+                            variant="secondary"
+                            className="text-[10px] py-0.5 px-2 leading-none font-bold shrink-0"
+                          >
+                            {doctor.specialty}
+                          </Badge>
+                          <div className="flex items-center gap-0.5 text-amber-500 text-xs font-semibold shrink-0">
+                            <Star className="h-3 w-3 fill-amber-500 text-amber-500 shrink-0" />
+                            <span>
+                              {doctor.averageRating !== undefined &&
+                              doctor.averageRating > 0
+                                ? doctor.averageRating.toFixed(1)
+                                : "5.0"}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground font-normal">
+                              ({doctor.totalReviews ?? 0})
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -420,13 +454,13 @@ export default function BookAppointmentPage() {
 
           <div className="space-y-5 my-4 py-1 text-left">
             {/* Visit Type selector */}
-            <div className="space-y-1.5">
-              <Label
+            <Field>
+              <FieldLabel
                 htmlFor="visit-type"
                 className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
               >
                 Consultation Type
-              </Label>
+              </FieldLabel>
               <Select
                 value={visitType}
                 onValueChange={(v) =>
@@ -437,21 +471,29 @@ export default function BookAppointmentPage() {
                   id="visit-type"
                   className="bg-muted/10 border-border/60"
                 >
-                  <SelectValue placeholder="Video Consultation" />
+                  <SelectValue placeholder="Video Consultation">
+                    {visitType === "VIDEO"
+                      ? "Video Consultation (Virtual)"
+                      : visitType === "PHONE"
+                        ? "Phone Consultation (Audio)"
+                        : "In-Person Consultation (Physical Clinic)"}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="VIDEO">
-                    Video Consultation (Virtual)
-                  </SelectItem>
-                  <SelectItem value="PHONE">
-                    Phone Consultation (Audio)
-                  </SelectItem>
-                  <SelectItem value="IN_PERSON">
-                    In-Person Consultation (Physical Clinic)
-                  </SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="VIDEO">
+                      Video Consultation (Virtual)
+                    </SelectItem>
+                    <SelectItem value="PHONE">
+                      Phone Consultation (Audio)
+                    </SelectItem>
+                    <SelectItem value="IN_PERSON">
+                      In-Person Consultation (Physical Clinic)
+                    </SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
-            </div>
+            </Field>
 
             {/* Date selector */}
             <div className="space-y-1.5">
@@ -461,20 +503,15 @@ export default function BookAppointmentPage() {
               >
                 Select Date
               </Label>
-              <div className="relative">
-                <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="booking-date"
-                  type="date"
-                  min={new Date().toISOString().split("T")[0]}
-                  value={bookingDate}
-                  onChange={(e) => {
-                    setBookingDate(e.target.value)
-                    setSelectedSlot(null)
-                  }}
-                  className="pl-9 bg-muted/10 border-border/60 font-medium"
-                />
-              </div>
+              <DatePicker
+                id="booking-date"
+                value={bookingDate}
+                min={new Date().toISOString().split("T")[0]}
+                onChange={(val) => {
+                  setBookingDate(val)
+                  setSelectedSlot(null)
+                }}
+              />
             </div>
 
             {/* Slots selector */}
@@ -580,7 +617,7 @@ export default function BookAppointmentPage() {
             >
               {bookMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                  <Spinner className="mr-2 size-3.5" />
                   Booking Slot...
                 </>
               ) : (

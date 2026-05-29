@@ -13,3 +13,4 @@ export type * from "./types/record.js"
 export type * from "./types/user.js"
 // Utils
 export * from "./utils/pht.util.js"
+export * from "./utils/uuid.util.js"

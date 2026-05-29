@@ -1,4 +1,3 @@
-import { GalleryVerticalEnd } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 
@@ -8,9 +7,13 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex justify-center gap-2 md:justify-start">
           <Link href="/" className="flex items-center gap-2 font-medium">
-            <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
-              <GalleryVerticalEnd className="size-4" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Telehealth"
+              width={24}
+              height={24}
+              className="size-6 rounded-md object-cover"
+            />
             Telehealth
           </Link>
         </div>

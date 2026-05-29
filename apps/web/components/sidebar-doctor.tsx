@@ -12,26 +12,23 @@ import {
 import {
   CalendarDays,
   ClipboardList,
-  FileText,
   LayoutDashboard,
   LifeBuoy,
   MessageSquare,
   Send,
-  Settings,
-  Stethoscope,
   Users,
 } from "lucide-react"
+import Image from "next/image"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 
 const data = {
-  navMain: [
+  practice: [
     {
       title: "Dashboard",
       url: "/doctor/dashboard",
       icon: <LayoutDashboard />,
-      isActive: true,
     },
     {
       title: "Consultations",
@@ -39,29 +36,21 @@ const data = {
       icon: <ClipboardList />,
     },
     {
+      title: "Schedule",
+      url: "/doctor/schedule",
+      icon: <CalendarDays />,
+    },
+  ],
+  patients: [
+    {
       title: "Patients",
       url: "/doctor/patients",
       icon: <Users />,
     },
     {
-      title: "Medical Records",
-      url: "/doctor/records",
-      icon: <FileText />,
-    },
-    {
-      title: "Schedule",
-      url: "/doctor/schedule",
-      icon: <CalendarDays />,
-    },
-    {
       title: "Messages",
       url: "/doctor/chat",
       icon: <MessageSquare />,
-    },
-    {
-      title: "Profile",
-      url: "/doctor/settings/profile",
-      icon: <Settings />,
     },
   ],
   navSecondary: [
@@ -73,10 +62,12 @@ const data = {
 export function SidebarDoctor({
   user,
   onLogout,
+  role = "doctor",
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   user: { name: string; email: string; avatar: string }
   onLogout?: () => void
+  role?: "patient" | "doctor" | "admin"
 }) {
   return (
     <Sidebar collapsible="icon" variant="inset" {...props}>
@@ -87,23 +78,28 @@ export function SidebarDoctor({
               size="lg"
               render={<a href="/doctor/dashboard" />}
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <Stethoscope className="size-4" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Telehealth"
+                width={32}
+                height={32}
+                className="size-8 rounded-lg object-cover"
+              />
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Doctor</span>
-                <span className="truncate text-xs">Telehealth Platform</span>
+                <span className="truncate font-medium">Telehealth</span>
+                <span className="truncate text-xs">Platform</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.practice} label="Practice" />
+        <NavMain items={data.patients} label="Patient Care" />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} onLogout={onLogout} />
+        <NavUser user={user} onLogout={onLogout} role={role} />
       </SidebarFooter>
     </Sidebar>
   )

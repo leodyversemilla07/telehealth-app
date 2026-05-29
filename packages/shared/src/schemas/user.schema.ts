@@ -28,7 +28,7 @@ export const publicUserSchema = userSchema.pick({
   createdAt: true,
 })
 
-export const patientProfileSchema = z.object({
+const patientProfileBaseSchema = z.object({
   id: z.string(),
   userId: z.string(),
   dob: z.coerce.date().nullable(),
@@ -41,6 +41,17 @@ export const patientProfileSchema = z.object({
   medicalHistory: z.record(z.unknown()).nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
+})
+
+export const patientProfileSchema = patientProfileBaseSchema.extend({
+  user: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable(),
+      email: z.string().email(),
+      image: z.string().url().nullable(),
+    })
+    .optional(),
 })
 
 const doctorProfileBaseSchema = z.object({
@@ -67,4 +78,6 @@ export const doctorProfileSchema = doctorProfileBaseSchema.extend({
     email: z.string().email(),
     image: z.string().url().nullable(),
   }),
+  averageRating: z.number().optional(),
+  totalReviews: z.number().optional(),
 })

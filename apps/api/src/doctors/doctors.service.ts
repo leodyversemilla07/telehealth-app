@@ -129,14 +129,34 @@ export class DoctorsService {
       orderBy = { user: { name: "asc" } }
     }
 
-    return this.prisma.doctorProfile.findMany({
+    const doctors = await this.prisma.doctorProfile.findMany({
       where,
       include: {
         user: {
           select: PUBLIC_USER_SELECT,
         },
+        reviews: {
+          select: {
+            rating: true,
+          },
+        },
       },
       orderBy,
+    })
+
+    return doctors.map((doctor) => {
+      const reviews = doctor.reviews || []
+      const avgRating =
+        reviews.length > 0
+          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+          : 0
+
+      return {
+        ...doctor,
+        averageRating: Math.round(avgRating * 10) / 10,
+        totalReviews: reviews.length,
+        reviews: undefined,
+      }
     })
   }
 
@@ -150,12 +170,29 @@ export class DoctorsService {
         user: {
           select: PUBLIC_USER_SELECT,
         },
+        reviews: {
+          select: {
+            rating: true,
+          },
+        },
       },
     })
     if (!profile) {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
-    return profile
+
+    const reviews = profile.reviews || []
+    const avgRating =
+      reviews.length > 0
+        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+        : 0
+
+    return {
+      ...profile,
+      averageRating: Math.round(avgRating * 10) / 10,
+      totalReviews: reviews.length,
+      reviews: undefined,
+    }
   }
 
   /**

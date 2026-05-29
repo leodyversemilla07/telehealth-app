@@ -54,7 +54,7 @@ export class ChatController {
     return this.chatService.getConversation(
       session.user.id,
       otherUserId,
-      limit ? parseInt(limit) : 50,
+      limit ? parseInt(limit, 10) : 50,
     )
   }
 
@@ -72,5 +72,11 @@ export class ChatController {
   @ApiOperation({ summary: "Get unread message count" })
   async getUnreadCount(@Session() session: UserSession) {
     return this.chatService.getUnreadCount(session.user.id)
+  }
+
+  @Get("contacts")
+  @ApiOperation({ summary: "Get potential contacts based on appointments" })
+  async getContacts(@Session() session: UserSession) {
+    return this.chatService.getContacts(session.user.id)
   }
 }

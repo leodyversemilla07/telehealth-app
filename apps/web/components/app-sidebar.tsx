@@ -18,9 +18,9 @@ import {
   PieChartIcon,
   SendIcon,
   Settings2Icon,
-  TerminalIcon,
   TerminalSquareIcon,
 } from "lucide-react"
+import Image from "next/image"
 import type * as React from "react"
 import { NavMain } from "@/components/nav-main"
 import { NavProjects } from "@/components/nav-projects"
@@ -157,12 +157,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" render={<a href="#" />}>
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <TerminalIcon className="size-4" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Telehealth"
+                width={32}
+                height={32}
+                className="size-8 rounded-lg object-cover"
+              />
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Acme Inc</span>
-                <span className="truncate text-xs">Enterprise</span>
+                <span className="truncate font-medium">Telehealth</span>
+                <span className="truncate text-xs">Platform</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>

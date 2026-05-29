@@ -6,7 +6,7 @@ import {
 } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { AccessToken, RoomServiceClient } from "livekit-server-sdk"
-import { PrismaService } from "@/prisma/prisma.service"
+import { PrismaService } from "../prisma/prisma.service"
 import type { JoinRoomDto } from "./dto"
 
 @Injectable()

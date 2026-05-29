@@ -129,8 +129,8 @@ describe("AppointmentsService", () => {
     const dto = {
       doctorId: "doctor-123",
       scheduleId: "sched-1",
-      startTime: "2026-05-30T09:00:00.000Z",
-      endTime: "2026-05-30T09:30:00.000Z",
+      startTime: "2026-05-30T01:00:00.000Z",
+      endTime: "2026-05-30T01:30:00.000Z",
       type: "VIDEO" as const,
       reason: "Headache",
     }

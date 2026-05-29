@@ -10,18 +10,27 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Separator } from "@workspace/ui/components/separator"
+import { Switch } from "@workspace/ui/components/switch"
+import { DateTimePicker } from "@workspace/ui/components/date-time-picker"
 import {
-  CalendarDays,
   CalendarRange,
   CheckCircle2,
   Clock,
@@ -279,20 +288,23 @@ export default function DoctorSchedulePage() {
   return (
     <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       {/* Title */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
-          <CalendarDays className="h-7 w-7 text-primary" />
-          Availability & Schedule Manager
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Configure weekly recurring consultation shifts and manage blocked
-          time-off slots.
-        </p>
-      </div>
+      <Card>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+              Availability & Schedule Manager
+            </CardTitle>
+            <CardDescription className="text-sm mt-1">
+              Configure weekly recurring consultation shifts and manage blocked
+              time-off slots.
+            </CardDescription>
+          </div>
+        </CardHeader>
+      </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Weekly schedule editor card */}
-        <Card className="lg:col-span-2 border border-border/40 bg-card shadow-sm">
+        <Card className="lg:col-span-2">
           <CardHeader className="pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />
@@ -305,44 +317,59 @@ export default function DoctorSchedulePage() {
           </CardHeader>
 
           <form onSubmit={handleSaveAvailability}>
-            <CardContent className="space-y-5">
+            <CardContent className="flex flex-col gap-5">
               {/* Duration selector */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 items-center gap-4 bg-muted/20 border border-border/20 rounded-xl p-4 text-sm font-semibold">
-                <div className="space-y-1">
-                  <Label
-                    htmlFor="slot-duration"
-                    className="text-xs text-muted-foreground uppercase font-bold tracking-wider"
-                  >
-                    Consultation Duration
-                  </Label>
-                  <p className="text-[11px] text-muted-foreground font-normal">
-                    Duration of each individual patient slot interval.
-                  </p>
-                </div>
-                <Select
-                  value={String(slotDuration)}
-                  onValueChange={(val) => setSlotDuration(Number(val))}
+              <Field
+                orientation="horizontal"
+                className="items-center gap-4 bg-muted/20 border border-border/20 rounded-xl p-4"
+              >
+                <FieldLabel
+                  htmlFor="slot-duration"
+                  className="text-xs text-muted-foreground uppercase font-bold tracking-wider"
                 >
-                  <SelectTrigger
-                    id="slot-duration"
-                    className="bg-card border-border/60 font-semibold max-w-50 sm:ml-auto"
+                  Consultation Duration
+                </FieldLabel>
+                <FieldContent className="items-end">
+                  <Select
+                    value={String(slotDuration)}
+                    onValueChange={(val) => setSlotDuration(Number(val))}
                   >
-                    <SelectValue placeholder="30 Minutes" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="15">15 Minutes</SelectItem>
-                    <SelectItem value="30">30 Minutes</SelectItem>
-                    <SelectItem value="45">45 Minutes</SelectItem>
-                    <SelectItem value="60">60 Minutes</SelectItem>
-                    <SelectItem value="120">2 Hours</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                    <SelectTrigger
+                      id="slot-duration"
+                      className="bg-card border-border/60 font-semibold max-w-50"
+                    >
+                      <SelectValue placeholder="30 Minutes">
+                        {slotDuration === 15
+                          ? "15 Minutes"
+                          : slotDuration === 30
+                            ? "30 Minutes"
+                            : slotDuration === 45
+                              ? "45 Minutes"
+                              : slotDuration === 60
+                                ? "60 Minutes"
+                                : "2 Hours"}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="15">15 Minutes</SelectItem>
+                        <SelectItem value="30">30 Minutes</SelectItem>
+                        <SelectItem value="45">45 Minutes</SelectItem>
+                        <SelectItem value="60">60 Minutes</SelectItem>
+                        <SelectItem value="120">2 Hours</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription className="text-[11px] text-right">
+                    Duration of each individual patient slot interval.
+                  </FieldDescription>
+                </FieldContent>
+              </Field>
 
               <Separator className="bg-border/30" />
 
               {/* Weekly Day Columns List */}
-              <div className="space-y-3.5 max-h-95 overflow-y-auto pr-1">
+              <div className="flex flex-col gap-3.5">
                 {WEEKDAYS.map((day) => {
                   const config = days[day.key] ?? {
                     active: false,
@@ -360,12 +387,10 @@ export default function DoctorSchedulePage() {
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <input
+                        <Switch
                           id={`toggle-${day.key}`}
-                          type="checkbox"
                           checked={config.active}
-                          onChange={() => handleToggleDay(day.key)}
-                          className="h-4.5 w-4.5 rounded border-border/60 text-primary focus:ring-primary/20 shrink-0 cursor-pointer"
+                          onCheckedChange={() => handleToggleDay(day.key)}
                         />
                         <Label
                           htmlFor={`toggle-${day.key}`}
@@ -456,7 +481,7 @@ export default function DoctorSchedulePage() {
         {/* Blocking Time Off Side panels */}
         <div className="space-y-6">
           {/* Add Time-Off Block */}
-          <Card className="border border-border/40 bg-card shadow-sm">
+          <Card>
             <CardHeader>
               <CardTitle className="text-base font-bold flex items-center gap-2">
                 <Coffee className="h-4 w-4 text-primary" />
@@ -467,60 +492,49 @@ export default function DoctorSchedulePage() {
               </CardDescription>
             </CardHeader>
             <form onSubmit={handleAddTimeOff}>
-              <CardContent className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="to-start"
-                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                  >
-                    Start DateTime (PHT)
-                  </Label>
-                  <Input
-                    id="to-start"
-                    type="datetime-local"
-                    min={new Date().toISOString().slice(0, 16)}
-                    value={toStart}
-                    onChange={(e) => setToStart(e.target.value)}
-                    className="h-9 bg-muted/10 border-border/60"
-                    required
-                  />
-                </div>
+              <CardContent className="pb-4">
+                <FieldGroup className="gap-4">
+                  <Field>
+                    <FieldLabel htmlFor="to-start">
+                      Start DateTime (PHT)
+                    </FieldLabel>
+                    <DateTimePicker
+                      id="to-start"
+                      min={new Date().toISOString().slice(0, 16)}
+                      value={toStart}
+                      onChange={setToStart}
+                      placeholder="Pick start date & time"
+                    />
+                  </Field>
 
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="to-end"
-                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                  >
-                    End DateTime (PHT)
-                  </Label>
-                  <Input
-                    id="to-end"
-                    type="datetime-local"
-                    min={toStart || new Date().toISOString().slice(0, 16)}
-                    value={toEnd}
-                    onChange={(e) => setToEnd(e.target.value)}
-                    className="h-9 bg-muted/10 border-border/60"
-                    required
-                  />
-                </div>
+                  <Field>
+                    <FieldLabel htmlFor="to-end">
+                      End DateTime (PHT)
+                    </FieldLabel>
+                    <DateTimePicker
+                      id="to-end"
+                      min={toStart || new Date().toISOString().slice(0, 16)}
+                      value={toEnd}
+                      onChange={setToEnd}
+                      placeholder="Pick end date & time"
+                    />
+                  </Field>
 
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="to-reason"
-                    className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                  >
-                    Reason (Optional)
-                  </Label>
-                  <Input
-                    id="to-reason"
-                    placeholder="e.g. Attending PRC Medical Seminar"
-                    value={toReason}
-                    onChange={(e) => setToReason(e.target.value)}
-                    className="h-9 bg-muted/10 border-border/60 text-xs"
-                  />
-                </div>
+                  <Field>
+                    <FieldLabel htmlFor="to-reason">
+                      Reason (Optional)
+                    </FieldLabel>
+                    <Input
+                      id="to-reason"
+                      placeholder="e.g. Attending PRC Medical Seminar"
+                      value={toReason}
+                      onChange={(e) => setToReason(e.target.value)}
+                      className="h-9 bg-muted/10 border-border/60 text-xs"
+                    />
+                  </Field>
+                </FieldGroup>
               </CardContent>
-              <CardFooter className="pt-1 pb-4 flex justify-end">
+              <CardFooter className="border-t border-border/15 px-6 py-4 flex justify-end">
                 <Button
                   type="submit"
                   size="sm"
@@ -544,7 +558,7 @@ export default function DoctorSchedulePage() {
           </Card>
 
           {/* Active Time-Off listings */}
-          <Card className="border border-border/40 bg-card shadow-sm">
+          <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                 <span>Blocked Calendars</span>

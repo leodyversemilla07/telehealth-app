@@ -1,4 +1,7 @@
+import { Logger } from "@nestjs/common"
 import { z } from "zod"
+
+const logger = new Logger("Config")
 
 export const envSchema = z.object({
   // ── Database ──────────────────────────────────────────────────────────────
@@ -48,6 +51,11 @@ export const envSchema = z.object({
 
   // ── AI Recommendations (optional; endpoint returns 503 when absent) ───────
   NIM_API_KEY: z.string().optional(),
+
+  // ── Data Retention (optional; defaults below) ──────────────────────────────
+  RETENTION_NOTIFICATIONS_DAYS: z.coerce.number().min(1).default(90),
+  RETENTION_SECURITY_ALERTS_DAYS: z.coerce.number().min(1).default(730),
+  RETENTION_AUDIT_LOGS_DAYS: z.coerce.number().min(1).default(2555),
 })
 
 export type Env = z.infer<typeof envSchema>
@@ -55,8 +63,8 @@ export type Env = z.infer<typeof envSchema>
 export function validate(config: Record<string, unknown>) {
   const result = envSchema.safeParse(config)
   if (!result.success) {
-    console.error("❌ Invalid API Environment Configuration:")
-    console.error(JSON.stringify(result.error.format(), null, 2))
+    logger.error("Invalid API Environment Configuration:")
+    logger.error(JSON.stringify(result.error.format(), null, 2))
     throw new Error("Invalid API Environment Configuration")
   }
   return result.data

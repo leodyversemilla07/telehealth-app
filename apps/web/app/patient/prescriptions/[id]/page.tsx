@@ -15,11 +15,11 @@ import {
   Calendar,
   FileCheck,
   HeartPulse,
-  Loader2,
   Pill,
   Printer,
   User,
 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
@@ -47,7 +47,7 @@ export default function PrescriptionDetailPage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <Spinner className="size-10 text-primary" />
           <p className="text-muted-foreground text-sm font-semibold animate-pulse">
             Loading prescription...
           </p>
@@ -111,7 +111,7 @@ export default function PrescriptionDetailPage() {
         </div>
       </div>
 
-      <Card className="border border-border/40 bg-card shadow-sm relative overflow-hidden">
+      <Card className="relative overflow-hidden">
         <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-primary" />
 
         <CardHeader className="pl-8 pb-3">

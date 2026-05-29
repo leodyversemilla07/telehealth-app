@@ -26,6 +26,54 @@ aws sts get-caller-identity
 eb --version
 ```
 
+## Encryption at Rest (HIPAA §164.312(a)(2)(iv))
+
+All ePHI data (patient records, diagnoses, prescriptions, chat messages) must be encrypted at rest.
+RDS encryption must be enabled **at database creation time** — it cannot be added later.
+
+### New RDS instance (recommended)
+
+```bash
+# Create RDS with encryption enabled
+aws rds create-db-instance \
+  --db-instance-identifier telehealth-app-db \
+  --db-instance-class db.t3.micro \
+  --engine postgres \
+  --master-username dbuser \
+  --master-user-password <secret> \
+  --allocated-storage 20 \
+  --storage-encrypted \
+  --kms-key-id alias/aws/rds
+```
+
+### Migrate an existing unencrypted DB
+
+RDS encryption can only be set at creation time. To encrypt an existing database:
+
+```bash
+# 1. Take a snapshot of the current DB
+aws rds create-db-snapshot \
+  --db-instance-identifier telehealth-app-db \
+  --db-snapshot-identifier telehealth-app-db-snapshot
+
+# 2. Wait for snapshot to complete, then copy it encrypted
+aws rds copy-db-snapshot \
+  --source-db-snapshot-identifier telehealth-app-db-snapshot \
+  --target-db-snapshot-identifier telehealth-app-db-encrypted \
+  --copy-tags \
+  --kms-key-id alias/aws/rds
+
+# 3. Restore from the encrypted snapshot
+aws rds restore-db-instance-from-db-snapshot \
+  --db-instance-identifier telehealth-app-db-encrypted \
+  --db-snapshot-identifier telehealth-app-db-encrypted
+
+# 4. Update DATABASE_URL in EB environment to point to the new instance
+eb setenv DATABASE_URL=postgresql://dbuser:<secret>@telehealth-app-db-encrypted.xxxxxx.us-east-1.rds.amazonaws.com:5432/mydb
+```
+
+> **Note:** During the migration, the app will have read-only access to the old (unencrypted) instance while the encrypted copy is being restored. Plan for a brief maintenance window.
+
 ## Quick Start
 
 ### 1. Package the apps

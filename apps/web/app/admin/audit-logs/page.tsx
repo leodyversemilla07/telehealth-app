@@ -3,7 +3,15 @@
 import { useQuery } from "@tanstack/react-query"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
+import { DateRangePicker } from "@workspace/ui/components/date-range-picker"
 import {
   Table,
   TableBody,
@@ -80,6 +88,7 @@ function getActionConfig(action: string) {
 
 export default function AdminAuditLogsPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>({})
 
   const {
     data: logs = [],
@@ -92,36 +101,57 @@ export default function AdminAuditLogsPage() {
 
   const filtered = logs.filter((log) => {
     const term = searchQuery.toLowerCase()
-    return (
+    const matchesSearch =
       log.action.toLowerCase().includes(term) ||
       log.actorEmail.toLowerCase().includes(term) ||
       log.targetEmail?.toLowerCase().includes(term) ||
       log.reason?.toLowerCase().includes(term)
-    )
+
+    const logDate = new Date(log.timestamp)
+    const matchesFrom = dateRange.from
+      ? logDate >= new Date(dateRange.from)
+      : true
+    const matchesTo = dateRange.to
+      ? logDate <= new Date(`${dateRange.to}T23:59:59`)
+      : true
+
+    return matchesSearch && matchesFrom && matchesTo
   })
 
   return (
     <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">
-          Audit Logs
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Track all authentication events and security changes across the
-          platform.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+            Audit Logs
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Track all authentication events and security changes across the
+            platform.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       {/* Stats bar */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card border border-border/40 rounded-xl p-4 shadow-sm">
-        <div className="relative w-full sm:max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search action, email, or reason..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-muted/20"
-          />
+      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between bg-card border border-border/40 rounded-xl p-4 shadow-sm flex-wrap">
+        <div className="flex flex-col sm:flex-row gap-3 flex-1 w-full sm:max-w-xl">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search action, email, or reason..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-muted/20"
+            />
+          </div>
+          <div className="w-full sm:w-72">
+            <DateRangePicker
+              from={dateRange.from}
+              to={dateRange.to}
+              onChange={setDateRange}
+              placeholder="Filter by date range"
+            />
+          </div>
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
           <span>
@@ -129,14 +159,14 @@ export default function AdminAuditLogsPage() {
             <strong className="text-foreground">{filtered.length}</strong> /{" "}
             {logs.length}
           </span>
-          {searchQuery && (
+          {(searchQuery || dateRange.from) && (
             <Button
               variant="ghost"
               size="sm"
               className="h-6 text-xs"
-              onClick={() => setSearchQuery("")}
+              onClick={() => { setSearchQuery(""); setDateRange({}) }}
             >
-              Clear
+              Clear all
             </Button>
           )}
         </div>
@@ -198,9 +228,19 @@ export default function AdminAuditLogsPage() {
       )}
 
       {!isPending && !error && filtered.length > 0 && (
-        <div className="border border-border/40 rounded-xl bg-card shadow-sm overflow-hidden">
-          <Table>
-            <TableHeader className="bg-muted/15">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              Audit Events
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Showing {filtered.length} of {logs.length} events
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+            <TableHeader>
               <TableRow>
                 <TableHead className="w-[60px]">Type</TableHead>
                 <TableHead>Action</TableHead>
@@ -226,7 +266,7 @@ export default function AdminAuditLogsPage() {
                     <TableCell>
                       <Badge
                         variant="outline"
-                        className="text-[10px] font-semibold"
+                        className="font-medium"
                       >
                         {log.action}
                       </Badge>
@@ -237,10 +277,10 @@ export default function AdminAuditLogsPage() {
                     <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                       {log.targetEmail || "—"}
                     </TableCell>
-                    <TableCell className="hidden md:table-cell text-xs text-muted-foreground max-w-[200px] truncate">
+                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground max-w-[200px] truncate">
                       {log.reason || "—"}
                     </TableCell>
-                    <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
+                    <TableCell className="text-right text-sm text-muted-foreground whitespace-nowrap">
                       {new Date(log.timestamp).toLocaleString()}
                     </TableCell>
                   </TableRow>
@@ -248,7 +288,8 @@ export default function AdminAuditLogsPage() {
               })}
             </TableBody>
           </Table>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

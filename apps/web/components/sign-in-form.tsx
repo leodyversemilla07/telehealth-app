@@ -272,8 +272,10 @@ export function SignInForm({
               </Field>
             </FieldGroup>
 
-            <button
+            <Button
               type="button"
+              variant="link"
+              size="sm"
               className="flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => {
                 setShowTwoFactor(false)
@@ -283,7 +285,7 @@ export function SignInForm({
             >
               <ArrowLeft className="size-3" />
               Back to standard sign in
-            </button>
+            </Button>
           </form>
         </div>
       </div>

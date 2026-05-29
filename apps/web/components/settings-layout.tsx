@@ -7,6 +7,7 @@ import {
   Heart,
   Key,
   Lock,
+  Palette,
   Shield,
   ShieldCheck,
   Stethoscope,
@@ -29,6 +30,11 @@ function getSettingsNavItems(role: string): NavItem[] {
       title: "Profile",
       href: `${base}/profile`,
       icon: <User className="h-4 w-4" />,
+    },
+    {
+      title: "Appearance",
+      href: `${base}/appearance`,
+      icon: <Palette className="h-4 w-4" />,
     },
     {
       title: "Password",

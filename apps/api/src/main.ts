@@ -3,6 +3,7 @@ import { join } from "node:path"
 import { ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import express from "express"
+import helmet from "helmet"
 import { AppModule } from "@/app.module"
 import { HttpExceptionFilter } from "@/common/filters/http-exception.filter"
 import { PhtDateInterceptor } from "@/common/interceptors/pht-date.interceptor"
@@ -11,6 +12,7 @@ import { setupSwagger } from "@/config/swagger.config"
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bodyParser: false,
+    bufferLogs: true,
   })
 
   // Enforce API route namespacing
@@ -18,6 +20,9 @@ async function bootstrap() {
 
   // Enable shutdown hooks to prevent database pool leaks on SIGTERM/SIGINT
   app.enableShutdownHooks()
+
+  // Security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, etc.)
+  app.use(helmet())
 
   // Apply standardized exception formatting globally
   app.useGlobalFilters(new HttpExceptionFilter())

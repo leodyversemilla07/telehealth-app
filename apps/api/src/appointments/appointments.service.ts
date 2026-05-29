@@ -1,4 +1,4 @@
-import type { AppointmentStatus } from "../../generated/prisma/client.js"
+import type { AppointmentStatus } from "@generated/prisma/client.js"
 import {
   BadRequestException,
   ConflictException,
@@ -74,10 +74,6 @@ export class AppointmentsService {
     }
 
     return { start, end }
-  }
-
-  private toUtcMinutes(date: Date): number {
-    return date.getUTCHours() * 60 + date.getUTCMinutes()
   }
 
   private parseScheduleWindows(

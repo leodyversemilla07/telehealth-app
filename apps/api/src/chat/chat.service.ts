@@ -154,4 +154,52 @@ export class ChatService {
     })
     return { count }
   }
+
+  /**
+   * Get potential contacts based on appointments.
+   * For patients: returns doctors they've had appointments with.
+   * For doctors: returns patients they've had appointments with.
+   */
+  async getContacts(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    })
+
+    if (!user) return []
+
+    if (user.role === "PATIENT") {
+      // Get doctors from appointments
+      const appointments = await this.prisma.appointment.findMany({
+        where: { patientId: userId },
+        select: {
+          doctor: {
+            select: {
+              user: {
+                select: { id: true, name: true, email: true, image: true },
+              },
+            },
+          },
+        },
+        distinct: ["doctorId"],
+      })
+
+      return appointments.map((appt) => appt.doctor.user)
+    } else {
+      // Get patients from appointments
+      const appointments = await this.prisma.appointment.findMany({
+        where: {
+          doctor: { userId },
+        },
+        select: {
+          patient: {
+            select: { id: true, name: true, email: true, image: true },
+          },
+        },
+        distinct: ["patientId"],
+      })
+
+      return appointments.map((appt) => appt.patient)
+    }
+  }
 }

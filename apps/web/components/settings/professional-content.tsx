@@ -3,15 +3,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
+import {
+  Field,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Separator } from "@workspace/ui/components/separator"
+import { Textarea } from "@workspace/ui/components/textarea"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 import { Loader2, Save, Stethoscope } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
@@ -208,16 +214,14 @@ export function ProfessionalContent() {
                 Contact admin to update your license information
               </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="prcLicenseExpiry">PRC License Expiry</Label>
-              <Input
-                id="prcLicenseExpiry"
-                type="date"
-                value={prcLicenseExpiry}
-                disabled
-                className="bg-muted/50"
-              />
-            </div>
+             <div className="space-y-2">
+               <Label htmlFor="prcLicenseExpiry">PRC License Expiry</Label>
+               <DatePicker
+                 id="prcLicenseExpiry"
+                 value={prcLicenseExpiry}
+                 disabled
+               />
+             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -252,8 +256,8 @@ export function ProfessionalContent() {
             Practice Details
           </p>
 
-          <div className="space-y-2">
-            <Label htmlFor="specialty">Specialty</Label>
+          <Field>
+            <FieldLabel htmlFor="specialty">Specialty</FieldLabel>
             <Select
               value={specialty}
               onValueChange={(v) => setSpecialty(v ?? "")}
@@ -262,14 +266,16 @@ export function ProfessionalContent() {
                 <SelectValue placeholder="Select your specialty" />
               </SelectTrigger>
               <SelectContent>
-                {SPECIALTIES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  {SPECIALTIES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
-          </div>
+          </Field>
 
           <div className="space-y-2">
             <Label htmlFor="clinicAddress">Clinic Address</Label>
@@ -296,9 +302,9 @@ export function ProfessionalContent() {
 
           <div className="space-y-2">
             <Label htmlFor="bio">Bio</Label>
-            <textarea
+            <Textarea
               id="bio"
-              className="flex min-h-[100px] w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-[100px]"
               placeholder="Tell patients about your experience and approach to care..."
               value={bio}
               onChange={(e) => setBio(e.target.value)}

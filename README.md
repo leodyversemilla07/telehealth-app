@@ -130,6 +130,12 @@ pnpm --filter web test  # Web tests (Vitest)
 - Shared TypeScript types (`UserDto`, `ProviderProfileDto`, etc.)
 - Exported via subpath exports: `@workspace/shared/schemas/*`, `@workspace/shared/types/*`
 
+## Premium Features
+
+### 🌟 Doctor Ratings & Reviews
+- **Average Ratings & Review Counts**: Mapped dynamically from patient reviews in both search and public profile views.
+- **Credential Transparencies**: Star ratings displayed prominently on doctor discovery cards to establish immediate visual trust.
+
 ## Auth & Security
 
 - **Better Auth** handles authentication with email/password and OAuth (Google, GitHub)

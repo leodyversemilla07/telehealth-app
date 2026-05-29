@@ -144,11 +144,17 @@ src/
 | `Session`          | Auth sessions with IP + user-agent       |
 | `Account`          | OAuth account linking                    |
 | `Verification`     | Email verification tokens                |
-| `PatientProfile`   | Patient details (DOB, phone, PhilHealth) |
-| `ProviderProfile`  | Provider credentials (PRC, PDEA, pricing)|
+| `PatientProfile`   | Patient details (DOB, phone, PhilHealth), including health metrics (weight, height, and JSON-based history) |
+| `ProviderProfile`  | Provider credentials (PRC, PDEA, pricing) and relationships with appointments and reviews |
 | `ConsentLog`       | Privacy consent records (RA 10173)       |
 | `AuditLog`         | Immutable admin action trail             |
 | `SecurityAlert`    | Security event notifications             |
+| `Review`           | Patient reviews and ratings for consultation sessions linked to doctors |
+
+### Doctor Reviews & Ratings Aggregator
+The `DoctorProfile` references an array of `Review` items. In `DoctorsService.findApproved()` and `DoctorsService.findOne()`, the NestJS backend dynamically computes:
+- `averageRating`: The arithmetic mean of all numeric reviews, rounded to the nearest decimal.
+- `totalReviews`: The exact length of the reviews list, allowing high-performance queries without redundant DB column overhead.
 
 ### Migrations
 

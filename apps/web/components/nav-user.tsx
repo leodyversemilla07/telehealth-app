@@ -1,5 +1,6 @@
 "use client"
 
+import { useTheme } from "next-themes"
 import {
   Avatar,
   AvatarFallback,
@@ -20,7 +21,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
-import { ChevronsUpDownIcon, LogOutIcon, SettingsIcon } from "lucide-react"
+import {
+  ChevronsUpDownIcon,
+  LogOutIcon,
+  MonitorIcon,
+  MoonIcon,
+  SettingsIcon,
+  SunIcon,
+} from "lucide-react"
 import { useRouter } from "next/navigation"
 
 export function NavUser({
@@ -38,6 +46,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
+  const { theme, setTheme } = useTheme()
   const settingsPath = `/${role}/settings`
 
   return (
@@ -84,6 +93,35 @@ export function NavUser({
               <DropdownMenuItem onClick={() => router.push(settingsPath)}>
                 <SettingsIcon />
                 Settings
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                Theme
+              </DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setTheme("light")}>
+                <SunIcon className={theme === "light" ? "text-primary" : ""} />
+                Light
+                {theme === "light" && (
+                  <span className="ml-auto text-xs text-primary">Active</span>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("dark")}>
+                <MoonIcon className={theme === "dark" ? "text-primary" : ""} />
+                Dark
+                {theme === "dark" && (
+                  <span className="ml-auto text-xs text-primary">Active</span>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("system")}>
+                <MonitorIcon
+                  className={theme === "system" ? "text-primary" : ""}
+                />
+                System
+                {theme === "system" && (
+                  <span className="ml-auto text-xs text-primary">Active</span>
+                )}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

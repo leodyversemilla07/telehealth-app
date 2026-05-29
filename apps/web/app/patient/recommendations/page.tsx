@@ -17,11 +17,11 @@ import {
   AlertCircle,
   Calendar,
   ChevronRight,
-  Loader2,
   MapPin,
   Sparkles,
   Stethoscope,
 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { useState } from "react"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
@@ -69,16 +69,17 @@ export default function RecommendationsPage() {
   return (
     <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       {/* Header */}
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight flex items-center gap-2">
-          <Sparkles className="h-5 w-5 text-amber-500" />
-          AI Doctor Recommendations
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Describe your symptoms and our AI will find the right specialists for
-          you.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            AI Doctor Recommendations
+          </CardTitle>
+          <CardDescription className="text-sm">
+            Describe your symptoms and our AI will find the right specialists for
+            you.
+          </CardDescription>
+        </CardHeader>
+      </Card>
 
       {/* Symptom Input */}
       <Card className="border-border/70">
@@ -115,7 +116,7 @@ export default function RecommendationsPage() {
               >
                 {mutation.isPending ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Spinner className="size-4" />
                     Analyzing...
                   </>
                 ) : (

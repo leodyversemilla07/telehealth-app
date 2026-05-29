@@ -273,7 +273,7 @@ The system supports the following high-level functions:
 
 **ID:** F-PATIENT
 
-**Description:** The system shall allow Patients to manage their personal profile and view their medical history.
+**Description:** The system shall allow Patients to manage their personal profile, book appointments, join video consultations, and access medical records.
 
 **Priority:** Critical
 
@@ -285,6 +285,7 @@ The system supports the following high-level functions:
 | F-PATIENT-02 | The system shall allow Patients to add basic medical history (allergies, chronic conditions, current medications). | Test: Medical history saved and displayed |
 | F-PATIENT-03 | The system shall display a patient profile view with all personal information and medical history. | Test: Profile page renders correctly |
 | F-PATIENT-04 | The system shall allow Patients to update their profile information at any time. | Test: Updates persist after page refresh |
+
 
 ### 3.3 Doctor Profile Management
 
@@ -555,9 +556,24 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 ### Appendix A: Data Models (Prisma)
 
 ```prisma
-// Core models already implemented in schema.prisma
-// See: apps/api/prisma/schema.prisma
-// Additional models for appointments, consultations, prescriptions, and notifications:
+// Core models are fully implemented in apps/api/prisma/schema.prisma
+// Key updates to the schema and JSON structure:
+//
+// 1. Review Model (Doctor reviews & star ratings):
+//    model Review {
+//      id             String        @id @default(cuid())
+//      patientId      String
+//      doctorId       String
+//      appointmentId  String
+//      rating         Int           // 1 to 5
+//      comment        String?
+//      createdAt      DateTime      @default(now())
+//      patient        User          @relation("PatientReviews", fields: [patientId], references: [id])
+//      doctor         DoctorProfile @relation(fields: [doctorId], references: [id])
+//      appointment    Appointment   @relation(fields: [appointmentId], references: [id])
+//    }
+//
+// Additional relations for appointments, consultations, prescriptions, and notifications:
 
 model Appointment {
   id                String            @id @default(cuid())
@@ -763,6 +779,7 @@ GET /api/admin/audit-logs # Audit trail (NPC compliance)
 |---|---|---|---|
 | 1.0 | 2026-05-30 | System | Updated for WC Launchpad Builder Round — focused MVP with Patient/Doctor modules, AI recommendation, real-time notifications, and RA 10173 compliance |
 | 1.1 | 2026-05-27 | System | Provider→Doctor rename throughout; updated Appendix A (normalized Consultation/Prescription models); updated Appendix B (API routes to match implementation: /doctors, /availability, /records, /video, /notifications, /consent) |
+| 1.2 | 2026-05-29 | System | Added Doctor Reviews/Ratings schema and JSON structures in Appendix A. |
 
 ---
 

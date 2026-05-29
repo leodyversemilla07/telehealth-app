@@ -1,10 +1,14 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
+import { useState } from "react"
 import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
+import { DateRangePicker } from "@workspace/ui/components/date-range-picker"
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
@@ -23,6 +27,7 @@ import {
   CheckCircle,
   Clock,
   FileText,
+  Filter,
   ShieldCheck,
   TrendingUp,
   UserCheck,
@@ -65,6 +70,8 @@ const STATUS_ICONS: Record<string, typeof CheckCircle> = {
 }
 
 export default function AdminReportsPage() {
+  const [dateRange, setDateRange] = useState<{ from?: string; to?: string }>({})
+
   const {
     data: reports,
     isPending,
@@ -77,12 +84,16 @@ export default function AdminReportsPage() {
   if (isPending) {
     return (
       <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-          <p className="text-sm text-muted-foreground">
-            Platform analytics and compliance overview.
-          </p>
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold tracking-tight">
+              Reports
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Platform analytics and compliance overview.
+            </CardDescription>
+          </CardHeader>
+        </Card>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {Array.from({ length: 4 }).map((_, i) => (
             <Card key={i} className="animate-pulse">
@@ -123,12 +134,39 @@ export default function AdminReportsPage() {
 
   return (
     <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Reports</h1>
-        <p className="text-sm text-muted-foreground">
-          Platform analytics, appointment utilization, and compliance overview.
-        </p>
-      </div>
+      <Card>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle className="text-2xl font-bold tracking-tight">
+              Reports
+            </CardTitle>
+            <CardDescription className="text-sm">
+              Platform analytics, appointment utilization, and compliance overview.
+            </CardDescription>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <Filter className="h-4 w-4 text-muted-foreground shrink-0" />
+          <div className="w-72">
+            <DateRangePicker
+              from={dateRange.from}
+              to={dateRange.to}
+              onChange={setDateRange}
+              placeholder="Filter audit events by date"
+            />
+          </div>
+          {(dateRange.from || dateRange.to) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-9 text-xs"
+              onClick={() => setDateRange({})}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+        </CardHeader>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -360,9 +398,9 @@ export default function AdminReportsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs">Action</TableHead>
-                    <TableHead className="text-xs text-right">Count</TableHead>
-                    <TableHead className="text-xs text-right">Share</TableHead>
+                    <TableHead>Action</TableHead>
+                    <TableHead className="text-right">Count</TableHead>
+                    <TableHead className="text-right">Share</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -371,7 +409,7 @@ export default function AdminReportsPage() {
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className="text-[10px] font-semibold"
+                          className="font-medium"
                         >
                           {a.action}
                         </Badge>
@@ -379,7 +417,7 @@ export default function AdminReportsPage() {
                       <TableCell className="text-right text-sm font-medium">
                         {a.count}
                       </TableCell>
-                      <TableCell className="text-right text-xs text-muted-foreground">
+                      <TableCell className="text-right text-sm text-muted-foreground">
                         {totalAuditActions > 0
                           ? Math.round((a.count / totalAuditActions) * 100)
                           : 0}
@@ -400,50 +438,72 @@ export default function AdminReportsPage() {
           <CardTitle className="flex items-center gap-2 text-sm">
             <FileText className="h-4 w-4 text-primary" />
             Recent Audit Events
+            {(dateRange.from || dateRange.to) && (
+              <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                (filtered)
+              </span>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          {reports.recentAuditLogs.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-6">
-              No events recorded.
-            </p>
-          ) : (
-            <Table>
-              <TableHeader className="bg-muted/15">
-                <TableRow>
-                  <TableHead className="text-xs">Action</TableHead>
-                  <TableHead className="text-xs">Actor</TableHead>
-                  <TableHead className="text-xs hidden md:table-cell">
-                    Reason
-                  </TableHead>
-                  <TableHead className="text-xs text-right">Time</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reports.recentAuditLogs.map((log) => (
-                  <TableRow key={log.id}>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] font-semibold"
-                      >
-                        {log.action}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
-                      {log.actorEmail}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
-                      {log.reason || "—"}
-                    </TableCell>
-                    <TableCell className="text-xs text-muted-foreground text-right whitespace-nowrap">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </TableCell>
+          {(() => {
+            const filteredLogs = reports.recentAuditLogs.filter((log) => {
+              const logDate = new Date(log.timestamp)
+              const matchesFrom = dateRange.from
+                ? logDate >= new Date(dateRange.from)
+                : true
+              const matchesTo = dateRange.to
+                ? logDate <= new Date(`${dateRange.to}T23:59:59`)
+                : true
+              return matchesFrom && matchesTo
+            })
+            if (filteredLogs.length === 0) {
+              return (
+                <p className="text-xs text-muted-foreground text-center py-6">
+                  {dateRange.from || dateRange.to
+                    ? "No events in the selected date range."
+                    : "No events recorded."}
+                </p>
+              )
+            }
+            return (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Action</TableHead>
+                    <TableHead>Actor</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Reason
+                    </TableHead>
+                    <TableHead className="text-right">Time</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                </TableHeader>
+                <TableBody>
+                  {filteredLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className="font-medium"
+                        >
+                          {log.action}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {log.actorEmail}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground hidden md:table-cell max-w-[200px] truncate">
+                        {log.reason || "—"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground text-right whitespace-nowrap">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )
+          })()}
         </CardContent>
       </Card>
     </div>
