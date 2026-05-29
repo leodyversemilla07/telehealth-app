@@ -33,3 +33,7 @@ AWS.md
 # Monorepo source directories (not needed for ECR-based Docker deployment)
 apps/
 packages/
+
+# Cache and Temp folders
+.elasticbeanstalk/
+.turbo/
