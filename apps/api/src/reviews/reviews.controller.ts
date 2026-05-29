@@ -2,8 +2,8 @@ import { Body, Controller, Get, Param, Post } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
-import { ReviewsService } from "./reviews.service"
 import { IsInt, IsOptional, IsString, Max, Min } from "class-validator"
+import { ReviewsService } from "./reviews.service"
 
 class CreateReviewDto {
   @IsInt()

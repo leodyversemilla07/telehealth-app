@@ -2,8 +2,8 @@ import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Session } from "@thallesp/nestjs-better-auth"
+import { IsOptional, IsString } from "class-validator"
 import { ChatService } from "./chat.service"
-import { IsString, IsOptional } from "class-validator"
 
 class SendMessageDto {
   @IsString()

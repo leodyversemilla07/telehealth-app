@@ -58,11 +58,11 @@ interface PrescriptionInput {
 const printStyles = `
   @media print {
     body * { visibility: hidden; }
-    .print\:block, .print\:block * { visibility: visible !important; }
-    .print\:block { position: absolute; left: 0; top: 0; width: 100%; }
-    .print\:p-8 { padding: 2rem; }
-    .print\:text-black { color: #000; }
-    .print\:bg-white { background: #fff; }
+    .print:block, .print:block * { visibility: visible !important; }
+    .print:block { position: absolute; left: 0; top: 0; width: 100%; }
+    .print:p-8 { padding: 2rem; }
+    .print:text-black { color: #000; }
+    .print:bg-white { background: #fff; }
     @page { margin: 1cm; size: A4; }
   }
 `
@@ -354,7 +354,9 @@ export default function DoctorConsultationDetailPage() {
     timeZone: "Asia/Manila",
   })
 
-  const isCompleted = appt.status === "COMPLETED" || (!!consultationRecord && !!consultationRecord.id)
+  const isCompleted =
+    appt.status === "COMPLETED" ||
+    (!!consultationRecord && !!consultationRecord.id)
   const isJoinable =
     appt.status === "CONFIRMED" || appt.status === "IN_PROGRESS"
 
@@ -408,667 +410,755 @@ export default function DoctorConsultationDetailPage() {
     <>
       <style dangerouslySetInnerHTML={{ __html: printStyles }} />
       <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 text-muted-foreground hover:text-foreground shrink-0"
-          onClick={() => router.push("/doctor/consultations")}
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <Separator orientation="vertical" className="h-6" />
-        <div className="truncate">
-          <span className="font-bold tracking-tight text-sm text-foreground flex items-center gap-1.5">
-            Clinical Consultation Room
-          </span>
-          <p className="text-[10px] text-muted-foreground truncate">
-            Patient ID: {appt.patient.id} | Consult Ref: {appt.id}
-          </p>
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 text-muted-foreground hover:text-foreground shrink-0"
+            onClick={() => router.push("/doctor/consultations")}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <Separator orientation="vertical" className="h-6" />
+          <div className="truncate">
+            <span className="font-bold tracking-tight text-sm text-foreground flex items-center gap-1.5">
+              Clinical Consultation Room
+            </span>
+            <p className="text-[10px] text-muted-foreground truncate">
+              Patient ID: {appt.patient.id} | Consult Ref: {appt.id}
+            </p>
+          </div>
         </div>
-      </div>
 
-      {/* Main Grid: Left Side Webrtc/Status, Right Side SOAP Charting */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column: Virtual Room or Overview (Span 5) */}
-        <div className="lg:col-span-5 space-y-6">
-          {/* Patient Card */}
-          <Card className="border border-border/40 bg-card shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center justify-between gap-4 flex-wrap">
-                <Badge
-                  variant="outline"
-                  className={`text-xs h-6 font-bold uppercase ${
-                    appt.status === "CONFIRMED"
-                      ? "text-emerald-600 border-emerald-200 bg-emerald-50/50"
-                      : appt.status === "IN_PROGRESS"
-                        ? "text-amber-600 border-amber-200 bg-amber-50/50"
-                        : appt.status === "BOOKED"
-                          ? "text-sky-600 border-sky-200 bg-sky-50/50"
-                          : "text-muted-foreground"
-                  }`}
-                >
-                  {appt.status}
-                </Badge>
-                <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
-                  {appt.type === "VIDEO" && <Video className="h-3.5 w-3.5" />}
-                  {appt.type === "PHONE" && <Phone className="h-3.5 w-3.5" />}
-                  {appt.type === "IN_PERSON" && (
-                    <MapPin className="h-3.5 w-3.5" />
-                  )}
-                  {appt.type} Session
-                </span>
-              </div>
-              <CardTitle className="text-lg font-black mt-3">
-                Patient: {appt.patient.name}
-              </CardTitle>
-              <CardDescription className="text-xs font-semibold text-muted-foreground">
-                Email: {appt.patient.email}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4 text-xs">
-              <Separator className="bg-border/30" />
-
-              {/* Localized Times */}
-              <div className="space-y-2 bg-muted/20 border border-border/20 rounded-xl p-3.5">
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground font-semibold">
-                    Date:
-                  </span>
-                  <span className="font-bold text-foreground flex items-center gap-1">
-                    <Calendar className="h-3 w-3 text-primary" />
-                    {dateStr}
+        {/* Main Grid: Left Side Webrtc/Status, Right Side SOAP Charting */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left Column: Virtual Room or Overview (Span 5) */}
+          <div className="lg:col-span-5 space-y-6">
+            {/* Patient Card */}
+            <Card className="border border-border/40 bg-card shadow-sm">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <Badge
+                    variant="outline"
+                    className={`text-xs h-6 font-bold uppercase ${
+                      appt.status === "CONFIRMED"
+                        ? "text-emerald-600 border-emerald-200 bg-emerald-50/50"
+                        : appt.status === "IN_PROGRESS"
+                          ? "text-amber-600 border-amber-200 bg-amber-50/50"
+                          : appt.status === "BOOKED"
+                            ? "text-sky-600 border-sky-200 bg-sky-50/50"
+                            : "text-muted-foreground"
+                    }`}
+                  >
+                    {appt.status}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
+                    {appt.type === "VIDEO" && <Video className="h-3.5 w-3.5" />}
+                    {appt.type === "PHONE" && <Phone className="h-3.5 w-3.5" />}
+                    {appt.type === "IN_PERSON" && (
+                      <MapPin className="h-3.5 w-3.5" />
+                    )}
+                    {appt.type} Session
                   </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground font-semibold">
-                    Scheduled:
-                  </span>
-                  <span className="font-bold text-foreground flex items-center gap-1">
-                    <Clock className="h-3 w-3 text-primary" />
-                    {timeStr} — {endTimeStr}
-                  </span>
-                </div>
-              </div>
+                <CardTitle className="text-lg font-black mt-3">
+                  Patient: {appt.patient.name}
+                </CardTitle>
+                <CardDescription className="text-xs font-semibold text-muted-foreground">
+                  Email: {appt.patient.email}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-xs">
+                <Separator className="bg-border/30" />
 
-              {/* Reason / Symptoms Intake */}
-              <div className="space-y-3">
-                <div className="space-y-1">
-                  <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                    Reason for Consult
-                  </span>
-                  <div className="bg-muted/10 border border-border/20 rounded-lg p-2.5 leading-relaxed">
-                    {appt.reason || "No summary provided."}
+                {/* Localized Times */}
+                <div className="space-y-2 bg-muted/20 border border-border/20 rounded-xl p-3.5">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground font-semibold">
+                      Date:
+                    </span>
+                    <span className="font-bold text-foreground flex items-center gap-1">
+                      <Calendar className="h-3 w-3 text-primary" />
+                      {dateStr}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground font-semibold">
+                      Scheduled:
+                    </span>
+                    <span className="font-bold text-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-primary" />
+                      {timeStr} — {endTimeStr}
+                    </span>
                   </div>
                 </div>
 
-                {appt.symptoms && (
+                {/* Reason / Symptoms Intake */}
+                <div className="space-y-3">
                   <div className="space-y-1">
                     <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                      Patient Reported Symptoms
+                      Reason for Consult
                     </span>
-                    <div className="bg-muted/10 border border-border/20 rounded-lg p-2.5 leading-relaxed italic">
-                      &ldquo;{appt.symptoms}&rdquo;
+                    <div className="bg-muted/10 border border-border/20 rounded-lg p-2.5 leading-relaxed">
+                      {appt.reason || "No summary provided."}
+                    </div>
+                  </div>
+
+                  {appt.symptoms && (
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                        Patient Reported Symptoms
+                      </span>
+                      <div className="bg-muted/10 border border-border/20 rounded-lg p-2.5 leading-relaxed italic">
+                        &ldquo;{appt.symptoms}&rdquo;
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Verification compliant note */}
+            <Card className="border border-border/40 bg-muted/20 shadow-xs">
+              <CardContent className="pt-5 space-y-2 text-xs">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
+                  Data Privacy RA 10173 Approved
+                </h4>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">
+                  Consultation transcripts and visual sessions are securely
+                  isolated in transit. Standardized medical charting documents
+                  are encrypted and signed at rest.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column: SOAP Charting or Read-only completed preview (Span 7) */}
+          <div className="lg:col-span-7">
+            {isCompleted ? (
+              // ─────────────────────────────────────────────────────────────
+              // COMPLETED CHART PREVIEW
+              // ─────────────────────────────────────────────────────────────
+              <>
+                <Card className="border border-emerald-500/20 bg-card shadow-md">
+                  <CardHeader className="bg-emerald-500/5 border-b border-border/10 px-6 pt-6 pb-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-2">
+                        <FileCheck className="h-5 w-5 text-emerald-600" />
+                        <CardTitle className="text-base font-bold text-emerald-800">
+                          Signed EHR Clinical Chart
+                        </CardTitle>
+                      </div>
+                      <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white font-bold text-[10px]">
+                        SIGNED & FINALIZED
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-xs font-semibold">
+                      This chart record is securely finalized and forms part of
+                      the patient's permanent electronic health record (EHR).
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent className="p-6 space-y-6 text-xs text-left">
+                    {consultationRecord ? (
+                      <>
+                        {/* SOAP Fields */}
+                        <div className="space-y-4.5">
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                              Diagnostic Assessment (Diagnosis)
+                            </span>
+                            <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 text-sm font-bold text-foreground">
+                              {consultationRecord.diagnosis ||
+                                "No diagnosis logged."}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                              Doctor's Subjective & Objective Findings
+                            </span>
+                            <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 leading-relaxed whitespace-pre-wrap">
+                              {consultationRecord.doctorNotes ||
+                                "No notes logged."}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                              Treatment & Recommendation Plan
+                            </span>
+                            <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 leading-relaxed whitespace-pre-wrap">
+                              {consultationRecord.plan || "No plan logged."}
+                            </div>
+                          </div>
+                        </div>
+
+                        <Separator className="bg-border/30" />
+
+                        {/* eRx display block */}
+                        <div className="space-y-3.5">
+                          <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                            <Pill className="h-4 w-4 text-primary" />
+                            Electronic Prescription Ledger (eRx)
+                          </h4>
+
+                          {consultationRecord.prescriptions?.length === 0 ? (
+                            <p className="text-muted-foreground text-xs italic">
+                              No pharmacological agents were prescribed during
+                              this consultation session.
+                            </p>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {consultationRecord.prescriptions?.map((rx) => (
+                                <div
+                                  key={rx.id}
+                                  className="border border-border/20 bg-muted/5 rounded-xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden"
+                                >
+                                  {/* R symbol signature watermark */}
+                                  <span className="absolute -right-3 -bottom-4 text-6xl font-black text-muted-foreground/5 pointer-events-none select-none italic font-serif">
+                                    ℞
+                                  </span>
+
+                                  <div className="space-y-1 text-left">
+                                    <h5 className="font-black text-sm text-foreground flex items-center gap-1">
+                                      <span className="text-primary italic font-serif">
+                                        ℞
+                                      </span>
+                                      {rx.medicationName}
+                                    </h5>
+                                    <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                                      {rx.dosage} — {rx.frequency}
+                                    </p>
+                                    <p className="text-[10px] text-foreground font-semibold">
+                                      Duration: {rx.duration}
+                                    </p>
+                                  </div>
+
+                                  {rx.instructions && (
+                                    <p className="text-[10px] text-muted-foreground bg-muted/20 border border-border/10 rounded-lg p-2 leading-relaxed">
+                                      Instructions: {rx.instructions}
+                                    </p>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center py-10 gap-2">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <p className="text-muted-foreground text-xs animate-pulse">
+                          Retrieving signature tokens from database ledger...
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+
+                  <CardFooter className="border-t border-border/15 py-4 px-6 flex justify-end gap-3 bg-muted/5">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-xs h-9 border-border/60 flex items-center gap-1.5 font-bold"
+                      onClick={() => window.print()}
+                    >
+                      <Printer className="h-4 w-4" />
+                      Print EHR Chart
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                {/* ─── Print-only EHR Template ─────────────────────────────── */}
+                {consultationRecord && (
+                  <div className="hidden print:block print:p-8 print:text-black print:bg-white">
+                    {/* Header */}
+                    <div className="border-b-2 border-black pb-4 mb-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h1 className="text-xl font-bold">
+                            TELEHEALTH PLATFORM
+                          </h1>
+                          <p className="text-xs text-gray-600">
+                            Electronic Health Record (EHR)
+                          </p>
+                        </div>
+                        <div className="text-right text-xs text-gray-600">
+                          <p>Printed: {new Date().toLocaleDateString()}</p>
+                          <p>Record ID: {consultationRecord.id}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Patient & Doctor Info */}
+                    <div className="grid grid-cols-2 gap-6 mb-6 text-xs">
+                      <div>
+                        <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">
+                          PATIENT INFORMATION
+                        </h3>
+                        <p>
+                          <span className="font-semibold">Name:</span>{" "}
+                          {appt.patient.name}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Email:</span>{" "}
+                          {appt.patient.email}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">
+                          CONSULTATION DETAILS
+                        </h3>
+                        <p>
+                          <span className="font-semibold">Date:</span>{" "}
+                          {new Date(appt.startTime).toLocaleDateString()}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Time:</span>{" "}
+                          {new Date(appt.startTime).toLocaleTimeString()} —{" "}
+                          {new Date(appt.endTime).toLocaleTimeString()}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Type:</span>{" "}
+                          {appt.type}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Status:</span>{" "}
+                          {appt.status}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-6 mb-6 text-xs">
+                      <div>
+                        <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">
+                          ATTENDING PHYSICIAN
+                        </h3>
+                        <p>
+                          <span className="font-semibold">Doctor:</span>{" "}
+                          {appt.doctor.user.name}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Specialty:</span>{" "}
+                          {appt.doctor.specialty}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">
+                          REASON FOR CONSULT
+                        </h3>
+                        <p>{appt.reason || "Not specified"}</p>
+                        {appt.symptoms && (
+                          <p className="mt-1">
+                            <span className="font-semibold">Symptoms:</span>{" "}
+                            {appt.symptoms}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* SOAP Notes */}
+                    <div className="mb-6 text-xs">
+                      <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-3">
+                        CLINICAL ASSESSMENT
+                      </h3>
+
+                      <div className="space-y-3">
+                        <div>
+                          <p className="font-semibold text-xs">DIAGNOSIS:</p>
+                          <p className="border border-gray-300 rounded p-2 mt-1">
+                            {consultationRecord.diagnosis || "Not specified"}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="font-semibold text-xs">
+                            SUBJECTIVE & OBJECTIVE FINDINGS:
+                          </p>
+                          <p className="border border-gray-300 rounded p-2 mt-1 whitespace-pre-wrap">
+                            {consultationRecord.doctorNotes || "Not specified"}
+                          </p>
+                        </div>
+
+                        <div>
+                          <p className="font-semibold text-xs">
+                            TREATMENT & RECOMMENDATION PLAN:
+                          </p>
+                          <p className="border border-gray-300 rounded p-2 mt-1 whitespace-pre-wrap">
+                            {consultationRecord.plan || "Not specified"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Prescriptions */}
+                    {consultationRecord.prescriptions &&
+                      consultationRecord.prescriptions.length > 0 && (
+                        <div className="mb-6 text-xs">
+                          <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-3">
+                            PRESCRIPTIONS
+                          </h3>
+                          <table className="w-full border-collapse text-xs">
+                            <thead>
+                              <tr className="bg-gray-100">
+                                <th className="border border-gray-300 p-1.5 text-left">
+                                  Medication
+                                </th>
+                                <th className="border border-gray-300 p-1.5 text-left">
+                                  Dosage
+                                </th>
+                                <th className="border border-gray-300 p-1.5 text-left">
+                                  Frequency
+                                </th>
+                                <th className="border border-gray-300 p-1.5 text-left">
+                                  Duration
+                                </th>
+                                <th className="border border-gray-300 p-1.5 text-left">
+                                  Instructions
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {consultationRecord.prescriptions.map((rx) => (
+                                <tr key={rx.id}>
+                                  <td className="border border-gray-300 p-1.5 font-medium">
+                                    {rx.medicationName}
+                                  </td>
+                                  <td className="border border-gray-300 p-1.5">
+                                    {rx.dosage}
+                                  </td>
+                                  <td className="border border-gray-300 p-1.5">
+                                    {rx.frequency}
+                                  </td>
+                                  <td className="border border-gray-300 p-1.5">
+                                    {rx.duration}
+                                  </td>
+                                  <td className="border border-gray-300 p-1.5">
+                                    {rx.instructions || "—"}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+
+                    {/* Footer */}
+                    <div className="border-t-2 border-black pt-4 mt-8 text-xs text-gray-500">
+                      <p>
+                        This document is generated by the Telehealth Platform
+                        EHR system.
+                      </p>
+                      <p>
+                        Consultation transcripts and visual sessions are
+                        securely isolated in transit.
+                      </p>
+                      <p className="mt-2">
+                        Signature: ____________________________ Date:
+                        ____________________
+                      </p>
                     </div>
                   </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
+              </>
+            ) : hasEndedCall ? (
+              // ─────────────────────────────────────────────────────────────
+              // ACTIVE SOAP CLINICAL CHARTING FORM (after call ended)
+              // ─────────────────────────────────────────────────────────────
+              <form onSubmit={handleSubmitChart}>
+                <Card className="border border-border/40 bg-card shadow-md">
+                  <CardHeader className="px-6 pt-6 pb-4 border-b border-border/10">
+                    <div className="flex items-center gap-2">
+                      <HeartPulse className="h-5 w-5 text-primary animate-pulse" />
+                      <CardTitle className="text-base font-bold">
+                        Clinical Charting Console
+                      </CardTitle>
+                    </div>
+                    <CardDescription className="text-xs">
+                      Formulate diagnostic evaluations, SOAP notations, and
+                      dispense medications directly.
+                    </CardDescription>
+                  </CardHeader>
 
-          {/* Verification compliant note */}
-          <Card className="border border-border/40 bg-muted/20 shadow-xs">
-            <CardContent className="pt-5 space-y-2 text-xs">
-              <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-                Data Privacy RA 10173 Approved
-              </h4>
-              <p className="text-[10px] text-muted-foreground leading-relaxed">
-                Consultation transcripts and visual sessions are securely
-                isolated in transit. Standardized medical charting documents are
-                encrypted and signed at rest.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+                  <CardContent className="p-6 space-y-6 text-xs text-left">
+                    {/* Diagnosis */}
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="diagnosis"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Diagnostic Assessment (Diagnosis){" "}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="diagnosis"
+                        placeholder="e.g. Acute Pharyngitis with secondary tonsillar hyperplasia"
+                        value={diagnosis}
+                        onChange={(e) => setDiagnosis(e.target.value)}
+                        className="bg-muted/10 border-border/60 text-sm font-semibold h-10"
+                        required
+                      />
+                    </div>
 
-        {/* Right Column: SOAP Charting or Read-only completed preview (Span 7) */}
-        <div className="lg:col-span-7">
-          {isCompleted ? (
-            // ─────────────────────────────────────────────────────────────
-            // COMPLETED CHART PREVIEW
-            // ─────────────────────────────────────────────────────────────
-            <>
-            <Card className="border border-emerald-500/20 bg-card shadow-md">
-              <CardHeader className="bg-emerald-500/5 border-b border-border/10 px-6 pt-6 pb-4">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <FileCheck className="h-5 w-5 text-emerald-600" />
-                    <CardTitle className="text-base font-bold text-emerald-800">
-                      Signed EHR Clinical Chart
-                    </CardTitle>
-                  </div>
-                  <Badge className="bg-emerald-600 hover:bg-emerald-600 text-white font-bold text-[10px]">
-                    SIGNED & FINALIZED
-                  </Badge>
-                </div>
-                <CardDescription className="text-xs font-semibold">
-                  This chart record is securely finalized and forms part of the
-                  patient's permanent electronic health record (EHR).
-                </CardDescription>
-              </CardHeader>
+                    {/* Doctor Notes SOAP */}
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="notes"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Subjective & Objective Findings (SOAP Findings)
+                      </Label>
+                      <Textarea
+                        id="notes"
+                        rows={4}
+                        placeholder="Subjective: Patient reports sore throat and pain on swallowing.&#10;Objective: Ertyhematous tonsillar pillars, no active exudates. Lungs clear."
+                        value={doctorNotes}
+                        onChange={(e) => setDoctorNotes(e.target.value)}
+                        className="bg-muted/10 border-border/60 text-xs min-h-25 leading-relaxed"
+                      />
+                    </div>
 
-              <CardContent className="p-6 space-y-6 text-xs text-left">
-                {consultationRecord ? (
-                  <>
-                    {/* SOAP Fields */}
-                    <div className="space-y-4.5">
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                          Diagnostic Assessment (Diagnosis)
-                        </span>
-                        <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 text-sm font-bold text-foreground">
-                          {consultationRecord.diagnosis ||
-                            "No diagnosis logged."}
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                          Doctor's Subjective & Objective Findings
-                        </span>
-                        <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 leading-relaxed whitespace-pre-wrap">
-                          {consultationRecord.doctorNotes || "No notes logged."}
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                          Treatment & Recommendation Plan
-                        </span>
-                        <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 leading-relaxed whitespace-pre-wrap">
-                          {consultationRecord.plan || "No plan logged."}
-                        </div>
-                      </div>
+                    {/* Plan / Recommendation */}
+                    <div className="space-y-1.5">
+                      <Label
+                        htmlFor="plan"
+                        className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                      >
+                        Treatment Plan & Instructions
+                      </Label>
+                      <Textarea
+                        id="plan"
+                        rows={3}
+                        placeholder="Increase oral fluid intake. Rest. Take medications as prescribed below. Follow up in 5 days if fever persists."
+                        value={plan}
+                        onChange={(e) => setPlan(e.target.value)}
+                        className="bg-muted/10 border-border/60 text-xs min-h-20 leading-relaxed"
+                      />
                     </div>
 
                     <Separator className="bg-border/30" />
 
-                    {/* eRx display block */}
-                    <div className="space-y-3.5">
-                      <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                    {/* E-Prescriptions Module */}
+                    <div className="space-y-4">
+                      <h4 className="text-xs font-black text-foreground flex items-center gap-1.5 uppercase tracking-wider">
                         <Pill className="h-4 w-4 text-primary" />
-                        Electronic Prescription Ledger (eRx)
+                        Dispense e-Prescription (eRx)
                       </h4>
 
-                      {consultationRecord.prescriptions?.length === 0 ? (
-                        <p className="text-muted-foreground text-xs italic">
-                          No pharmacological agents were prescribed during this
-                          consultation session.
-                        </p>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {consultationRecord.prescriptions?.map((rx) => (
-                            <div
-                              key={rx.id}
-                              className="border border-border/20 bg-muted/5 rounded-xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden"
-                            >
-                              {/* R symbol signature watermark */}
-                              <span className="absolute -right-3 -bottom-4 text-6xl font-black text-muted-foreground/5 pointer-events-none select-none italic font-serif">
-                                ℞
-                              </span>
-
-                              <div className="space-y-1 text-left">
-                                <h5 className="font-black text-sm text-foreground flex items-center gap-1">
-                                  <span className="text-primary italic font-serif">
-                                    ℞
-                                  </span>
-                                  {rx.medicationName}
-                                </h5>
-                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
-                                  {rx.dosage} — {rx.frequency}
-                                </p>
-                                <p className="text-[10px] text-foreground font-semibold">
-                                  Duration: {rx.duration}
-                                </p>
+                      {/* Medications list draft */}
+                      {prescriptions.length > 0 && (
+                        <div className="space-y-2 border border-border/20 rounded-xl p-3 bg-muted/10">
+                          <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                            Drafted Prescriptions List ({prescriptions.length})
+                          </Label>
+                          <div className="space-y-2 divide-y divide-border/10">
+                            {prescriptions.map((rx, idx) => (
+                              <div
+                                key={idx}
+                                className="flex justify-between items-center pt-2 first:pt-0"
+                              >
+                                <div className="space-y-0.5">
+                                  <h5 className="font-bold text-foreground flex items-center gap-1">
+                                    <span className="text-primary italic font-serif">
+                                      ℞
+                                    </span>
+                                    {rx.medicationName} ({rx.dosage})
+                                  </h5>
+                                  <p className="text-[10px] text-muted-foreground">
+                                    {rx.frequency} for {rx.duration}
+                                  </p>
+                                </div>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
+                                  onClick={() => handleRemoveMedication(idx)}
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </Button>
                               </div>
-
-                              {rx.instructions && (
-                                <p className="text-[10px] text-muted-foreground bg-muted/20 border border-border/10 rounded-lg p-2 leading-relaxed">
-                                  Instructions: {rx.instructions}
-                                </p>
-                              )}
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       )}
+
+                      {/* Medication Adder Form Grid */}
+                      <div className="bg-muted/15 border border-border/10 rounded-xl p-4.5 space-y-3.5">
+                        <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">
+                          Add Pharmacological Agent
+                        </span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor="med-name"
+                              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                            >
+                              Medication Name
+                            </Label>
+                            <Input
+                              id="med-name"
+                              placeholder="e.g. Amoxicillin Trihydrate"
+                              value={medName}
+                              onChange={(e) => setMedName(e.target.value)}
+                              className="bg-card h-8.5 text-xs"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor="med-dosage"
+                              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                            >
+                              Dosage / Concentration
+                            </Label>
+                            <Input
+                              id="med-dosage"
+                              placeholder="e.g. 500mg"
+                              value={medDosage}
+                              onChange={(e) => setMedDosage(e.target.value)}
+                              className="bg-card h-8.5 text-xs"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor="med-freq"
+                              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                            >
+                              Frequency
+                            </Label>
+                            <Input
+                              id="med-freq"
+                              placeholder="e.g. Three times a day (TID)"
+                              value={medFreq}
+                              onChange={(e) => setMedFreq(e.target.value)}
+                              className="bg-card h-8.5 text-xs"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <Label
+                              htmlFor="med-dur"
+                              className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                            >
+                              Duration
+                            </Label>
+                            <Input
+                              id="med-dur"
+                              placeholder="e.g. 7 days"
+                              value={medDur}
+                              onChange={(e) => setMedDur(e.target.value)}
+                              className="bg-card h-8.5 text-xs"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label
+                            htmlFor="med-inst"
+                            className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
+                          >
+                            Specific Instructions (Optional)
+                          </Label>
+                          <Input
+                            id="med-inst"
+                            placeholder="e.g. Take with food or immediately after meals."
+                            value={medInst}
+                            onChange={(e) => setMedInst(e.target.value)}
+                            className="bg-card h-8.5 text-xs"
+                          />
+                        </div>
+
+                        <div className="flex justify-end pt-1">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="secondary"
+                            onClick={handleAddMedication}
+                            className="text-[10px] h-7 font-bold flex items-center gap-1 shadow-sm px-3"
+                          >
+                            <Plus className="h-3 w-3" />
+                            Add Medication
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center py-10 gap-2">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-muted-foreground text-xs animate-pulse">
-                      Retrieving signature tokens from database ledger...
+                  </CardContent>
+
+                  <CardFooter className="border-t border-border/15 py-4 px-6 flex justify-end bg-muted/5">
+                    <Button
+                      type="submit"
+                      size="sm"
+                      className="text-xs h-9 bg-primary hover:bg-primary/95 text-primary-foreground font-black flex items-center gap-1.5 shadow-sm"
+                      disabled={
+                        createConsultationMutation.isPending ||
+                        updateStatusMutation.isPending
+                      }
+                    >
+                      {createConsultationMutation.isPending ||
+                      updateStatusMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Signing & Encoding Chart...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                          Complete & Submit Chart
+                        </>
+                      )}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </form>
+            ) : (
+              // ─────────────────────────────────────────────────────────────
+              // BEFORE CALL: Prompt to start consultation
+              // ─────────────────────────────────────────────────────────────
+              <Card className="border border-border/40 bg-card shadow-sm">
+                <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Video className="h-8 w-8 text-primary" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-bold text-foreground">
+                      Ready to Start Consultation
+                    </h3>
+                    <p className="text-sm text-muted-foreground max-w-md">
+                      Click &quot;Start Consultation&quot; to join the video
+                      room with your patient. After the call ends, you can
+                      document your findings here.
                     </p>
                   </div>
-                )}
-              </CardContent>
-
-              <CardFooter className="border-t border-border/15 py-4 px-6 flex justify-end gap-3 bg-muted/5">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="text-xs h-9 border-border/60 flex items-center gap-1.5 font-bold"
-                  onClick={() => window.print()}
-                >
-                  <Printer className="h-4 w-4" />
-                  Print EHR Chart
-                </Button>
-              </CardFooter>
-            </Card>
-
-            {/* ─── Print-only EHR Template ─────────────────────────────── */}
-            {consultationRecord && (
-              <div className="hidden print:block print:p-8 print:text-black print:bg-white">
-                {/* Header */}
-                <div className="border-b-2 border-black pb-4 mb-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h1 className="text-xl font-bold">TELEHEALTH PLATFORM</h1>
-                      <p className="text-xs text-gray-600">Electronic Health Record (EHR)</p>
-                    </div>
-                    <div className="text-right text-xs text-gray-600">
-                      <p>Printed: {new Date().toLocaleDateString()}</p>
-                      <p>Record ID: {consultationRecord.id}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Patient & Doctor Info */}
-                <div className="grid grid-cols-2 gap-6 mb-6 text-xs">
-                  <div>
-                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">PATIENT INFORMATION</h3>
-                    <p><span className="font-semibold">Name:</span> {appt.patient.name}</p>
-                    <p><span className="font-semibold">Email:</span> {appt.patient.email}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">CONSULTATION DETAILS</h3>
-                    <p><span className="font-semibold">Date:</span> {new Date(appt.startTime).toLocaleDateString()}</p>
-                    <p><span className="font-semibold">Time:</span> {new Date(appt.startTime).toLocaleTimeString()} — {new Date(appt.endTime).toLocaleTimeString()}</p>
-                    <p><span className="font-semibold">Type:</span> {appt.type}</p>
-                    <p><span className="font-semibold">Status:</span> {appt.status}</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-6 mb-6 text-xs">
-                  <div>
-                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">ATTENDING PHYSICIAN</h3>
-                    <p><span className="font-semibold">Doctor:</span> {appt.doctor.user.name}</p>
-                    <p><span className="font-semibold">Specialty:</span> {appt.doctor.specialty}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">REASON FOR CONSULT</h3>
-                    <p>{appt.reason || "Not specified"}</p>
-                    {appt.symptoms && (
-                      <p className="mt-1"><span className="font-semibold">Symptoms:</span> {appt.symptoms}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* SOAP Notes */}
-                <div className="mb-6 text-xs">
-                  <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-3">CLINICAL ASSESSMENT</h3>
-
-                  <div className="space-y-3">
-                    <div>
-                      <p className="font-semibold text-xs">DIAGNOSIS:</p>
-                      <p className="border border-gray-300 rounded p-2 mt-1">{consultationRecord.diagnosis || "Not specified"}</p>
-                    </div>
-
-                    <div>
-                      <p className="font-semibold text-xs">SUBJECTIVE & OBJECTIVE FINDINGS:</p>
-                      <p className="border border-gray-300 rounded p-2 mt-1 whitespace-pre-wrap">{consultationRecord.doctorNotes || "Not specified"}</p>
-                    </div>
-
-                    <div>
-                      <p className="font-semibold text-xs">TREATMENT & RECOMMENDATION PLAN:</p>
-                      <p className="border border-gray-300 rounded p-2 mt-1 whitespace-pre-wrap">{consultationRecord.plan || "Not specified"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Prescriptions */}
-                {consultationRecord.prescriptions && consultationRecord.prescriptions.length > 0 && (
-                  <div className="mb-6 text-xs">
-                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-3">PRESCRIPTIONS</h3>
-                    <table className="w-full border-collapse text-xs">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-gray-300 p-1.5 text-left">Medication</th>
-                          <th className="border border-gray-300 p-1.5 text-left">Dosage</th>
-                          <th className="border border-gray-300 p-1.5 text-left">Frequency</th>
-                          <th className="border border-gray-300 p-1.5 text-left">Duration</th>
-                          <th className="border border-gray-300 p-1.5 text-left">Instructions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {consultationRecord.prescriptions.map((rx) => (
-                          <tr key={rx.id}>
-                            <td className="border border-gray-300 p-1.5 font-medium">{rx.medicationName}</td>
-                            <td className="border border-gray-300 p-1.5">{rx.dosage}</td>
-                            <td className="border border-gray-300 p-1.5">{rx.frequency}</td>
-                            <td className="border border-gray-300 p-1.5">{rx.duration}</td>
-                            <td className="border border-gray-300 p-1.5">{rx.instructions || "—"}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-
-                {/* Footer */}
-                <div className="border-t-2 border-black pt-4 mt-8 text-xs text-gray-500">
-                  <p>This document is generated by the Telehealth Platform EHR system.</p>
-                  <p>Consultation transcripts and visual sessions are securely isolated in transit.</p>
-                  <p className="mt-2">Signature: ____________________________ Date: ____________________</p>
-                </div>
-              </div>
-            )}
-            </>
-          ) : hasEndedCall ? (
-            // ─────────────────────────────────────────────────────────────
-            // ACTIVE SOAP CLINICAL CHARTING FORM (after call ended)
-            // ─────────────────────────────────────────────────────────────
-            <form onSubmit={handleSubmitChart}>
-              <Card className="border border-border/40 bg-card shadow-md">
-                <CardHeader className="px-6 pt-6 pb-4 border-b border-border/10">
-                  <div className="flex items-center gap-2">
-                    <HeartPulse className="h-5 w-5 text-primary animate-pulse" />
-                    <CardTitle className="text-base font-bold">
-                      Clinical Charting Console
-                    </CardTitle>
-                  </div>
-                  <CardDescription className="text-xs">
-                    Formulate diagnostic evaluations, SOAP notations, and
-                    dispense medications directly.
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="p-6 space-y-6 text-xs text-left">
-                  {/* Diagnosis */}
-                  <div className="space-y-1.5">
-                    <Label
-                      htmlFor="diagnosis"
-                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
+                  {isJoinable && (
+                    <Button
+                      size="sm"
+                      className="text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm"
+                      disabled={joinRoomMutation.isPending}
+                      onClick={handleJoinCall}
                     >
-                      Diagnostic Assessment (Diagnosis){" "}
-                      <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="diagnosis"
-                      placeholder="e.g. Acute Pharyngitis with secondary tonsillar hyperplasia"
-                      value={diagnosis}
-                      onChange={(e) => setDiagnosis(e.target.value)}
-                      className="bg-muted/10 border-border/60 text-sm font-semibold h-10"
-                      required
-                    />
-                  </div>
-
-                  {/* Doctor Notes SOAP */}
-                  <div className="space-y-1.5">
-                    <Label
-                      htmlFor="notes"
-                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                    >
-                      Subjective & Objective Findings (SOAP Findings)
-                    </Label>
-                    <Textarea
-                      id="notes"
-                      rows={4}
-                      placeholder="Subjective: Patient reports sore throat and pain on swallowing.&#10;Objective: Ertyhematous tonsillar pillars, no active exudates. Lungs clear."
-                      value={doctorNotes}
-                      onChange={(e) => setDoctorNotes(e.target.value)}
-                      className="bg-muted/10 border-border/60 text-xs min-h-25 leading-relaxed"
-                    />
-                  </div>
-
-                  {/* Plan / Recommendation */}
-                  <div className="space-y-1.5">
-                    <Label
-                      htmlFor="plan"
-                      className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-                    >
-                      Treatment Plan & Instructions
-                    </Label>
-                    <Textarea
-                      id="plan"
-                      rows={3}
-                      placeholder="Increase oral fluid intake. Rest. Take medications as prescribed below. Follow up in 5 days if fever persists."
-                      value={plan}
-                      onChange={(e) => setPlan(e.target.value)}
-                      className="bg-muted/10 border-border/60 text-xs min-h-20 leading-relaxed"
-                    />
-                  </div>
-
-                  <Separator className="bg-border/30" />
-
-                  {/* E-Prescriptions Module */}
-                  <div className="space-y-4">
-                    <h4 className="text-xs font-black text-foreground flex items-center gap-1.5 uppercase tracking-wider">
-                      <Pill className="h-4 w-4 text-primary" />
-                      Dispense e-Prescription (eRx)
-                    </h4>
-
-                    {/* Medications list draft */}
-                    {prescriptions.length > 0 && (
-                      <div className="space-y-2 border border-border/20 rounded-xl p-3 bg-muted/10">
-                        <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
-                          Drafted Prescriptions List ({prescriptions.length})
-                        </Label>
-                        <div className="space-y-2 divide-y divide-border/10">
-                          {prescriptions.map((rx, idx) => (
-                            <div
-                              key={idx}
-                              className="flex justify-between items-center pt-2 first:pt-0"
-                            >
-                              <div className="space-y-0.5">
-                                <h5 className="font-bold text-foreground flex items-center gap-1">
-                                  <span className="text-primary italic font-serif">
-                                    ℞
-                                  </span>
-                                  {rx.medicationName} ({rx.dosage})
-                                </h5>
-                                <p className="text-[10px] text-muted-foreground">
-                                  {rx.frequency} for {rx.duration}
-                                </p>
-                              </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
-                                onClick={() => handleRemoveMedication(idx)}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Medication Adder Form Grid */}
-                    <div className="bg-muted/15 border border-border/10 rounded-xl p-4.5 space-y-3.5">
-                      <span className="text-[10px] font-black text-muted-foreground uppercase tracking-wider block">
-                        Add Pharmacological Agent
-                      </span>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div className="space-y-1">
-                          <Label
-                            htmlFor="med-name"
-                            className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
-                          >
-                            Medication Name
-                          </Label>
-                          <Input
-                            id="med-name"
-                            placeholder="e.g. Amoxicillin Trihydrate"
-                            value={medName}
-                            onChange={(e) => setMedName(e.target.value)}
-                            className="bg-card h-8.5 text-xs"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <Label
-                            htmlFor="med-dosage"
-                            className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
-                          >
-                            Dosage / Concentration
-                          </Label>
-                          <Input
-                            id="med-dosage"
-                            placeholder="e.g. 500mg"
-                            value={medDosage}
-                            onChange={(e) => setMedDosage(e.target.value)}
-                            className="bg-card h-8.5 text-xs"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <Label
-                            htmlFor="med-freq"
-                            className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
-                          >
-                            Frequency
-                          </Label>
-                          <Input
-                            id="med-freq"
-                            placeholder="e.g. Three times a day (TID)"
-                            value={medFreq}
-                            onChange={(e) => setMedFreq(e.target.value)}
-                            className="bg-card h-8.5 text-xs"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <Label
-                            htmlFor="med-dur"
-                            className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
-                          >
-                            Duration
-                          </Label>
-                          <Input
-                            id="med-dur"
-                            placeholder="e.g. 7 days"
-                            value={medDur}
-                            onChange={(e) => setMedDur(e.target.value)}
-                            className="bg-card h-8.5 text-xs"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <Label
-                          htmlFor="med-inst"
-                          className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground"
-                        >
-                          Specific Instructions (Optional)
-                        </Label>
-                        <Input
-                          id="med-inst"
-                          placeholder="e.g. Take with food or immediately after meals."
-                          value={medInst}
-                          onChange={(e) => setMedInst(e.target.value)}
-                          className="bg-card h-8.5 text-xs"
-                        />
-                      </div>
-
-                      <div className="flex justify-end pt-1">
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="secondary"
-                          onClick={handleAddMedication}
-                          className="text-[10px] h-7 font-bold flex items-center gap-1 shadow-sm px-3"
-                        >
-                          <Plus className="h-3 w-3" />
-                          Add Medication
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
+                      {joinRoomMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          Securing relays...
+                        </>
+                      ) : (
+                        <>
+                          <Video className="h-4 w-4" />
+                          Start Consultation
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </CardContent>
-
-                <CardFooter className="border-t border-border/15 py-4 px-6 flex justify-end bg-muted/5">
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="text-xs h-9 bg-primary hover:bg-primary/95 text-primary-foreground font-black flex items-center gap-1.5 shadow-sm"
-                    disabled={
-                      createConsultationMutation.isPending ||
-                      updateStatusMutation.isPending
-                    }
-                  >
-                    {createConsultationMutation.isPending ||
-                    updateStatusMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        Signing & Encoding Chart...
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                        Complete & Submit Chart
-                      </>
-                    )}
-                  </Button>
-                </CardFooter>
-               </Card>
-            </form>
-          ) : (
-            // ─────────────────────────────────────────────────────────────
-            // BEFORE CALL: Prompt to start consultation
-            // ─────────────────────────────────────────────────────────────
-            <Card className="border border-border/40 bg-card shadow-sm">
-              <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <Video className="h-8 w-8 text-primary" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-lg font-bold text-foreground">Ready to Start Consultation</h3>
-                  <p className="text-sm text-muted-foreground max-w-md">
-                    Click &quot;Start Consultation&quot; to join the video room with your patient.
-                    After the call ends, you can document your findings here.
-                  </p>
-                </div>
-                {isJoinable && (
-                  <Button
-                    size="sm"
-                    className="text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm"
-                    disabled={joinRoomMutation.isPending}
-                    onClick={handleJoinCall}
-                  >
-                    {joinRoomMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        Securing relays...
-                      </>
-                    ) : (
-                      <>
-                        <Video className="h-4 w-4" />
-                        Start Consultation
-                      </>
-                    )}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
     </>
   )
 }

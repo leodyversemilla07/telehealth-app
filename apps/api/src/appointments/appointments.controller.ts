@@ -1,11 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Patch,
-  Post,
-} from "@nestjs/common"
+import { Body, Controller, Get, Param, Patch, Post } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
@@ -42,10 +35,7 @@ export class AppointmentsController {
   @Get(":id")
   @ApiOperation({ summary: "Get appointment detail" })
   @ApiParam({ name: "id", description: "Appointment ID" })
-  async findOne(
-    @Session() session: UserSession,
-    @Param("id") id: string,
-  ) {
+  async findOne(@Session() session: UserSession, @Param("id") id: string) {
     return this.appointmentsService.findOne(
       id,
       session.user.id,
@@ -73,10 +63,7 @@ export class AppointmentsController {
   @Patch(":id/cancel")
   @ApiOperation({ summary: "Cancel an appointment (Patient or Doctor)" })
   @ApiParam({ name: "id", description: "Appointment ID" })
-  async cancel(
-    @Session() session: UserSession,
-    @Param("id") id: string,
-  ) {
+  async cancel(@Session() session: UserSession, @Param("id") id: string) {
     return this.appointmentsService.cancel(
       id,
       session.user.id,

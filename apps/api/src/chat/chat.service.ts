@@ -93,7 +93,9 @@ export class ChatService {
           },
           orderBy: { createdAt: "desc" },
           include: {
-            sender: { select: { id: true, name: true, email: true, image: true } },
+            sender: {
+              select: { id: true, name: true, email: true, image: true },
+            },
           },
         })
 

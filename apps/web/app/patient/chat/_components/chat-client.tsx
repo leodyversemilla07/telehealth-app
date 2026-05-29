@@ -4,13 +4,13 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Loader2, MessageSquare, Search, Send } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+import type { Conversation } from "@/hooks/use-chat"
 import {
   useChatMessages,
   useConversations,
   useMarkAsRead,
   useSendMessage,
 } from "@/hooks/use-chat"
-import type { Conversation } from "@/hooks/use-chat"
 
 interface ChatClientProps {
   currentUserId: string
@@ -24,7 +24,9 @@ export function ChatClient({ currentUserId, userRole }: ChatClientProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const { data: conversations = [], isPending } = useConversations()
-  const { data: messages = [], isPending: messagesLoading } = useChatMessages(selectedUserId || "")
+  const { data: messages = [], isPending: messagesLoading } = useChatMessages(
+    selectedUserId || "",
+  )
   const sendMessage = useSendMessage()
   const markAsRead = useMarkAsRead()
 
@@ -136,7 +138,9 @@ export function ChatClient({ currentUserId, userRole }: ChatClientProps) {
             <div className="flex-1 flex items-center justify-center text-muted-foreground">
               <div className="text-center">
                 <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="text-sm">Select a conversation to start chatting</p>
+                <p className="text-sm">
+                  Select a conversation to start chatting
+                </p>
               </div>
             </div>
           ) : (
@@ -148,7 +152,8 @@ export function ChatClient({ currentUserId, userRole }: ChatClientProps) {
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    {selectedConversation?.otherUser.name || selectedConversation?.otherUser.email}
+                    {selectedConversation?.otherUser.name ||
+                      selectedConversation?.otherUser.email}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
                     {userRole === "PATIENT" ? "Doctor" : "Patient"}
@@ -182,7 +187,9 @@ export function ChatClient({ currentUserId, userRole }: ChatClientProps) {
                           }`}
                         >
                           <p>{msg.content}</p>
-                          <p className={`text-[10px] mt-1 ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                          <p
+                            className={`text-[10px] mt-1 ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                          >
                             {new Date(msg.createdAt).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",

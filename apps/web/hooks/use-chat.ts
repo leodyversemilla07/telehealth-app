@@ -32,7 +32,8 @@ export interface Conversation {
 export const chatKeys = {
   all: ["chat"] as const,
   conversations: () => [...chatKeys.all, "conversations"] as const,
-  conversation: (userId: string) => [...chatKeys.all, "conversation", userId] as const,
+  conversation: (userId: string) =>
+    [...chatKeys.all, "conversation", userId] as const,
   unreadCount: () => [...chatKeys.all, "unread-count"] as const,
 }
 
@@ -46,7 +47,8 @@ export function useConversations() {
 export function useChatMessages(otherUserId: string) {
   return useQuery({
     queryKey: chatKeys.conversation(otherUserId),
-    queryFn: () => apiClient.get<ChatMessage[]>(`/chat/conversation/${otherUserId}`),
+    queryFn: () =>
+      apiClient.get<ChatMessage[]>(`/chat/conversation/${otherUserId}`),
     enabled: !!otherUserId,
     refetchInterval: 3000,
   })
@@ -64,10 +66,15 @@ export function useSendMessage() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: { receiverId: string; content: string; appointmentId?: string }) =>
-      apiClient.post<ChatMessage, typeof data>("/chat/send", data),
+    mutationFn: (data: {
+      receiverId: string
+      content: string
+      appointmentId?: string
+    }) => apiClient.post<ChatMessage, typeof data>("/chat/send", data),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: chatKeys.conversation(variables.receiverId) })
+      queryClient.invalidateQueries({
+        queryKey: chatKeys.conversation(variables.receiverId),
+      })
       queryClient.invalidateQueries({ queryKey: chatKeys.conversations() })
       queryClient.invalidateQueries({ queryKey: chatKeys.unreadCount() })
     },
@@ -78,8 +85,7 @@ export function useMarkAsRead() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (senderId: string) =>
-      apiClient.post(`/chat/read/${senderId}`),
+    mutationFn: (senderId: string) => apiClient.post(`/chat/read/${senderId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: chatKeys.conversations() })
       queryClient.invalidateQueries({ queryKey: chatKeys.unreadCount() })

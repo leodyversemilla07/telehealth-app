@@ -1,4 +1,4 @@
-import type { AppointmentStatus } from "@generated/prisma/client.js"
+import type { AppointmentStatus } from "../../generated/prisma/client.js"
 import {
   BadRequestException,
   ConflictException,
@@ -144,9 +144,10 @@ export class AppointmentsService {
     if (windows.length === 0) return false
 
     // Convert appointment times to PHT minutes for comparison with schedule windows
-    const phtStartMinutes = (phtDate.getUTCHours()) * 60 + phtDate.getUTCMinutes()
+    const phtStartMinutes = phtDate.getUTCHours() * 60 + phtDate.getUTCMinutes()
     const phtEndDate = new Date(end.getTime() + 8 * 60 * 60 * 1000)
-    const phtEndMinutes = (phtEndDate.getUTCHours()) * 60 + phtEndDate.getUTCMinutes()
+    const phtEndMinutes =
+      phtEndDate.getUTCHours() * 60 + phtEndDate.getUTCMinutes()
     const duration = phtEndMinutes - phtStartMinutes
 
     if (duration <= 0) return false
@@ -588,7 +589,10 @@ export class AppointmentsService {
 
         sent++
       } catch (err) {
-        this.logger.error(`Failed to send reminder for appointment ${appt.id}:`, err)
+        this.logger.error(
+          `Failed to send reminder for appointment ${appt.id}:`,
+          err,
+        )
       }
     }
 

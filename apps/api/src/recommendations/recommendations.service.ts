@@ -84,7 +84,9 @@ export class RecommendationsService {
         if (result) {
           // Find matching doctors
           const specialties = Array.isArray(result.specialties)
-            ? result.specialties.filter((s): s is string => typeof s === "string")
+            ? result.specialties.filter(
+                (s): s is string => typeof s === "string",
+              )
             : []
           const doctors = await this.prisma.doctorProfile.findMany({
             where: {
@@ -104,7 +106,9 @@ export class RecommendationsService {
 
           return { ...result, specialties, doctors }
         }
-        this.logger.warn(`Model ${model} returned empty result, trying fallback`)
+        this.logger.warn(
+          `Model ${model} returned empty result, trying fallback`,
+        )
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
         this.logger.warn(`NIM API call failed for model ${model}: ${message}`)
@@ -163,7 +167,9 @@ export class RecommendationsService {
   /**
    * Parse symptom checker response.
    */
-  private parseSymptomResponse(content: string): Record<string, unknown> | null {
+  private parseSymptomResponse(
+    content: string,
+  ): Record<string, unknown> | null {
     const cleaned = content
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/\s*```$/, "")

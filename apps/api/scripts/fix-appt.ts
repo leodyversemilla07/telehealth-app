@@ -16,7 +16,9 @@ async function main() {
   console.log("Consultation exists:", !!consultation)
 
   if (consultation) {
-    await prisma.prescription.deleteMany({ where: { consultationId: consultation.id } })
+    await prisma.prescription.deleteMany({
+      where: { consultationId: consultation.id },
+    })
     await prisma.consultation.delete({ where: { id: consultation.id } })
     console.log("Deleted consultation record")
   }

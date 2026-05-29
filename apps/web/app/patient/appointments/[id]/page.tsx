@@ -205,7 +205,9 @@ export default function AppointmentDetailPage() {
           setReviewComment("")
         },
         onError: (err: { message?: string }) => {
-          toast.error(err.message || "Failed to submit review", { id: "review" })
+          toast.error(err.message || "Failed to submit review", {
+            id: "review",
+          })
         },
       },
     )
@@ -320,7 +322,7 @@ export default function AppointmentDetailPage() {
   // Render WebRTC Video Calling Screen directly if call is active
   if (activeCallToken && activeCallUrl) {
     return (
-      <div className="space-y-4">
+      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
         {/* Call bar */}
         <div className="flex items-center justify-between bg-card border border-border/40 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">

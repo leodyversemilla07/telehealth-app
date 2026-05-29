@@ -1,4 +1,4 @@
-import { VisitType } from "@generated/prisma/client.js"
+import { VisitType } from "../../../generated/prisma/client.js"
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator"
 

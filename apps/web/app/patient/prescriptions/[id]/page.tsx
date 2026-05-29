@@ -90,7 +90,7 @@ export default function PrescriptionDetailPage() {
   )
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-1 flex-col gap-6 overflow-x-auto rounded-xl p-4">
       <div className="flex items-center gap-3 text-left">
         <Button
           variant="ghost"

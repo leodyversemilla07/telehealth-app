@@ -79,7 +79,7 @@ export function SettingsLayout({
   role?: "patient" | "doctor" | "admin"
 }) {
   const pathname = usePathname()
-  
+
   // Infer role from pathname if not explicitly provided
   let resolvedRole = role
   if (!resolvedRole && pathname) {
