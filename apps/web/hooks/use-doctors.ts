@@ -33,7 +33,7 @@ export function useDoctors(filters?: {
 export function useDoctor(id: string) {
   return useQuery({
     queryKey: doctorKeys.detail(id),
-    queryFn: () => apiClient.get<DoctorProfileDto>(`/doctors/${id}`),
+    queryFn: () => apiClient.get<DoctorProfileDto>(`/doctors/by-id/${id}`),
     enabled: !!id,
   })
 }

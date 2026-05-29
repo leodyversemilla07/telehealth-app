@@ -12,9 +12,11 @@ import {
 import {
   CalendarDays,
   ClipboardList,
+  FileText,
   LayoutDashboard,
   LifeBuoy,
   Send,
+  Settings,
   Stethoscope,
   Users,
 } from "lucide-react"
@@ -41,9 +43,19 @@ const data = {
       icon: <Users />,
     },
     {
+      title: "Medical Records",
+      url: "/doctor/records",
+      icon: <FileText />,
+    },
+    {
       title: "Schedule",
       url: "/doctor/schedule",
       icon: <CalendarDays />,
+    },
+    {
+      title: "Profile",
+      url: "/doctor/settings/profile",
+      icon: <Settings />,
     },
   ],
   navSecondary: [
@@ -61,7 +73,7 @@ export function SidebarDoctor({
   onLogout?: () => void
 }) {
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

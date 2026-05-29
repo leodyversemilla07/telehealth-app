@@ -20,18 +20,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@workspace/ui/components/sidebar"
-import {
-  BadgeCheckIcon,
-  BellIcon,
-  ChevronsUpDownIcon,
-  CreditCardIcon,
-  LogOutIcon,
-  SparklesIcon,
-} from "lucide-react"
+import { ChevronsUpDownIcon, LogOutIcon, SettingsIcon } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export function NavUser({
   user,
   onLogout,
+  role = "patient",
 }: {
   user: {
     name: string
@@ -39,8 +34,12 @@ export function NavUser({
     avatar: string
   }
   onLogout?: () => void
+  role?: "patient" | "doctor" | "admin"
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+  const settingsPath = `/${role}/settings`
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -82,24 +81,9 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <SparklesIcon />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheckIcon />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                Notifications
+              <DropdownMenuItem onClick={() => router.push(settingsPath)}>
+                <SettingsIcon />
+                Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />

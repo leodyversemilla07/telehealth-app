@@ -1,10 +1,21 @@
-import { Body, Controller, Get, Param, Post, Query } from "@nestjs/common"
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
 import { DoctorsService } from "@/doctors/doctors.service"
-import { RegisterDoctorDto } from "@/doctors/dto/register-doctor.dto"
-import { SearchDoctorsDto } from "@/doctors/dto/search-doctors.dto"
+import {
+  RegisterDoctorDto,
+  SearchDoctorsDto,
+  UpdateDoctorProfileDto,
+} from "@/doctors/dto"
 
 @ApiTags("Doctors")
 @ApiBearerAuth("session-token")
@@ -26,6 +37,25 @@ export class DoctorsController {
     return this.doctorsService.register(session.user.id, dto)
   }
 
+  // ─── Doctor's own profile ───────────────────────────────────────────
+
+  @Get("profile")
+  @Roles(["DOCTOR"])
+  @ApiOperation({ summary: "Get current doctor's own profile" })
+  async getMyProfile(@Session() session: UserSession) {
+    return this.doctorsService.findByUserId(session.user.id)
+  }
+
+  @Patch("profile")
+  @Roles(["DOCTOR"])
+  @ApiOperation({ summary: "Update current doctor's own profile" })
+  async updateMyProfile(
+    @Session() session: UserSession,
+    @Body() dto: UpdateDoctorProfileDto,
+  ) {
+    return this.doctorsService.updateProfile(session.user.id, dto)
+  }
+
   // ─── Public / Patient-facing ────────────────────────────────────────
 
   @Get()
@@ -38,7 +68,7 @@ export class DoctorsController {
     return this.doctorsService.findApproved(query)
   }
 
-  @Get(":id")
+  @Get("by-id/:id")
   @AllowAnonymous()
   @ApiOperation({ summary: "Get a doctor profile by ID (public)" })
   @ApiParam({ name: "id", description: "Doctor profile ID" })

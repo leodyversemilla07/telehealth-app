@@ -133,4 +133,31 @@ export class RecordsController {
   async getMyPrescriptions(@Session() session: UserSession) {
     return this.recordsService.getPatientPrescriptions(session.user.id)
   }
+
+  // ─── Doctor: Access patient records ─────────────────────────────────
+
+  @Get("doctor/patients")
+  @Roles(["DOCTOR"])
+  @ApiOperation({
+    summary: "Get all patients the doctor has seen",
+  })
+  async getDoctorPatients(@Session() session: UserSession) {
+    return this.recordsService.getDoctorPatients(session.user.id)
+  }
+
+  @Get("doctor/patient/:patientId")
+  @Roles(["DOCTOR"])
+  @ApiOperation({
+    summary: "Get a patient's medical history for the doctor",
+  })
+  @ApiParam({ name: "patientId", description: "Patient user ID" })
+  async getPatientRecordsForDoctor(
+    @Session() session: UserSession,
+    @Param("patientId") patientId: string,
+  ) {
+    return this.recordsService.getPatientRecordsForDoctor(
+      patientId,
+      session.user.id,
+    )
+  }
 }

@@ -28,31 +28,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@workspace/ui/components/tabs"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   Calendar,
   CalendarDays,
   ChevronRight,
-  Clock,
   Filter,
   Loader2,
   Search,
   ShieldCheck,
-  Sparkles,
   Stethoscope,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { TimeSlotPicker } from "@/components/time-slot-picker"
 import { useAvailableSlots, useBookAppointment } from "@/hooks/use-appointments"
 import { useDoctors } from "@/hooks/use-doctors"
-import { useRecommendation } from "@/hooks/use-recommendations"
 
 const SPECIALTIES = [
   "General Practice",
@@ -71,17 +63,9 @@ export default function BookAppointmentPage() {
   const router = useRouter()
 
   // Directory Filters States
-  const [activeTab, setActiveTab] = useState<string>("directory")
   const [search, setSearch] = useState("")
   const [specialty, setSpecialty] = useState<string>("all")
   const [sort, setSort] = useState<"name" | "price">("name")
-
-  // AI Recommendation States
-  const [symptomsInput, setSymptomsInput] = useState("")
-  const [aiSpecialties, setAiSpecialties] = useState<string[]>([])
-  const [aiRecommendedDoctorIds, setAiRecommendedDoctorIds] = useState<
-    string[]
-  >([])
 
   // Booking Modal States
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorProfileDto | null>(
@@ -107,66 +91,14 @@ export default function BookAppointmentPage() {
     sort,
   })
 
-  // 2. AI Recommendation Mutation (calls NVIDIA NIM Nemotron model)
-  const recommendMutation = useRecommendation()
-
-  // 3. Fetch Slots Query (triggers when booking date & doctor change)
+  // 2. Fetch Slots Query (triggers when booking date & doctor change)
   const { data: slots = [], isPending: slotsLoading } = useAvailableSlots(
     selectedDoctor?.id ?? "",
     bookingDate,
   )
 
-  // 4. Create Appointment Mutation
+  // 3. Create Appointment Mutation
   const bookMutation = useBookAppointment()
-
-  // Handle AI Recommendation Analysis
-  const handleAiAnalyze = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!symptomsInput.trim()) {
-      toast.error("Please describe your symptoms first")
-      return
-    }
-
-    toast.loading("Nemotron AI is analyzing your symptoms...", {
-      id: "ai-triage",
-    })
-
-    recommendMutation.mutate(
-      { symptoms: symptomsInput },
-      {
-        onSuccess: (data) => {
-          toast.dismiss("ai-triage")
-          if (data.specialties && data.specialties.length > 0) {
-            setAiSpecialties(data.specialties)
-            const matchedIds = data.doctors?.map((doc) => doc.id) ?? []
-            setAiRecommendedDoctorIds(matchedIds)
-            toast.success(
-              `AI identified: ${data.specialties.join(", ")}. Rerouting to recommended providers.`,
-            )
-          } else {
-            toast.info(
-              "AI analyzed symptoms but could not match a specialty. Browse our directory.",
-            )
-          }
-        },
-        onError: (err: Error) => {
-          toast.dismiss("ai-triage")
-          toast.error(
-            err.message ||
-              "AI triage service temporarily down. Use standard directory.",
-          )
-        },
-      },
-    )
-  }
-
-  // Clear AI Recommendations and reset filters
-  const resetAiFilters = () => {
-    setAiSpecialties([])
-    setAiRecommendedDoctorIds([])
-    setSymptomsInput("")
-    toast.success("Filters reset!")
-  }
 
   // Handle Booking Trigger
   const handleOpenBooking = (doctor: DoctorProfileDto) => {
@@ -201,7 +133,7 @@ export default function BookAppointmentPage() {
         startTime: selectedSlot.startTime,
         endTime: selectedSlot.endTime,
         reason: visitReason.trim() || undefined,
-        symptoms: visitSymptoms.trim() || symptomsInput.trim() || undefined,
+        symptoms: visitSymptoms.trim() || undefined,
         type: visitType,
       },
       {
@@ -219,13 +151,8 @@ export default function BookAppointmentPage() {
     )
   }
 
-  // Filter doctors locally if AI filters are active
-  const displayedDoctors = doctors.filter((doc) => {
-    if (aiRecommendedDoctorIds.length > 0) {
-      return aiRecommendedDoctorIds.includes(doc.id)
-    }
-    return true
-  })
+  // Use doctors directly from API (already filtered by search/specialty/sort)
+  const displayedDoctors = doctors
 
   // Format price helper (PHP currency ₱)
   const formatPrice = (price: number) => {
@@ -236,7 +163,7 @@ export default function BookAppointmentPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       {/* Title */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
@@ -249,221 +176,95 @@ export default function BookAppointmentPage() {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 max-w-md mb-6">
-          <TabsTrigger value="directory" className="flex items-center gap-2">
-            <Search className="h-4 w-4" />
-            Standard Directory
-          </TabsTrigger>
-          <TabsTrigger value="ai" className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-amber-500" />
-            AI Symptom Classifier
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Directory Search & Filters tab */}
-        <TabsContent value="directory" className="space-y-6 outline-none">
-          <Card className="border-border/40 shadow-xs">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Filter className="h-4 w-4 text-primary" />
-                Filter Directory
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Refine the listings of approved practicing professionals.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* Search */}
-                <div className="space-y-1.5 col-span-1 md:col-span-2">
-                  <Label
-                    htmlFor="search-name"
-                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                  >
-                    Search Doctor Name
-                  </Label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="search-name"
-                      placeholder="e.g. Dr. Maria Santos..."
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      className="pl-9 bg-muted/10 border-border/60"
-                    />
-                  </div>
-                </div>
-
-                {/* Specialty select */}
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="specialty-filter"
-                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                  >
-                    Specialty
-                  </Label>
-                  <Select
-                    value={specialty}
-                    onValueChange={(val) => setSpecialty(val ?? "all")}
-                  >
-                    <SelectTrigger
-                      id="specialty-filter"
-                      className="bg-muted/10 border-border/60"
-                    >
-                      <SelectValue placeholder="All Specialties" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Specialties</SelectItem>
-                      {SPECIALTIES.map((spec) => (
-                        <SelectItem key={spec} value={spec}>
-                          {spec}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Sort select */}
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="sort-filter"
-                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                  >
-                    Sort By
-                  </Label>
-                  <Select
-                    value={sort}
-                    onValueChange={(v) => setSort(v as "name" | "price")}
-                  >
-                    <SelectTrigger
-                      id="sort-filter"
-                      className="bg-muted/10 border-border/60"
-                    >
-                      <SelectValue placeholder="Name" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="name">Doctor Name</SelectItem>
-                      <SelectItem value="price">Price (Low → High)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+      {/* Directory Search & Filters */}
+      <Card className="border-border/70">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <Filter className="h-4 w-4 text-primary" />
+            Filter Directory
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Refine the listings of approved practicing professionals.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Search */}
+            <div className="space-y-1.5 col-span-1 md:col-span-2">
+              <Label
+                htmlFor="search-name"
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Search Doctor Name
+              </Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search-name"
+                  placeholder="e.g. Dr. Maria Santos..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 bg-muted/10 border-border/60"
+                />
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
 
-        {/* AI Symptom recommendations tab */}
-        <TabsContent value="ai" className="space-y-6 outline-none">
-          <Card className="border-amber-500/10 bg-amber-500/1 shadow-xs relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
-            <CardHeader>
-              <CardTitle className="text-lg font-bold flex items-center gap-2 text-amber-600 dark:text-amber-500">
-                <Sparkles className="h-5 w-5 animate-pulse" />
-                Nemotron Symptom-to-Specialty AI
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Describe your symptoms below. Our NVIDIA NIM-powered medical
-                triage engine will automatically map them to appropriate
-                specialties and filter verified specialists.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAiAnalyze} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label
-                    htmlFor="ai-symptoms"
-                    className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
-                  >
-                    Describe how you feel
-                  </Label>
-                  <Textarea
-                    id="ai-symptoms"
-                    placeholder="e.g. I have had a severe throbbing headache behind my eyes for 2 days, accompanied by light sensitivity and mild nausea."
-                    value={symptomsInput}
-                    onChange={(e) => setSymptomsInput(e.target.value)}
-                    rows={3}
-                    className="bg-muted/10 border-border/60 text-sm leading-relaxed"
-                    disabled={recommendMutation.isPending}
-                  />
-                </div>
+            {/* Specialty select */}
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="specialty-filter"
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Specialty
+              </Label>
+              <Select
+                value={specialty}
+                onValueChange={(val) => setSpecialty(val ?? "all")}
+              >
+                <SelectTrigger
+                  id="specialty-filter"
+                  className="bg-muted/10 border-border/60"
+                >
+                  <SelectValue placeholder="All Specialties" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Specialties</SelectItem>
+                  {SPECIALTIES.map((spec) => (
+                    <SelectItem key={spec} value={spec}>
+                      {spec}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div className="flex gap-3 justify-end">
-                  {aiSpecialties.length > 0 && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={resetAiFilters}
-                      className="text-xs h-9 border-border/60"
-                    >
-                      Clear Recommendations
-                    </Button>
-                  )}
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="text-xs h-9 bg-amber-600 hover:bg-amber-700 text-white font-medium flex items-center gap-2 shadow-sm"
-                    disabled={recommendMutation.isPending}
-                  >
-                    {recommendMutation.isPending ? (
-                      <>
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="h-3.5 w-3.5" />
-                        Analyze Symptoms
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-
-              {aiSpecialties.length > 0 && (
-                <div className="mt-6 pt-5 border-t border-border/40 space-y-3">
-                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    AI Identified Specialties
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {aiSpecialties.map((spec) => (
-                      <Badge
-                        key={spec}
-                        className="bg-amber-500/10 text-amber-700 border-amber-500/20 hover:bg-amber-500/20 py-0.5 px-2 text-xs font-medium"
-                      >
-                        {spec}
-                      </Badge>
-                    ))}
-                  </div>
-                  <p className="text-[11px] text-muted-foreground leading-normal mt-1">
-                    Listed doctors have been automatically filtered to display
-                    matching specialties.
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Renders AI warning if directory is manually filtered but AI results are active */}
-      {aiRecommendedDoctorIds.length > 0 && activeTab === "directory" && (
-        <div className="bg-amber-500/10 border border-amber-200/30 text-amber-700 rounded-xl p-4 flex items-center justify-between text-xs font-medium shadow-xs">
-          <span className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 shrink-0 text-amber-500 animate-pulse" />
-            AI Symptom filters are active. Displaying matching specialists.
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={resetAiFilters}
-            className="h-7 text-[11px] text-amber-700 hover:bg-amber-100/50"
-          >
-            Reset Filters
-          </Button>
-        </div>
-      )}
+            {/* Sort select */}
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="sort-filter"
+                className="text-xs font-semibold uppercase tracking-wider text-muted-foreground"
+              >
+                Sort By
+              </Label>
+              <Select
+                value={sort}
+                onValueChange={(v) => setSort(v as "name" | "price")}
+              >
+                <SelectTrigger
+                  id="sort-filter"
+                  className="bg-muted/10 border-border/60"
+                >
+                  <SelectValue placeholder="Name" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Doctor Name</SelectItem>
+                  <SelectItem value="price">Price (Low → High)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Directory listings grid */}
       <div className="space-y-4">
@@ -499,7 +300,7 @@ export default function BookAppointmentPage() {
             ))}
           </div>
         ) : displayedDoctors.length === 0 ? (
-          <Card className="border border-border/40 p-12 text-center shadow-xs max-w-md mx-auto space-y-4">
+          <Card className="border border-border/70 p-12 text-center max-w-md mx-auto space-y-4">
             <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center text-muted-foreground mx-auto">
               <Stethoscope className="h-6 w-6" />
             </div>
@@ -508,14 +309,11 @@ export default function BookAppointmentPage() {
                 No approved doctors available
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                {aiRecommendedDoctorIds.length > 0
-                  ? "None of our approved providers match the AI predicted specialties currently."
-                  : "There are currently no approved providers listed matching your query."}
+                There are currently no approved providers listed matching your
+                query.
               </p>
             </div>
-            {(specialty !== "all" ||
-              search ||
-              aiRecommendedDoctorIds.length > 0) && (
+            {(specialty !== "all" || search) && (
               <Button
                 variant="outline"
                 size="sm"
@@ -523,7 +321,6 @@ export default function BookAppointmentPage() {
                 onClick={() => {
                   setSearch("")
                   setSpecialty("all")
-                  resetAiFilters()
                 }}
               >
                 Reset Search Filters
@@ -691,55 +488,12 @@ export default function BookAppointmentPage() {
                 )}
               </Label>
 
-              {slotsLoading ? (
-                <div className="grid grid-cols-3 gap-2">
-                  {Array.from({ length: 3 }).map((_, idx) => (
-                    <div
-                      key={idx}
-                      className="h-9 rounded-lg bg-muted animate-pulse border border-border/40"
-                    />
-                  ))}
-                </div>
-              ) : slots.length === 0 ? (
-                <div className="bg-muted/30 border border-border/25 text-muted-foreground rounded-xl p-4 text-center text-xs font-medium leading-relaxed">
-                  No slots available on this date. Doctor may have blocked the
-                  day, reached capacity, or schedules are unconfigured. Try
-                  another date.
-                </div>
-              ) : (
-                <div className="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto pr-1">
-                  {slots.map((slot) => {
-                    const startStr = new Date(
-                      slot.startTime,
-                    ).toLocaleTimeString(undefined, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      hour12: true,
-                      timeZone: "Asia/Manila",
-                    })
-
-                    const isSelected =
-                      selectedSlot?.startTime === slot.startTime
-
-                    return (
-                      <Button
-                        key={slot.startTime}
-                        type="button"
-                        variant={isSelected ? "default" : "outline"}
-                        className={`text-xs h-9 font-semibold ${
-                          isSelected
-                            ? "shadow-sm"
-                            : "border-border/60 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
-                        }`}
-                        onClick={() => setSelectedSlot(slot)}
-                      >
-                        <Clock className="h-3 w-3 mr-1 shrink-0" />
-                        {startStr}
-                      </Button>
-                    )
-                  })}
-                </div>
-              )}
+              <TimeSlotPicker
+                slots={slots}
+                selectedSlot={selectedSlot}
+                onSelect={setSelectedSlot}
+                isLoading={slotsLoading}
+              />
             </div>
 
             {/* Intake forms */}

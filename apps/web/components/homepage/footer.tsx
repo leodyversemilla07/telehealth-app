@@ -23,7 +23,7 @@ const FOOTER_GROUPS = [
     links: [
       { href: "/appointments/book", label: "Book appointment" },
       { href: "/doctors", label: "Find doctors" },
-      { href: "/medical-records", label: "Medical records" },
+      { href: "/patient/records", label: "Medical records" },
     ],
   },
   {

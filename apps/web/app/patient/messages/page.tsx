@@ -11,7 +11,7 @@ import { MessageSquareText } from "lucide-react"
 
 export default function PatientMessagesPage() {
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Messages</h1>
         <p className="text-muted-foreground">

@@ -125,7 +125,7 @@ export function PatientAppointmentsClient() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

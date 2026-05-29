@@ -12,10 +12,12 @@ import {
 import {
   Activity,
   FileText,
+  History,
   LifeBuoy,
   Send,
   Settings,
   Shield,
+  Stethoscope,
   Users,
 } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
@@ -36,13 +38,23 @@ const data = {
       icon: <Users />,
     },
     {
+      title: "Doctors",
+      url: "/admin/doctors",
+      icon: <Stethoscope />,
+    },
+    {
       title: "Reports",
       url: "/admin/reports",
       icon: <FileText />,
     },
     {
+      title: "Audit Logs",
+      url: "/admin/audit-logs",
+      icon: <History />,
+    },
+    {
       title: "Settings",
-      url: "/settings",
+      url: "/admin/settings/profile",
       icon: <Settings />,
     },
   ],
@@ -61,7 +73,7 @@ export function SidebarAdmin({
   onLogout?: () => void
 }) {
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

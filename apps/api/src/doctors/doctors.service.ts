@@ -3,7 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
-import type { RegisterDoctorDto, SearchDoctorsDto } from "@/doctors/dto"
+import type {
+  RegisterDoctorDto,
+  SearchDoctorsDto,
+  UpdateDoctorProfileDto,
+} from "@/doctors/dto"
 import { PrismaService } from "@/prisma/prisma.service"
 
 const PUBLIC_USER_SELECT = {
@@ -177,6 +181,40 @@ export class DoctorsService {
       )
     }
     return profile
+  }
+
+  /**
+   * Update the doctor's own profile.
+   */
+  async updateProfile(userId: string, dto: UpdateDoctorProfileDto) {
+    const profile = await this.prisma.doctorProfile.findUnique({
+      where: { userId },
+    })
+    if (!profile) {
+      throw new NotFoundException("Doctor profile not found")
+    }
+
+    const data: Record<string, unknown> = {}
+    if (dto.specialty !== undefined) data.specialty = dto.specialty
+    if (dto.bio !== undefined) data.bio = dto.bio
+    if (dto.clinicAddress !== undefined) data.clinicAddress = dto.clinicAddress
+    if (dto.pricePerVisit !== undefined)
+      data.pricePerVisit = Number.parseFloat(dto.pricePerVisit)
+
+    return this.prisma.doctorProfile.update({
+      where: { userId },
+      data,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+          },
+        },
+      },
+    })
   }
 
   /**

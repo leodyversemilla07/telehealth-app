@@ -1,6 +1,7 @@
 "use client"
 
 import { LiveKitRoom, VideoConference } from "@livekit/components-react"
+import type { AvailableSlotDto } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -11,15 +12,28 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
+import { Input } from "@workspace/ui/components/input"
+import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
 import {
   AlertCircle,
   ArrowLeft,
   Calendar,
+  CalendarClock,
+  ClipboardList,
   Clock,
   Loader2,
   MapPin,
   Phone,
+  RefreshCw,
   ShieldCheck,
   Trash2,
   User,
@@ -28,7 +42,14 @@ import {
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { useAppointment, useCancelAppointment } from "@/hooks/use-appointments"
+import { TimeSlotPicker } from "@/components/time-slot-picker"
+import {
+  useAppointment,
+  useAvailableSlots,
+  useCancelAppointment,
+  useRescheduleAppointment,
+} from "@/hooks/use-appointments"
+import { useAppointmentConsultation } from "@/hooks/use-records"
 import { useJoinRoom } from "@/hooks/use-video"
 import "@livekit/components-styles"
 
@@ -41,14 +62,33 @@ export default function AppointmentDetailPage() {
   const [activeCallToken, setActiveCallToken] = useState<string | null>(null)
   const [activeCallUrl, setActiveCallUrl] = useState<string | null>(null)
 
+  // Reschedule states
+  const [showRescheduleDialog, setShowRescheduleDialog] = useState(false)
+  const [rescheduleDate, setRescheduleDate] = useState("")
+  const [rescheduleSlot, setRescheduleSlot] = useState<AvailableSlotDto | null>(
+    null,
+  )
+
   // 1. Fetch appointment details (react-query)
   const { data: appt, isPending, error, refetch } = useAppointment(id)
 
-  // 2. Cancel mutation
+  // 2. Fetch consultation record (if appointment is completed)
+  const { data: consultation } = useAppointmentConsultation(
+    appt?.status === "COMPLETED" ? id : "",
+  )
+
+  // 3. Cancel mutation
   const cancelMutation = useCancelAppointment()
 
-  // 3. Join video room mutation
+  // 4. Reschedule mutation
+  const rescheduleMutation = useRescheduleAppointment()
+
+  // 5. Join video room mutation
   const joinRoomMutation = useJoinRoom()
+
+  // 6. Fetch available slots for reschedule
+  const { data: rescheduleSlots = [], isPending: slotsLoading } =
+    useAvailableSlots(appt?.doctorId ?? "", rescheduleDate)
 
   // Handle Join Session
   const handleJoinCall = () => {
@@ -100,6 +140,40 @@ export default function AppointmentDetailPage() {
         })
       },
     })
+  }
+
+  // Handle Reschedule
+  const handleReschedule = () => {
+    if (!rescheduleSlot) {
+      toast.error("Please select a new time slot")
+      return
+    }
+
+    toast.loading("Rescheduling appointment...", { id: "reschedule-appt" })
+
+    rescheduleMutation.mutate(
+      {
+        id,
+        startTime: rescheduleSlot.startTime,
+        endTime: rescheduleSlot.endTime,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Appointment rescheduled successfully", {
+            id: "reschedule-appt",
+          })
+          setShowRescheduleDialog(false)
+          setRescheduleDate("")
+          setRescheduleSlot(null)
+          refetch()
+        },
+        onError: (err: Error) => {
+          toast.error(err.message || "Failed to reschedule", {
+            id: "reschedule-appt",
+          })
+        },
+      },
+    )
   }
 
   // Format price helper (PHP currency ₱)
@@ -332,44 +406,216 @@ export default function AppointmentDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* Consultation Record (if completed) */}
+            {appt.status === "COMPLETED" && consultation && (
+              <>
+                <Separator className="bg-border/30" />
+                <div className="space-y-4">
+                  <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                    <ClipboardList className="h-3.5 w-3.5" /> Consultation
+                    Record
+                  </span>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-muted/20 border border-border/20 rounded-xl p-4 space-y-1">
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                        Diagnosis
+                      </span>
+                      <p className="text-foreground font-medium text-sm">
+                        {consultation.diagnosis || "Not specified"}
+                      </p>
+                    </div>
+                    {consultation.plan && (
+                      <div className="bg-muted/20 border border-border/20 rounded-xl p-4 space-y-1">
+                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                          Treatment Plan
+                        </span>
+                        <p className="text-foreground text-sm">
+                          {consultation.plan}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {consultation.doctorNotes && (
+                    <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 text-sm leading-relaxed text-foreground italic space-y-1">
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider not-italic">
+                        Doctor&apos;s Notes
+                      </span>
+                      <p className="mt-1">
+                        &ldquo;{consultation.doctorNotes}&rdquo;
+                      </p>
+                    </div>
+                  )}
+
+                  {consultation.prescriptions.length > 0 && (
+                    <div className="space-y-2">
+                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                        Prescriptions ({consultation.prescriptions.length})
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {consultation.prescriptions.map((rx) => (
+                          <div
+                            key={rx.id}
+                            className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-xs space-y-1"
+                          >
+                            <p className="font-bold text-foreground">
+                              {rx.medicationName}
+                            </p>
+                            <p className="text-muted-foreground">
+                              {rx.dosage} &middot; {rx.frequency} &middot;{" "}
+                              {rx.duration}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </CardContent>
 
           <CardFooter className="border-t border-border/15 py-4 px-6 flex justify-end gap-3 flex-wrap">
-            {isCancellable && (
+            {appt.status === "COMPLETED" ? (
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs h-9 border-border/60 text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
-                disabled={cancelMutation.isPending}
-                onClick={handleCancel}
+                className="text-xs h-9 border-border/60"
+                onClick={() => router.push("/patient/records")}
               >
-                <Trash2 className="h-4 w-4 mr-1.5" />
-                Cancel Appointment
+                <ClipboardList className="h-4 w-4 mr-1.5" />
+                View Full Medical Record
               </Button>
-            )}
-
-            {isJoinable && (
-              <Button
-                size="sm"
-                className="text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm"
-                disabled={joinRoomMutation.isPending}
-                onClick={handleJoinCall}
-              >
-                {joinRoomMutation.isPending ? (
+            ) : (
+              <>
+                {isCancellable && (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Connecting...
-                  </>
-                ) : (
-                  <>
-                    <Video className="h-4 w-4" />
-                    Join Consultation Room
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-9 border-border/60 text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
+                      disabled={cancelMutation.isPending}
+                      onClick={handleCancel}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1.5" />
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-9 border-border/60"
+                      onClick={() => {
+                        setRescheduleDate(
+                          new Date().toISOString().split("T")[0] ?? "",
+                        )
+                        setShowRescheduleDialog(true)
+                      }}
+                    >
+                      <CalendarClock className="h-4 w-4 mr-1.5" />
+                      Reschedule
+                    </Button>
                   </>
                 )}
-              </Button>
+
+                {isJoinable && (
+                  <Button
+                    size="sm"
+                    className="text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm"
+                    disabled={joinRoomMutation.isPending}
+                    onClick={handleJoinCall}
+                  >
+                    {joinRoomMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <Video className="h-4 w-4" />
+                        Join Consultation Room
+                      </>
+                    )}
+                  </Button>
+                )}
+              </>
             )}
           </CardFooter>
         </Card>
+
+        {/* Reschedule Dialog */}
+        <Dialog
+          open={showRescheduleDialog}
+          onOpenChange={setShowRescheduleDialog}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <RefreshCw className="h-5 w-5 text-primary" />
+                Reschedule Appointment
+              </DialogTitle>
+              <DialogDescription className="text-xs">
+                Select a new date and time slot for your consultation with{" "}
+                <strong>{appt.doctor.user.name}</strong>.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="reschedule-date">New Date</Label>
+                <Input
+                  id="reschedule-date"
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  value={rescheduleDate}
+                  onChange={(e) => {
+                    setRescheduleDate(e.target.value)
+                    setRescheduleSlot(null)
+                  }}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>New Time Slot</Label>
+                <TimeSlotPicker
+                  slots={rescheduleSlots}
+                  selectedSlot={rescheduleSlot}
+                  onSelect={setRescheduleSlot}
+                  isLoading={slotsLoading}
+                />
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowRescheduleDialog(false)
+                  setRescheduleDate("")
+                  setRescheduleSlot(null)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                disabled={!rescheduleSlot || rescheduleMutation.isPending}
+                onClick={handleReschedule}
+              >
+                {rescheduleMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                    Rescheduling...
+                  </>
+                ) : (
+                  "Confirm Reschedule"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Doctor Summary Sidebar Card */}
         <div className="space-y-6">

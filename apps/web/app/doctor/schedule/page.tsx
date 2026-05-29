@@ -134,11 +134,16 @@ export default function DoctorSchedulePage() {
     }
   }, [schedule, days])
 
+  const DEFAULT_DAY: DayConfig = { active: false, start: "09:00", end: "17:00" }
+
   // Handle Day Toggle Checkbox
   const handleToggleDay = (key: DayKey) => {
     setDays((prev) => ({
       ...prev,
-      [key]: { ...prev[key], active: !(prev[key]?.active ?? false) },
+      [key]: {
+        ...(prev[key] ?? DEFAULT_DAY),
+        active: !(prev[key]?.active ?? false),
+      },
     }))
   }
 
@@ -150,7 +155,7 @@ export default function DoctorSchedulePage() {
   ) => {
     setDays((prev) => ({
       ...prev,
-      [key]: { ...prev[key], [field]: val },
+      [key]: { ...(prev[key] ?? DEFAULT_DAY), [field]: val },
     }))
   }
 
@@ -270,7 +275,7 @@ export default function DoctorSchedulePage() {
   }
 
   return (
-    <div className="space-y-6 text-left">
+    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       {/* Title */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">

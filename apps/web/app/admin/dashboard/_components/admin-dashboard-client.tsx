@@ -79,7 +79,7 @@ export function AdminDashboardClient() {
   })
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       {/* Title */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">

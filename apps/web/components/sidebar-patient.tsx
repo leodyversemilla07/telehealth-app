@@ -11,11 +11,15 @@ import {
 } from "@workspace/ui/components/sidebar"
 import {
   CalendarPlus,
+  ClipboardList,
   FileText,
   LayoutDashboard,
   LifeBuoy,
   MessageSquareText,
   Send,
+  Settings,
+  Sparkles,
+  Stethoscope,
   UserRound,
 } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
@@ -31,6 +35,16 @@ const data = {
       isActive: true,
     },
     {
+      title: "Find Doctors",
+      url: "/patient/appointments/book",
+      icon: <Stethoscope />,
+    },
+    {
+      title: "AI Recommendations",
+      url: "/patient/recommendations",
+      icon: <Sparkles />,
+    },
+    {
       title: "Appointments",
       url: "/patient/appointments",
       icon: <CalendarPlus />,
@@ -41,9 +55,19 @@ const data = {
       icon: <MessageSquareText />,
     },
     {
+      title: "Medical Records",
+      url: "/patient/records",
+      icon: <ClipboardList />,
+    },
+    {
       title: "Prescriptions",
       url: "/patient/prescriptions",
       icon: <FileText />,
+    },
+    {
+      title: "Profile",
+      url: "/patient/settings/profile",
+      icon: <Settings />,
     },
   ],
   navSecondary: [
@@ -61,7 +85,7 @@ export function SidebarPatient({
   onLogout?: () => void
 }) {
   return (
-    <Sidebar variant="inset" {...props}>
+    <Sidebar collapsible="icon" variant="inset" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

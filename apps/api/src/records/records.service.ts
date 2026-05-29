@@ -307,4 +307,107 @@ export class RecordsService {
       orderBy: { createdAt: "desc" },
     })
   }
+
+  // ─── Doctor: Access patient records ──────────────────────────────────
+
+  /**
+   * Get all patients a doctor has seen, with appointment counts.
+   */
+  async getDoctorPatients(doctorUserId: string) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { userId: doctorUserId },
+    })
+    if (!doctorProfile) {
+      throw new NotFoundException("Doctor profile not found")
+    }
+
+    const appointments = await this.prisma.appointment.findMany({
+      where: { doctorId: doctorProfile.id },
+      select: {
+        patientId: true,
+        patient: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    })
+
+    // Deduplicate patients
+    const patientMap = new Map<
+      string,
+      {
+        id: string
+        name: string | null
+        email: string
+        appointmentCount: number
+      }
+    >()
+    for (const appt of appointments) {
+      const existing = patientMap.get(appt.patientId)
+      if (existing) {
+        existing.appointmentCount++
+      } else {
+        patientMap.set(appt.patientId, {
+          ...appt.patient,
+          appointmentCount: 1,
+        })
+      }
+    }
+    return Array.from(patientMap.values())
+  }
+
+  /**
+   * Get a patient's full medical history for the doctor.
+   * Only returns records from appointments belonging to this doctor.
+   */
+  async getPatientRecordsForDoctor(patientId: string, doctorUserId: string) {
+    const doctorProfile = await this.prisma.doctorProfile.findUnique({
+      where: { userId: doctorUserId },
+    })
+    if (!doctorProfile) {
+      throw new NotFoundException("Doctor profile not found")
+    }
+
+    // Get patient info
+    const patient = await this.prisma.user.findUnique({
+      where: { id: patientId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        patientProfile: {
+          select: {
+            phone: true,
+            weight: true,
+            height: true,
+            medicalHistory: true,
+          },
+        },
+      },
+    })
+    if (!patient) {
+      throw new NotFoundException("Patient not found")
+    }
+
+    // Get appointments for this doctor + patient
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        doctorId: doctorProfile.id,
+        patientId,
+      },
+      include: {
+        consultation: {
+          include: {
+            prescriptions: true,
+          },
+        },
+      },
+      orderBy: { startTime: "desc" },
+    })
+
+    return { patient, appointments }
+  }
 }

@@ -109,4 +109,75 @@ export class AdminService {
       recentAppointments,
     }
   }
+
+  // ─── Reports ──────────────────────────────────────────────────────────
+
+  async getReports() {
+    const [
+      appointmentsByStatus,
+      appointmentsByType,
+      usersByRole,
+      auditLogsByAction,
+      recentAuditLogs,
+      totalAppointments,
+      completedAppointments,
+      cancelledAppointments,
+    ] = await Promise.all([
+      this.prisma.appointment.groupBy({
+        by: ["status"],
+        _count: { id: true },
+      }),
+      this.prisma.appointment.groupBy({
+        by: ["type"],
+        _count: { id: true },
+      }),
+      this.prisma.user.groupBy({
+        by: ["role"],
+        _count: { id: true },
+      }),
+      this.prisma.auditLog.groupBy({
+        by: ["action"],
+        _count: { id: true },
+        orderBy: { _count: { id: "desc" } },
+      }),
+      this.prisma.auditLog.findMany({
+        take: 20,
+        orderBy: { timestamp: "desc" },
+      }),
+      this.prisma.appointment.count(),
+      this.prisma.appointment.count({ where: { status: "COMPLETED" } }),
+      this.prisma.appointment.count({ where: { status: "CANCELLED" } }),
+    ])
+
+    return {
+      appointmentsByStatus: appointmentsByStatus.map((s) => ({
+        status: s.status,
+        count: s._count.id,
+      })),
+      appointmentsByType: appointmentsByType.map((t) => ({
+        type: t.type,
+        count: t._count.id,
+      })),
+      usersByRole: usersByRole.map((r) => ({
+        role: r.role,
+        count: r._count.id,
+      })),
+      auditLogsByAction: auditLogsByAction.map((a) => ({
+        action: a.action,
+        count: a._count.id,
+      })),
+      recentAuditLogs,
+      totalAppointments,
+      completedAppointments,
+      cancelledAppointments,
+      completionRate:
+        totalAppointments > 0
+          ? Math.round((completedAppointments / totalAppointments) * 100)
+          : 0,
+      cancellationRate:
+        totalAppointments > 0
+          ? Math.round((cancelledAppointments / totalAppointments) * 100)
+          : 0,
+    }
+  }
 }

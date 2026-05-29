@@ -13,23 +13,25 @@ import Link from "next/link"
 
 export function DoctorDashboardClient() {
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Doctor Dashboard</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl font-semibold tracking-tight">
+          Doctor Dashboard
+        </h1>
+        <p className="text-sm text-muted-foreground">
           Track consultations, schedules, and active patient appointments.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+        <Card className="border-border/70">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <CalendarDays className="h-4 w-4" />
               Appointment Queue
             </CardTitle>
             <CardDescription>
-              Review and manage today’s consultations.
+              Review and manage today's consultations.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -43,7 +45,7 @@ export function DoctorDashboardClient() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/70">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Video className="h-4 w-4" />
@@ -65,7 +67,7 @@ export function DoctorDashboardClient() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/70">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <ClipboardList className="h-4 w-4" />

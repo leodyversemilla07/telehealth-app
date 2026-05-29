@@ -30,6 +30,15 @@ export class AdminController {
     return this.adminService.getDashboardStats()
   }
 
+  // ─── Reports ──────────────────────────────────────────────────────────
+
+  @Get("reports")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Get aggregated reports data" })
+  async getReports() {
+    return this.adminService.getReports()
+  }
+
   // ─── User management ───────────────────────────────────────────────────
 
   @Get("users")
