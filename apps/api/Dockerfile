@@ -42,7 +42,8 @@ COPY --from=builder /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder /app/packages/shared/node_modules ./packages/shared/node_modules
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
-COPY --from=builder /app/apps/api/generated ./apps/api/generated
+COPY --from=builder /app/apps/api/src/generated ./apps/api/src/generated
+COPY --from=builder /app/apps/api/src/generated ./apps/api/dist/src/generated
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
 COPY --from=builder /app/packages ./packages
 
@@ -59,4 +60,4 @@ EXPOSE 3001
 ENV NODE_ENV=production
 ENV PORT=3001
 
-CMD ["node", "apps/api/dist/src/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node apps/api/dist/src/main.js"]

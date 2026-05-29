@@ -29,3 +29,7 @@ tmp
 # Docs (not needed at runtime)
 docs
 AWS.md
+
+# Monorepo source directories (not needed for ECR-based Docker deployment)
+apps/
+packages/
