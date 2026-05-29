@@ -261,7 +261,7 @@ export function PatientAppointmentsClient() {
                       </h3>
                       {getStatusBadge(appt.status)}
                     </div>
-                    <p className="text-xs text-muted-foreground font-semibold flex items-center gap-1.5">
+                    <div className="text-xs text-muted-foreground font-semibold flex items-center gap-1.5">
                       <Badge
                         variant="secondary"
                         className="text-[10px] uppercase font-bold py-0"
@@ -273,7 +273,7 @@ export function PatientAppointmentsClient() {
                         {getVisitTypeIcon(appt.type)}
                         {formatVisitTypeLabel(appt.type)}
                       </span>
-                    </p>
+                    </div>
                   </div>
 
                   <div className="bg-muted/30 border border-border/25 rounded-xl px-4 py-2 text-xs flex flex-col gap-1 items-start sm:items-end w-fit shrink-0">

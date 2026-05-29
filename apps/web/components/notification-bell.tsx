@@ -25,6 +25,7 @@ interface Notification {
 
 function getSocketUrl(): string {
   const apiUrl = env.NEXT_PUBLIC_API_URL
+  if (!apiUrl) return "http://localhost:3001"
   return apiUrl.replace(/\/api\/?$/, "")
 }
 

@@ -55,14 +55,55 @@ interface PrescriptionInput {
   instructions?: string
 }
 
+const printStyles = `
+  @media print {
+    body * { visibility: hidden; }
+    .print\:block, .print\:block * { visibility: visible !important; }
+    .print\:block { position: absolute; left: 0; top: 0; width: 100%; }
+    .print\:p-8 { padding: 2rem; }
+    .print\:text-black { color: #000; }
+    .print\:bg-white { background: #fff; }
+    @page { margin: 1cm; size: A4; }
+  }
+`
+
 export default function DoctorConsultationDetailPage() {
   const params = useParams()
   const router = useRouter()
   const appointmentId = params.appointmentId as string
 
-  // Video calling states
-  const [activeCallToken, setActiveCallToken] = useState<string | null>(null)
-  const [activeCallUrl, setActiveCallUrl] = useState<string | null>(null)
+  // Video calling states — persist across refreshes
+  const [activeCallToken, setActiveCallToken] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem(`call-token-${appointmentId}`)
+    }
+    return null
+  })
+  const [activeCallUrl, setActiveCallUrl] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem(`call-url-${appointmentId}`)
+    }
+    return null
+  })
+  const [hasEndedCall, setHasEndedCall] = useState(false)
+
+  // Wrapper functions that persist to sessionStorage
+  const saveCallToken = (token: string | null) => {
+    setActiveCallToken(token)
+    if (token) {
+      sessionStorage.setItem(`call-token-${appointmentId}`, token)
+    } else {
+      sessionStorage.removeItem(`call-token-${appointmentId}`)
+    }
+  }
+  const saveCallUrl = (url: string | null) => {
+    setActiveCallUrl(url)
+    if (url) {
+      sessionStorage.setItem(`call-url-${appointmentId}`, url)
+    } else {
+      sessionStorage.removeItem(`call-url-${appointmentId}`)
+    }
+  }
 
   // Charting state
   const [diagnosis, setDiagnosis] = useState("")
@@ -106,16 +147,17 @@ export default function DoctorConsultationDetailPage() {
       {
         onSuccess: () => {
           toast.dismiss("video-end-doc")
-          setActiveCallToken(null)
-          setActiveCallUrl(null)
+          saveCallToken(null)
+          saveCallUrl(null)
+          setHasEndedCall(true)
           toast.success("Consultation room closed successfully.")
           refetchAppt()
         },
         onError: (err: Error) => {
           toast.dismiss("video-end-doc")
           // Fallback cleanup of local state so the doctor is not stuck
-          setActiveCallToken(null)
-          setActiveCallUrl(null)
+          saveCallToken(null)
+          saveCallUrl(null)
           toast.warning(err.message || "Cleaned up local connection state.")
           refetchAppt()
         },
@@ -135,8 +177,8 @@ export default function DoctorConsultationDetailPage() {
         onSuccess: (data) => {
           toast.dismiss("video-join-doc")
           if (data.token && data.url) {
-            setActiveCallToken(data.token)
-            setActiveCallUrl(data.url)
+            saveCallToken(data.token)
+            saveCallUrl(data.url)
             toast.success("Admitted to virtual consult room!")
             refetchAppt()
           } else {
@@ -312,7 +354,7 @@ export default function DoctorConsultationDetailPage() {
     timeZone: "Asia/Manila",
   })
 
-  const isCompleted = appt.status === "COMPLETED" || !!consultationRecord
+  const isCompleted = appt.status === "COMPLETED" || (!!consultationRecord && !!consultationRecord.id)
   const isJoinable =
     appt.status === "CONFIRMED" || appt.status === "IN_PROGRESS"
 
@@ -321,7 +363,7 @@ export default function DoctorConsultationDetailPage() {
   // ─────────────────────────────────────────────────────────────
   if (activeCallToken && activeCallUrl) {
     return (
-      <div className="space-y-4">
+      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
         {/* Call bar */}
         <div className="flex items-center justify-between bg-card border border-border/40 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
@@ -346,10 +388,11 @@ export default function DoctorConsultationDetailPage() {
         {/* LiveKit Calling Container */}
         <div className="h-[70vh] rounded-2xl border border-border/50 bg-black overflow-hidden relative shadow-2xl">
           <LiveKitRoom
-            video={true}
-            audio={true}
             token={activeCallToken}
             serverUrl={activeCallUrl}
+            connect
+            audio
+            video
             onDisconnected={handleEndCall}
             data-lk-theme="default"
             className="h-full w-full"
@@ -362,7 +405,9 @@ export default function DoctorConsultationDetailPage() {
   }
 
   return (
-    <div className="space-y-6 text-left">
+    <>
+      <style dangerouslySetInnerHTML={{ __html: printStyles }} />
+      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       {/* Header */}
       <div className="flex items-center gap-3">
         <Button
@@ -470,30 +515,6 @@ export default function DoctorConsultationDetailPage() {
                 )}
               </div>
             </CardContent>
-
-            {/* Admittance buttons */}
-            {isJoinable && !isCompleted && (
-              <CardFooter className="bg-muted/5 border-t border-border/10 p-4 flex justify-end">
-                <Button
-                  size="sm"
-                  className="text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm w-full"
-                  disabled={joinRoomMutation.isPending}
-                  onClick={handleJoinCall}
-                >
-                  {joinRoomMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Securing relays...
-                    </>
-                  ) : (
-                    <>
-                      <Video className="h-4 w-4" />
-                      Join Live Consultation Room
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
-            )}
           </Card>
 
           {/* Verification compliant note */}
@@ -518,8 +539,9 @@ export default function DoctorConsultationDetailPage() {
             // ─────────────────────────────────────────────────────────────
             // COMPLETED CHART PREVIEW
             // ─────────────────────────────────────────────────────────────
+            <>
             <Card className="border border-emerald-500/20 bg-card shadow-md">
-              <CardHeader className="bg-emerald-500/5 border-b border-border/10 pb-4">
+              <CardHeader className="bg-emerald-500/5 border-b border-border/10 px-6 pt-6 pb-4">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-2">
                     <FileCheck className="h-5 w-5 text-emerald-600" />
@@ -580,14 +602,14 @@ export default function DoctorConsultationDetailPage() {
                         Electronic Prescription Ledger (eRx)
                       </h4>
 
-                      {consultationRecord.prescriptions.length === 0 ? (
+                      {consultationRecord.prescriptions?.length === 0 ? (
                         <p className="text-muted-foreground text-xs italic">
                           No pharmacological agents were prescribed during this
                           consultation session.
                         </p>
                       ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {consultationRecord.prescriptions.map((rx) => (
+                          {consultationRecord.prescriptions?.map((rx) => (
                             <div
                               key={rx.id}
                               className="border border-border/20 bg-muted/5 rounded-xl p-4 flex flex-col justify-between space-y-3 relative overflow-hidden"
@@ -645,13 +667,122 @@ export default function DoctorConsultationDetailPage() {
                 </Button>
               </CardFooter>
             </Card>
-          ) : (
+
+            {/* ─── Print-only EHR Template ─────────────────────────────── */}
+            {consultationRecord && (
+              <div className="hidden print:block print:p-8 print:text-black print:bg-white">
+                {/* Header */}
+                <div className="border-b-2 border-black pb-4 mb-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h1 className="text-xl font-bold">TELEHEALTH PLATFORM</h1>
+                      <p className="text-xs text-gray-600">Electronic Health Record (EHR)</p>
+                    </div>
+                    <div className="text-right text-xs text-gray-600">
+                      <p>Printed: {new Date().toLocaleDateString()}</p>
+                      <p>Record ID: {consultationRecord.id}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Patient & Doctor Info */}
+                <div className="grid grid-cols-2 gap-6 mb-6 text-xs">
+                  <div>
+                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">PATIENT INFORMATION</h3>
+                    <p><span className="font-semibold">Name:</span> {appt.patient.name}</p>
+                    <p><span className="font-semibold">Email:</span> {appt.patient.email}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">CONSULTATION DETAILS</h3>
+                    <p><span className="font-semibold">Date:</span> {new Date(appt.startTime).toLocaleDateString()}</p>
+                    <p><span className="font-semibold">Time:</span> {new Date(appt.startTime).toLocaleTimeString()} — {new Date(appt.endTime).toLocaleTimeString()}</p>
+                    <p><span className="font-semibold">Type:</span> {appt.type}</p>
+                    <p><span className="font-semibold">Status:</span> {appt.status}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6 mb-6 text-xs">
+                  <div>
+                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">ATTENDING PHYSICIAN</h3>
+                    <p><span className="font-semibold">Doctor:</span> {appt.doctor.user.name}</p>
+                    <p><span className="font-semibold">Specialty:</span> {appt.doctor.specialty}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-2">REASON FOR CONSULT</h3>
+                    <p>{appt.reason || "Not specified"}</p>
+                    {appt.symptoms && (
+                      <p className="mt-1"><span className="font-semibold">Symptoms:</span> {appt.symptoms}</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* SOAP Notes */}
+                <div className="mb-6 text-xs">
+                  <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-3">CLINICAL ASSESSMENT</h3>
+
+                  <div className="space-y-3">
+                    <div>
+                      <p className="font-semibold text-xs">DIAGNOSIS:</p>
+                      <p className="border border-gray-300 rounded p-2 mt-1">{consultationRecord.diagnosis || "Not specified"}</p>
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-xs">SUBJECTIVE & OBJECTIVE FINDINGS:</p>
+                      <p className="border border-gray-300 rounded p-2 mt-1 whitespace-pre-wrap">{consultationRecord.doctorNotes || "Not specified"}</p>
+                    </div>
+
+                    <div>
+                      <p className="font-semibold text-xs">TREATMENT & RECOMMENDATION PLAN:</p>
+                      <p className="border border-gray-300 rounded p-2 mt-1 whitespace-pre-wrap">{consultationRecord.plan || "Not specified"}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Prescriptions */}
+                {consultationRecord.prescriptions && consultationRecord.prescriptions.length > 0 && (
+                  <div className="mb-6 text-xs">
+                    <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-3">PRESCRIPTIONS</h3>
+                    <table className="w-full border-collapse text-xs">
+                      <thead>
+                        <tr className="bg-gray-100">
+                          <th className="border border-gray-300 p-1.5 text-left">Medication</th>
+                          <th className="border border-gray-300 p-1.5 text-left">Dosage</th>
+                          <th className="border border-gray-300 p-1.5 text-left">Frequency</th>
+                          <th className="border border-gray-300 p-1.5 text-left">Duration</th>
+                          <th className="border border-gray-300 p-1.5 text-left">Instructions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {consultationRecord.prescriptions.map((rx) => (
+                          <tr key={rx.id}>
+                            <td className="border border-gray-300 p-1.5 font-medium">{rx.medicationName}</td>
+                            <td className="border border-gray-300 p-1.5">{rx.dosage}</td>
+                            <td className="border border-gray-300 p-1.5">{rx.frequency}</td>
+                            <td className="border border-gray-300 p-1.5">{rx.duration}</td>
+                            <td className="border border-gray-300 p-1.5">{rx.instructions || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Footer */}
+                <div className="border-t-2 border-black pt-4 mt-8 text-xs text-gray-500">
+                  <p>This document is generated by the Telehealth Platform EHR system.</p>
+                  <p>Consultation transcripts and visual sessions are securely isolated in transit.</p>
+                  <p className="mt-2">Signature: ____________________________ Date: ____________________</p>
+                </div>
+              </div>
+            )}
+            </>
+          ) : hasEndedCall ? (
             // ─────────────────────────────────────────────────────────────
-            // ACTIVE SOAP CLINICAL CHARTING FORM
+            // ACTIVE SOAP CLINICAL CHARTING FORM (after call ended)
             // ─────────────────────────────────────────────────────────────
             <form onSubmit={handleSubmitChart}>
               <Card className="border border-border/40 bg-card shadow-md">
-                <CardHeader className="pb-4 border-b border-border/10">
+                <CardHeader className="px-6 pt-6 pb-4 border-b border-border/10">
                   <div className="flex items-center gap-2">
                     <HeartPulse className="h-5 w-5 text-primary animate-pulse" />
                     <CardTitle className="text-base font-bold">
@@ -894,11 +1025,50 @@ export default function DoctorConsultationDetailPage() {
                     )}
                   </Button>
                 </CardFooter>
-              </Card>
+               </Card>
             </form>
+          ) : (
+            // ─────────────────────────────────────────────────────────────
+            // BEFORE CALL: Prompt to start consultation
+            // ─────────────────────────────────────────────────────────────
+            <Card className="border border-border/40 bg-card shadow-sm">
+              <CardContent className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Video className="h-8 w-8 text-primary" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-lg font-bold text-foreground">Ready to Start Consultation</h3>
+                  <p className="text-sm text-muted-foreground max-w-md">
+                    Click &quot;Start Consultation&quot; to join the video room with your patient.
+                    After the call ends, you can document your findings here.
+                  </p>
+                </div>
+                {isJoinable && (
+                  <Button
+                    size="sm"
+                    className="text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm"
+                    disabled={joinRoomMutation.isPending}
+                    onClick={handleJoinCall}
+                  >
+                    {joinRoomMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Securing relays...
+                      </>
+                    ) : (
+                      <>
+                        <Video className="h-4 w-4" />
+                        Start Consultation
+                      </>
+                    )}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
     </div>
+    </>
   )
 }

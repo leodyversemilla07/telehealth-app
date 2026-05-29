@@ -72,6 +72,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get securityAlert() {
     return this.client.securityAlert
   }
+  get chatMessage() {
+    return this.client.chatMessage
+  }
+  get review() {
+    return this.client.review
+  }
 
   // Proxy PrismaClient utility methods
   get $queryRaw() {

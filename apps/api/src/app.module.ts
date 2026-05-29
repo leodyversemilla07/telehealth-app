@@ -9,6 +9,7 @@ import { AppointmentsModule } from "@/appointments/appointments.module"
 import { AuditLogsModule } from "@/audit-logs/audit-logs.module"
 import { auth } from "@/auth/auth"
 import { AvailabilityModule } from "@/availability/availability.module"
+import { ChatModule } from "@/chat/chat.module"
 import { validate } from "@/config/env.validation"
 import {
   throttlerConfig,
@@ -21,6 +22,7 @@ import { PatientsModule } from "@/patients/patients.module"
 import { PrismaModule } from "@/prisma/prisma.module"
 import { RecommendationsModule } from "@/recommendations/recommendations.module"
 import { RecordsModule } from "@/records/records.module"
+import { ReviewsModule } from "@/reviews/reviews.module"
 import { SecurityAlertsModule } from "@/security-alerts/security-alerts.module"
 import { StorageModule } from "@/storage/storage.module"
 import { UsersModule } from "@/users/users.module"
@@ -52,6 +54,8 @@ import { VideoModule } from "@/video/video.module"
     RecommendationsModule,
     VideoModule,
     NotificationsModule,
+    ChatModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService, throttlerGuardProvider],

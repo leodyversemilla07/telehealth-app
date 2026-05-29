@@ -1,9 +1,11 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from "@nestjs/common"
 import { PrismaService } from "@/prisma/prisma.service"
+import { NotificationsService } from "@/notifications/notifications.service"
 import type { CreateTimeOffDto, SetAvailabilityDto } from "./dto"
 
 type DayKey =
@@ -37,7 +39,12 @@ const DAY_BY_INDEX: Record<number, DayKey> = {
 
 @Injectable()
 export class AvailabilityService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(AvailabilityService.name)
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notifications: NotificationsService,
+  ) {}
 
   /**
    * Get the doctor profile from a user ID, or throw.
@@ -69,7 +76,7 @@ export class AvailabilityService {
       data.slotDuration = dto.slotDuration
     }
 
-    return this.prisma.availabilitySchedule.upsert({
+    const result = await this.prisma.availabilitySchedule.upsert({
       where: { doctorId: doctor.id },
       update: data,
       create: {
@@ -77,6 +84,31 @@ export class AvailabilityService {
         ...data,
       },
     })
+
+    // Notify about schedule update
+    try {
+      const activeDays = DAYS.filter((day) => {
+        const val = dto[day]
+        if (!val) return false
+        try {
+          const parsed = typeof val === "string" ? JSON.parse(val) : val
+          return Array.isArray(parsed) && parsed.length > 0
+        } catch {
+          return false
+        }
+      })
+
+      await this.notifications.createNotification(
+        userId,
+        "SCHEDULE_UPDATED",
+        "Schedule Updated",
+        `Your weekly availability has been updated. Active days: ${activeDays.map((d) => d.charAt(0).toUpperCase() + d.slice(1)).join(", ") || "None"}.`,
+      )
+    } catch (err) {
+      this.logger.error("Failed to send schedule update notification:", err)
+    }
+
+    return result
   }
 
   /**

@@ -10,17 +10,24 @@ import {
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
 import {
+  Activity,
+  Brain,
+  CalendarDays,
   CalendarPlus,
   ClipboardList,
   FileText,
   LayoutDashboard,
   LifeBuoy,
-  MessageSquareText,
+  MessageSquare,
+  Pill,
   Send,
   Settings,
+  Shield,
   Sparkles,
   Stethoscope,
+  User,
   UserRound,
+  Users,
 } from "lucide-react"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
@@ -51,8 +58,13 @@ const data = {
     },
     {
       title: "Messages",
-      url: "/patient/messages",
-      icon: <MessageSquareText />,
+      url: "/patient/chat",
+      icon: <MessageSquare />,
+    },
+    {
+      title: "Symptom Checker",
+      url: "/patient/symptoms",
+      icon: <Brain />,
     },
     {
       title: "Medical Records",

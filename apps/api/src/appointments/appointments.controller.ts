@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Param,
-  ParseUUIDPipe,
   Patch,
   Post,
 } from "@nestjs/common"
@@ -45,7 +44,7 @@ export class AppointmentsController {
   @ApiParam({ name: "id", description: "Appointment ID" })
   async findOne(
     @Session() session: UserSession,
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
   ) {
     return this.appointmentsService.findOne(
       id,
@@ -60,7 +59,7 @@ export class AppointmentsController {
   @ApiParam({ name: "id", description: "Appointment ID" })
   async updateStatus(
     @Session() session: UserSession,
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
     @Body() dto: UpdateAppointmentStatusDto,
   ) {
     return this.appointmentsService.updateStatus(
@@ -76,7 +75,7 @@ export class AppointmentsController {
   @ApiParam({ name: "id", description: "Appointment ID" })
   async cancel(
     @Session() session: UserSession,
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
   ) {
     return this.appointmentsService.cancel(
       id,
@@ -91,9 +90,16 @@ export class AppointmentsController {
   @ApiParam({ name: "id", description: "Appointment ID" })
   async reschedule(
     @Session() session: UserSession,
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
     @Body() dto: RescheduleAppointmentDto,
   ) {
     return this.appointmentsService.reschedule(id, dto, session.user.id)
+  }
+
+  @Post("reminders")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Send reminders for upcoming appointments (Admin)" })
+  async sendReminders() {
+    return this.appointmentsService.sendUpcomingReminders()
   }
 }

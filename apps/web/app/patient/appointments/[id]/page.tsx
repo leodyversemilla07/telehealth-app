@@ -28,6 +28,7 @@ import {
   ArrowLeft,
   Calendar,
   CalendarClock,
+  CheckCircle,
   ClipboardList,
   Clock,
   Loader2,
@@ -35,6 +36,7 @@ import {
   Phone,
   RefreshCw,
   ShieldCheck,
+  Star,
   Trash2,
   User,
   Video,
@@ -50,6 +52,7 @@ import {
   useRescheduleAppointment,
 } from "@/hooks/use-appointments"
 import { useAppointmentConsultation } from "@/hooks/use-records"
+import { useCheckReview, useCreateReview } from "@/hooks/use-reviews"
 import { useJoinRoom } from "@/hooks/use-video"
 import "@livekit/components-styles"
 
@@ -58,9 +61,37 @@ export default function AppointmentDetailPage() {
   const router = useRouter()
   const id = params.id as string
 
-  // Video session states
-  const [activeCallToken, setActiveCallToken] = useState<string | null>(null)
-  const [activeCallUrl, setActiveCallUrl] = useState<string | null>(null)
+  // Video session states — persist across refreshes
+  const [activeCallToken, setActiveCallToken] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem(`call-token-${id}`)
+    }
+    return null
+  })
+  const [activeCallUrl, setActiveCallUrl] = useState<string | null>(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem(`call-url-${id}`)
+    }
+    return null
+  })
+
+  // Wrapper functions that persist to sessionStorage
+  const saveCallToken = (token: string | null) => {
+    setActiveCallToken(token)
+    if (token) {
+      sessionStorage.setItem(`call-token-${id}`, token)
+    } else {
+      sessionStorage.removeItem(`call-token-${id}`)
+    }
+  }
+  const saveCallUrl = (url: string | null) => {
+    setActiveCallUrl(url)
+    if (url) {
+      sessionStorage.setItem(`call-url-${id}`, url)
+    } else {
+      sessionStorage.removeItem(`call-url-${id}`)
+    }
+  }
 
   // Reschedule states
   const [showRescheduleDialog, setShowRescheduleDialog] = useState(false)
@@ -69,6 +100,10 @@ export default function AppointmentDetailPage() {
     null,
   )
 
+  // Review states
+  const [reviewRating, setReviewRating] = useState(5)
+  const [reviewComment, setReviewComment] = useState("")
+
   // 1. Fetch appointment details (react-query)
   const { data: appt, isPending, error, refetch } = useAppointment(id)
 
@@ -76,6 +111,12 @@ export default function AppointmentDetailPage() {
   const { data: consultation } = useAppointmentConsultation(
     appt?.status === "COMPLETED" ? id : "",
   )
+
+  // 2b. Check if patient has reviewed this appointment
+  const { data: reviewCheck } = useCheckReview(
+    appt?.status === "COMPLETED" ? id : "",
+  )
+  const createReviewMutation = useCreateReview()
 
   // 3. Cancel mutation
   const cancelMutation = useCancelAppointment()
@@ -102,8 +143,8 @@ export default function AppointmentDetailPage() {
         onSuccess: (data) => {
           toast.dismiss("video-join")
           if (data.token && data.url) {
-            setActiveCallToken(data.token)
-            setActiveCallUrl(data.url)
+            saveCallToken(data.token)
+            saveCallUrl(data.url)
             toast.success("Joined video room!")
           } else {
             toast.error(
@@ -140,6 +181,34 @@ export default function AppointmentDetailPage() {
         })
       },
     })
+  }
+
+  // Handle Submit Review
+  const handleSubmitReview = () => {
+    if (reviewRating < 1 || reviewRating > 5) {
+      toast.error("Please select a rating between 1 and 5")
+      return
+    }
+
+    toast.loading("Submitting review...", { id: "review" })
+
+    createReviewMutation.mutate(
+      {
+        appointmentId: id,
+        rating: reviewRating,
+        comment: reviewComment.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Review submitted successfully!", { id: "review" })
+          setReviewRating(5)
+          setReviewComment("")
+        },
+        onError: (err: { message?: string }) => {
+          toast.error(err.message || "Failed to submit review", { id: "review" })
+        },
+      },
+    )
   }
 
   // Handle Reschedule
@@ -268,8 +337,8 @@ export default function AppointmentDetailPage() {
             variant="destructive"
             className="text-xs h-8 font-semibold shadow-xs"
             onClick={() => {
-              setActiveCallToken(null)
-              setActiveCallUrl(null)
+              saveCallToken(null)
+              saveCallUrl(null)
               toast.info("Left the consultation room.")
               refetch()
             }}
@@ -281,13 +350,14 @@ export default function AppointmentDetailPage() {
         {/* LiveKit Calling Container */}
         <div className="h-[70vh] rounded-2xl border border-border/50 bg-black overflow-hidden relative shadow-2xl">
           <LiveKitRoom
-            video={true}
-            audio={true}
             token={activeCallToken}
             serverUrl={activeCallUrl}
+            connect
+            audio
+            video
             onDisconnected={() => {
-              setActiveCallToken(null)
-              setActiveCallUrl(null)
+              saveCallToken(null)
+              saveCallUrl(null)
               refetch()
             }}
             data-lk-theme="default"
@@ -301,7 +371,7 @@ export default function AppointmentDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       {/* Premium Header */}
       <div className="flex items-center gap-3 text-left">
         <Button
@@ -326,7 +396,7 @@ export default function AppointmentDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Primary Details Card */}
         <Card className="lg:col-span-2 border border-border/40 bg-card shadow-sm text-left">
-          <CardHeader className="pb-4">
+          <CardHeader className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between gap-4 flex-wrap">
               <Badge
                 variant="outline"
@@ -359,7 +429,7 @@ export default function AppointmentDetailPage() {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-6">
+          <CardContent className="p-6 space-y-6">
             <Separator className="bg-border/30" />
 
             {/* Time details in PHT */}
@@ -449,13 +519,13 @@ export default function AppointmentDetailPage() {
                     </div>
                   )}
 
-                  {consultation.prescriptions.length > 0 && (
+                  {consultation.prescriptions?.length > 0 && (
                     <div className="space-y-2">
                       <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                        Prescriptions ({consultation.prescriptions.length})
+                        Prescriptions ({consultation.prescriptions?.length})
                       </span>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {consultation.prescriptions.map((rx) => (
+                        {consultation.prescriptions?.map((rx) => (
                           <div
                             key={rx.id}
                             className="bg-primary/5 border border-primary/10 rounded-lg p-3 text-xs space-y-1"
@@ -650,7 +720,7 @@ export default function AppointmentDetailPage() {
                 <div className="flex justify-between items-center">
                   <span>Consultation Price:</span>
                   <strong className="text-foreground text-sm font-bold">
-                    {formatPrice(Number(appt.doctor.pricePerVisit))}
+                    {formatPrice(Number(appt.doctor.pricePerVisit) || 0)}
                   </strong>
                 </div>
                 {appt.doctor.clinicAddress && (
@@ -681,6 +751,116 @@ export default function AppointmentDetailPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Review Section (only for completed appointments) */}
+        {appt.status === "COMPLETED" && (
+          <div className="space-y-4">
+            {reviewCheck?.hasReviewed ? (
+              <Card className="border border-border/40 bg-card shadow-sm">
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle className="h-4 w-4 text-emerald-500" />
+                    <span>You have already reviewed this consultation.</span>
+                  </div>
+                  {reviewCheck.review && (
+                    <div className="mt-3 p-3 bg-muted/30 rounded-lg">
+                      <div className="flex items-center gap-1 mb-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`h-4 w-4 ${
+                              i < (reviewCheck.review?.rating ?? 0)
+                                ? "text-amber-400 fill-amber-400"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        ))}
+                        <span className="text-xs text-muted-foreground ml-1">
+                          {reviewCheck.review?.rating}/5
+                        </span>
+                      </div>
+                      {reviewCheck.review?.comment && (
+                        <p className="text-sm text-muted-foreground">
+                          {reviewCheck.review?.comment}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border border-border/40 bg-card shadow-sm">
+                <CardContent className="pt-6 space-y-4">
+                  <div>
+                    <h3 className="text-sm font-semibold flex items-center gap-2">
+                      <Star className="h-4 w-4 text-amber-400" />
+                      Rate Your Consultation
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Share your experience with Dr. {appt.doctor.user.name}
+                    </p>
+                  </div>
+
+                  {/* Star Rating */}
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setReviewRating(star)}
+                        className="p-0.5 transition-colors"
+                      >
+                        <Star
+                          className={`h-8 w-8 ${
+                            star <= reviewRating
+                              ? "text-amber-400 fill-amber-400"
+                              : "text-muted-foreground hover:text-amber-200"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                    <span className="ml-2 text-sm text-muted-foreground">
+                      {reviewRating}/5
+                    </span>
+                  </div>
+
+                  {/* Comment */}
+                  <div className="space-y-2">
+                    <Label htmlFor="review-comment" className="text-xs">
+                      Comments (optional)
+                    </Label>
+                    <textarea
+                      id="review-comment"
+                      className="flex min-h-[80px] w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
+                      placeholder="How was your consultation experience?"
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      maxLength={500}
+                    />
+                  </div>
+
+                  <Button
+                    size="sm"
+                    onClick={handleSubmitReview}
+                    disabled={createReviewMutation.isPending}
+                  >
+                    {createReviewMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Star className="mr-2 h-4 w-4" />
+                        Submit Review
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

@@ -367,7 +367,7 @@ export default function BookAppointmentPage() {
                     <div className="flex justify-between items-center text-muted-foreground">
                       <span>Consultation Fee:</span>
                       <strong className="text-foreground text-sm font-bold">
-                        {formatPrice(Number(doctor.pricePerVisit))}
+                        {formatPrice(Number(doctor.pricePerVisit) || 0)}
                       </strong>
                     </div>
                     {doctor.clinicAddress && (

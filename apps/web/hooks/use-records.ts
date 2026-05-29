@@ -97,6 +97,8 @@ export function useAppointmentConsultation(appointmentId: string) {
         `/records/appointment/${appointmentId}`,
       ),
     enabled: !!appointmentId,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 }
 

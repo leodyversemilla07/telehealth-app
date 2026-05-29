@@ -15,6 +15,7 @@ import {
   FileText,
   LayoutDashboard,
   LifeBuoy,
+  MessageSquare,
   Send,
   Settings,
   Stethoscope,
@@ -51,6 +52,11 @@ const data = {
       title: "Schedule",
       url: "/doctor/schedule",
       icon: <CalendarDays />,
+    },
+    {
+      title: "Messages",
+      url: "/doctor/chat",
+      icon: <MessageSquare />,
     },
     {
       title: "Profile",

@@ -132,7 +132,9 @@ export class AppointmentsService {
       return false
     }
 
-    const dayKey = DAY_BY_INDEX[start.getUTCDay()]
+    // Convert UTC day to PHT day (UTC+8) — schedule is stored in PHT
+    const phtDate = new Date(start.getTime() + 8 * 60 * 60 * 1000)
+    const dayKey = DAY_BY_INDEX[phtDate.getUTCDay()]
     if (!dayKey) return false
 
     const rawDaySchedule = schedule[dayKey]
@@ -141,17 +143,19 @@ export class AppointmentsService {
     const windows = this.parseScheduleWindows(rawDaySchedule)
     if (windows.length === 0) return false
 
-    const startMinutes = this.toUtcMinutes(start)
-    const endMinutes = this.toUtcMinutes(end)
-    const duration = endMinutes - startMinutes
+    // Convert appointment times to PHT minutes for comparison with schedule windows
+    const phtStartMinutes = (phtDate.getUTCHours()) * 60 + phtDate.getUTCMinutes()
+    const phtEndDate = new Date(end.getTime() + 8 * 60 * 60 * 1000)
+    const phtEndMinutes = (phtEndDate.getUTCHours()) * 60 + phtEndDate.getUTCMinutes()
+    const duration = phtEndMinutes - phtStartMinutes
 
     if (duration <= 0) return false
 
     return windows.some((window) => {
       const insideWindow =
-        startMinutes >= window.start && endMinutes <= window.end
+        phtStartMinutes >= window.start && phtEndMinutes <= window.end
       const slotAligned =
-        (startMinutes - window.start) % schedule.slotDuration === 0 &&
+        (phtStartMinutes - window.start) % schedule.slotDuration === 0 &&
         duration % schedule.slotDuration === 0
       return insideWindow && slotAligned
     })
@@ -538,5 +542,56 @@ export class AppointmentsService {
     }
 
     return rescheduled
+  }
+
+  /**
+   * Send reminders for appointments happening in the next 24 hours.
+   * Can be called by a cron job or manually.
+   */
+  async sendUpcomingReminders() {
+    const now = new Date()
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+
+    const upcoming = await this.prisma.appointment.findMany({
+      where: {
+        status: { in: ["BOOKED", "CONFIRMED"] },
+        startTime: { gte: now, lte: tomorrow },
+      },
+      include: {
+        patient: PATIENT_INCLUDE,
+        doctor: DOCTOR_INCLUDE,
+      },
+    })
+
+    let sent = 0
+    for (const appt of upcoming) {
+      try {
+        const formattedTime = formatPHTFull(appt.startTime)
+        const doctorName = appt.doctor.user.name ?? "Doctor"
+        const patientName = appt.patient.name ?? "Patient"
+
+        // Notify patient
+        await this.notifications.createNotification(
+          appt.patientId,
+          "APPOINTMENT_REMINDER",
+          "Upcoming Appointment Reminder",
+          `Your consultation with Dr. ${doctorName} is scheduled for ${formattedTime}.`,
+        )
+
+        // Notify doctor
+        await this.notifications.createNotification(
+          appt.doctor.user.id,
+          "APPOINTMENT_REMINDER",
+          "Upcoming Appointment Reminder",
+          `You have a consultation with ${patientName} scheduled for ${formattedTime}.`,
+        )
+
+        sent++
+      } catch (err) {
+        this.logger.error(`Failed to send reminder for appointment ${appt.id}:`, err)
+      }
+    }
+
+    return { sent, total: upcoming.length }
   }
 }

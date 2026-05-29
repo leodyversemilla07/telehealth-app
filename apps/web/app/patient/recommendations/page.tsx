@@ -224,7 +224,7 @@ export default function RecommendationsPage() {
                             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
                               <span className="flex items-center gap-1">
                                 <Calendar className="h-3 w-3" />
-                                {formatPrice(Number(doctor.pricePerVisit))}
+                                {formatPrice(Number(doctor.pricePerVisit) || 0)}
                               </span>
                               {doctor.clinicAddress && (
                                 <span className="flex items-center gap-1">

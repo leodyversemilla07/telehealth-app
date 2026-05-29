@@ -41,6 +41,8 @@ export function useAppointment(id: string) {
     queryKey: appointmentKeys.detail(id),
     queryFn: () => apiClient.get<AppointmentDto>(`/appointments/${id}`),
     enabled: !!id,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 }
 

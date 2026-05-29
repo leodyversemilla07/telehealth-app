@@ -181,16 +181,16 @@ export class VideoService {
       )
     }
 
-    // Validate time window — 5 minutes before start to end
+    // Allow joining from 5 minutes before start time (no end time restriction)
+    // This allows late starts and extended sessions
     const now = new Date()
     const windowStart = new Date(
       appointment.startTime.getTime() - 5 * 60 * 1000,
     )
-    const windowEnd = appointment.endTime
 
-    if (now < windowStart || now > windowEnd) {
+    if (now < windowStart) {
       throw new ForbiddenException(
-        "You can only join 5 minutes before the appointment start time and before the appointment ends",
+        "You can only join 5 minutes before the appointment start time",
       )
     }
 

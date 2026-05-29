@@ -21,4 +21,13 @@ export class RecommendationsController {
   async getRecommendation(@Body() dto: GetRecommendationDto) {
     return this.recommendationsService.getRecommendation(dto.symptoms)
   }
+
+  @Post("symptoms")
+  @Roles(["PATIENT"])
+  @ApiOperation({
+    summary: "AI Symptom Checker - analyze symptoms and get recommendations",
+  })
+  async checkSymptoms(@Body() dto: GetRecommendationDto) {
+    return this.recommendationsService.checkSymptoms(dto.symptoms)
+  }
 }

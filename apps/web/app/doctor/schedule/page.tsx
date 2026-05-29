@@ -30,7 +30,7 @@ import {
   Plus,
   Trash2,
 } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import {
   useAddTimeOff,
@@ -103,8 +103,10 @@ export default function DoctorSchedulePage() {
   const [toReason, setToReason] = useState("")
 
   // Load backend schedule into local state when queried
+  const scheduleLoaded = useRef(false)
   useEffect(() => {
-    if (schedule) {
+    if (schedule && !scheduleLoaded.current) {
+      scheduleLoaded.current = true
       setSlotDuration(schedule.slotDuration)
 
       const loadedDays = { ...days }
@@ -132,7 +134,7 @@ export default function DoctorSchedulePage() {
       }
       setDays(loadedDays)
     }
-  }, [schedule, days])
+  }, [schedule])
 
   const DEFAULT_DAY: DayConfig = { active: false, start: "09:00", end: "17:00" }
 

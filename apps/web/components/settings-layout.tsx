@@ -76,10 +76,23 @@ export function SettingsLayout({
   role,
 }: {
   children: React.ReactNode
-  role: "patient" | "doctor" | "admin"
+  role?: "patient" | "doctor" | "admin"
 }) {
   const pathname = usePathname()
-  const navItems = getSettingsNavItems(role)
+  
+  // Infer role from pathname if not explicitly provided
+  let resolvedRole = role
+  if (!resolvedRole && pathname) {
+    if (pathname.includes("/patient/settings")) {
+      resolvedRole = "patient"
+    } else if (pathname.includes("/doctor/settings")) {
+      resolvedRole = "doctor"
+    } else if (pathname.includes("/admin/settings")) {
+      resolvedRole = "admin"
+    }
+  }
+
+  const navItems = getSettingsNavItems(resolvedRole || "patient")
 
   return (
     <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
