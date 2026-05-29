@@ -2,6 +2,7 @@
 
 import { useMutation } from "@tanstack/react-query"
 import type { DoctorProfileDto } from "@workspace/shared"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -204,16 +205,18 @@ export default function RecommendationsPage() {
                     <CardContent className="py-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex gap-3 items-start">
-                          <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">
-                            {doctor.user.name?.[0] || doctor.user.email[0]}
-                          </div>
+                          <Avatar className="border border-primary/20 shrink-0">
+                            <AvatarFallback className="bg-primary/10 text-primary font-bold text-sm">
+                              {doctor.user.name?.[0] || doctor.user.email[0]}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="space-y-1">
                             <p className="font-semibold text-sm">
                               {doctor.user.name || "Doctor"}
                             </p>
                             <Badge
                               variant="secondary"
-                              className="text-[10px] font-medium"
+                              className="text-xs font-medium"
                             >
                               {doctor.specialty}
                             </Badge>

@@ -1,5 +1,6 @@
 "use client"
 
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -170,9 +171,11 @@ export default function DoctorDashboardPage() {
           <CardContent>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex items-center gap-3 flex-1">
-                <div className="h-12 w-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase shrink-0 text-lg">
-                  {nextAppointment.patient?.name?.[0] || "P"}
-                </div>
+                <Avatar size="lg" className="border border-primary/20 shrink-0">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-lg">
+                    {nextAppointment.patient?.name?.[0] || "P"}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="font-bold text-foreground">
                     {nextAppointment.patient?.name || "Anonymous Patient"}

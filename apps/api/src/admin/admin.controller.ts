@@ -121,15 +121,21 @@ export class AdminController {
   @Roles(["ADMIN"])
   @ApiOperation({ summary: "Approve a doctor after PRC verification" })
   @ApiParam({ name: "id", description: "Doctor profile ID" })
-  async approveDoctor(@Param("id") id: string) {
-    return this.adminService.approveDoctor(id)
+  async approveDoctor(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+  ) {
+    return this.adminService.approveDoctor(id, session.user.id)
   }
 
   @Patch("doctors/:id/reject")
   @Roles(["ADMIN"])
   @ApiOperation({ summary: "Reject / unapprove a doctor" })
   @ApiParam({ name: "id", description: "Doctor profile ID" })
-  async rejectDoctor(@Param("id") id: string) {
-    return this.adminService.rejectDoctor(id)
+  async rejectDoctor(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+  ) {
+    return this.adminService.rejectDoctor(id, session.user.id)
   }
 }

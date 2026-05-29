@@ -5,8 +5,16 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@workspace/ui/components/navigation-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@workspace/ui/components/sheet"
+import { LayoutDashboard, Menu } from "lucide-react"
 import Image from "next/image"
-import { LayoutDashboard } from "lucide-react"
+import { useState } from "react"
 
 const NAV_ITEMS = [
   { href: "#features", label: "Features" },
@@ -32,6 +40,7 @@ function BrandMark() {
         width={36}
         height={36}
         className="size-9 rounded-xl object-cover"
+        suppressHydrationWarning
       />
       <span className="text-lg font-semibold tracking-tight text-white">
         Telehealth
@@ -47,10 +56,19 @@ export function Header({
   onSignOut: _onSignOut,
   onDashboard,
 }: HomepageHeaderProps) {
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  function handleNavClick(href: string) {
+    setMobileOpen(false)
+    const el = document.querySelector(href)
+    el?.scrollIntoView({ behavior: "smooth" })
+  }
+
   return (
     <header className="relative z-50 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
       <BrandMark />
 
+      {/* Desktop nav */}
       <NavigationMenu
         aria-label="Homepage"
         className="hidden rounded-full border border-white/10 bg-white/5 px-1.5 py-1 backdrop-blur-md md:flex"
@@ -70,6 +88,79 @@ export function Header({
       </NavigationMenu>
 
       <div className="flex items-center gap-2">
+        {/* Mobile menu trigger */}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden text-white/70 hover:bg-white/10 hover:text-white"
+                aria-label="Open navigation menu"
+              />
+            }
+          >
+            <Menu className="size-5" />
+          </SheetTrigger>
+          <SheetContent
+            side="left"
+            className="w-72 bg-[oklch(0.12_0.025_220)] border-white/10 text-white"
+          >
+            <SheetHeader>
+              <SheetTitle className="text-white">Navigation</SheetTitle>
+            </SheetHeader>
+            <nav className="mt-6 flex flex-col gap-1">
+              {NAV_ITEMS.map((item) => (
+                <button
+                  key={item.href}
+                  type="button"
+                  onClick={() => handleNavClick(item.href)}
+                  className="flex items-center rounded-lg px-4 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white text-left"
+                >
+                  {item.label}
+                </button>
+              ))}
+              <div className="my-3 border-t border-white/10" />
+              {isAuthenticated ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false)
+                    onDashboard()
+                  }}
+                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white text-left"
+                >
+                  <LayoutDashboard className="size-4" />
+                  Dashboard
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false)
+                      onSignIn()
+                    }}
+                    className="flex items-center rounded-lg px-4 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white text-left"
+                  >
+                    Sign in
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false)
+                      onCreateAccount()
+                    }}
+                    className="flex items-center rounded-lg px-4 py-3 text-sm font-medium text-white bg-white/10 transition hover:bg-white/15 text-left mt-1"
+                  >
+                    Get started
+                  </button>
+                </>
+              )}
+            </nav>
+          </SheetContent>
+        </Sheet>
+
         {isAuthenticated ? (
           <Button
             variant="outline"

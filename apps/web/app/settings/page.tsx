@@ -13,7 +13,6 @@ import {
   Download,
   Heart,
   Key,
-  Loader2,
   Lock,
   Mail,
   Save,
@@ -23,6 +22,7 @@ import {
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
 
@@ -301,7 +301,7 @@ export default function SettingsPage() {
   if (sessionLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <Spinner className="h-8 w-8 text-muted-foreground" />
       </div>
     )
   }
@@ -387,7 +387,7 @@ export default function SettingsPage() {
               </div>
               {uploadAvatarMutation.isPending && (
                 <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                  <Loader2 className="h-4 w-4 text-white animate-spin" />
+                  <Spinner className="h-4 w-4 text-white" />
                 </div>
               )}
             </button>
@@ -468,7 +468,7 @@ export default function SettingsPage() {
             disabled={profileMutation.isPending}
           >
             {profileMutation.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Spinner className="mr-2 h-4 w-4" />
             ) : (
               <Save className="mr-2 h-4 w-4" />
             )}
@@ -583,7 +583,7 @@ export default function SettingsPage() {
               disabled={patientProfileMutation.isPending}
             >
               {patientProfileMutation.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Spinner className="mr-2 h-4 w-4" />
               ) : (
                 <Heart className="mr-2 h-4 w-4" />
               )}
@@ -648,7 +648,7 @@ export default function SettingsPage() {
             }
           >
             {passwordMutation.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Spinner className="mr-2 h-4 w-4" />
             ) : (
               <Key className="mr-2 h-4 w-4" />
             )}
@@ -709,7 +709,7 @@ export default function SettingsPage() {
                     disabled={disable2FAMutation.isPending || !disablePassword}
                   >
                     {disable2FAMutation.isPending ? (
-                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                      <Spinner className="mr-2 h-3 w-3" />
                     ) : null}
                     Disable 2FA
                   </Button>
@@ -758,7 +758,7 @@ export default function SettingsPage() {
                       }
                     >
                       {enable2FAMutation.isPending ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Spinner className="mr-2 h-4 w-4" />
                       ) : null}
                       Continue
                     </Button>
@@ -793,7 +793,7 @@ export default function SettingsPage() {
                       }
                     >
                       {verify2FAMutation.isPending ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <Spinner className="mr-2 h-4 w-4" />
                       ) : null}
                       Verify & Enable
                     </Button>

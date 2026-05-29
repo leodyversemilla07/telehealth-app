@@ -29,7 +29,7 @@ export default function Error({
           <p className="text-sm text-muted-foreground leading-relaxed">
             An unexpected error occurred. Our team has been notified.
             {error.digest && (
-              <span className="block mt-1 text-[10px] font-mono text-muted-foreground/60">
+              <span className="block mt-1 text-xs font-mono text-muted-foreground/60">
                 Error ID: {error.digest}
               </span>
             )}

@@ -8,6 +8,7 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import { formatPHTFull } from "@workspace/shared"
+import { AuditLogsService } from "@/audit-logs/audit-logs.service"
 import { NotificationsService } from "@/notifications/notifications.service"
 import { PrismaService } from "@/prisma/prisma.service"
 import type { CreateAppointmentDto, RescheduleAppointmentDto } from "./dto"
@@ -59,6 +60,7 @@ export class AppointmentsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
+    private readonly auditLogs: AuditLogsService,
   ) {}
 
   private parseIsoTimeRange(startIso: string, endIso: string) {
@@ -239,6 +241,14 @@ export class AppointmentsService {
       },
     })
 
+    // Audit log
+    await this.auditLogs.createLog(
+      userId,
+      "Booked appointment",
+      appointment.id,
+      `Type: ${appointment.type}`,
+    )
+
     // Trigger push notifications
     try {
       const formattedTime = formatPHTFull(appointment.startTime)
@@ -359,6 +369,14 @@ export class AppointmentsService {
       },
     })
 
+    // Audit log
+    await this.auditLogs.createLog(
+      userId,
+      `Appointment status -> ${status}`,
+      id,
+      `From: ${appt.status}`,
+    )
+
     // Trigger status change notifications
     try {
       const formattedTime = formatPHTFull(updated.startTime)
@@ -424,6 +442,14 @@ export class AppointmentsService {
         doctor: DOCTOR_INCLUDE,
       },
     })
+
+    // Audit log
+    await this.auditLogs.createLog(
+      userId,
+      "Cancelled appointment",
+      id,
+      `Original status: ${appt.status}`,
+    )
 
     // Trigger cancellation notification
     try {
@@ -524,6 +550,14 @@ export class AppointmentsService {
         doctor: DOCTOR_INCLUDE,
       },
     })
+
+    // Audit log
+    await this.auditLogs.createLog(
+      patientId,
+      "Rescheduled appointment",
+      id,
+      `New: ${dto.startTime}`,
+    )
 
     // Trigger reschedule notification to the doctor
     try {

@@ -9,7 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { Bell, CheckCheck, Loader2 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { Bell, CheckCheck } from "lucide-react"
 import { useEffect, useRef } from "react"
 import { type Socket, io as socketIO } from "socket.io-client"
 import { apiClient } from "@/lib/api-client"
@@ -100,7 +101,7 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <Badge
             variant="destructive"
-            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-[10px] font-bold"
+            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-bold"
           >
             {unreadCount > 9 ? "9+" : unreadCount}
           </Badge>
@@ -125,7 +126,7 @@ export function NotificationBell() {
 
         {isPending ? (
           <div className="flex justify-center py-8">
-            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            <Spinner className="h-5 w-5 text-muted-foreground" />
           </div>
         ) : notifications.length === 0 ? (
           <div className="py-8 text-center text-sm text-muted-foreground">
@@ -154,7 +155,7 @@ export function NotificationBell() {
                       {notification.body}
                     </p>
                   )}
-                  <p className="text-[10px] text-muted-foreground/70 mt-1">
+                  <p className="text-xs text-muted-foreground/70 mt-1">
                     {new Date(notification.createdAt).toLocaleString()}
                   </p>
                 </div>

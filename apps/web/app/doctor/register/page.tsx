@@ -24,7 +24,8 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { DatePicker } from "@workspace/ui/components/date-picker"
-import { Loader2, ShieldAlert, Stethoscope } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { ShieldAlert, Stethoscope } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -247,7 +248,7 @@ export default function DoctorRegisterPage() {
                     onChange={(e) => update("bio", e.target.value)}
                     maxLength={500}
                   />
-                  <p className="text-[10px] text-muted-foreground text-right">
+                  <p className="text-xs text-muted-foreground text-right">
                     {form.bio.length}/500
                   </p>
                 </div>
@@ -281,7 +282,7 @@ export default function DoctorRegisterPage() {
                 >
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Spinner className="mr-2 h-4 w-4" />
                       Submitting...
                     </>
                   ) : (

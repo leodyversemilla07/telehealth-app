@@ -1,6 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -17,7 +18,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Activity,
   Calendar,
@@ -57,8 +58,24 @@ export default function AdminDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-full items-center justify-center p-6">
-        <Spinner className="size-6 text-muted-foreground" />
+      <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <Skeleton className="h-20 w-full rounded-xl" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-48 w-full rounded-xl" />
       </div>
     )
   }
@@ -260,7 +277,7 @@ export default function AdminDashboardPage() {
                   <Calendar className="h-4 w-4" />
                 </EmptyMedia>
                 <EmptyTitle className="text-xs">No appointments yet</EmptyTitle>
-                <EmptyDescription className="text-[10px]">
+                <EmptyDescription className="text-xs">
                   Appointments will appear here once patients start booking.
                 </EmptyDescription>
               </EmptyHeader>
@@ -273,26 +290,38 @@ export default function AdminDashboardPage() {
                   className="py-3 flex items-center justify-between gap-4"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold">
-                      {appt.patient?.name?.[0] || "P"}
-                    </div>
+                    <Avatar className="shrink-0">
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
+                        {appt.patient?.name?.[0] || "P"}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="space-y-0.5">
                       <p className="text-xs font-bold text-foreground">
-                        {appt.patient?.name || "Anonymous"} → {appt.doctor?.user?.name || "Doctor"}
+                        {appt.patient?.name || "Anonymous"} →{" "}
+                        {appt.doctor?.user?.name || "Doctor"}
                       </p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {new Date(appt.startTime).toLocaleDateString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                          timeZone: "Asia/Manila",
-                        })}
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(appt.startTime).toLocaleDateString(
+                          undefined,
+                          {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                            timeZone: "Asia/Manila",
+                          },
+                        )}
                       </p>
                     </div>
                   </div>
                   <Badge
-                    variant={appt.status === "COMPLETED" ? "secondary" : appt.status === "CANCELLED" ? "destructive" : "outline"}
-                    className="text-[10px] font-bold uppercase"
+                    variant={
+                      appt.status === "COMPLETED"
+                        ? "secondary"
+                        : appt.status === "CANCELLED"
+                          ? "destructive"
+                          : "outline"
+                    }
+                    className="text-xs font-bold uppercase"
                   >
                     {appt.status}
                   </Badge>

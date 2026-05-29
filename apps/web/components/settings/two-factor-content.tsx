@@ -3,11 +3,11 @@
 import { useMutation } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   AlertTriangle,
   CheckCircle2,
   Download,
-  Loader2,
   ShieldCheck,
   XCircle,
 } from "lucide-react"
@@ -140,7 +140,7 @@ export function TwoFactorContent() {
                   disabled={disableMutation.isPending || !disablePassword}
                 >
                   {disableMutation.isPending ? (
-                    <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                    <Spinner className="mr-2 h-3 w-3" />
                   ) : null}
                   Disable 2FA
                 </Button>
@@ -184,7 +184,7 @@ export function TwoFactorContent() {
                     disabled={enableMutation.isPending || !password}
                   >
                     {enableMutation.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Spinner className="mr-2 h-4 w-4" />
                     ) : null}
                     Continue
                   </Button>
@@ -217,7 +217,7 @@ export function TwoFactorContent() {
                     disabled={verifyMutation.isPending || code.length < 6}
                   >
                     {verifyMutation.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Spinner className="mr-2 h-4 w-4" />
                     ) : null}
                     Verify & Enable
                   </Button>

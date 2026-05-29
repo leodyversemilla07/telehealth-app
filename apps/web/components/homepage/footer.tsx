@@ -65,6 +65,7 @@ export function Footer({
               width={36}
               height={36}
               className="size-9 rounded-xl object-cover"
+              suppressHydrationWarning
             />
             <span className="text-xl font-bold tracking-tight text-white">
               TELEHEALTH

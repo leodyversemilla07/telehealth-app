@@ -1,5 +1,6 @@
 "use client"
 
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -33,14 +34,12 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import {
-  AlertCircle,
   Calendar,
   Check,
   CheckCircle2,
   ClipboardList,
   Clock,
   Eye,
-  Loader2,
   MapPin,
   Phone,
   Play,
@@ -52,11 +51,13 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   useCancelAppointment,
   useMyAppointments,
   useUpdateAppointmentStatus,
 } from "@/hooks/use-appointments"
+import { ErrorAlert } from "@/components/error-alert"
 
 export default function DoctorConsultationsPage() {
   const router = useRouter()
@@ -435,7 +436,7 @@ export default function DoctorConsultationsPage() {
           {/* Loading */}
           {isPending && (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <Loader2 className="h-10 w-10 animate-spin text-primary" />
+              <Spinner className="h-10 w-10 text-primary" />
               <p className="text-xs text-muted-foreground font-semibold animate-pulse">
                 Retrieving clinical queue records...
               </p>
@@ -444,23 +445,14 @@ export default function DoctorConsultationsPage() {
 
           {/* Error */}
           {error && (
-            <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-5 flex items-start gap-3 text-xs leading-normal">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <div className="space-y-1">
-                <h4 className="font-bold">Failed to load clinical queue</h4>
-                <p>
-                  {error.message || "An unexpected network blockage occurred."}
-                </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => refetch()}
-                  className="h-8 border-destructive/20 hover:bg-destructive/10 mt-2 font-semibold"
-                >
-                  Retry Connection
-                </Button>
-              </div>
-            </div>
+            <ErrorAlert
+              title="Failed to load clinical queue"
+              description={
+                error.message || "An unexpected network blockage occurred."
+              }
+              actionLabel="Retry Connection"
+              onAction={() => refetch()}
+            />
           )}
 
           {/* Empty state */}
@@ -504,11 +496,13 @@ export default function DoctorConsultationsPage() {
                       {/* Patient */}
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase shrink-0 text-xs">
-                            {appt.patient?.name?.[0] ||
-                              appt.patient?.email?.[0] ||
-                              "P"}
-                          </div>
+                          <Avatar size="sm" className="border border-primary/20 shrink-0">
+                            <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
+                              {appt.patient?.name?.[0] ||
+                                appt.patient?.email?.[0] ||
+                                "P"}
+                            </AvatarFallback>
+                          </Avatar>
                           <div className="space-y-0.5 text-left truncate">
                             <h4 className="font-medium text-foreground text-sm truncate">
                               {appt.patient?.name || "Anonymous Patient"}
@@ -558,7 +552,7 @@ export default function DoctorConsultationsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="h-8 text-[11px] font-semibold text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
+                              className="h-8 text-xs font-semibold text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
                               disabled={
                                 cancelMutation.isPending ||
                                 updateStatusMutation.isPending
@@ -579,7 +573,7 @@ export default function DoctorConsultationsPage() {
                           {appt.status === "BOOKED" && (
                             <Button
                               size="sm"
-                              className="h-8 text-[11px] font-semibold bg-success hover:bg-success/90 text-success-foreground"
+                              className="h-8 text-xs font-semibold bg-success hover:bg-success/90 text-success-foreground"
                               onClick={() => handleConfirm(appt.id)}
                               disabled={updateStatusMutation.isPending}
                             >
@@ -592,7 +586,7 @@ export default function DoctorConsultationsPage() {
                           {appt.status === "CONFIRMED" && (
                             <Button
                               size="sm"
-                              className="h-8 text-[11px] font-semibold bg-warning hover:bg-warning/90 text-warning-foreground"
+                              className="h-8 text-xs font-semibold bg-warning hover:bg-warning/90 text-warning-foreground"
                               onClick={() => handleStartConsult(appt.id)}
                               disabled={updateStatusMutation.isPending}
                             >
@@ -612,7 +606,7 @@ export default function DoctorConsultationsPage() {
                               }
                               size="sm"
                               variant="default"
-                              className="h-8 text-[11px] font-bold shadow-xs"
+                              className="h-8 text-xs font-bold shadow-xs"
                             >
                               Join Call
                             </Button>
@@ -629,7 +623,7 @@ export default function DoctorConsultationsPage() {
                               }
                               size="sm"
                               variant="ghost"
-                              className="h-8 text-[11px] text-muted-foreground hover:text-foreground font-semibold"
+                              className="h-8 text-xs text-muted-foreground hover:text-foreground font-semibold"
                             >
                               <Eye className="h-3.5 w-3.5 mr-1" />
                               View Chart
@@ -674,7 +668,7 @@ export default function DoctorConsultationsPage() {
             >
               {cancelMutation.isPending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Spinner className="mr-2 h-4 w-4" />
                   Cancelling...
                 </>
               ) : (

@@ -1,6 +1,7 @@
 "use client"
 
 import type { UserDto } from "@workspace/shared"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -21,6 +22,7 @@ import {
   UserCheck,
   UserX,
 } from "lucide-react"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface UserTableProps {
   users: UserDto[]
@@ -92,14 +94,16 @@ export function UserTable({
               >
                 <TableCell className="font-medium">
                   <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase text-xs shrink-0">
-                      {user.name?.[0] || user.email[0]}
-                    </div>
+                    <Avatar size="sm" className="border border-primary/20 shrink-0">
+                      <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
+                        {user.name?.[0] || user.email[0]}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="truncate">
                       <span className="block font-semibold text-sm text-foreground truncate max-w-[150px]">
                         {user.name || "User"}
                       </span>
-                      <span className="md:hidden flex items-center gap-1 text-[11px] text-muted-foreground truncate">
+                      <span className="md:hidden flex items-center gap-1 text-xs text-muted-foreground truncate">
                         <Mail className="h-2.5 w-2.5 shrink-0" />
                         {user.email}
                       </span>
@@ -150,7 +154,7 @@ export function UserTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-[11px] gap-1 h-7 font-medium px-2.5"
+                        className="text-xs gap-1 h-7 font-medium px-2.5"
                         disabled={isRolePending}
                         onClick={() => onOpenRoleModal(user, "DOCTOR")}
                       >
@@ -161,7 +165,7 @@ export function UserTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-[11px] gap-1 h-7 font-medium px-2.5 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                        className="text-xs gap-1 h-7 font-medium px-2.5 hover:bg-primary/5 hover:text-primary hover:border-primary/30"
                         disabled={isRolePending}
                         onClick={() => onOpenRoleModal(user, "ADMIN")}
                       >
@@ -175,7 +179,7 @@ export function UserTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-[11px] gap-1 h-7 font-medium px-2.5 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200"
+                        className="text-xs gap-1 h-7 font-medium px-2.5 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200"
                         disabled={isUnbanPending}
                         onClick={() => onUnban(user.id)}
                       >
@@ -186,7 +190,7 @@ export function UserTable({
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="text-[11px] gap-1 h-7 font-medium px-2.5"
+                        className="text-xs gap-1 h-7 font-medium px-2.5"
                         disabled={isBanPending}
                         onClick={() => onOpenBanModal(user)}
                       >
@@ -209,7 +213,7 @@ export function UserTableSkeleton() {
   return (
     <div className="border border-border/45 rounded-xl bg-card overflow-hidden">
       <div className="p-4 bg-muted/20 border-b border-border/40">
-        <div className="h-6 w-32 bg-muted animate-pulse rounded" />
+        <Skeleton className="h-6 w-32 rounded" />
       </div>
       <div className="p-6 space-y-4">
         {Array.from({ length: 5 }).map((_, idx) => (
@@ -218,13 +222,13 @@ export function UserTableSkeleton() {
             className="flex items-center justify-between py-2 border-b border-border/10 last:border-0"
           >
             <div className="flex items-center gap-4 flex-1">
-              <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+              <Skeleton className="h-10 w-10 rounded-full" />
               <div className="space-y-2">
-                <div className="h-4 w-28 bg-muted animate-pulse rounded" />
-                <div className="h-3 w-44 bg-muted animate-pulse rounded" />
+                <Skeleton className="h-4 w-28 rounded" />
+                <Skeleton className="h-3 w-44 rounded" />
               </div>
             </div>
-            <div className="h-8 w-24 bg-muted animate-pulse rounded-md" />
+            <Skeleton className="h-8 w-24 rounded-md" />
           </div>
         ))}
       </div>

@@ -11,6 +11,14 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
+import {
   Field,
   FieldContent,
   FieldDescription,
@@ -35,12 +43,13 @@ import {
   CheckCircle2,
   Clock,
   Coffee,
-  Loader2,
   Plus,
   Trash2,
 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   useAddTimeOff,
   useDeleteTimeOff,
@@ -110,6 +119,9 @@ export default function DoctorSchedulePage() {
   const [toStart, setToStart] = useState("")
   const [toEnd, setToEnd] = useState("")
   const [toReason, setToReason] = useState("")
+
+  // Delete confirmation dialog state
+  const [deleteTimeOffId, setDeleteTimeOffId] = useState<string | null>(null)
 
   // Load backend schedule into local state when queried
   const scheduleLoaded = useRef(false)
@@ -254,12 +266,13 @@ export default function DoctorSchedulePage() {
   }
 
   // Delete blocked time-off slot
-  const handleDeleteTimeOff = (id: string) => {
-    if (!confirm("Are you sure you want to remove this blocked period?")) return
+  const handleDeleteTimeOff = () => {
+    if (!deleteTimeOffId) return
 
+    setDeleteTimeOffId(null)
     toast.loading("Removing time block...", { id: "del-to" })
 
-    deleteTimeOffMutation.mutate(id, {
+    deleteTimeOffMutation.mutate(deleteTimeOffId, {
       onSuccess: () => {
         toast.success("Time block removed successfully!", { id: "del-to" })
         refetchTimeOff()
@@ -276,7 +289,7 @@ export default function DoctorSchedulePage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <Spinner className="h-10 w-10 text-primary" />
           <p className="text-muted-foreground text-sm font-semibold animate-pulse">
             Loading schedule configurations...
           </p>
@@ -360,7 +373,7 @@ export default function DoctorSchedulePage() {
                       </SelectGroup>
                     </SelectContent>
                   </Select>
-                  <FieldDescription className="text-[11px] text-right">
+                  <FieldDescription className="text-xs text-right">
                     Duration of each individual patient slot interval.
                   </FieldDescription>
                 </FieldContent>
@@ -405,7 +418,7 @@ export default function DoctorSchedulePage() {
                           <div className="space-y-1">
                             <Label
                               htmlFor={`start-${day.key}`}
-                              className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider"
+                              className="text-xs text-muted-foreground uppercase font-bold tracking-wider"
                             >
                               Start Time
                             </Label>
@@ -432,7 +445,7 @@ export default function DoctorSchedulePage() {
                           <div className="space-y-1">
                             <Label
                               htmlFor={`end-${day.key}`}
-                              className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider"
+                              className="text-xs text-muted-foreground uppercase font-bold tracking-wider"
                             >
                               End Time
                             </Label>
@@ -464,7 +477,7 @@ export default function DoctorSchedulePage() {
               >
                 {setAvailabilityMutation.isPending ? (
                   <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <Spinner className="h-3.5 w-3.5" />
                     Saving Shifts...
                   </>
                 ) : (
@@ -543,7 +556,7 @@ export default function DoctorSchedulePage() {
                 >
                   {addTimeOffMutation.isPending ? (
                     <>
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      <Spinner className="h-3.5 w-3.5" />
                       Blocking...
                     </>
                   ) : (
@@ -562,7 +575,7 @@ export default function DoctorSchedulePage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                 <span>Blocked Calendars</span>
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="secondary" className="text-xs">
                   Blocks: {timeOffs.length}
                 </Badge>
               </CardTitle>
@@ -571,9 +584,9 @@ export default function DoctorSchedulePage() {
               {timeOffLoading ? (
                 <div className="space-y-3 py-1">
                   {Array.from({ length: 2 }).map((_, idx) => (
-                    <div
+                    <Skeleton
                       key={idx}
-                      className="h-10 rounded-lg bg-muted animate-pulse border border-border/40"
+                      className="h-10 rounded-lg border border-border/40"
                     />
                   ))}
                 </div>
@@ -603,7 +616,7 @@ export default function DoctorSchedulePage() {
                           <h5 className="font-bold text-foreground">
                             {to.reason || "Time-Off Block"}
                           </h5>
-                          <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <CalendarRange className="h-3 w-3 text-primary shrink-0" />
                             {formatDt(to.startDate)} — {formatDt(to.endDate)}
                           </p>
@@ -613,7 +626,7 @@ export default function DoctorSchedulePage() {
                           size="icon"
                           className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
                           disabled={deleteTimeOffMutation.isPending}
-                          onClick={() => handleDeleteTimeOff(to.id)}
+                          onClick={() => setDeleteTimeOffId(to.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -626,6 +639,40 @@ export default function DoctorSchedulePage() {
           </Card>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteTimeOffId !== null}
+        onOpenChange={(open) => !open && setDeleteTimeOffId(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Remove Time Block</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove this blocked period? This will
+              reopen the slot for patient bookings.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDeleteTimeOffId(null)}
+              disabled={deleteTimeOffMutation.isPending}
+            >
+              Keep Block
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDeleteTimeOff}
+              disabled={deleteTimeOffMutation.isPending}
+            >
+              {deleteTimeOffMutation.isPending ? "Removing..." : "Yes, Remove"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

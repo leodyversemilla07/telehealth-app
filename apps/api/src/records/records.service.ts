@@ -4,12 +4,16 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
+import { AuditLogsService } from "@/audit-logs/audit-logs.service"
 import { PrismaService } from "@/prisma/prisma.service"
 import type { CreateConsultationDto, CreatePrescriptionDto } from "./dto"
 
 @Injectable()
 export class RecordsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditLogs: AuditLogsService,
+  ) {}
 
   /**
    * Create a consultation (with optional prescriptions) for a completed appointment.
@@ -71,7 +75,7 @@ export class RecordsService {
       .filter((value): value is string => !!value)
       .join(" | ")
 
-    return this.prisma.consultation.create({
+    const consultation = await this.prisma.consultation.create({
       data: {
         appointmentId: dto.appointmentId,
         patientNotes: intakeNotes || null,
@@ -95,6 +99,16 @@ export class RecordsService {
         },
       },
     })
+
+    // Audit log
+    await this.auditLogs.createLog(
+      doctorUserId,
+      "Created consultation",
+      consultation.id,
+      `Appointment: ${dto.appointmentId}`,
+    )
+
+    return consultation
   }
 
   /**
@@ -190,7 +204,7 @@ export class RecordsService {
       )
     }
 
-    return this.prisma.prescription.create({
+    const prescription = await this.prisma.prescription.create({
       data: {
         consultationId,
         medicationName: dto.medicationName,
@@ -200,6 +214,16 @@ export class RecordsService {
         instructions: dto.instructions ?? null,
       },
     })
+
+    // Audit log
+    await this.auditLogs.createLog(
+      doctorUserId,
+      "Added prescription",
+      consultationId,
+      `${dto.medicationName} ${dto.dosage}`,
+    )
+
+    return prescription
   }
 
   /**
@@ -380,7 +404,11 @@ export class RecordsService {
         email: true,
         patientProfile: {
           select: {
+            dob: true,
+            sex: true,
             phone: true,
+            address: true,
+            philhealthNumber: true,
             weight: true,
             height: true,
             medicalHistory: true,

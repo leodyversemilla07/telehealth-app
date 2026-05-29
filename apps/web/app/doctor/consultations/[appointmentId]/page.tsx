@@ -3,6 +3,7 @@
 import { LiveKitRoom, VideoConference } from "@livekit/components-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { StatusBadge } from "@/components/status-badge"
 import {
   Card,
   CardContent,
@@ -11,6 +12,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
 import {
   Item,
@@ -28,7 +37,6 @@ import {
   Clock,
   FileCheck,
   HeartPulse,
-  Loader2,
   MapPin,
   Phone,
   Pill,
@@ -38,6 +46,7 @@ import {
   Trash2,
   Video,
 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -122,6 +131,9 @@ export default function DoctorConsultationDetailPage() {
   const [medFreq, setMedFreq] = useState("")
   const [medDur, setMedDur] = useState("")
   const [medInst, setMedInst] = useState("")
+
+  // Finalize confirmation dialog state
+  const [showFinalizeDialog, setShowFinalizeDialog] = useState(false)
 
   // 1. Queries
   const {
@@ -243,14 +255,12 @@ export default function DoctorConsultationDetailPage() {
       return
     }
 
-    if (
-      !confirm(
-        "Are you sure you want to finalize this clinical record? This will permanently close the session and sign the e-prescription ledger.",
-      )
-    ) {
-      return
-    }
+    setShowFinalizeDialog(true)
+  }
 
+  // Execute chart finalization after confirmation
+  const handleConfirmFinalize = async () => {
+    setShowFinalizeDialog(false)
     toast.loading("Processing clinical signature...", { id: "chart-sub" })
 
     try {
@@ -303,7 +313,7 @@ export default function DoctorConsultationDetailPage() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <Spinner className="h-10 w-10 text-primary" />
           <p className="text-muted-foreground text-sm font-semibold animate-pulse">
             Retrieving clinical session context...
           </p>
@@ -436,20 +446,7 @@ export default function DoctorConsultationDetailPage() {
             <Card>
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between gap-4 flex-wrap">
-                  <Badge
-                    variant="outline"
-                    className={`text-xs h-6 font-bold uppercase ${
-                      appt.status === "CONFIRMED"
-                        ? "text-emerald-600 border-emerald-200 bg-emerald-50/50"
-                        : appt.status === "IN_PROGRESS"
-                          ? "text-amber-600 border-amber-200 bg-amber-50/50"
-                          : appt.status === "BOOKED"
-                            ? "text-sky-600 border-sky-200 bg-sky-50/50"
-                            : "text-muted-foreground"
-                    }`}
-                  >
-                    {appt.status}
-                  </Badge>
+                  <StatusBadge status={appt.status} />
                   <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
                     {appt.type === "VIDEO" && <Video className="h-3.5 w-3.5" />}
                     {appt.type === "PHONE" && <Phone className="h-3.5 w-3.5" />}
@@ -647,7 +644,7 @@ export default function DoctorConsultationDetailPage() {
                       </>
                     ) : (
                       <div className="flex flex-col items-center py-10 gap-2">
-                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <Spinner className="h-8 w-8 text-primary" />
                         <p className="text-muted-foreground text-xs animate-pulse">
                           Retrieving signature tokens from database ledger...
                         </p>
@@ -1098,7 +1095,7 @@ export default function DoctorConsultationDetailPage() {
                       {createConsultationMutation.isPending ||
                       updateStatusMutation.isPending ? (
                         <>
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          <Spinner className="h-3.5 w-3.5" />
                           Signing & Encoding Chart...
                         </>
                       ) : (
@@ -1139,7 +1136,7 @@ export default function DoctorConsultationDetailPage() {
                     >
                       {joinRoomMutation.isPending ? (
                         <>
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          <Spinner className="h-3.5 w-3.5" />
                           Securing relays...
                         </>
                       ) : (
@@ -1156,6 +1153,39 @@ export default function DoctorConsultationDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Finalize Confirmation Dialog */}
+      <Dialog open={showFinalizeDialog} onOpenChange={setShowFinalizeDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Finalize Clinical Record</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to finalize this clinical record? This will
+              permanently close the session and sign the e-prescription ledger.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFinalizeDialog(false)}
+              disabled={createConsultationMutation.isPending || updateStatusMutation.isPending}
+            >
+              Review Again
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleConfirmFinalize}
+              disabled={createConsultationMutation.isPending || updateStatusMutation.isPending}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+            >
+              {createConsultationMutation.isPending || updateStatusMutation.isPending
+                ? "Signing..."
+                : "Yes, Finalize Chart"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

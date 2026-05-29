@@ -27,6 +27,7 @@ IMPORTANT: Only respond with the JSON object, no other text.`
 const PRIMARY_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 const FALLBACK_MODEL = "qwen/qwen3.5-122b-a10b"
 const NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
+const FETCH_TIMEOUT_MS = 30_000
 
 @Injectable()
 export class RecommendationsService {
@@ -116,7 +117,7 @@ export class RecommendationsService {
     }
 
     throw new ServiceUnavailableException(
-      "Unable to analyze symptoms at this time. Both primary and fallback models are unavailable.",
+      "Unable to analyze symptoms at this time. Please try again later.",
     )
   }
 
@@ -128,22 +129,27 @@ export class RecommendationsService {
     model: string,
     symptoms: string,
   ): Promise<Record<string, unknown> | null> {
-    const response = await fetch(`${NIM_BASE_URL}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: SYMPTOM_CHECKER_PROMPT },
-          { role: "user", content: `Patient symptoms: ${symptoms}` },
-        ],
-        temperature: 0.2,
-        max_tokens: 512,
-      }),
-    })
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
+    try {
+      const response = await fetch(`${NIM_BASE_URL}/chat/completions`, {
+        signal: controller.signal,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: SYMPTOM_CHECKER_PROMPT },
+            { role: "user", content: `Patient symptoms: ${symptoms}` },
+          ],
+          temperature: 0.2,
+          max_tokens: 1024,
+        }),
+      })
 
     if (!response.ok) {
       const body = await response.text().catch(() => "")
@@ -162,6 +168,9 @@ export class RecommendationsService {
     }
 
     return this.parseSymptomResponse(content)
+    } finally {
+      clearTimeout(timeout)
+    }
   }
 
   /**
@@ -238,40 +247,48 @@ export class RecommendationsService {
     model: string,
     symptoms: string,
   ): Promise<string[]> {
-    const response = await fetch(`${NIM_BASE_URL}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: symptoms },
-        ],
-        temperature: 0.2,
-        max_tokens: 256,
-      }),
-    })
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
 
-    if (!response.ok) {
-      const body = await response.text().catch(() => "")
-      throw new Error(
-        `NIM API returned ${response.status}: ${body.slice(0, 200)}`,
-      )
+    try {
+      const response = await fetch(`${NIM_BASE_URL}/chat/completions`, {
+        signal: controller.signal,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: symptoms },
+          ],
+          temperature: 0.2,
+          max_tokens: 256,
+        }),
+      })
+
+      if (!response.ok) {
+        const body = await response.text().catch(() => "")
+        throw new Error(
+          `NIM API returned ${response.status}: ${body.slice(0, 200)}`,
+        )
+      }
+
+      const data = (await response.json()) as {
+        choices?: Array<{ message?: { content?: string } }>
+      }
+
+      const content = data.choices?.[0]?.message?.content
+      if (!content) {
+        throw new Error("Empty response content from NIM API")
+      }
+
+      return this.parseSpecialtiesResponse(content)
+    } finally {
+      clearTimeout(timeout)
     }
-
-    const data = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
-    }
-
-    const content = data.choices?.[0]?.message?.content
-    if (!content) {
-      throw new Error("Empty response content from NIM API")
-    }
-
-    return this.parseSpecialtiesResponse(content)
   }
 
   /**

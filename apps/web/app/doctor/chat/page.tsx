@@ -25,12 +25,12 @@ interface UserProfile {
 }
 
 export default function DoctorChatPage() {
-  const { data: user } = useQuery<UserProfile>({
+  const { data: userData } = useQuery<{ user: UserProfile }>({
     queryKey: ["user-profile"],
-    queryFn: () => apiClient.get<UserProfile>("/users/me"),
+    queryFn: () => apiClient.get("/users/me"),
   })
 
-  const currentUserId = user?.id || ""
+  const currentUserId = userData?.user?.id || ""
   const userRole = "DOCTOR" as const
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
@@ -49,7 +49,10 @@ export default function DoctorChatPage() {
 
   const selectedConversation = conversations.find(
     (c) => c.otherUser.id === selectedUserId,
-  ) || contacts.find((c) => c.id === selectedUserId)
+  )
+  const selectedContact = contacts.find((c) => c.id === selectedUserId)
+
+  const selectedUser = selectedConversation?.otherUser || selectedContact
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -203,7 +206,7 @@ export default function DoctorChatPage() {
                           {conv.otherUser.name || conv.otherUser.email}
                         </span>
                         {conv.unreadCount > 0 && (
-                          <span className="h-5 w-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center shrink-0">
+                          <span className="h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0">
                             {conv.unreadCount}
                           </span>
                         )}
@@ -235,14 +238,13 @@ export default function DoctorChatPage() {
               {/* Header */}
               <div className="p-3 border-b border-border/20 flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                  {selectedConversation?.otherUser.name?.[0] || "?"}
+                  {selectedUser?.name?.[0] || selectedUser?.email?.[0] || "?"}
                 </div>
                 <div>
                   <p className="text-sm font-medium">
-                    {selectedConversation?.otherUser.name ||
-                      selectedConversation?.otherUser.email}
+                    {selectedUser?.name || selectedUser?.email}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-xs text-muted-foreground">
                     {userRole === "PATIENT" ? "Doctor" : "Patient"}
                   </p>
                 </div>
@@ -275,7 +277,7 @@ export default function DoctorChatPage() {
                         >
                           <p>{msg.content}</p>
                           <p
-                            className={`text-[10px] mt-1 ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}
+                            className={`text-xs mt-1 ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}
                           >
                             {new Date(msg.createdAt).toLocaleTimeString([], {
                               hour: "2-digit",

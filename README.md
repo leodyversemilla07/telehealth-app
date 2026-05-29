@@ -28,7 +28,7 @@ telehealth-app/
 | Frontend    | Next.js 16 + React 19 + Tailwind CSS v4 + shadcn/ui          |
 | Backend     | NestJS 11 + Express                                           |
 | Database    | PostgreSQL 16 (via Prisma ORM + `@prisma/adapter-pg`)        |
-| Auth        | Better Auth (email/password, Google OAuth, GitHub OAuth, 2FA) |
+| Auth        | Better Auth (email/password, 2FA) |
 | Validation  | Zod (shared) + class-validator (API)                          |
 | API Client  | TanStack React Query v5                                       |
 | Icons       | Lucide React                                                  |

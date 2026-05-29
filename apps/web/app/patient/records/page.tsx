@@ -18,7 +18,6 @@ import {
 } from "@workspace/ui/components/empty"
 import { Separator } from "@workspace/ui/components/separator"
 import {
-  AlertCircle,
   Calendar,
   ClipboardList,
   Clock,
@@ -30,6 +29,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { usePatientRecords } from "@/hooks/use-records"
+import { ErrorAlert } from "@/components/error-alert"
 
 export default function PatientRecordsPage() {
   const { data: consultations = [], isPending, error } = usePatientRecords()
@@ -62,18 +62,14 @@ export default function PatientRecordsPage() {
       )}
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-6 flex items-start gap-3 shadow-sm max-w-2xl mx-auto my-12">
-          <AlertCircle className="h-6 w-6 shrink-0" />
-          <div className="space-y-1 text-left">
-            <h3 className="font-semibold text-sm">
-              Failed to retrieve medical records
-            </h3>
-            <p className="text-xs text-destructive/80 leading-relaxed">
-              {error.message ||
-                "An unexpected error occurred while communicating with the EHR server."}
-            </p>
-          </div>
-        </div>
+        <ErrorAlert
+          title="Failed to retrieve medical records"
+          description={
+            error.message ||
+            "An unexpected error occurred while communicating with the EHR server."
+          }
+          className="my-12"
+        />
       )}
 
       {!isPending && !error && consultations.length === 0 && (
@@ -119,7 +115,7 @@ export default function PatientRecordsPage() {
                       <div>
                         <Badge
                           variant="outline"
-                          className="text-[10px] text-primary border-primary/20 bg-primary/5 font-extrabold uppercase py-0 leading-none mb-1"
+                          className="text-xs text-primary border-primary/20 bg-primary/5 font-extrabold uppercase py-0 leading-none mb-1"
                         >
                           Consultation Record
                         </Badge>
@@ -141,13 +137,13 @@ export default function PatientRecordsPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="bg-muted/20 border border-border/20 rounded-xl p-4 space-y-3">
                       <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
                           <User className="h-3 w-3" /> Doctor
                         </span>
                         <p className="text-foreground font-semibold text-sm">
                           {record.appointment.doctor?.user?.name || "Doctor"}
                         </p>
-                        <p className="text-[10px] text-muted-foreground font-medium">
+                        <p className="text-xs text-muted-foreground font-medium">
                           {record.appointment.doctor?.specialty}
                         </p>
                       </div>
@@ -155,7 +151,7 @@ export default function PatientRecordsPage() {
                       <Separator className="bg-border/20" />
 
                       <div className="space-y-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
                           <Clock className="h-3 w-3" /> Visit Time
                         </span>
                         <p className="text-foreground font-medium text-sm">
@@ -182,7 +178,7 @@ export default function PatientRecordsPage() {
 
                     <div className="space-y-3">
                       <div className="bg-muted/20 border border-border/20 rounded-xl p-4 space-y-1">
-                        <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
                           <HeartPulse className="h-3 w-3" /> Diagnosis
                         </span>
                         <p className="text-foreground text-sm font-medium">
@@ -192,7 +188,7 @@ export default function PatientRecordsPage() {
 
                       {record.plan && (
                         <div className="bg-muted/20 border border-border/20 rounded-xl p-4 space-y-1">
-                          <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                          <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                             Treatment Plan
                           </span>
                           <p className="text-foreground text-sm">
@@ -205,7 +201,7 @@ export default function PatientRecordsPage() {
 
                   {record.doctorNotes && (
                     <div className="mb-4 space-y-1">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                      <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider">
                         Doctor&apos;s Notes
                       </span>
                       <div className="bg-muted/10 border border-border/20 rounded-xl p-3.5 text-sm leading-relaxed text-foreground italic">
@@ -216,7 +212,7 @@ export default function PatientRecordsPage() {
 
                   {record.prescriptions.length > 0 && (
                     <div className="space-y-2">
-                      <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                      <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
                         <Pill className="h-3 w-3" /> Prescriptions (
                         {record.prescriptions.length})
                       </span>

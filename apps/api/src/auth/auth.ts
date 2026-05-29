@@ -89,13 +89,7 @@ export const auth = betterAuth({
       })
     },
   },
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "placeholder_google_id",
-      clientSecret:
-        process.env.GOOGLE_CLIENT_SECRET || "placeholder_google_secret",
-    },
-  },
+
   plugins: [twoFactor()],
   basePath: "/api/auth",
   /**
@@ -117,7 +111,7 @@ export const auth = betterAuth({
   account: {
     accountLinking: {
       enabled: false,
-      trustedProviders: ["google"],
+      trustedProviders: [],
     },
   },
   /**

@@ -3,10 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import { DatePicker } from "@workspace/ui/components/date-picker"
-import {
-  Field,
-  FieldLabel,
-} from "@workspace/ui/components/field"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -18,9 +15,11 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 import { Separator } from "@workspace/ui/components/separator"
-import { Camera, Loader2, Save } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { Camera, Save } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
+import { useFormDirty, useUnsavedChanges } from "@/hooks/use-unsaved-changes"
 import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
 
@@ -66,6 +65,22 @@ export function ProfileContent() {
   const [address, setAddress] = useState("")
   const [philhealthNumber, setPhilhealthNumber] = useState("")
 
+  // Track initial values for unsaved changes detection
+  const [initialValues, setInitialValues] = useState<Record<string, unknown>>(
+    {},
+  )
+  const currentValues = {
+    name,
+    imageUrl,
+    dob,
+    sex,
+    phone,
+    address,
+    philhealthNumber,
+  }
+  const isDirty = useFormDirty(initialValues, currentValues)
+  useUnsavedChanges(isDirty)
+
   const { data: profile } = useQuery({
     queryKey: ["patient-profile"],
     queryFn: () => apiClient.get<PatientProfile>("/patients/me"),
@@ -92,6 +107,24 @@ export function ProfileContent() {
     }
   }, [session])
 
+  // Store initial values after both profile and session load
+  useEffect(() => {
+    if (profile !== undefined || session?.user) {
+      const u = session?.user as { name?: string; image?: string } | undefined
+      setInitialValues({
+        name: u?.name ?? "",
+        imageUrl: u?.image ?? "",
+        dob: profile?.dob
+          ? new Date(profile.dob).toISOString().split("T")[0]
+          : "",
+        sex: profile?.sex ?? "",
+        phone: profile?.phone ?? "",
+        address: profile?.address ?? "",
+        philhealthNumber: profile?.philhealthNumber ?? "",
+      })
+    }
+  }, [profile, session])
+
   useEffect(() => {
     return () => {
       if (previewUrl) URL.revokeObjectURL(previewUrl)
@@ -103,6 +136,7 @@ export function ProfileContent() {
       apiClient.patch("/users/me", data),
     onSuccess: () => {
       toast.success("Profile updated!")
+      setInitialValues((prev) => ({ ...prev, name, imageUrl }))
       refetch()
     },
     onError: (err: { message?: string }) =>
@@ -121,8 +155,10 @@ export function ProfileContent() {
       toast.success("Avatar uploaded!")
       refetch()
     },
-    onError: (err: { message?: string }) =>
-      toast.error(err.message || "Upload failed"),
+    onError: (err: { message?: string }) => {
+      setPreviewUrl(null)
+      toast.error(err.message || "Upload failed")
+    },
   })
 
   const patientMutation = useMutation({
@@ -135,6 +171,14 @@ export function ProfileContent() {
     }) => apiClient.patch("/patients/me", data),
     onSuccess: () => {
       toast.success("Personal details saved!")
+      setInitialValues((prev) => ({
+        ...prev,
+        dob,
+        sex,
+        phone,
+        address,
+        philhealthNumber,
+      }))
       queryClient.invalidateQueries({ queryKey: ["patient-profile"] })
     },
     onError: (err: { message?: string }) =>
@@ -200,7 +244,7 @@ export function ProfileContent() {
             </div>
             {uploadMutation.isPending && (
               <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                <Loader2 className="h-4 w-4 text-white animate-spin" />
+                <Spinner className="h-4 w-4 text-white" />
               </div>
             )}
           </button>
@@ -257,7 +301,7 @@ export function ProfileContent() {
           disabled={profileMutation.isPending}
         >
           {profileMutation.isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2 h-4 w-4" />
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}
@@ -362,7 +406,7 @@ export function ProfileContent() {
           disabled={patientMutation.isPending}
         >
           {patientMutation.isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2 h-4 w-4" />
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}

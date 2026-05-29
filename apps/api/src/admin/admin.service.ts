@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common"
 import type { Role } from "@workspace/shared/types/user"
+import { AuditLogsService } from "@/audit-logs/audit-logs.service"
 import { DoctorsService } from "@/doctors/doctors.service"
 import { PrismaService } from "@/prisma/prisma.service"
 import { UsersService } from "@/users/users.service"
@@ -15,6 +16,7 @@ export class AdminService {
     private readonly usersService: UsersService,
     private readonly doctorsService: DoctorsService,
     private readonly prisma: PrismaService,
+    private readonly auditLogs: AuditLogsService,
   ) {}
 
   // ─── User management (delegated) ───────────────────────────────────────
@@ -58,12 +60,16 @@ export class AdminService {
     return this.doctorsService.findAll()
   }
 
-  async approveDoctor(id: string) {
-    return this.doctorsService.approve(id)
+  async approveDoctor(id: string, actorId: string) {
+    const result = await this.doctorsService.approve(id)
+    await this.auditLogs.createLog(actorId, "Approved doctor", id)
+    return result
   }
 
-  async rejectDoctor(id: string) {
-    return this.doctorsService.reject(id)
+  async rejectDoctor(id: string, actorId: string) {
+    const result = await this.doctorsService.reject(id)
+    await this.auditLogs.createLog(actorId, "Rejected doctor", id)
+    return result
   }
 
   // ─── Dashboard stats ───────────────────────────────────────────────────

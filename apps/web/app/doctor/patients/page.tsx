@@ -1,6 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -28,6 +29,7 @@ import {
 import Link from "next/link"
 import { useState } from "react"
 import { apiClient } from "@/lib/api-client"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface Patient {
   id: string
@@ -97,10 +99,10 @@ export default function DoctorPatientsPage() {
               key={i}
               className="flex items-center gap-4 py-2 border-b border-border/10 last:border-0"
             >
-              <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+              <Skeleton className="h-10 w-10 rounded-full" />
               <div className="space-y-2 flex-1">
-                <div className="h-4 w-32 bg-muted animate-pulse rounded" />
-                <div className="h-3 w-48 bg-muted animate-pulse rounded" />
+                <Skeleton className="h-4 w-32 rounded" />
+                <Skeleton className="h-3 w-48 rounded" />
               </div>
             </div>
           ))}
@@ -152,9 +154,11 @@ export default function DoctorPatientsPage() {
                       href={`/doctor/patients/${patient.id}`}
                       className="flex items-center gap-3"
                     >
-                      <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase text-xs shrink-0">
-                        {patient.name?.[0] || patient.email[0]}
-                      </div>
+                      <Avatar size="sm" className="border border-primary/20 shrink-0">
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
+                          {patient.name?.[0] || patient.email[0]}
+                        </AvatarFallback>
+                      </Avatar>
                       <span className="text-sm">
                         {patient.name || "Patient"}
                       </span>

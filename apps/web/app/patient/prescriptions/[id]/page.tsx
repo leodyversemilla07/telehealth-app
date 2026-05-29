@@ -10,7 +10,6 @@ import {
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
 import {
-  AlertCircle,
   ArrowLeft,
   Calendar,
   FileCheck,
@@ -24,6 +23,7 @@ import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { usePatientPrescriptions } from "@/hooks/use-records"
+import { ErrorAlert } from "@/components/error-alert"
 
 export default function PrescriptionDetailPage() {
   const params = useParams()
@@ -58,24 +58,16 @@ export default function PrescriptionDetailPage() {
 
   if (error || !prescription) {
     return (
-      <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-6 flex items-start gap-3 shadow-sm max-w-2xl mx-auto my-12">
-        <AlertCircle className="h-6 w-6 shrink-0" />
-        <div className="space-y-1 text-left">
-          <h3 className="font-semibold text-sm">Prescription not found</h3>
-          <p className="text-xs text-destructive/80 leading-relaxed">
-            {error?.message ||
-              "This prescription could not be found or you do not have permission to view it."}
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push("/patient/prescriptions")}
-            className="text-xs mt-3 h-8 border-destructive/20 hover:bg-destructive/10"
-          >
-            Back to prescriptions
-          </Button>
-        </div>
-      </div>
+      <ErrorAlert
+        title="Prescription not found"
+        description={
+          error?.message ||
+          "This prescription could not be found or you do not have permission to view it."
+        }
+        actionLabel="Back to prescriptions"
+        onAction={() => router.push("/patient/prescriptions")}
+        className="my-12"
+      />
     )
   }
 

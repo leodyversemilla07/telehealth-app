@@ -1,6 +1,7 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -20,7 +21,6 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import {
-  AlertCircle,
   CheckCircle,
   Clock,
   Mail,
@@ -32,6 +32,8 @@ import {
 import { useState } from "react"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
+import { ErrorAlert } from "@/components/error-alert"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface DoctorProfile {
   id: string
@@ -152,29 +154,22 @@ export default function AdminDoctorsPage() {
               key={i}
               className="flex items-center gap-4 py-2 border-b border-border/10 last:border-0"
             >
-              <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+              <Skeleton className="h-10 w-10 rounded-full" />
               <div className="space-y-2 flex-1">
-                <div className="h-4 w-32 bg-muted animate-pulse rounded" />
-                <div className="h-3 w-48 bg-muted animate-pulse rounded" />
+                <Skeleton className="h-4 w-32 rounded" />
+                <Skeleton className="h-3 w-48 rounded" />
               </div>
-              <div className="h-8 w-20 bg-muted animate-pulse rounded-md" />
+              <Skeleton className="h-8 w-20 rounded-md" />
             </div>
           ))}
         </div>
       )}
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-6 flex items-start gap-3 shadow-sm max-w-2xl mx-auto">
-          <AlertCircle className="h-6 w-6 shrink-0" />
-          <div className="space-y-1">
-            <h3 className="font-semibold text-sm">
-              Failed to retrieve doctors
-            </h3>
-            <p className="text-xs destructive/80 leading-relaxed">
-              {error.message || "An unexpected error occurred."}
-            </p>
-          </div>
-        </div>
+        <ErrorAlert
+          title="Failed to retrieve doctors"
+          description={error.message || "An unexpected error occurred."}
+        />
       )}
 
       {!isPending && !error && filtered.length === 0 && (
@@ -233,9 +228,11 @@ export default function AdminDoctorsPage() {
                 <TableRow key={doc.id}>
                   <TableCell className="font-medium">
                     <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase text-xs shrink-0">
-                        {doc.user.name?.[0] || doc.user.email[0]}
-                      </div>
+                      <Avatar size="sm" className="border border-primary/20 shrink-0">
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
+                          {doc.user.name?.[0] || doc.user.email[0]}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="truncate">
                         <span className="block font-medium text-sm text-foreground truncate max-w-[180px]">
                           {doc.user.name || "Doctor"}
@@ -289,7 +286,7 @@ export default function AdminDoctorsPage() {
                         <Button
                           variant="default"
                           size="sm"
-                          className="text-[11px] gap-1 h-7 font-medium px-2.5"
+                          className="text-xs gap-1 h-7 font-medium px-2.5"
                           disabled={approveMutation.isPending}
                           onClick={() => approveMutation.mutate(doc.id)}
                         >

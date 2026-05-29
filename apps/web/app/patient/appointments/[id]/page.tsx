@@ -2,8 +2,10 @@
 
 import { LiveKitRoom, VideoConference } from "@livekit/components-react"
 import type { AvailableSlotDto } from "@workspace/shared"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { StatusBadge } from "@/components/status-badge"
 import {
   Card,
   CardContent,
@@ -23,9 +25,9 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
+import { Textarea } from "@workspace/ui/components/textarea"
 import { DatePicker } from "@workspace/ui/components/date-picker"
 import {
-  AlertCircle,
   ArrowLeft,
   Calendar,
   CalendarClock,
@@ -53,6 +55,7 @@ import {
   useRescheduleAppointment,
 } from "@/hooks/use-appointments"
 import { useAppointmentConsultation } from "@/hooks/use-records"
+import { ErrorAlert } from "@/components/error-alert"
 import { useCheckReview, useCreateReview } from "@/hooks/use-reviews"
 import { useJoinRoom } from "@/hooks/use-video"
 import "@livekit/components-styles"
@@ -104,6 +107,9 @@ export default function AppointmentDetailPage() {
   // Review states
   const [reviewRating, setReviewRating] = useState(5)
   const [reviewComment, setReviewComment] = useState("")
+
+  // Cancel confirmation dialog state
+  const [showCancelDialog, setShowCancelDialog] = useState(false)
 
   // 1. Fetch appointment details (react-query)
   const { data: appt, isPending, error, refetch } = useAppointment(id)
@@ -166,8 +172,7 @@ export default function AppointmentDetailPage() {
 
   // Handle Cancel Session
   const handleCancel = () => {
-    if (!confirm("Are you sure you want to cancel this appointment?")) return
-
+    setShowCancelDialog(false)
     toast.loading("Processing cancellation...", { id: "cancel-appt" })
 
     cancelMutation.mutate(id, {
@@ -271,26 +276,16 @@ export default function AppointmentDetailPage() {
 
   if (error || !appt) {
     return (
-      <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-6 flex items-start gap-3 shadow-sm max-w-2xl mx-auto my-12">
-        <AlertCircle className="h-6 w-6 shrink-0" />
-        <div className="space-y-1 text-left">
-          <h3 className="font-semibold text-sm">
-            Failed to retrieve appointment
-          </h3>
-          <p className="text-xs text-destructive/80 leading-relaxed">
-            {error?.message ||
-              "This appointment details could not be found or you do not have permission to view it."}
-          </p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push("/patient/appointments")}
-            className="text-xs mt-3 h-8 border-destructive/20 hover:bg-destructive/10"
-          >
-            Back to appointments
-          </Button>
-        </div>
-      </div>
+      <ErrorAlert
+        title="Failed to retrieve appointment"
+        description={
+          error?.message ||
+          "This appointment details could not be found or you do not have permission to view it."
+        }
+        actionLabel="Back to appointments"
+        onAction={() => router.push("/patient/appointments")}
+        className="my-12"
+      />
     )
   }
 
@@ -401,20 +396,7 @@ export default function AppointmentDetailPage() {
         <Card className="lg:col-span-2 text-left">
           <CardHeader className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between gap-4 flex-wrap">
-              <Badge
-                variant="outline"
-                className={`text-xs h-6 font-bold uppercase ${
-                  appt.status === "CONFIRMED"
-                    ? "text-emerald-600 border-emerald-200 bg-emerald-50/50"
-                    : appt.status === "IN_PROGRESS"
-                      ? "text-amber-600 border-amber-200 bg-amber-50/50"
-                      : appt.status === "BOOKED"
-                        ? "text-sky-600 border-sky-200 bg-sky-50/50"
-                        : "text-muted-foreground"
-                }`}
-              >
-                {appt.status}
-              </Badge>
+              <StatusBadge status={appt.status} />
               <span className="text-xs text-muted-foreground font-semibold flex items-center gap-1">
                 {appt.type === "VIDEO" && <Video className="h-3.5 w-3.5" />}
                 {appt.type === "PHONE" && <Phone className="h-3.5 w-3.5" />}
@@ -570,7 +552,7 @@ export default function AppointmentDetailPage() {
                       size="sm"
                       className="text-xs h-9 border-border/60 text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
                       disabled={cancelMutation.isPending}
-                      onClick={handleCancel}
+                      onClick={() => setShowCancelDialog(true)}
                     >
                       <Trash2 className="h-4 w-4 mr-1.5" />
                       Cancel
@@ -690,6 +672,38 @@ export default function AppointmentDetailPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Cancel Confirmation Dialog */}
+        <Dialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Cancel Appointment</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to cancel this appointment with{" "}
+                <strong>{appt.doctor.user.name}</strong>? This action cannot be
+                undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="gap-2 sm:gap-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCancelDialog(false)}
+                disabled={cancelMutation.isPending}
+              >
+                Keep Appointment
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleCancel}
+                disabled={cancelMutation.isPending}
+              >
+                {cancelMutation.isPending ? "Cancelling..." : "Yes, Cancel"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Doctor Summary Sidebar Card */}
         <div className="space-y-6">
           <Card className="text-left">
@@ -701,9 +715,11 @@ export default function AppointmentDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex gap-3 items-center">
-                <div className="h-10 w-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase text-sm">
-                  {appt.doctor.user.name?.[0] || appt.doctor.user.email?.[0]}
-                </div>
+                <Avatar className="border border-primary/20 shrink-0">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-sm">
+                    {appt.doctor.user.name?.[0] || appt.doctor.user.email?.[0]}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <h4 className="font-semibold text-sm text-foreground">
                     {appt.doctor.user.name}
@@ -832,9 +848,8 @@ export default function AppointmentDetailPage() {
                     <Label htmlFor="review-comment" className="text-xs">
                       Comments (optional)
                     </Label>
-                    <textarea
+                    <Textarea
                       id="review-comment"
-                      className="flex min-h-[80px] w-full rounded-xl border border-input bg-transparent px-3 py-2 text-sm shadow-xs placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                       placeholder="How was your consultation experience?"
                       value={reviewComment}
                       onChange={(e) => setReviewComment(e.target.value)}

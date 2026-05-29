@@ -1,6 +1,7 @@
 "use client"
 
 import type { AvailableSlotDto, DoctorProfileDto } from "@workspace/shared"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -11,14 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@workspace/ui/components/empty"
+import { DatePicker } from "@workspace/ui/components/date-picker"
 import {
   Dialog,
   DialogContent,
@@ -28,9 +22,14 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import {
-  Field,
-  FieldLabel,
-} from "@workspace/ui/components/field"
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty"
+import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import {
@@ -41,6 +40,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { Switch } from "@workspace/ui/components/switch"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   Calendar,
@@ -51,12 +52,10 @@ import {
   Star,
   Stethoscope,
 } from "lucide-react"
-import { Spinner } from "@workspace/ui/components/spinner"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { TimeSlotPicker } from "@/components/time-slot-picker"
-import { DatePicker } from "@workspace/ui/components/date-picker"
 import { useAvailableSlots, useBookAppointment } from "@/hooks/use-appointments"
 import { useDoctors } from "@/hooks/use-doctors"
 
@@ -293,7 +292,7 @@ export default function BookAppointmentPage() {
       <div className="space-y-4">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between">
           <span>Available Specialists</span>
-          <span className="text-[11px] text-muted-foreground font-normal">
+          <span className="text-xs text-muted-foreground font-normal">
             Doctors:{" "}
             <strong className="text-foreground">
               {displayedDoctors.length}
@@ -360,9 +359,11 @@ export default function BookAppointmentPage() {
                 <CardHeader className="pb-3">
                   <div className="flex gap-4 items-start justify-between">
                     <div className="flex gap-3 items-center">
-                      <div className="h-12 w-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase shrink-0">
-                        {doctor.user.name?.[0] || doctor.user.email[0]}
-                      </div>
+                      <Avatar size="lg" className="border border-primary/20 shrink-0">
+                        <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase">
+                          {doctor.user.name?.[0] || doctor.user.email[0]}
+                        </AvatarFallback>
+                      </Avatar>
                       <div className="truncate">
                         <CardTitle className="text-base font-bold truncate max-w-40 text-foreground">
                           {doctor.user.name || "Doctor"}
@@ -370,7 +371,7 @@ export default function BookAppointmentPage() {
                         <div className="flex items-center gap-2 mt-1">
                           <Badge
                             variant="secondary"
-                            className="text-[10px] py-0.5 px-2 leading-none font-bold shrink-0"
+                            className="text-xs py-0.5 px-2 leading-none font-bold shrink-0"
                           >
                             {doctor.specialty}
                           </Badge>
@@ -382,7 +383,7 @@ export default function BookAppointmentPage() {
                                 ? doctor.averageRating.toFixed(1)
                                 : "5.0"}
                             </span>
-                            <span className="text-[10px] text-muted-foreground font-normal">
+                            <span className="text-xs text-muted-foreground font-normal">
                               ({doctor.totalReviews ?? 0})
                             </span>
                           </div>
@@ -519,7 +520,7 @@ export default function BookAppointmentPage() {
               <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                 <span>Select Time Slot</span>
                 {slotsLoading && (
-                  <span className="text-[10px] text-muted-foreground font-normal animate-pulse">
+                  <span className="text-xs text-muted-foreground font-normal animate-pulse">
                     Checking availability...
                   </span>
                 )}
@@ -570,27 +571,26 @@ export default function BookAppointmentPage() {
 
             {/* DPA Consent Checkbox Notice */}
             <div className="bg-muted/30 border border-border/20 rounded-xl p-3.5 space-y-3">
-              <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0" />
                 Data Privacy Act Compliance (RA 10173)
               </h4>
-              <p className="text-[10px] text-muted-foreground leading-normal">
-                By ticking the consent check box below, you explicitly agree to
+              <p className="text-xs text-muted-foreground leading-normal">
+                By toggling the consent switch below, you explicitly agree to
                 share your medical profile, weight, height, allergies, and
                 symptoms with the selected healthcare provider strictly for
                 evaluation, diagnosis, and treatment purposes.
               </p>
-              <div className="flex items-start gap-2 pt-1">
-                <input
+              <div className="flex items-center gap-3 pt-1">
+                <Switch
                   id="dpa-consent"
-                  type="checkbox"
+                  size="sm"
                   checked={dpaConsent}
-                  onChange={(e) => setDpaConsent(e.target.checked)}
-                  className="h-4 w-4 rounded border-border/60 text-primary focus:ring-primary/20 shrink-0 mt-0.5 cursor-pointer"
+                  onCheckedChange={(checked) => setDpaConsent(Boolean(checked))}
                 />
                 <Label
                   htmlFor="dpa-consent"
-                  className="text-[11px] font-medium leading-tight text-foreground/80 cursor-pointer select-none"
+                  className="text-xs font-medium leading-tight text-foreground/80 cursor-pointer select-none"
                 >
                   I give explicit data sharing consent for this consultation.
                 </Label>

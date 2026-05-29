@@ -6,10 +6,10 @@ import { Label } from "@workspace/ui/components/label"
 import {
   ArrowLeft,
   CheckCircle2,
-  Loader2,
   Mail,
   ShieldAlert,
 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
 import Link from "next/link"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -125,7 +125,7 @@ export default function ForgotPasswordPage() {
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Spinner className="mr-2 h-4 w-4" />
                 Sending link...
               </>
             ) : (

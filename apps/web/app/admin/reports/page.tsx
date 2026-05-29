@@ -21,7 +21,6 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import {
-  AlertCircle,
   CalendarCheck,
   CalendarX,
   CheckCircle,
@@ -35,6 +34,7 @@ import {
   Video,
 } from "lucide-react"
 import { apiClient } from "@/lib/api-client"
+import { ErrorAlert } from "@/components/error-alert"
 
 interface ReportsData {
   appointmentsByStatus: Array<{ status: string; count: number }>
@@ -113,13 +113,10 @@ export default function AdminReportsPage() {
   if (error) {
     return (
       <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-        <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-6 flex items-start gap-3 shadow-sm max-w-2xl mx-auto">
-          <AlertCircle className="h-6 w-6 shrink-0" />
-          <div>
-            <h3 className="font-semibold text-sm">Failed to load reports</h3>
-            <p className="text-xs text-destructive/80">{error.message}</p>
-          </div>
-        </div>
+        <ErrorAlert
+          title="Failed to load reports"
+          description={error.message}
+        />
       </div>
     )
   }
@@ -439,7 +436,7 @@ export default function AdminReportsPage() {
             <FileText className="h-4 w-4 text-primary" />
             Recent Audit Events
             {(dateRange.from || dateRange.to) && (
-              <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+              <span className="ml-1 text-xs font-normal text-muted-foreground">
                 (filtered)
               </span>
             )}

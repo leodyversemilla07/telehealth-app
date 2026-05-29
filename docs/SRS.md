@@ -128,7 +128,7 @@ The Telehealth Application is a web-based platform connecting patients with lice
 - **Frontend**: Next.js 16 + React 19 + Tailwind CSS v4 + shadcn/ui (`apps/web`)
 - **Backend**: NestJS 11 REST API (`apps/api`)
 - **Database**: PostgreSQL 16 via Prisma ORM with `@prisma/adapter-pg`
-- **Auth**: Better Auth (email/password, Google OAuth, GitHub OAuth, 2FA)
+- **Auth**: Better Auth (email/password, 2FA)
 - **AI Recommendation**: NVIDIA NIM — Nemotron-3-Super-120B-A12B (`nvidia/nemotron-3-super-120b-a12b`), fallback: Qwen3.5-122B-A10B (`qwen/qwen3.5-122b-a10b`)
 - **Monorepo**: Turborepo + pnpm workspaces
 - **Video**: LiveKit (self-hosted on AWS EC2)
@@ -259,7 +259,7 @@ The system supports the following high-level functions:
 | ID | Requirement | Verification |
 |---|---|---|
 | F-AUTH-01 | The system shall allow users to register as a Patient or Doctor using email and password (minimum 8 characters, must include letter and number). | Test: Registration form submits successfully, user created in DB |
-| F-AUTH-02 | The system shall support OAuth login via Google. | Test: OAuth flow completes, user redirected to dashboard |
+
 | F-AUTH-03 | The system shall enforce role-based access control: Patients access only patient routes; Doctors access only doctor routes; Admins access admin dashboard. | Test: Role mismatch returns 403 |
 | F-AUTH-04 | The system shall allow users to reset their password via a secure email link. | Test: Password reset sent, link works once |
 | F-AUTH-05 | The system shall maintain session tokens with a configurable expiry (default: 7 days). | Test: Session expires as configured |

@@ -21,17 +21,27 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import {
-  AlertCircle,
+  Calendar,
+  CalendarPlus,
+  CalendarX,
+  CheckCircle2,
   Clock,
+  FileText,
   LogIn,
   LogOut,
+  Pill,
   Search,
   ShieldAlert,
   ShieldCheck,
+  Trash2,
   UserCheck,
+  UserX,
+  XCircle,
 } from "lucide-react"
 import { useState } from "react"
 import { apiClient } from "@/lib/api-client"
+import { ErrorAlert } from "@/components/error-alert"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 interface AuditLog {
   id: string
@@ -72,6 +82,56 @@ const ACTION_CONFIG: Record<
     icon: UserCheck,
     color: "text-emerald-600",
     bg: "bg-emerald-50 border-emerald-200",
+  },
+  "Rejected doctor": {
+    icon: UserX,
+    color: "text-red-600",
+    bg: "bg-red-50 border-red-200",
+  },
+  "Booked appointment": {
+    icon: CalendarPlus,
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
+  },
+  "Appointment status": {
+    icon: CheckCircle2,
+    color: "text-emerald-600",
+    bg: "bg-emerald-50 border-emerald-200",
+  },
+  "Cancelled appointment": {
+    icon: XCircle,
+    color: "text-red-600",
+    bg: "bg-red-50 border-red-200",
+  },
+  "Rescheduled appointment": {
+    icon: Calendar,
+    color: "text-amber-600",
+    bg: "bg-amber-50 border-amber-200",
+  },
+  "Created consultation": {
+    icon: FileText,
+    color: "text-violet-600",
+    bg: "bg-violet-50 border-violet-200",
+  },
+  "Added prescription": {
+    icon: Pill,
+    color: "text-sky-600",
+    bg: "bg-sky-50 border-sky-200",
+  },
+  "Updated availability": {
+    icon: Calendar,
+    color: "text-teal-600",
+    bg: "bg-teal-50 border-teal-200",
+  },
+  "Created time-off": {
+    icon: CalendarX,
+    color: "text-orange-600",
+    bg: "bg-orange-50 border-orange-200",
+  },
+  "Deleted time-off": {
+    icon: Trash2,
+    color: "text-red-600",
+    bg: "bg-red-50 border-red-200",
   },
 }
 
@@ -121,14 +181,16 @@ export default function AdminAuditLogsPage() {
   return (
     <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-            Audit Logs
-          </CardTitle>
-          <CardDescription className="text-sm">
-            Track all authentication events and security changes across the
-            platform.
-          </CardDescription>
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+              Audit Logs
+            </CardTitle>
+            <CardDescription className="text-sm mt-1">
+              Track all authentication, user management, appointments,
+              consultations, and schedule changes across the platform.
+            </CardDescription>
+          </div>
         </CardHeader>
       </Card>
 
@@ -179,27 +241,22 @@ export default function AdminAuditLogsPage() {
               key={i}
               className="flex items-center gap-4 py-2 border-b border-border/10 last:border-0"
             >
-              <div className="h-8 w-8 rounded-lg bg-muted animate-pulse" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
               <div className="space-y-2 flex-1">
-                <div className="h-4 w-40 bg-muted animate-pulse rounded" />
-                <div className="h-3 w-56 bg-muted animate-pulse rounded" />
+                <Skeleton className="h-4 w-40 rounded" />
+                <Skeleton className="h-3 w-56 rounded" />
               </div>
-              <div className="h-3 w-24 bg-muted animate-pulse rounded" />
+              <Skeleton className="h-3 w-24 rounded" />
             </div>
           ))}
         </div>
       )}
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-6 flex items-start gap-3 shadow-sm max-w-2xl mx-auto">
-          <AlertCircle className="h-6 w-6 shrink-0" />
-          <div className="space-y-1">
-            <h3 className="font-semibold text-sm">
-              Failed to retrieve audit logs
-            </h3>
-            <p className="text-xs text-destructive/80">{error.message}</p>
-          </div>
-        </div>
+        <ErrorAlert
+          title="Failed to retrieve audit logs"
+          description={error.message}
+        />
       )}
 
       {!isPending && !error && filtered.length === 0 && (

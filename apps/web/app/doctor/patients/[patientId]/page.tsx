@@ -1,6 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -11,16 +12,28 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import {
+  AlertTriangle,
   ArrowLeft,
   Calendar,
   Clock,
   FileText,
+  Heart,
   Mail,
+  MapPin,
+  Phone,
   Pill,
+  User,
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { apiClient } from "@/lib/api-client"
+import { Skeleton } from "@workspace/ui/components/skeleton"
+
+interface MedicalHistory {
+  allergies?: string[]
+  conditions?: string[]
+  medications?: string[]
+}
 
 interface PatientRecord {
   patient: {
@@ -28,10 +41,14 @@ interface PatientRecord {
     name: string | null
     email: string
     patientProfile: {
+      dob: string | null
+      sex: string | null
       phone: string | null
+      address: string | null
+      philhealthNumber: string | null
       weight: number | null
       height: number | null
-      medicalHistory: unknown
+      medicalHistory: MedicalHistory | null
     } | null
   }
   appointments: Array<{
@@ -83,8 +100,8 @@ export default function PatientDetailPage() {
         <Card>
           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="space-y-2">
-              <div className="h-7 w-48 bg-muted animate-pulse rounded" />
-              <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+              <Skeleton className="h-7 w-48 rounded" />
+              <Skeleton className="h-4 w-64 rounded" />
             </div>
           </CardHeader>
         </Card>
@@ -95,8 +112,8 @@ export default function PatientDetailPage() {
               className="flex items-center gap-4 py-2 border-b border-border/10 last:border-0"
             >
               <div className="space-y-2 flex-1">
-                <div className="h-4 w-40 bg-muted animate-pulse rounded" />
-                <div className="h-3 w-56 bg-muted animate-pulse rounded" />
+                <Skeleton className="h-4 w-40 rounded" />
+                <Skeleton className="h-3 w-56 rounded" />
               </div>
             </div>
           ))}
@@ -134,10 +151,12 @@ export default function PatientDetailPage() {
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-lg shrink-0">
-              {patientRecords.patient.name?.[0] ||
-                patientRecords.patient.email[0]}
-            </div>
+            <Avatar size="lg" className="border border-primary/20 shrink-0">
+              <AvatarFallback className="bg-primary/10 text-primary font-bold text-lg">
+                {patientRecords.patient.name?.[0] ||
+                  patientRecords.patient.email[0]}
+              </AvatarFallback>
+            </Avatar>
             <div>
               <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
                 {patientRecords.patient.name || "Patient"}
@@ -156,27 +175,141 @@ export default function PatientDetailPage() {
       </Card>
 
       {/* Patient Details */}
-      {patientRecords.patient.patientProfile && (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
-          <CardContent className="p-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            {patientRecords.patient.patientProfile.phone && (
-              <span className="text-muted-foreground">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <User className="h-4 w-4 text-primary" />
+              Personal Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {patientRecords.patient.patientProfile?.dob && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Calendar className="h-3.5 w-3.5 shrink-0" />
+                <span className="font-medium text-foreground">DOB:</span>{" "}
+                {new Date(patientRecords.patient.patientProfile.dob).toLocaleDateString()}
+              </div>
+            )}
+            {patientRecords.patient.patientProfile?.sex && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <User className="h-3.5 w-3.5 shrink-0" />
+                <span className="font-medium text-foreground">Sex:</span>{" "}
+                {patientRecords.patient.patientProfile.sex}
+              </div>
+            )}
+            {patientRecords.patient.patientProfile?.phone && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <Phone className="h-3.5 w-3.5 shrink-0" />
                 <span className="font-medium text-foreground">Phone:</span>{" "}
                 {patientRecords.patient.patientProfile.phone}
-              </span>
+              </div>
             )}
-            {patientRecords.patient.patientProfile.weight && (
-              <span className="text-muted-foreground">
+            {patientRecords.patient.patientProfile?.address && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                <span className="font-medium text-foreground">Address:</span>{" "}
+                {patientRecords.patient.patientProfile.address}
+              </div>
+            )}
+            {patientRecords.patient.patientProfile?.philhealthNumber && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <FileText className="h-3.5 w-3.5 shrink-0" />
+                <span className="font-medium text-foreground">PhilHealth:</span>{" "}
+                {patientRecords.patient.patientProfile.philhealthNumber}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <Heart className="h-4 w-4 text-primary" />
+              Physical Details
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {patientRecords.patient.patientProfile?.weight && (
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <span className="font-medium text-foreground">Weight:</span>{" "}
                 {patientRecords.patient.patientProfile.weight} kg
-              </span>
+              </div>
             )}
-            {patientRecords.patient.patientProfile.height && (
-              <span className="text-muted-foreground">
+            {patientRecords.patient.patientProfile?.height && (
+              <div className="flex items-center gap-2 text-muted-foreground">
                 <span className="font-medium text-foreground">Height:</span>{" "}
                 {patientRecords.patient.patientProfile.height} cm
-              </span>
+              </div>
             )}
+            {!patientRecords.patient.patientProfile?.weight &&
+              !patientRecords.patient.patientProfile?.height && (
+                <p className="text-xs text-muted-foreground italic">
+                  No physical details recorded.
+                </p>
+              )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Medical History */}
+      {patientRecords.patient.patientProfile?.medicalHistory && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-bold flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              Medical History
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {patientRecords.patient.patientProfile.medicalHistory.conditions &&
+              patientRecords.patient.patientProfile.medicalHistory.conditions.length > 0 && (
+                <div>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                    <Heart className="h-3 w-3" />
+                    Conditions
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {patientRecords.patient.patientProfile.medicalHistory.conditions.map((c, i) => (
+                      <Badge key={i} variant="outline" className="text-xs">
+                        {c}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            {patientRecords.patient.patientProfile.medicalHistory.allergies &&
+              patientRecords.patient.patientProfile.medicalHistory.allergies.length > 0 && (
+                <div>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                    <AlertTriangle className="h-3 w-3" />
+                    Allergies
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {patientRecords.patient.patientProfile.medicalHistory.allergies.map((a, i) => (
+                      <Badge key={i} variant="outline" className="text-xs text-destructive border-destructive/30">
+                        {a}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            {patientRecords.patient.patientProfile.medicalHistory.medications &&
+              patientRecords.patient.patientProfile.medicalHistory.medications.length > 0 && (
+                <div>
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                    <Pill className="h-3 w-3" />
+                    Current Medications
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {patientRecords.patient.patientProfile.medicalHistory.medications.map((m, i) => (
+                      <Badge key={i} variant="outline" className="text-xs">
+                        {m}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
           </CardContent>
         </Card>
       )}

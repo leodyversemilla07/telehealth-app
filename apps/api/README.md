@@ -59,8 +59,6 @@ src/
 | `BETTER_AUTH_SECRET`      | ✅       | —                            | Auth secret (min 32 chars)        |
 | `BETTER_AUTH_URL`         | ✅       | —                            | Public API base URL               |
 | `CORS_ORIGIN`             | ❌       | `http://localhost:3000,...`  | Allowed CORS origins              |
-| `GOOGLE_CLIENT_ID`        | ❌       | —                            | Google OAuth client ID            |
-| `GOOGLE_CLIENT_SECRET`    | ❌       | —                            | Google OAuth client secret        |
 | `GITHUB_CLIENT_ID`        | ❌       | —                            | GitHub OAuth client ID            |
 | `GITHUB_CLIENT_SECRET`    | ❌       | —                            | GitHub OAuth client secret        |
 | `AWS_REGION`              | ❌       | —                            | S3 region (enables S3 storage)    |
@@ -74,7 +72,7 @@ src/
 ### Authentication (`/api/auth`) — Via Better Auth
 
 - Sign in / Sign up (email + password)
-- Google OAuth, GitHub OAuth
+- GitHub OAuth
 - Password reset (forgot / reset)
 - Change password
 - 2FA enable / disable / verify

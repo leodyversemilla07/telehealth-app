@@ -5,7 +5,8 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
-import { Loader2, Save } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { Save } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
@@ -171,7 +172,7 @@ export function HealthContent() {
 
         <Button onClick={handleSubmit} disabled={mutation.isPending}>
           {mutation.isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2 h-4 w-4" />
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}

@@ -3,7 +3,8 @@
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { CheckCircle2, Key, Loader2, Lock, ShieldAlert } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { CheckCircle2, Key, Lock, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useState } from "react"
@@ -144,7 +145,7 @@ function ResetPasswordForm() {
           >
             {loading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Spinner className="mr-2 h-4 w-4" />
                 Resetting...
               </>
             ) : (
@@ -162,7 +163,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <div className="flex min-h-svh items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner className="h-8 w-8 text-primary" />
         </div>
       }
     >

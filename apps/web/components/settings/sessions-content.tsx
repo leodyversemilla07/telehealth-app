@@ -5,6 +5,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 export function SessionsContent() {
   const queryClient = useQueryClient()
@@ -43,7 +44,7 @@ export function SessionsContent() {
       {isPending ? (
         <div className="space-y-2">
           {[1, 2].map((i) => (
-            <div key={i} className="h-16 rounded-lg bg-muted animate-pulse" />
+            <Skeleton key={i} className="h-16 rounded-lg" />
           ))}
         </div>
       ) : sessions.length === 0 ? (

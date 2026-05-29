@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { apiClient } from "@/lib/api-client"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 
 export function AlertsContent() {
   const { data: alerts = [], isPending } = useQuery({
@@ -31,7 +32,7 @@ export function AlertsContent() {
       {isPending ? (
         <div className="space-y-2">
           {[1, 2].map((i) => (
-            <div key={i} className="h-12 rounded-lg bg-muted animate-pulse" />
+            <Skeleton key={i} className="h-12 rounded-lg" />
           ))}
         </div>
       ) : alerts.length === 0 ? (

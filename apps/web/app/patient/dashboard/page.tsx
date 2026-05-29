@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { formatPHTFull } from "@workspace/shared"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -19,6 +20,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Calendar,
   CalendarPlus,
@@ -27,16 +29,14 @@ import {
   FileText,
   MessageSquare,
   Pill,
-  Plus,
   Stethoscope,
   Video,
 } from "lucide-react"
-import { Spinner } from "@workspace/ui/components/spinner"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { apiClient } from "@/lib/api-client"
 import { useMyAppointments } from "@/hooks/use-appointments"
-import { usePatientRecords, usePatientPrescriptions } from "@/hooks/use-records"
+import { usePatientPrescriptions, usePatientRecords } from "@/hooks/use-records"
+import { apiClient } from "@/lib/api-client"
 
 export default function PatientDashboardPage() {
   const router = useRouter()
@@ -54,13 +54,25 @@ export default function PatientDashboardPage() {
   const { data: prescriptions = [], isLoading: rxLoading } =
     usePatientPrescriptions()
 
-  const isLoading = profileLoading || apptsLoading || recordsLoading || rxLoading
+  const isLoading =
+    profileLoading || apptsLoading || recordsLoading || rxLoading
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center gap-2">
-        <Spinner className="size-10 text-primary" />
-        <span className="text-sm font-medium text-muted-foreground">Loading...</span>
+      <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <Skeleton className="h-28 w-full rounded-xl" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-64 w-full rounded-xl" />
       </div>
     )
   }
@@ -226,9 +238,11 @@ export default function PatientDashboardPage() {
           <CardContent>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="flex items-center gap-3 flex-1">
-                <div className="h-12 w-12 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold uppercase shrink-0">
-                  {nextAppointment.doctor.user.name?.[0] || "D"}
-                </div>
+                <Avatar size="lg" className="border border-primary/20 shrink-0">
+                  <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase">
+                    {nextAppointment.doctor.user.name?.[0] || "D"}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="font-bold text-foreground">
                     {nextAppointment.doctor.user.name || "Doctor"}
@@ -271,9 +285,7 @@ export default function PatientDashboardPage() {
                   variant="outline"
                   className="text-xs h-8 border-border/60"
                   onClick={() =>
-                    router.push(
-                      `/patient/appointments/${nextAppointment.id}`,
-                    )
+                    router.push(`/patient/appointments/${nextAppointment.id}`)
                   }
                 >
                   View Details
@@ -284,9 +296,7 @@ export default function PatientDashboardPage() {
                     size="sm"
                     className="text-xs h-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                     onClick={() =>
-                      router.push(
-                        `/patient/appointments/${nextAppointment.id}`,
-                      )
+                      router.push(`/patient/appointments/${nextAppointment.id}`)
                     }
                   >
                     <Video className="h-3.5 w-3.5 mr-1" />
@@ -302,6 +312,7 @@ export default function PatientDashboardPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Button
+          nativeButton={false}
           variant="outline"
           className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-primary/30 hover:bg-primary/5"
           render={<Link href="/patient/appointments/book" />}
@@ -310,6 +321,7 @@ export default function PatientDashboardPage() {
           <span className="text-xs font-medium">Book Appointment</span>
         </Button>
         <Button
+          nativeButton={false}
           variant="outline"
           className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-emerald-500/30 hover:bg-emerald-500/5"
           render={<Link href="/patient/records" />}
@@ -318,6 +330,7 @@ export default function PatientDashboardPage() {
           <span className="text-xs font-medium">Medical Records</span>
         </Button>
         <Button
+          nativeButton={false}
           variant="outline"
           className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-violet-500/30 hover:bg-violet-500/5"
           render={<Link href="/patient/chat" />}
@@ -326,6 +339,7 @@ export default function PatientDashboardPage() {
           <span className="text-xs font-medium">Messages</span>
         </Button>
         <Button
+          nativeButton={false}
           variant="outline"
           className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-amber-500/30 hover:bg-amber-500/5"
           render={<Link href="/patient/prescriptions" />}
@@ -348,6 +362,7 @@ export default function PatientDashboardPage() {
             </CardDescription>
           </div>
           <Button
+            nativeButton={false}
             variant="ghost"
             size="sm"
             className="text-xs h-7 text-primary hover:bg-muted font-bold"
@@ -367,8 +382,8 @@ export default function PatientDashboardPage() {
                   No consultations recorded
                 </EmptyTitle>
                 <EmptyDescription className="text-xs">
-                  You haven&apos;t completed any consultations yet. Schedule
-                  one to receive diagnostic reports.
+                  You haven&apos;t completed any consultations yet. Schedule one
+                  to receive diagnostic reports.
                 </EmptyDescription>
               </EmptyHeader>
               <EmptyContent>
@@ -388,9 +403,7 @@ export default function PatientDashboardPage() {
                   key={record.id}
                   className="py-3 flex items-start justify-between gap-4 group hover:bg-muted/10 transition-colors rounded-lg px-2 -mx-2 cursor-pointer"
                   onClick={() =>
-                    router.push(
-                      `/patient/records/consultations/${record.id}`,
-                    )
+                    router.push(`/patient/records/consultations/${record.id}`)
                   }
                 >
                   <div className="flex gap-3">

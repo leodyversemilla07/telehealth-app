@@ -26,8 +26,6 @@ export const envSchema = z.object({
   BETTER_AUTH_URL: z.string().optional().default("http://localhost:3001"),
 
   // ── OAuth ─────────────────────────────────────────────────────────────────
-  GOOGLE_CLIENT_ID: z.string().optional(),
-  GOOGLE_CLIENT_SECRET: z.string().optional(),
   GITHUB_CLIENT_ID: z.string().optional(),
   GITHUB_CLIENT_SECRET: z.string().optional(),
 

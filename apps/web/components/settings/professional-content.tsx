@@ -18,7 +18,8 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { Textarea } from "@workspace/ui/components/textarea"
 import { DatePicker } from "@workspace/ui/components/date-picker"
-import { Loader2, Save, Stethoscope } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { Save, Stethoscope } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -210,7 +211,7 @@ export function ProfessionalContent() {
                 disabled
                 className="bg-muted/50"
               />
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Contact admin to update your license information
               </p>
             </div>
@@ -310,7 +311,7 @@ export function ProfessionalContent() {
               onChange={(e) => setBio(e.target.value)}
               maxLength={500}
             />
-            <p className="text-[10px] text-muted-foreground text-right">
+            <p className="text-xs text-muted-foreground text-right">
               {bio.length}/500
             </p>
           </div>
@@ -318,7 +319,7 @@ export function ProfessionalContent() {
 
         <Button onClick={handleSubmit} disabled={mutation.isPending}>
           {mutation.isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2 h-4 w-4" />
           ) : (
             <Save className="mr-2 h-4 w-4" />
           )}

@@ -4,7 +4,8 @@ import { useMutation } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
-import { Key, Loader2 } from "lucide-react"
+import { Spinner } from "@workspace/ui/components/spinner"
+import { Key } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
@@ -99,7 +100,7 @@ export function PasswordContent() {
           }
         >
           {mutation.isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Spinner className="mr-2 h-4 w-4" />
           ) : (
             <Key className="mr-2 h-4 w-4" />
           )}

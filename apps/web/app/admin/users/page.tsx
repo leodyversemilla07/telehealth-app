@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { AlertCircle, Search } from "lucide-react"
+import { Search } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import { BanDialog } from "@/components/admin/users/ban-dialog"
@@ -20,6 +20,7 @@ import {
   UserTableSkeleton,
 } from "@/components/admin/users/user-table"
 import { apiClient } from "@/lib/api-client"
+import { ErrorAlert } from "@/components/error-alert"
 
 export default function AdminUsersPage() {
   const queryClient = useQueryClient()
@@ -169,16 +170,13 @@ export default function AdminUsersPage() {
 
       {/* Error state */}
       {error && (
-        <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-6 flex items-start gap-3 shadow-sm max-w-2xl mx-auto">
-          <AlertCircle className="h-6 w-6 shrink-0" />
-          <div className="space-y-1">
-            <h3 className="font-semibold text-sm">Failed to retrieve users</h3>
-            <p className="text-xs text-destructive/80 leading-relaxed">
-              {error.message ||
-                "An unexpected error occurred while communicating with the administrative API."}
-            </p>
-          </div>
-        </div>
+        <ErrorAlert
+          title="Failed to retrieve users"
+          description={
+            error.message ||
+            "An unexpected error occurred while communicating with the administrative API."
+          }
+        />
       )}
 
       {/* Empty State */}

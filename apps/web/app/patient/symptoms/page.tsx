@@ -1,6 +1,7 @@
 "use client"
 
 import { useMutation } from "@tanstack/react-query"
+import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -127,7 +128,7 @@ export default function SymptomCheckerPage() {
               onChange={(e) => setSymptoms(e.target.value)}
               maxLength={1000}
             />
-            <p className="text-[10px] text-muted-foreground text-right">
+            <p className="text-xs text-muted-foreground text-right">
               {symptoms.length}/1000
             </p>
           </div>
@@ -193,7 +194,7 @@ export default function SymptomCheckerPage() {
                     </span>
                     <Badge
                       variant="outline"
-                      className={`text-[10px] font-bold ${
+                      className={`text-xs font-bold ${
                         condition.likelihood === "high"
                           ? "text-red-600 border-red-200 bg-red-50"
                           : condition.likelihood === "medium"
@@ -244,14 +245,16 @@ export default function SymptomCheckerPage() {
                       className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                          {doctor.user.name?.[0] || "?"}
-                        </div>
+                        <Avatar className="shrink-0">
+                          <AvatarFallback className="bg-primary/10 text-primary font-bold text-xs">
+                            {doctor.user.name?.[0] || "?"}
+                          </AvatarFallback>
+                        </Avatar>
                         <div>
                           <p className="text-sm font-medium">
                             {doctor.user.name}
                           </p>
-                          <p className="text-[10px] text-muted-foreground">
+                          <p className="text-xs text-muted-foreground">
                             {doctor.specialty}
                           </p>
                         </div>
