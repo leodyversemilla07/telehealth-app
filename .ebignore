@@ -1,40 +1,48 @@
-# Local dev files — not needed on EB
+# ── Docker (not needed for Node.js platform) ────────────────────────────────
 docker-compose.override.yml
 docker-compose.yml
 Dockerfile
 apps/api/Dockerfile
 apps/api/Dockerrun.aws.json
 
-# Git
+# ── Git ─────────────────────────────────────────────────────────────────────
 .git
 .gitignore
 
-# Node
+# ── Node ────────────────────────────────────────────────────────────────────
 node_modules
 apps/*/node_modules
 packages/*/node_modules
 
-# IDE
+# ── IDE ─────────────────────────────────────────────────────────────────────
 .idea
 .vscode
 *.swp
 
-# OS
+# ── OS ──────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 
-# Env files (secrets set via EB environment properties)
+# ── Env files (secrets set via EB environment properties) ───────────────────
 .env
 .env.*
 !.env.example
 
-# Docs (not needed at runtime)
+# ── Docs (not needed at runtime) ────────────────────────────────────────────
 docs
-AWS.md
 
-# Cache and Temp folders
+# ── Cache and Temp ──────────────────────────────────────────────────────────
 .elasticbeanstalk/
 .turbo/
 
-# Vercel
-.vercel/
+# ── Vercel ───────────────────────────────────────────────────────────────────
+.vercel
+.vercelignore
+apps/web/.vercelignore
+
+# ── Web app (only deploying the API) ────────────────────────────────────────
+apps/web
+apps/web/**
+
+# ── EB artifacts ────────────────────────────────────────────────────────────
+.antigravitycli

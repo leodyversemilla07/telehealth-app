@@ -1,1 +1,1 @@
-web: node apps/api/dist/src/main.js
+web: bash start.sh
