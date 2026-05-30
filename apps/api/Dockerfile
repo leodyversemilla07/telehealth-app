@@ -20,6 +20,7 @@ COPY --from=clone /repo/apps/api/certs apps/api/certs
 
 RUN cd apps/api && npx prisma generate
 
+RUN pnpm --filter @workspace/shared build
 RUN pnpm --filter api build
 
 FROM node:22-alpine
