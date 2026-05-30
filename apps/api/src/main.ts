@@ -2,6 +2,7 @@ import { existsSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
 import { ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
+import type { Request, Response } from "express"
 import express from "express"
 import helmet from "helmet"
 import { AppModule } from "@/app.module"
@@ -14,6 +15,14 @@ async function bootstrap() {
     bodyParser: false,
     bufferLogs: true,
   })
+
+  // Health check endpoint (before global prefix, used by ALB)
+  app
+    .getHttpAdapter()
+    .getInstance()
+    .get("/api", (_req: Request, res: Response) => {
+      res.json({ status: "ok", timestamp: new Date().toISOString() })
+    })
 
   // Enforce API route namespacing
   app.setGlobalPrefix("api")

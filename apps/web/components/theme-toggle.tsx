@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@workspace/ui/components/button"
+import { cn } from "@workspace/ui/lib/utils"
 import { Monitor, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
@@ -8,12 +9,14 @@ interface ThemeToggleProps {
   variant?: "default" | "outline" | "ghost"
   size?: "default" | "sm" | "lg" | "icon"
   showLabel?: boolean
+  className?: string
 }
 
 export function ThemeToggle({
   variant = "ghost",
   size = "default",
   showLabel = false,
+  className,
 }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme()
 
@@ -44,7 +47,7 @@ export function ThemeToggle({
       variant={variant}
       size={size}
       onClick={cycleTheme}
-      className="gap-2"
+      className={cn("gap-2", className)}
     >
       {getIcon()}
       {showLabel && <span>{getLabel()}</span>}

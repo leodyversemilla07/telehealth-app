@@ -50,10 +50,10 @@ export function Footer({
   onOpenDashboard: _onOpenDashboard,
 }: HomepageFooterProps) {
   return (
-    <footer className="relative overflow-hidden border-t border-white/8 bg-[oklch(0.1_0.02_220)]">
+    <footer className="relative overflow-hidden border-t border-border bg-muted/50 dark:border-white/8 dark:bg-[oklch(0.1_0.02_220)]">
       {/* Decorative background pattern */}
-      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-[oklch(0.2_0.06_195/0.15)] blur-3xl" />
-      <div className="pointer-events-none absolute -right-10 top-40 h-60 w-60 rounded-full bg-[oklch(0.25_0.08_195/0.1)] blur-2xl" />
+      <div className="pointer-events-none absolute -right-20 -top-20 h-80 w-80 rounded-full bg-primary/5 dark:bg-[oklch(0.2_0.06_195/0.15)] blur-3xl" />
+      <div className="pointer-events-none absolute -right-10 top-40 h-60 w-60 rounded-full bg-primary/5 dark:bg-[oklch(0.25_0.08_195/0.1)] blur-2xl" />
 
       <div className="relative mx-auto flex w-full max-w-7xl flex-col gap-14 px-5 py-16 sm:px-8">
         {/* Logo + Tagline */}
@@ -67,11 +67,11 @@ export function Footer({
               className="size-9 rounded-xl object-cover"
               suppressHydrationWarning
             />
-            <span className="text-xl font-bold tracking-tight text-white">
+            <span className="text-xl font-bold tracking-tight text-foreground dark:text-white">
               TELEHEALTH
             </span>
           </a>
-          <p className="max-w-lg text-base leading-relaxed text-white/50">
+          <p className="max-w-lg text-base leading-relaxed text-muted-foreground dark:text-white/50">
             Nine out of ten patients recommend Telehealth over competing
             platforms. Come inside, see for yourself, and experience healthcare
             the way it should be.
@@ -85,7 +85,7 @@ export function Footer({
               key={row.label}
               className="flex flex-wrap items-baseline gap-x-8 gap-y-2"
             >
-              <span className="w-24 shrink-0 text-sm font-bold text-white">
+              <span className="w-24 shrink-0 text-sm font-bold text-foreground dark:text-white">
                 {row.label}
               </span>
               <nav
@@ -96,7 +96,7 @@ export function Footer({
                   <a
                     key={link.href + link.label}
                     href={link.href}
-                    className="text-sm text-white/40 transition hover:text-white"
+                    className="text-sm text-muted-foreground/80 transition hover:text-foreground dark:text-white/40 dark:hover:text-white"
                   >
                     {link.label}
                   </a>
@@ -107,8 +107,8 @@ export function Footer({
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-white/8 pt-8">
-          <p className="font-mono text-xs leading-relaxed text-white/30">
+        <div className="border-t border-border dark:border-white/8 pt-8">
+          <p className="font-mono text-xs leading-relaxed text-muted-foreground/50 dark:text-white/30">
             &copy; Telehealth 2026. All rights reserved.
           </p>
         </div>

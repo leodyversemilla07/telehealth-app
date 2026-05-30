@@ -1,7 +1,12 @@
 import Image from "next/image"
 import Link from "next/link"
 
-export function AuthLayout({ children }: { children: React.ReactNode }) {
+interface AuthLayoutProps {
+  children: React.ReactNode
+  variant?: "sign-in" | "sign-up"
+}
+
+export function AuthLayout({ children, variant = "sign-in" }: AuthLayoutProps) {
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
@@ -23,12 +28,14 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
       </div>
       <div className="relative hidden bg-muted lg:block">
         <Image
-          src="/placeholder.svg"
-          alt="Image"
+          src={
+            variant === "sign-in" ? "/sign-in-image.png" : "/sign-up-image.png"
+          }
+          alt="Telehealth"
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-cover dark:brightness-[0.2] dark:grayscale"
+          className="object-cover object-center"
         />
       </div>
     </div>

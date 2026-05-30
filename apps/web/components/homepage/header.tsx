@@ -15,6 +15,7 @@ import {
 import { LayoutDashboard, Menu } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
+import { ThemeToggle } from "../theme-toggle"
 
 const NAV_ITEMS = [
   { href: "#features", label: "Features" },
@@ -42,7 +43,7 @@ function BrandMark() {
         className="size-9 rounded-xl object-cover"
         suppressHydrationWarning
       />
-      <span className="text-lg font-semibold tracking-tight text-white">
+      <span className="text-lg font-semibold tracking-tight text-foreground">
         Telehealth
       </span>
     </a>
@@ -71,14 +72,14 @@ export function Header({
       {/* Desktop nav */}
       <NavigationMenu
         aria-label="Homepage"
-        className="hidden rounded-full border border-white/10 bg-white/5 px-1.5 py-1 backdrop-blur-md md:flex"
+        className="hidden rounded-full border border-border/80 bg-background/50 px-1.5 py-1 backdrop-blur-md dark:border-white/10 dark:bg-white/5 md:flex"
       >
         <NavigationMenuList className="gap-0">
           {NAV_ITEMS.map((item) => (
             <NavigationMenuItem key={item.href}>
               <NavigationMenuLink
                 href={item.href}
-                className="inline-flex h-8 shrink-0 items-center rounded-full px-4 text-sm text-white/60 transition hover:bg-white/8 hover:text-white"
+                className="inline-flex h-8 shrink-0 items-center rounded-full px-4 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground dark:text-white/60 dark:hover:bg-white/8 dark:hover:text-white"
               >
                 {item.label}
               </NavigationMenuLink>
@@ -88,6 +89,8 @@ export function Header({
       </NavigationMenu>
 
       <div className="flex items-center gap-2">
+        <ThemeToggle variant="ghost" size="icon" className="rounded-full" />
+
         {/* Mobile menu trigger */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger
@@ -95,7 +98,7 @@ export function Header({
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-white/70 hover:bg-white/10 hover:text-white"
+                className="md:hidden text-muted-foreground hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
                 aria-label="Open navigation menu"
               />
             }
@@ -104,10 +107,12 @@ export function Header({
           </SheetTrigger>
           <SheetContent
             side="left"
-            className="w-72 bg-[oklch(0.12_0.025_220)] border-white/10 text-white"
+            className="w-72 border-border/80 bg-background text-foreground dark:bg-[oklch(0.12_0.025_220)] dark:border-white/10 dark:text-white"
           >
             <SheetHeader>
-              <SheetTitle className="text-white">Navigation</SheetTitle>
+              <SheetTitle className="text-foreground dark:text-white">
+                Navigation
+              </SheetTitle>
             </SheetHeader>
             <nav className="mt-6 flex flex-col gap-1">
               {NAV_ITEMS.map((item) => (
@@ -115,12 +120,12 @@ export function Header({
                   key={item.href}
                   type="button"
                   onClick={() => handleNavClick(item.href)}
-                  className="flex items-center rounded-lg px-4 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white text-left"
+                  className="flex items-center rounded-lg px-4 py-3 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white text-left"
                 >
                   {item.label}
                 </button>
               ))}
-              <div className="my-3 border-t border-white/10" />
+              <div className="my-3 border-t border-border/80 dark:border-white/10" />
               {isAuthenticated ? (
                 <button
                   type="button"
@@ -128,7 +133,7 @@ export function Header({
                     setMobileOpen(false)
                     onDashboard()
                   }}
-                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white text-left"
+                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white text-left"
                 >
                   <LayoutDashboard className="size-4" />
                   Dashboard
@@ -141,7 +146,7 @@ export function Header({
                       setMobileOpen(false)
                       onSignIn()
                     }}
-                    className="flex items-center rounded-lg px-4 py-3 text-sm text-white/70 transition hover:bg-white/10 hover:text-white text-left"
+                    className="flex items-center rounded-lg px-4 py-3 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white text-left"
                   >
                     Sign in
                   </button>
@@ -151,7 +156,7 @@ export function Header({
                       setMobileOpen(false)
                       onCreateAccount()
                     }}
-                    className="flex items-center rounded-lg px-4 py-3 text-sm font-medium text-white bg-white/10 transition hover:bg-white/15 text-left mt-1"
+                    className="flex items-center rounded-lg px-4 py-3 text-sm font-medium text-foreground bg-muted transition hover:bg-muted/80 dark:text-white dark:bg-white/10 dark:hover:bg-white/15 text-left mt-1"
                   >
                     Get started
                   </button>
@@ -165,7 +170,7 @@ export function Header({
           <Button
             variant="outline"
             onClick={onDashboard}
-            className="rounded-full border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+            className="rounded-full border-border/80 bg-background/50 text-foreground hover:bg-muted dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
           >
             Dashboard
           </Button>
@@ -174,13 +179,13 @@ export function Header({
             <Button
               variant="ghost"
               onClick={onSignIn}
-              className="hidden rounded-full text-white/70 hover:bg-white/8 hover:text-white sm:inline-flex"
+              className="hidden rounded-full text-muted-foreground hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/8 dark:hover:text-white sm:inline-flex"
             >
               Sign in
             </Button>
             <Button
               onClick={onCreateAccount}
-              className="rounded-full bg-white text-[oklch(0.15_0.03_215)] hover:bg-white/90"
+              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-background dark:hover:bg-white/90"
             >
               Get started
             </Button>
