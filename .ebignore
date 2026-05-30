@@ -1,5 +1,9 @@
 # Local dev files — not needed on EB
 docker-compose.override.yml
+docker-compose.yml
+Dockerfile
+apps/api/Dockerfile
+apps/api/Dockerrun.aws.json
 
 # Git
 .git
@@ -7,6 +11,8 @@ docker-compose.override.yml
 
 # Node
 node_modules
+apps/*/node_modules
+packages/*/node_modules
 
 # IDE
 .idea
@@ -17,10 +23,6 @@ node_modules
 .DS_Store
 Thumbs.db
 
-# Dist / build artifacts
-dist
-tmp
-
 # Env files (secrets set via EB environment properties)
 .env
 .env.*
@@ -30,10 +32,9 @@ tmp
 docs
 AWS.md
 
-# Monorepo source directories (not needed for ECR-based Docker deployment)
-apps/
-packages/
-
 # Cache and Temp folders
 .elasticbeanstalk/
 .turbo/
+
+# Vercel
+.vercel/
