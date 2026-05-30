@@ -1,7 +1,7 @@
-import type { NotificationType } from "@generated/prisma/client.js"
+import type { NotificationType } from "../generated/prisma/client.js"
 import { Injectable } from "@nestjs/common"
-import { PrismaService } from "@/prisma/prisma.service"
-import { PushService } from "@/push/push.service"
+import { PrismaService } from "../prisma/prisma.service"
+import { PushService } from "../push/push.service"
 import { NotificationsGateway } from "./notifications.gateway"
 
 @Injectable()

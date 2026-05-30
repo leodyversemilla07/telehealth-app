@@ -2,7 +2,7 @@ import { Controller, Get } from "@nestjs/common"
 import { ApiOperation, ApiTags } from "@nestjs/swagger"
 import { SkipThrottle } from "@nestjs/throttler"
 import { AllowAnonymous } from "@thallesp/nestjs-better-auth"
-import { AppService } from "@/app.service"
+import { AppService } from "./app.service"
 
 @ApiTags("Health")
 @Controller()

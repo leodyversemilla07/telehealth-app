@@ -1,6 +1,6 @@
 import { NotFoundException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
-import { PrismaService } from "@/prisma/prisma.service"
+import { PrismaService } from "../prisma/prisma.service"
 import { PatientsService } from "./patients.service"
 
 type MockPrisma = {

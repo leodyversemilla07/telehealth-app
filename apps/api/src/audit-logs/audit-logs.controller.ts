@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from "@nestjs/swagger"
 import { Roles } from "@thallesp/nestjs-better-auth"
-import { AuditLogsService } from "@/audit-logs/audit-logs.service"
+import { AuditLogsService } from "./audit-logs.service"
 
 @ApiTags("Audit Logs")
 @ApiBearerAuth("session-token")

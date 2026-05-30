@@ -7,8 +7,8 @@ import type {
   RegisterDoctorDto,
   SearchDoctorsDto,
   UpdateDoctorProfileDto,
-} from "@/doctors/dto"
-import { PrismaService } from "@/prisma/prisma.service"
+} from "./dto"
+import { PrismaService } from "../prisma/prisma.service"
 
 const PUBLIC_USER_SELECT = {
   id: true,

@@ -1,6 +1,6 @@
 import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
-import { PrismaService } from "@/prisma/prisma.service"
+import { PrismaService } from "../prisma/prisma.service"
 
 const SYSTEM_PROMPT = `You are a medical specialty classifier. Given patient symptoms or healthcare needs, respond ONLY with a JSON array of relevant medical specialties from this list: General Practice, Internal Medicine, Cardiology, Dermatology, Pediatrics, Obstetrics and Gynecology, Ophthalmology, Otolaryngology (ENT), Orthopedics, Neurology, Psychiatry, Pulmonology, Gastroenterology, Urology, Oncology, Radiology, Anesthesiology, Emergency Medicine, Family Medicine. Example response: ["Cardiology", "Internal Medicine"]`
 

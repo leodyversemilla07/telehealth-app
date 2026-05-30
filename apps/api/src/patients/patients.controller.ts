@@ -2,8 +2,8 @@ import { Body, Controller, Get, Patch } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
-import { UpdatePatientProfileDto } from "@/patients/dto"
-import { PatientsService } from "@/patients/patients.service"
+import { UpdatePatientProfileDto } from "./dto"
+import { PatientsService } from "./patients.service"
 
 @ApiTags("Patients")
 @ApiBearerAuth("session-token")

@@ -1,8 +1,8 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import webPush, { type PushSubscription as WebPushSubscription } from "web-push"
-import type { Env } from "@/config/env.validation"
-import { PrismaService } from "@/prisma/prisma.service"
+import type { Env } from "../config/env.validation"
+import { PrismaService } from "../prisma/prisma.service"
 
 export interface SubscribeDto {
   endpoint: string

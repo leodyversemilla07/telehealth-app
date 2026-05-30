@@ -1,6 +1,6 @@
 import { extname } from "node:path"
 import { Injectable } from "@nestjs/common"
-import type { StorageProvider } from "@/storage/storage.interface"
+import type { StorageProvider } from "./storage.interface"
 
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB

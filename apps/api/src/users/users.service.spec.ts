@@ -1,8 +1,8 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
-import { AuditLogsService } from "@/audit-logs/audit-logs.service"
-import { PrismaService } from "@/prisma/prisma.service"
-import { SecurityAlertsService } from "@/security-alerts/security-alerts.service"
+import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { PrismaService } from "../prisma/prisma.service"
+import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
 import { UsersService } from "./users.service"
 
 type MockPrisma = {

@@ -1,4 +1,4 @@
-import type { AppointmentStatus } from "@generated/prisma/client.js"
+import type { AppointmentStatus } from "../generated/prisma/client.js"
 import {
   BadRequestException,
   ConflictException,
@@ -8,9 +8,9 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import { formatPHTFull } from "@workspace/shared"
-import { AuditLogsService } from "@/audit-logs/audit-logs.service"
-import { NotificationsService } from "@/notifications/notifications.service"
-import { PrismaService } from "@/prisma/prisma.service"
+import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { NotificationsService } from "../notifications/notifications.service"
+import { PrismaService } from "../prisma/prisma.service"
 import type { CreateAppointmentDto, RescheduleAppointmentDto } from "./dto"
 
 const VALID_TRANSITIONS: Record<string, string[]> = {

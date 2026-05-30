@@ -1,8 +1,8 @@
 import { Body, Controller, Post } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import { Roles } from "@thallesp/nestjs-better-auth"
-import { GetRecommendationDto } from "@/recommendations/dto"
-import { RecommendationsService } from "@/recommendations/recommendations.service"
+import { GetRecommendationDto } from "./dto"
+import { RecommendationsService } from "./recommendations.service"
 
 @ApiTags("Recommendations")
 @ApiBearerAuth("session-token")

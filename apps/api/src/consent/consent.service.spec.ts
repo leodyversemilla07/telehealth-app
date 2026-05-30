@@ -1,5 +1,5 @@
 import { Test, type TestingModule } from "@nestjs/testing"
-import { PrismaService } from "@/prisma/prisma.service"
+import { PrismaService } from "../prisma/prisma.service"
 import { ConsentService } from "./consent.service"
 
 type MockPrisma = {

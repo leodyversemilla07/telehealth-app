@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common"
-import { AuditLogsController } from "@/audit-logs/audit-logs.controller"
-import { AuditLogsService } from "@/audit-logs/audit-logs.service"
+import { AuditLogsController } from "./audit-logs.controller"
+import { AuditLogsService } from "./audit-logs.service"
 
 @Module({
   controllers: [AuditLogsController],

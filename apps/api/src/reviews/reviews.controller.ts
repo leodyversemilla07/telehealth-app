@@ -9,7 +9,7 @@ import {
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
 import { IsInt, IsOptional, IsString, Max, Min } from "class-validator"
-import { PaginationDto } from "@/common/dto/pagination.dto"
+import { PaginationDto } from "../common/dto/pagination.dto"
 import { ReviewsService } from "./reviews.service"
 
 class CreateReviewDto {

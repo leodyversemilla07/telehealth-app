@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common"
 import { ScheduleModule } from "@nestjs/schedule"
-import { RetentionService } from "@/retention/retention.service"
+import { RetentionService } from "./retention.service"
 
 @Module({
   imports: [ScheduleModule.forRoot()],

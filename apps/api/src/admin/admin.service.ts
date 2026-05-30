@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common"
 import type { Role } from "@workspace/shared/types/user"
-import { AuditLogsService } from "@/audit-logs/audit-logs.service"
-import { DoctorsService } from "@/doctors/doctors.service"
-import { PrismaService } from "@/prisma/prisma.service"
-import { UsersService } from "@/users/users.service"
+import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { DoctorsService } from "../doctors/doctors.service"
+import { PrismaService } from "../prisma/prisma.service"
+import { UsersService } from "../users/users.service"
 
 /**
  * AdminService — centralizes admin-only operations.

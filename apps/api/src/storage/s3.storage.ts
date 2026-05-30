@@ -1,4 +1,4 @@
-import type { StorageProvider } from "@/storage/storage.interface"
+import type { StorageProvider } from "./storage.interface"
 
 // Dynamic import to avoid requiring @aws-sdk/client-s3 when not using S3
 // biome-ignore lint/suspicious/noExplicitAny: dynamic optional dependency
