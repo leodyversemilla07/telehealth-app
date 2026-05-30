@@ -35,6 +35,7 @@ COPY --from=builder /app/apps/api/prisma ./apps/api/prisma
 COPY --from=builder /app/apps/api/src/generated ./apps/api/src/generated
 COPY --from=builder /app/apps/api/src/generated ./apps/api/dist/src/generated
 COPY --from=builder /app/apps/api/package.json ./apps/api/package.json
+COPY --from=builder /app/apps/api/prisma.config.ts ./apps/api/prisma.config.ts
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/apps/api/certs/rds-ca-bundle.pem ./apps/api/certs/rds-ca-bundle.pem
 COPY --from=builder /app/package.json ./package.json
@@ -46,4 +47,4 @@ EXPOSE 3001
 ENV NODE_ENV=production
 ENV PORT=3001
 
-CMD ["sh", "-c", "npx prisma migrate deploy && node apps/api/dist/src/main.js"]
+CMD ["sh", "-c", "cd apps/api && npx prisma migrate deploy && node dist/src/main.js"]
