@@ -46,3 +46,4 @@ apps/web/**
 
 # ── EB artifacts ────────────────────────────────────────────────────────────
 .antigravitycli
+apps/api/Dockerrun.aws.json
