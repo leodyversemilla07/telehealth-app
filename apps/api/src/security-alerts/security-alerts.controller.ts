@@ -2,7 +2,7 @@ import { Controller, Get, Post } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
-import { SecurityAlertsService } from "@/security-alerts/security-alerts.service"
+import { SecurityAlertsService } from "./security-alerts.service"
 
 @ApiTags("Security Alerts")
 @ApiBearerAuth("session-token")

@@ -1,7 +1,7 @@
 import { Global, Module } from "@nestjs/common"
-import { LocalStorage } from "@/storage/local.storage"
-import { S3Storage } from "@/storage/s3.storage"
-import { StorageService } from "@/storage/storage.service"
+import { LocalStorage } from "./local.storage"
+import { S3Storage } from "./s3.storage"
+import { StorageService } from "./storage.service"
 
 function storageFactory(): StorageService {
   // When AWS credentials and S3 bucket are configured, use S3 storage.

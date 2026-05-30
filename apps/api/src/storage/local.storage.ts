@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, unlinkSync } from "node:fs"
 import { writeFile } from "node:fs/promises"
 import { join } from "node:path"
-import type { StorageProvider } from "@/storage/storage.interface"
+import type { StorageProvider } from "./storage.interface"
 
 /**
  * Local filesystem storage provider.

@@ -4,8 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
-import { AuditLogsService } from "@/audit-logs/audit-logs.service"
-import { PrismaService } from "@/prisma/prisma.service"
+import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { PrismaService } from "../prisma/prisma.service"
 import type { CreateConsultationDto, CreatePrescriptionDto } from "./dto"
 
 @Injectable()

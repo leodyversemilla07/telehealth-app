@@ -2,14 +2,14 @@ import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { createAuthMiddleware, getSessionFromCtx } from "better-auth/api"
 import { twoFactor } from "better-auth/plugins/two-factor"
-import { sendEmail, sendSecurityAlertEmail } from "@/common/utils/email"
+import { sendEmail, sendSecurityAlertEmail } from "../common/utils/email"
 import {
   getLockoutDuration,
   isLockedOut,
   LOCKOUT_THRESHOLD,
   validatePasswordComplexity,
-} from "@/common/utils/password.util"
-import { prisma } from "@/prisma/prisma-client"
+} from "../common/utils/password.util"
+import { prisma } from "../prisma/prisma-client"
 
 const trustedOrigins = (
   process.env.CORS_ORIGIN || "http://localhost:3000,http://localhost:3001"

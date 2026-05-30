@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common"
-import { EmailService } from "@/common/services/email.service"
-import { PrismaService } from "@/prisma/prisma.service"
+import { EmailService } from "../common/services/email.service"
+import { PrismaService } from "../prisma/prisma.service"
 
 @Injectable()
 export class SecurityAlertsService {

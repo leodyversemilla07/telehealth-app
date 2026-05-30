@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
-import { sanitize } from "@/common/utils/sanitize"
-import { PrismaService } from "@/prisma/prisma.service"
+import { sanitize } from "../common/utils/sanitize"
+import { PrismaService } from "../prisma/prisma.service"
 
 @Injectable()
 export class ChatService {

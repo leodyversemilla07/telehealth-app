@@ -4,8 +4,8 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
-import { AuditLogsService } from "@/audit-logs/audit-logs.service"
-import { PrismaService } from "@/prisma/prisma.service"
+import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { PrismaService } from "../prisma/prisma.service"
 import { RecordsService } from "./records.service"
 
 type MockPrisma = {

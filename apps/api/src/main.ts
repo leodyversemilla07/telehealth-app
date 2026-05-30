@@ -5,10 +5,10 @@ import { NestFactory } from "@nestjs/core"
 import type { Request, Response } from "express"
 import express from "express"
 import helmet from "helmet"
-import { AppModule } from "@/app.module"
-import { HttpExceptionFilter } from "@/common/filters/http-exception.filter"
-import { PhtDateInterceptor } from "@/common/interceptors/pht-date.interceptor"
-import { setupSwagger } from "@/config/swagger.config"
+import { AppModule } from "./app.module"
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter"
+import { PhtDateInterceptor } from "./common/interceptors/pht-date.interceptor"
+import { setupSwagger } from "./config/swagger.config"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

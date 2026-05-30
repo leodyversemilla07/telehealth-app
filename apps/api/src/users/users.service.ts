@@ -4,9 +4,9 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import type { Role } from "@workspace/shared/types/user"
-import { AuditLogsService } from "@/audit-logs/audit-logs.service"
-import { PrismaService } from "@/prisma/prisma.service"
-import { SecurityAlertsService } from "@/security-alerts/security-alerts.service"
+import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { PrismaService } from "../prisma/prisma.service"
+import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
 
 @Injectable()
 export class UsersService {

@@ -5,7 +5,7 @@ import {
   NestInterceptor,
 } from "@nestjs/common"
 import { map, Observable } from "rxjs"
-import { formatPHTFull } from "@/common/utils/pht.util"
+import { formatPHTFull } from "../utils/pht.util"
 
 /**
  * PhtDateInterceptor

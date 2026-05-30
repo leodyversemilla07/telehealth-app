@@ -1,4 +1,4 @@
-import { AppointmentStatus } from "@generated/prisma/client.js"
+import { AppointmentStatus } from "../../generated/prisma/client.js"
 import { ApiProperty } from "@nestjs/swagger"
 import { IsEnum } from "class-validator"
 

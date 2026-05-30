@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from "@nestjs/testing"
-import { PrismaService } from "@/prisma/prisma.service"
-import { PushService } from "@/push/push.service"
+import { PrismaService } from "../prisma/prisma.service"
+import { PushService } from "../push/push.service"
 import type { Mockify } from "../../test/mocks/prisma-client"
 
 jest.mock("./notifications.gateway", () => ({

@@ -16,7 +16,7 @@ import {
 } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
-import { PaginationDto } from "@/common/dto/pagination.dto"
+import { PaginationDto } from "../common/dto/pagination.dto"
 import { AppointmentsService } from "./appointments.service"
 import { CreateAppointmentDto } from "./dto/create-appointment.dto"
 import { RescheduleAppointmentDto } from "./dto/reschedule-appointment.dto"

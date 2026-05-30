@@ -23,9 +23,9 @@ import { Throttle } from "@nestjs/throttler"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Session } from "@thallesp/nestjs-better-auth"
 import type { PublicUserDto } from "@workspace/shared/types/user"
-import { StorageService } from "@/storage/storage.service"
-import { UpdateProfileDto } from "@/users/dto/update-profile.dto"
-import { UsersService } from "@/users/users.service"
+import { StorageService } from "../storage/storage.service"
+import { UpdateProfileDto } from "./dto/update-profile.dto"
+import { UsersService } from "./users.service"
 
 @ApiTags("Users")
 @ApiBearerAuth("session-token")

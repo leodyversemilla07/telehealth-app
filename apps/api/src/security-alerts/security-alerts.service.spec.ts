@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from "@nestjs/testing"
-import { EmailService } from "@/common/services/email.service"
-import { PrismaService } from "@/prisma/prisma.service"
+import { EmailService } from "../common/services/email.service"
+import { PrismaService } from "../prisma/prisma.service"
 import { SecurityAlertsService } from "./security-alerts.service"
 
 type MockPrisma = {

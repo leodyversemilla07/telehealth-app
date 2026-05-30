@@ -22,7 +22,7 @@ type TestSession = {
   session: { id: string }
 }
 
-import { StorageService } from "@/storage/storage.service"
+import { StorageService } from "../storage/storage.service"
 import { UsersController } from "./users.controller"
 import { UsersService } from "./users.service"
 

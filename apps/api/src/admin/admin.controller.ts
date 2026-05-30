@@ -17,11 +17,11 @@ import {
 } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
-import { AdminService } from "@/admin/admin.service"
-import { BanUserDto } from "@/admin/dto/ban-user.dto"
-import { SetRoleDto } from "@/admin/dto/set-role.dto"
-import { UpdateProfileDto } from "@/admin/dto/update-profile.dto"
-import { PaginationDto } from "@/common/dto/pagination.dto"
+import { AdminService } from "./admin.service"
+import { BanUserDto } from "./dto/ban-user.dto"
+import { SetRoleDto } from "./dto/set-role.dto"
+import { UpdateProfileDto } from "./dto/update-profile.dto"
+import { PaginationDto } from "../common/dto/pagination.dto"
 
 @ApiTags("Admin")
 @ApiBearerAuth("session-token")

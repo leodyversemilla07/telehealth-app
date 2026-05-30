@@ -1,9 +1,9 @@
 import { NotFoundException } from "@nestjs/common"
 import { Test, TestingModule } from "@nestjs/testing"
-import { AuditLogsService } from "@/audit-logs/audit-logs.service"
-import { DoctorsService } from "@/doctors/doctors.service"
-import { PrismaService } from "@/prisma/prisma.service"
-import { UsersService } from "@/users/users.service"
+import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { DoctorsService } from "../doctors/doctors.service"
+import { PrismaService } from "../prisma/prisma.service"
+import { UsersService } from "../users/users.service"
 import { AdminService } from "./admin.service"
 
 type MockService<T> = { [K in keyof T]: jest.Mock }
