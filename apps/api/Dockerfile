@@ -42,6 +42,8 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=builder /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
+RUN test -f apps/api/dist/src/main.js && echo "DIST EXISTS OK" || echo "DIST NOT FOUND"
+
 EXPOSE 3001
 
 ENV NODE_ENV=production
