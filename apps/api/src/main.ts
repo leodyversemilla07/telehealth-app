@@ -16,11 +16,11 @@ async function bootstrap() {
     bufferLogs: true,
   })
 
-  // Health check endpoint (before global prefix, used by ALB)
+  // Root health check endpoint (ALB health check requires this at /, not /api)
   app
     .getHttpAdapter()
     .getInstance()
-    .get("/api", (_req: Request, res: Response) => {
+    .get("/", (_req: Request, res: Response) => {
       res.json({ status: "ok", timestamp: new Date().toISOString() })
     })
 
