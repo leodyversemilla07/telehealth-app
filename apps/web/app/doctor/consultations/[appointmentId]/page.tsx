@@ -370,8 +370,7 @@ export default function DoctorConsultationDetailPage() {
   })
 
   const isCompleted =
-    appt.status === "COMPLETED" ||
-    (!!consultationRecord && !!consultationRecord.id)
+    !!consultationRecord && !!consultationRecord.id
   const isJoinable =
     appt.status === "CONFIRMED" || appt.status === "IN_PROGRESS"
 
