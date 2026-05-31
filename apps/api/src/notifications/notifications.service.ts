@@ -2,13 +2,13 @@ import type { NotificationType } from "../generated/prisma/client.js"
 import { Injectable } from "@nestjs/common"
 import { PrismaService } from "../prisma/prisma.service"
 import { PushService } from "../push/push.service"
-import { NotificationsGateway } from "./notifications.gateway"
+import { SocketService } from "./socket.service"
 
 @Injectable()
 export class NotificationsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly gateway: NotificationsGateway,
+    private readonly socket: SocketService,
     private readonly push: PushService,
   ) {}
 
@@ -76,7 +76,7 @@ export class NotificationsService {
       data: { userId, type, title, body },
     })
 
-    this.gateway.emitToUser(userId, "notification", notification)
+    this.socket.emitToUser(userId, "notification", notification)
 
     // Fire-and-forget browser push (non-blocking)
     this.push.sendToUser(userId, { title, body }).catch(() => {

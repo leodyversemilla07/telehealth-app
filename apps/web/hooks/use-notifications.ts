@@ -89,15 +89,9 @@ export function useMarkAllAsRead() {
 // ─── Socket.io Hook ────────────────────────────────────────────────────────
 
 function getSocketUrl(): string {
-  // Connect directly to the API if NEXT_PUBLIC_API_URL is configured.
-  // This bypasses Next.js dev server rewrite limitations with WebSocket upgrades.
-  if (env.NEXT_PUBLIC_API_URL) {
-    return env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, "")
-  }
-  if (typeof window !== "undefined") {
-    return window.location.origin
-  }
-  return ""
+  // Connect directly to the EC2 API for WebSocket support.
+  // Vercel serverless functions don't support WebSocket upgrades.
+  return "https://api.tele-health.app"
 }
 
 export function useNotificationSocket() {
@@ -112,20 +106,36 @@ export function useNotificationSocket() {
   useEffect(() => {
     const url = getSocketUrl()
 
-    socketRef.current = socketIO(url, {
-      withCredentials: true,
-      // Start with polling so the request goes through the Next.js /socket.io
-      // rewrite proxy. Socket.io will upgrade to WebSocket automatically.
-      transports: ["polling", "websocket"],
-    })
+    // Get session token for cross-origin WebSocket auth
+    const connectSocket = async (token?: string) => {
+      const opts: Record<string, unknown> = {
+        withCredentials: true,
+        transports: ["polling", "websocket"],
+      }
+      if (token) {
+        opts.auth = { token }
+      }
+      socketRef.current = socketIO(url, opts)
 
-    socketRef.current.on("notification", () => {
-      invalidateAll()
-    })
+      socketRef.current.on("notification", () => {
+        invalidateAll()
+      })
 
-    socketRef.current.on("connect_error", (err) => {
-      console.warn("[NotificationSocket] connection error:", err.message)
-    })
+      socketRef.current.on("connect_error", (err) => {
+        console.warn("[NotificationSocket] connection error:", err.message)
+      })
+    }
+
+    // Try to get session token from the auth client's cookie
+    // The cookie is accessible because API calls go through same-origin proxy
+    fetch("/api/auth/get-session", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => {
+        connectSocket(data?.session?.token)
+      })
+      .catch(() => {
+        connectSocket()
+      })
 
     return () => {
       socketRef.current?.disconnect()

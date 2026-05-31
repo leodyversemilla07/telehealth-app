@@ -32,15 +32,9 @@ interface Notification {
 }
 
 function getSocketUrl(): string {
-  // Connect directly to the API if NEXT_PUBLIC_API_URL is configured.
-  // This bypasses Next.js dev server rewrite limitations with WebSocket upgrades.
-  if (env.NEXT_PUBLIC_API_URL) {
-    return env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, "")
-  }
-  if (typeof window !== "undefined") {
-    return window.location.origin
-  }
-  return ""
+  // Connect directly to the EC2 API for WebSocket support.
+  // Vercel serverless functions don't support WebSocket upgrades.
+  return "https://api.tele-health.app"
 }
 
 export function NotificationBell() {
@@ -86,20 +80,30 @@ export function NotificationBell() {
   useEffect(() => {
     const url = getSocketUrl()
 
-    socketRef.current = socketIO(url, {
-      withCredentials: true,
-      // polling first so requests go through Next.js rewrite proxy
-      transports: ["polling", "websocket"],
-    })
+    const connectSocket = async (token?: string) => {
+      const opts: Record<string, unknown> = {
+        withCredentials: true,
+        transports: ["polling", "websocket"],
+      }
+      if (token) {
+        opts.auth = { token }
+      }
+      socketRef.current = socketIO(url, opts)
 
-    socketRef.current.on("notification", () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] })
-      queryClient.invalidateQueries({ queryKey: ["notifications-unread"] })
-    })
+      socketRef.current.on("notification", () => {
+        queryClient.invalidateQueries({ queryKey: ["notifications"] })
+        queryClient.invalidateQueries({ queryKey: ["notifications-unread"] })
+      })
 
-    socketRef.current.on("connect_error", (err) => {
-      console.warn("[NotificationSocket] connection error:", err.message)
-    })
+      socketRef.current.on("connect_error", (err) => {
+        console.warn("[NotificationSocket] connection error:", err.message)
+      })
+    }
+
+    fetch("/api/auth/get-session", { credentials: "include" })
+      .then((r) => r.json())
+      .then((data) => connectSocket(data?.session?.token))
+      .catch(() => connectSocket())
 
     return () => {
       socketRef.current?.disconnect()

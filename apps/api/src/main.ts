@@ -5,10 +5,13 @@ import { NestFactory } from "@nestjs/core"
 import type { Request, Response } from "express"
 import express from "express"
 import helmet from "helmet"
+import { Server as SocketIOServer } from "socket.io"
 import { AppModule } from "./app.module"
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter"
 import { PhtDateInterceptor } from "./common/interceptors/pht-date.interceptor"
 import { setupSwagger } from "./config/swagger.config"
+import { auth } from "./auth/auth"
+import { SocketService } from "./notifications/socket.service"
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -71,7 +74,7 @@ async function bootstrap() {
   // Restrict CORS origins with secure credential handshakes
   const rawCorsOrigins =
     process.env.CORS_ORIGIN ?? "http://localhost:3000,http://localhost:3001"
-  const allowedOrigins = rawCorsOrigins.split(",")
+  const allowedOrigins = rawCorsOrigins.split(",").map((o) => o.trim())
 
   app.enableCors({
     origin: (
@@ -79,7 +82,15 @@ async function bootstrap() {
       callback: (err: Error | null, allow?: boolean) => void,
     ) => {
       // Allow requests with no origin (like mobile apps, curl, or internal server-to-server)
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) {
+        callback(null, true)
+        return
+      }
+      // Check exact match or Vercel preview deployments
+      const isAllowed =
+        allowedOrigins.some((allowed) => origin === allowed) ||
+        origin.endsWith(".vercel.app")
+      if (isAllowed) {
         callback(null, true)
       } else {
         callback(new Error(`Origin "${origin}" not allowed by CORS`))
@@ -101,6 +112,66 @@ async function bootstrap() {
     setupSwagger(app)
   }
 
+  const server = app.getHttpServer()
+
+  // Set up socket.io directly on the Express HTTP server
+  // This bypasses setGlobalPrefix("api") which would otherwise prefix /socket.io
+  const socketCorsOrigins =
+    process.env.CORS_ORIGIN ?? "http://localhost:3000,http://localhost:3001"
+  const socketAllowedOrigins = socketCorsOrigins.split(",").map((o) => o.trim())
+
+  const io = new SocketIOServer(server, {
+    path: "/socket.io",
+    cors: {
+      origin: (origin, callback) => {
+        if (!origin || socketAllowedOrigins.some((o) => origin === o) || origin.endsWith(".vercel.app")) {
+          callback(null, true)
+        } else {
+          callback(new Error("Not allowed by CORS"))
+        }
+      },
+      credentials: true,
+    },
+  })
+
+  io.on("connection", async (socket) => {
+    const token = socket.handshake.auth?.token as string | undefined
+    const cookie = socket.handshake.headers.cookie
+
+    let session
+    if (token) {
+      session = await auth.api.getSession({
+        headers: new Headers({ authorization: `Bearer ${token}` }),
+      })
+    } else if (cookie) {
+      session = await auth.api.getSession({
+        headers: new Headers({ cookie }),
+      })
+    }
+
+    if (!session?.user?.id) {
+      socket.disconnect(true)
+      return
+    }
+
+    socket.data.userId = session.user.id
+    socket.join(session.user.id)
+    console.log(`[Socket] Client connected: ${socket.id} (user: ${session.user.id})`)
+
+    socket.on("disconnect", () => {
+      console.log(`[Socket] Client disconnected: ${socket.id}`)
+    })
+
+    socket.on("join", () => {
+      socket.join(session!.user.id)
+    })
+  })
+
+  // Make io accessible from other modules via SocketService
+  const socketService = app.get(SocketService)
+  socketService.setServer(io)
+
+  console.log(`🚀 Server running on port ${process.env.PORT ?? 3001}`)
   await app.listen(process.env.PORT ?? 3001)
 }
 bootstrap()
