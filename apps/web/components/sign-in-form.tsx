@@ -13,7 +13,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 import { ArrowLeft, Key, Shield, ShieldAlert } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
@@ -23,6 +23,8 @@ export function SignInForm({
   ...props
 }: React.ComponentProps<"form">) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const callbackUrl = searchParams.get("callbackUrl")
   const [form, setForm] = useState<SignInDto>({ email: "", password: "" })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -57,8 +59,9 @@ export function SignInForm({
     }
 
     const role = data?.user?.role ?? "PATIENT"
-    const dashboard =
-      role === "ADMIN"
+    const dashboard = callbackUrl && callbackUrl.startsWith("/")
+      ? callbackUrl
+      : role === "ADMIN"
         ? "/admin/dashboard"
         : role === "DOCTOR"
           ? "/doctor/dashboard"
@@ -106,8 +109,9 @@ export function SignInForm({
       const role =
         (sessionRes.data?.user as { role?: string } | undefined)?.role ??
         "PATIENT"
-      const dashboard =
-        role === "ADMIN"
+      const dashboard = callbackUrl && callbackUrl.startsWith("/")
+        ? callbackUrl
+        : role === "ADMIN"
           ? "/admin/dashboard"
           : role === "DOCTOR"
             ? "/doctor/dashboard"

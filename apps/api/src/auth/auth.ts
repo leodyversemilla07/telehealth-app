@@ -104,6 +104,15 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 24,
     freshAge: 60 * 5,
   },
+  advanced: {
+    useSecureCookies: false,
+    disableCSRFCheck: true,
+    defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+      domain: ".tele-health.app",
+    },
+  },
   /**
    * Account linking: do not auto-link OAuth accounts by default;
    * prevents accidental account merging.
