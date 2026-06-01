@@ -15,7 +15,7 @@ jobs:
     name: TypeCheck & Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -47,7 +47,7 @@ jobs:
       BETTER_AUTH_SECRET: ci-secret-that-is-at-least-32-characters-long
       BETTER_AUTH_URL: http://localhost:3001
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -67,7 +67,7 @@ jobs:
     env:
       NEXT_PUBLIC_API_URL: http://localhost:3001
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
