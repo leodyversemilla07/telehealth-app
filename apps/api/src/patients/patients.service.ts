@@ -1,5 +1,5 @@
-import type { Prisma } from "../generated/prisma/client.js"
 import { Injectable, NotFoundException } from "@nestjs/common"
+import type { Prisma } from "../generated/prisma/client.js"
 import { PrismaService } from "../prisma/prisma.service"
 import type { UpdatePatientProfileDto } from "./dto"
 

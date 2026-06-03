@@ -1,6 +1,6 @@
-import { VisitType } from "../../generated/prisma/client.js"
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
 import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator"
+import { VisitType } from "../../generated/prisma/client.js"
 
 export class CreateAppointmentDto {
   @ApiProperty({ description: "The unique ID of the doctor profile" })

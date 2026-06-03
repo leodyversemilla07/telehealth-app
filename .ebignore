@@ -1,9 +1,6 @@
-# ── Docker (not needed for Node.js platform) ────────────────────────────────
-docker-compose.override.yml
-docker-compose.yml
-Dockerfile
-apps/api/Dockerfile
-apps/api/Dockerrun.aws.json
+# =============================================================================
+# Elastic Beanstalk Ignore File (for Docker deployment)
+# =============================================================================
 
 # ── Git ─────────────────────────────────────────────────────────────────────
 .git
@@ -18,32 +15,41 @@ packages/*/node_modules
 .idea
 .vscode
 *.swp
+*.swo
 
 # ── OS ──────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
 
-# ── Env files (secrets set via EB environment properties) ───────────────────
+# ── Environment files (secrets via EB env vars) ─────────────────────────────
 .env
-.env.*
+.env.local
+.env.*.local
 !.env.example
 
-# ── Docs (not needed at runtime) ────────────────────────────────────────────
+# ── Documentation ───────────────────────────────────────────────────────────
 docs
+*.md
+!README.md
 
-# ── Cache and Temp ──────────────────────────────────────────────────────────
-.elasticbeanstalk/
-.turbo/
+# ── Build artifacts ─────────────────────────────────────────────────────────
+.turbo
+.next
+out
+dist
+build
 
-# ── Vercel ───────────────────────────────────────────────────────────────────
-.vercel
-.vercelignore
-apps/web/.vercelignore
+# ── Testing ─────────────────────────────────────────────────────────────────
+coverage
+*.spec.ts
+*.test.ts
 
-# ── Web app (only deploying the API) ────────────────────────────────────────
-apps/web
-apps/web/**
+# ── Scripts ─────────────────────────────────────────────────────────────────
+scripts
 
-# ── EB artifacts ────────────────────────────────────────────────────────────
-.antigravitycli
-apps/api/Dockerrun.aws.json
+# ── Local Docker Compose (not for EB) ──────────────────────────────────────
+docker-compose*.yml
+docker-compose*.yaml
+
+# ── Local development files ─────────────────────────────────────────────────
+uploads/

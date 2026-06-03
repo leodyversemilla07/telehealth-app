@@ -105,12 +105,15 @@ export const auth = betterAuth({
     freshAge: 60 * 5,
   },
   advanced: {
-    useSecureCookies: false,
-    disableCSRFCheck: true,
+    useSecureCookies: process.env.NODE_ENV === "production",
+    disableCSRFCheck: process.env.NODE_ENV === "production",
     defaultCookieAttributes: {
-      sameSite: "none",
-      secure: true,
-      domain: ".tele-health.app",
+      sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
+      secure: process.env.NODE_ENV === "production",
+      // Only set domain in production with a real domain
+      ...(process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN
+        ? { domain: process.env.COOKIE_DOMAIN }
+        : {}),
     },
   },
   /**

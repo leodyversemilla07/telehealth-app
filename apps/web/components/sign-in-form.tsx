@@ -59,13 +59,14 @@ export function SignInForm({
     }
 
     const role = data?.user?.role ?? "PATIENT"
-    const dashboard = callbackUrl && callbackUrl.startsWith("/")
-      ? callbackUrl
-      : role === "ADMIN"
-        ? "/admin/dashboard"
-        : role === "DOCTOR"
-          ? "/doctor/dashboard"
-          : "/patient/dashboard"
+    const dashboard =
+      callbackUrl && callbackUrl.startsWith("/")
+        ? callbackUrl
+        : role === "ADMIN"
+          ? "/admin/dashboard"
+          : role === "DOCTOR"
+            ? "/doctor/dashboard"
+            : "/patient/dashboard"
 
     toast.success("Successfully logged in!")
     router.push(dashboard)
@@ -109,13 +110,14 @@ export function SignInForm({
       const role =
         (sessionRes.data?.user as { role?: string } | undefined)?.role ??
         "PATIENT"
-      const dashboard = callbackUrl && callbackUrl.startsWith("/")
-        ? callbackUrl
-        : role === "ADMIN"
-          ? "/admin/dashboard"
-          : role === "DOCTOR"
-            ? "/doctor/dashboard"
-            : "/patient/dashboard"
+      const dashboard =
+        callbackUrl && callbackUrl.startsWith("/")
+          ? callbackUrl
+          : role === "ADMIN"
+            ? "/admin/dashboard"
+            : role === "DOCTOR"
+              ? "/doctor/dashboard"
+              : "/patient/dashboard"
       router.push(dashboard)
     } catch (err) {
       setTwoFactorError(

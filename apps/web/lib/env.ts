@@ -2,13 +2,14 @@
  * Web-app environment variable validation.
  *
  * NEXT_PUBLIC_API_URL: Client-side API base URL.
- *   - Empty string (default) = same-origin, uses Vercel rewrites to proxy to API
+ *   - Empty string (default) = same-origin, uses Next.js rewrites to proxy to API
  *   - Set explicitly only if the API is on a different domain (CORS needed)
  *
  * API_URL: Server-only (no NEXT_PUBLIC_ prefix).
  *   - Used by next.config.mjs rewrites to proxy /api/* to the NestJS backend
  *   - Not exposed to the browser
- *   - Set in Vercel: API_URL=https://telehealth-env.eba-ncicpaui.us-east-1.elasticbeanstalk.com
+ *   - In Docker: http://api:3001 (internal network)
+ *   - Local dev: http://localhost:3001
  */
 
 const apiWebUrl = process.env.NEXT_PUBLIC_API_URL
@@ -26,7 +27,7 @@ if (typeof window === "undefined") {
 export const env = {
   /**
    * Base URL of the NestJS API.
-   * Empty string = same-origin proxy (Vercel rewrites handle it).
+   * Empty string = same-origin proxy (Next.js rewrites handle it).
    * The trailing slash is stripped.
    */
   NEXT_PUBLIC_API_URL: (apiWebUrl || "").replace(/\/$/, ""),

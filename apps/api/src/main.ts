@@ -7,10 +7,10 @@ import express from "express"
 import helmet from "helmet"
 import { Server as SocketIOServer } from "socket.io"
 import { AppModule } from "./app.module"
+import { auth } from "./auth/auth"
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter"
 import { PhtDateInterceptor } from "./common/interceptors/pht-date.interceptor"
 import { setupSwagger } from "./config/swagger.config"
-import { auth } from "./auth/auth"
 import { SocketService } from "./notifications/socket.service"
 
 async function bootstrap() {
@@ -86,10 +86,8 @@ async function bootstrap() {
         callback(null, true)
         return
       }
-      // Check exact match or Vercel preview deployments
-      const isAllowed =
-        allowedOrigins.some((allowed) => origin === allowed) ||
-        origin.endsWith(".vercel.app")
+      // Check exact match
+      const isAllowed = allowedOrigins.some((allowed) => origin === allowed)
       if (isAllowed) {
         callback(null, true)
       } else {
@@ -124,7 +122,7 @@ async function bootstrap() {
     path: "/socket.io",
     cors: {
       origin: (origin, callback) => {
-        if (!origin || socketAllowedOrigins.some((o) => origin === o) || origin.endsWith(".vercel.app")) {
+        if (!origin || socketAllowedOrigins.some((o) => origin === o)) {
           callback(null, true)
         } else {
           callback(new Error("Not allowed by CORS"))
@@ -138,7 +136,7 @@ async function bootstrap() {
     const token = socket.handshake.auth?.token as string | undefined
     const cookie = socket.handshake.headers.cookie
 
-    let session
+    let session: { user: { id: string } } | null = null
     if (token) {
       session = await auth.api.getSession({
         headers: new Headers({ authorization: `Bearer ${token}` }),
@@ -156,14 +154,16 @@ async function bootstrap() {
 
     socket.data.userId = session.user.id
     socket.join(session.user.id)
-    console.log(`[Socket] Client connected: ${socket.id} (user: ${session.user.id})`)
+    console.log(
+      `[Socket] Client connected: ${socket.id} (user: ${session.user.id})`,
+    )
 
     socket.on("disconnect", () => {
       console.log(`[Socket] Client disconnected: ${socket.id}`)
     })
 
     socket.on("join", () => {
-      socket.join(session!.user.id)
+      socket.join(session?.user.id)
     })
   })
 

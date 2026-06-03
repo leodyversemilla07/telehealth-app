@@ -3,12 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
+import { PrismaService } from "../prisma/prisma.service"
 import type {
   RegisterDoctorDto,
   SearchDoctorsDto,
   UpdateDoctorProfileDto,
 } from "./dto"
-import { PrismaService } from "../prisma/prisma.service"
 
 const PUBLIC_USER_SELECT = {
   id: true,

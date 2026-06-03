@@ -1,7 +1,7 @@
 import { Module } from "@nestjs/common"
+import { PrismaModule } from "../prisma/prisma.module"
 import { ConsentController } from "./consent.controller"
 import { ConsentService } from "./consent.service"
-import { PrismaModule } from "../prisma/prisma.module"
 
 @Module({
   imports: [PrismaModule],

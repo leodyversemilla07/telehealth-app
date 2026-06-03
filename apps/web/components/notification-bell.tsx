@@ -21,7 +21,6 @@ import { useEffect, useRef } from "react"
 import { type Socket, io as socketIO } from "socket.io-client"
 import { usePushNotifications } from "@/hooks/use-push-notifications"
 import { apiClient } from "@/lib/api-client"
-import { env } from "@/lib/env"
 
 interface Notification {
   id: string
@@ -32,9 +31,10 @@ interface Notification {
 }
 
 function getSocketUrl(): string {
-  // Connect directly to the EC2 API for WebSocket support.
-  // Vercel serverless functions don't support WebSocket upgrades.
-  return "https://api.tele-health.app"
+  // Connect to the API server for WebSocket support.
+  // In production, this is the same domain (nginx proxies WebSocket).
+  if (typeof window === "undefined") return ""
+  return window.location.origin
 }
 
 export function NotificationBell() {

@@ -369,8 +369,7 @@ export default function DoctorConsultationDetailPage() {
     timeZone: "Asia/Manila",
   })
 
-  const isCompleted =
-    !!consultationRecord && !!consultationRecord.id
+  const isCompleted = !!consultationRecord && !!consultationRecord.id
   const isJoinable =
     appt.status === "CONFIRMED" || appt.status === "IN_PROGRESS"
 

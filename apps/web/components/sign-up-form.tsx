@@ -32,6 +32,7 @@ export function SignUpForm({
   })
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [verificationSent, setVerificationSent] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -61,11 +62,44 @@ export function SignUpForm({
     }
 
     toast.success("Account created successfully!")
-    if (form.role === "DOCTOR") {
-      router.push("/doctor/register")
-    } else {
-      router.push("/patient/dashboard")
-    }
+    setVerificationSent(true)
+  }
+
+  if (verificationSent) {
+    return (
+      <div className="flex flex-col items-center gap-6 text-center p-8">
+        <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center">
+          <svg
+            className="size-8 text-primary"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+            aria-label="Email"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+            />
+          </svg>
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold">Check your email</h1>
+          <p className="text-muted-foreground mt-2">
+            We sent a verification link to
+            <br />
+            <span className="font-medium text-foreground">{form.email}</span>
+          </p>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Click the link in the email to verify your account and sign in.
+        </p>
+        <Button variant="outline" onClick={() => router.push("/sign-in")}>
+          Go to Sign In
+        </Button>
+      </div>
+    )
   }
 
   return (
@@ -147,6 +181,7 @@ export function SignUpForm({
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth={2}
+                  aria-label="Patient"
                 >
                   <path
                     strokeLinecap="round"
@@ -174,6 +209,7 @@ export function SignUpForm({
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                   strokeWidth={2}
+                  aria-label="Doctor"
                 >
                   <path
                     strokeLinecap="round"
