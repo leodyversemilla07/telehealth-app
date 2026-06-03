@@ -3,17 +3,23 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "build": "turbo build",
     "dev": "turbo dev",
+    "build": "turbo build",
+    "start": "pnpm --filter api start",
     "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:api": "pnpm --filter api test",
+    "test:web": "pnpm --filter web test",
     "format": "biome check --write",
     "format:check": "biome check",
-    "typecheck": "turbo typecheck",
     "seed": "pnpm --filter api exec tsx prisma/seed.ts",
     "migrate": "pnpm --filter api exec prisma migrate deploy",
     "db:start": "docker compose up -d postgres",
     "db:stop": "docker compose down",
-    "db:reset": "pnpm --filter api exec prisma migrate reset --force && pnpm seed"
+    "db:reset": "pnpm --filter api exec prisma migrate reset --force && pnpm seed",
+    "db:studio": "pnpm --filter api exec prisma studio",
+    "deploy": "pm2 restart ecosystem.config.js --update-env"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",

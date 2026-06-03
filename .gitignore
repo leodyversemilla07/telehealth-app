@@ -19,10 +19,9 @@ coverage
 # Build Outputs
 .next/
 out/
-build
-dist
-generated
-uploads
+dist/
+build/
+generated/
 
 # Debug
 npm-debug.log*
@@ -32,16 +31,7 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 *.pem
-!/apps/api/certs/rds-ca-bundle.pem
-
-# Elastic Beanstalk
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml
-tmp/
-
-# Docker
-.docker/
+!.github/workflows/*.yml
 
 # IDE
 .vscode/*
@@ -55,3 +45,8 @@ tmp/
 # OS
 .DS_Store
 Desktop.ini
+
+# Elastic Beanstalk
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml

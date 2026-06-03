@@ -1,5 +1,5 @@
 # =============================================================================
-# Elastic Beanstalk Ignore File (for Docker deployment)
+# Elastic Beanstalk Ignore File (Node.js Platform)
 # =============================================================================
 
 # ── Git ─────────────────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@ packages/*/node_modules
 .DS_Store
 Thumbs.db
 
-# ── Environment files (secrets via EB env vars) ─────────────────────────────
+# ── Environment files ───────────────────────────────────────────────────────
 .env
 .env.local
 .env.*.local
@@ -47,9 +47,10 @@ coverage
 # ── Scripts ─────────────────────────────────────────────────────────────────
 scripts
 
-# ── Local Docker Compose (not for EB) ──────────────────────────────────────
+# ── Docker files ────────────────────────────────────────────────────────────
+Dockerfile
 docker-compose*.yml
-docker-compose*.yaml
+.proxy
 
-# ── Local development files ─────────────────────────────────────────────────
+# ── Local development ──────────────────────────────────────────────────────
 uploads/

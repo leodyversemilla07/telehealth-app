@@ -2,178 +2,172 @@
 
 A telehealth platform connecting patients with licensed Philippine healthcare providers through video consultations, secure messaging, electronic prescriptions, and integrated health record management.
 
-Built with a **monorepo architecture** using Turborepo + pnpm workspaces. Deployed on **AWS**.
+[![CI](https://github.com/your-username/telehealth-app/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/telehealth-app/actions/workflows/ci.yml)
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 telehealth-app/
 ├── apps/
-│   ├── api/          # NestJS 11 REST API (port 3001)
-│   └── web/          # Next.js 16 frontend (port 3000)
+│   ├── api/          # NestJS 11 REST API
+│   └── web/          # Next.js 16 frontend
 ├── packages/
-│   ├── shared/       # Shared Zod schemas & TypeScript types
-│   ├── ui/           # shadcn/ui component library + Tailwind CSS v4
-│   └── typescript-config/
-├── proxy/
-│   └── nginx.conf    # Reverse proxy config
+│   ├── shared/       # Zod schemas & TypeScript types
+│   └── ui/           # shadcn/ui components
 ├── docs/
+│   ├── DEPLOYMENT.md # Complete deployment guide
 │   ├── SRS.md        # Software Requirements Specification
-│   └── AWS-DEPLOYMENT.md
-└── scripts/
-    └── deploy-aws.sh # AWS deployment script
+│   └── DESIGN-SYSTEM.md
+└── .github/
+    └── workflows/
+        └── ci.yml    # CI/CD pipeline
 ```
 
-## Technology Stack
+## 🛠️ Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | Next.js 16 + React 19 + Tailwind CSS v4 + shadcn/ui |
-| **Backend** | NestJS 11 + Express |
+| **Frontend** | Next.js 16, React 19, Tailwind CSS v4, shadcn/ui |
+| **Backend** | NestJS 11, Express |
 | **Database** | PostgreSQL 16 (Prisma ORM) |
 | **Auth** | Better Auth (email/password, 2FA, lockout) |
 | **Video** | LiveKit |
-| **AI** | NVIDIA NIM |
 | **Real-time** | Socket.io (WebSocket) |
-| **Storage** | AWS S3 |
 | **Email** | AWS SES |
-| **Hosting** | AWS Elastic Beanstalk + RDS + S3 |
+| **Storage** | AWS S3 |
+| **Hosting** | AWS EC2 + RDS |
 
-## Prerequisites
+## 🚀 Quick Start
 
-- **Node.js** >= 22
-- **pnpm** >= 11
-- **Docker** (for local development)
-- **AWS CLI** (for deployment)
-
-## Quick Start (Local Development)
+### Local Development
 
 ```bash
-# 1. Install dependencies
+# Install dependencies
 pnpm install
 
-# 2. Start PostgreSQL
+# Start PostgreSQL
 docker compose up -d postgres
 
-# 3. Setup database
+# Setup database
 pnpm db:reset
 
-# 4. Start development
+# Start development
 pnpm dev
 ```
 
-- **Web app**: http://localhost:3000
-- **API**: http://localhost:3001
-- **Swagger docs**: http://localhost:3001/api/docs
+- **Web:** http://localhost:3000
+- **API:** http://localhost:3001
+- **Swagger:** http://localhost:3001/api/docs
 
-## Deployment (AWS)
+### Production
+
+See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for complete deployment guide.
+
+## 📦 Available Scripts
 
 ```bash
-# Automated deployment
-./scripts/deploy-aws.sh
+pnpm dev              # Run all apps
+pnpm build            # Build all apps
+pnpm lint             # Lint all apps
+pnpm typecheck        # Type check all apps
+pnpm test             # Run all tests
+pnpm db:reset         # Reset database
+pnpm db:seed          # Seed database
 ```
 
-Or see [docs/AWS-DEPLOYMENT.md](./docs/AWS-DEPLOYMENT.md) for manual steps.
+## 📁 Project Structure
 
-## Workspace Commands
-
-### Development
-```bash
-pnpm dev                # Run all apps
-pnpm --filter web dev   # Web only
-pnpm --filter api dev   # API only
-```
-
-### Build
-```bash
-pnpm build              # Build all
-pnpm --filter web build # Web only
-pnpm --filter api build # API only
-```
-
-### Database
-```bash
-pnpm db:start           # Start PostgreSQL
-pnpm db:stop            # Stop PostgreSQL
-pnpm db:reset           # Reset + migrate + seed
-pnpm migrate            # Apply migrations
-```
-
-### Quality
-```bash
-pnpm typecheck          # TypeScript check
-pnpm lint               # Lint
-pnpm format             # Format
-```
-
-### Testing
-```bash
-pnpm --filter api test  # API tests (Jest)
-pnpm --filter web test  # Web tests (Vitest)
-```
-
-## Features
-
-### Patient
-- Account with email verification
-- Profile management
-- Browse/search doctors
-- AI symptom checker
-- Book appointments
-- Video consultations
-- Medical records
-- In-app chat
-
-### Doctor
-- Registration with PRC license
-- Profile & credentials
-- Schedule management
-- Consultations & notes
-- Prescriptions
-- Patient records
-- In-app chat
-
-### Security
-- Better Auth (email/password, 2FA)
-- Account lockout (5 failed attempts)
-- Session rotation (7-day expiry)
-- Rate limiting
-- Audit logging
-- Security alerts
-
-### Admin
-- User management
-- Doctor approval
-- Audit logs
-- Reports
-
-## API Routes
+### Frontend Pages (53 pages)
 
 | Route | Description |
 |-------|-------------|
-| `/api/auth/*` | Authentication (sign in/up, verify, reset, 2FA) |
+| `/sign-in`, `/sign-up` | Authentication |
+| `/patient/*` | Patient dashboard (11 pages) |
+| `/doctor/*` | Doctor dashboard (11 pages) |
+| `/admin/*` | Admin dashboard (8 pages) |
+
+### API Endpoints (21 modules)
+
+| Module | Description |
+|--------|-------------|
+| `/api/auth/*` | Authentication (2FA, lockout, verification) |
 | `/api/doctors/*` | Doctor profiles & search |
-| `/api/appointments/*` | Book/manage appointments |
+| `/api/appointments/*` | Book & manage appointments |
 | `/api/records/*` | Medical records & prescriptions |
 | `/api/video/*` | Video consultation rooms |
-| `/api/chat/*` | Messaging |
-| `/api/notifications/*` | Notifications |
+| `/api/chat/*` | Real-time messaging |
 | `/api/admin/*` | Admin operations |
 
-## Documentation
+### Database Models (18 models)
 
-- [Software Requirements Specification](./docs/SRS.md)
-- [AWS Deployment Guide](./docs/AWS-DEPLOYMENT.md)
+- **Core:** User, Session, Account, Verification
+- **Profiles:** PatientProfile, DoctorProfile, AvailabilitySchedule, TimeOff
+- **Appointments:** Appointment, Consultation, Prescription
+- **Communication:** Notification, PushSubscription, ChatMessage
+- **Security:** ConsentLog, AuditLog, SecurityAlert, Review
 
-## Environment Variables
+## 🔐 Security Features
 
-See [apps/api/.env.example](./apps/api/.env.example) for required variables.
+- ✅ Email verification required
+- ✅ Two-factor authentication (TOTP)
+- ✅ Account lockout (5 failed attempts)
+- ✅ Password complexity validation
+- ✅ Session rotation (7-day expiry)
+- ✅ Rate limiting (20 req/min auth)
+- ✅ Audit logging (NPC compliance)
+- ✅ Security alerts
 
-**Critical for production:**
+## 🚢 Deployment
+
+### CI/CD Pipeline
+
+- **On Push to Main:** Auto-deploy to EC2
+- **On Pull Request:** Run tests + lint
+
+### Manual Deployment
+
+```bash
+# Deploy to EC2
+ssh ec2-user@your-server
+cd /home/ec2-user/telehealth-app
+git pull
+pnpm install
+pnpm --filter api build
+cd apps/web && NEXT_OUTPUT=standalone pnpm build
+cd ../..
+pm2 restart all
 ```
+
+### Environment Variables
+
+See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md#environment-variables) for all required variables.
+
+**Critical:**
+```bash
 BETTER_AUTH_URL=https://api.tele-health.app  # MUST be production URL!
 BETTER_AUTH_SECRET=<generate with: openssl rand -base64 32>
 DATABASE_URL=postgresql://...
-CORS_ORIGIN=https://tele-health.app
-COOKIE_DOMAIN=.tele-health.app
 ```
+
+## 📚 Documentation
+
+- [Deployment Guide](./docs/DEPLOYMENT.md) — Complete EC2 deployment
+- [Software Requirements](./docs/SRS.md) — NPC compliance, features
+- [Design System](./docs/DESIGN-SYSTEM.md) — Colors, components
+
+## 🧪 Testing
+
+```bash
+# API tests
+pnpm --filter api test
+
+# Web tests
+pnpm --filter web test
+
+# E2E tests
+pnpm --filter api test:e2e
+```
+
+## 📄 License
+
+Private — All rights reserved.
