@@ -33,6 +33,15 @@ export class DoctorsService {
       throw new NotFoundException("User not found")
     }
 
+    const existingProfile = await this.prisma.doctorProfile.findUnique({
+      where: { userId },
+    })
+    if (existingProfile) {
+      throw new ConflictException(
+        "A doctor profile already exists for this user",
+      )
+    }
+
     // Check PRC license uniqueness
     const existing = await this.prisma.doctorProfile.findUnique({
       where: { prcLicenseNumber: dto.prcLicenseNumber },
@@ -43,23 +52,29 @@ export class DoctorsService {
       )
     }
 
-    // Create the doctor profile
-    const profile = await this.prisma.doctorProfile.create({
-      data: {
-        userId,
-        specialty: dto.specialty,
-        prcLicenseNumber: dto.prcLicenseNumber,
-        prcLicenseExpiry: new Date(dto.prcLicenseExpiry),
-        philhealthAccreditation: dto.philhealthAccreditation ?? null,
-        pdeaS2License: dto.pdeaS2License ?? null,
-        pdeaS2Expiry: dto.pdeaS2Expiry ? new Date(dto.pdeaS2Expiry) : null,
-        bio: dto.bio ?? null,
-        clinicAddress: dto.clinicAddress ?? null,
-        pricePerVisit: dto.pricePerVisit
-          ? Number.parseFloat(dto.pricePerVisit)
-          : 0,
-        isApproved: false,
-      },
+    const profile = await this.prisma.$transaction(async (tx) => {
+      await tx.user.update({
+        where: { id: userId },
+        data: { role: "DOCTOR" },
+      })
+
+      return tx.doctorProfile.create({
+        data: {
+          userId,
+          specialty: dto.specialty,
+          prcLicenseNumber: dto.prcLicenseNumber,
+          prcLicenseExpiry: new Date(dto.prcLicenseExpiry),
+          philhealthAccreditation: dto.philhealthAccreditation ?? null,
+          pdeaS2License: dto.pdeaS2License ?? null,
+          pdeaS2Expiry: dto.pdeaS2Expiry ? new Date(dto.pdeaS2Expiry) : null,
+          bio: dto.bio ?? null,
+          clinicAddress: dto.clinicAddress ?? null,
+          pricePerVisit: dto.pricePerVisit
+            ? Number.parseFloat(dto.pricePerVisit)
+            : 0,
+          isApproved: false,
+        },
+      })
     })
 
     return profile

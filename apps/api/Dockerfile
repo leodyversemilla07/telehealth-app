@@ -3,7 +3,7 @@ RUN git clone --depth 1 --branch main https://github.com/leodyversemilla07/teleh
 
 FROM node:22-alpine AS builder
 
-RUN npm install -g pnpm@11.3.0
+RUN npm install -g pnpm@11.4.0
 
 WORKDIR /app
 

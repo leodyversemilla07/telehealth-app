@@ -109,6 +109,45 @@ describe("DoctorsService", () => {
     })
   })
 
+  describe("register", () => {
+    const dto = {
+      specialty: "Cardiology",
+      prcLicenseNumber: "PRC-123",
+      prcLicenseExpiry: "2027-01-01",
+      pricePerVisit: "500",
+    }
+
+    it("should create a pending profile and set the user role to doctor", async () => {
+      const created = { id: "doc-1", userId: "user-1", isApproved: false }
+
+      prisma.user.findUnique.mockResolvedValue({ id: "user-1" })
+      prisma.doctorProfile.findUnique
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+      prisma.$transaction.mockImplementation(async (callback) =>
+        callback({
+          user: { update: prisma.user.update },
+          doctorProfile: { create: prisma.doctorProfile.create },
+        }),
+      )
+      prisma.doctorProfile.create.mockResolvedValue(created)
+
+      await expect(service.register("user-1", dto)).resolves.toEqual(created)
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: "user-1" },
+        data: { role: "DOCTOR" },
+      })
+      expect(prisma.doctorProfile.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: "user-1",
+            isApproved: false,
+          }),
+        }),
+      )
+    })
+  })
+
   // ─── findById ─────────────────────────────────────────────────────────
 
   describe("findById", () => {

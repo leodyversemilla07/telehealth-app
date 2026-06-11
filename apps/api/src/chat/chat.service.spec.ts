@@ -1,10 +1,11 @@
-import { NotFoundException } from "@nestjs/common"
+import { ForbiddenException, NotFoundException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
 import { PrismaService } from "../prisma/prisma.service"
 import { ChatService } from "./chat.service"
 
 type MockPrisma = {
   user: { findUnique: jest.Mock }
+  appointment: { findFirst: jest.Mock }
   chatMessage: {
     create: jest.Mock
     findMany: jest.Mock
@@ -17,6 +18,7 @@ type MockPrisma = {
 function buildPrismaMock(): MockPrisma {
   return {
     user: { findUnique: jest.fn() },
+    appointment: { findFirst: jest.fn() },
     chatMessage: {
       create: jest.fn(),
       findMany: jest.fn(),
@@ -59,6 +61,7 @@ describe("ChatService", () => {
 
     it("should create a message when receiver exists", async () => {
       prisma.user.findUnique.mockResolvedValue({ id: "receiver-id" })
+      prisma.appointment.findFirst.mockResolvedValue({ id: "appt-1" })
       prisma.chatMessage.create.mockResolvedValue({
         id: "msg-1",
         senderId: "sender-id",
@@ -87,6 +90,7 @@ describe("ChatService", () => {
 
     it("should include appointmentId when provided", async () => {
       prisma.user.findUnique.mockResolvedValue({ id: "receiver-id" })
+      prisma.appointment.findFirst.mockResolvedValue({ id: "appt-1" })
       prisma.chatMessage.create.mockResolvedValue({ id: "msg-2" })
 
       await service.sendMessage("sender-id", "receiver-id", "Hello", "appt-1")
@@ -97,6 +101,15 @@ describe("ChatService", () => {
         }),
       )
     })
+
+    it("should reject messages outside appointment relationships", async () => {
+      prisma.user.findUnique.mockResolvedValue({ id: "receiver-id" })
+      prisma.appointment.findFirst.mockResolvedValue(null)
+
+      await expect(
+        service.sendMessage("sender-id", "receiver-id", "Hello"),
+      ).rejects.toThrow(ForbiddenException)
+    })
   })
 
   describe("getConversation", () => {
@@ -105,6 +118,7 @@ describe("ChatService", () => {
         { id: "m1", content: "Hi", senderId: "u1", receiverId: "u2" },
         { id: "m2", content: "Hello", senderId: "u2", receiverId: "u1" },
       ]
+      prisma.appointment.findFirst.mockResolvedValue({ id: "appt-1" })
       prisma.chatMessage.findMany.mockResolvedValue(messages)
 
       const result = await service.getConversation("u1", "u2")
@@ -117,6 +131,7 @@ describe("ChatService", () => {
 
     it("should respect custom limit", async () => {
       prisma.chatMessage.findMany.mockResolvedValue([])
+      prisma.appointment.findFirst.mockResolvedValue({ id: "appt-1" })
 
       await service.getConversation("u1", "u2", 10)
 
@@ -165,6 +180,7 @@ describe("ChatService", () => {
   describe("markAsRead", () => {
     it("should update unread messages as read", async () => {
       prisma.chatMessage.updateMany.mockResolvedValue({ count: 3 })
+      prisma.appointment.findFirst.mockResolvedValue({ id: "appt-1" })
 
       const _result = await service.markAsRead("current-user", "sender-user")
 

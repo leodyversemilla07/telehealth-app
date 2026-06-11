@@ -2,20 +2,13 @@ import { Test, type TestingModule } from "@nestjs/testing"
 import type { Mockify } from "../../test/mocks/prisma-client"
 import { PrismaService } from "../prisma/prisma.service"
 import { PushService } from "../push/push.service"
-
-jest.mock("./notifications.gateway", () => ({
-  NotificationsGateway: jest.fn().mockImplementation(() => ({
-    emitToUser: jest.fn(),
-  })),
-}))
-
-import { NotificationsGateway } from "./notifications.gateway"
 import { NotificationsService } from "./notifications.service"
+import { SocketService } from "./socket.service"
 
 describe("NotificationsService", () => {
   let service: NotificationsService
   let prisma: Mockify<Pick<PrismaService, "notification">>
-  let gateway: Mockify<Pick<NotificationsGateway, "emitToUser">>
+  let socket: Mockify<Pick<SocketService, "emitToUser">>
   let push: { sendToUser: jest.Mock }
 
   beforeEach(async () => {
@@ -29,14 +22,14 @@ describe("NotificationsService", () => {
         create: jest.fn(),
       },
     }
-    const gatewayMock = { emitToUser: jest.fn() }
+    const socketMock = { emitToUser: jest.fn() }
     const pushMock = { sendToUser: jest.fn().mockResolvedValue(undefined) }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationsService,
         { provide: PrismaService, useValue: prismaMock },
-        { provide: NotificationsGateway, useValue: gatewayMock },
+        { provide: SocketService, useValue: socketMock },
         { provide: PushService, useValue: pushMock },
       ],
     }).compile()
@@ -45,8 +38,8 @@ describe("NotificationsService", () => {
     prisma = module.get(PrismaService) as Mockify<
       Pick<PrismaService, "notification">
     >
-    gateway = module.get(NotificationsGateway) as Mockify<
-      Pick<NotificationsGateway, "emitToUser">
+    socket = module.get(SocketService) as Mockify<
+      Pick<SocketService, "emitToUser">
     >
     push = module.get(PushService) as unknown as { sendToUser: jest.Mock }
   })
@@ -183,7 +176,7 @@ describe("NotificationsService", () => {
           body: "Your appointment is tomorrow",
         },
       })
-      expect(gateway.emitToUser).toHaveBeenCalledWith(
+      expect(socket.emitToUser).toHaveBeenCalledWith(
         "u1",
         "notification",
         expect.objectContaining({ id: "n1" }),

@@ -87,23 +87,21 @@ export class UsersService {
     id: string,
     requesterId: string,
     requesterRole: Role,
-    data: { name?: string; image?: string; role?: "DOCTOR" },
+    data: { name?: string; image?: string; role?: Role },
   ) {
     if (requesterId !== id && requesterRole !== "ADMIN") {
       throw new ForbiddenException("You can only update your own profile")
     }
 
-    if (data.role && requesterRole !== "ADMIN" && requesterId !== id) {
-      throw new ForbiddenException(
-        "Only the account owner can change their role",
-      )
+    if (data.role !== undefined) {
+      throw new ForbiddenException("Use the dedicated role-management flow")
     }
 
     await this.findById(id) // ensure exists
 
     const updated = await this.prisma.user.update({
       where: { id },
-      data,
+      data: { name: data.name, image: data.image },
       select: {
         id: true,
         name: true,

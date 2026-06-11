@@ -7,7 +7,7 @@ import {
   SidebarTrigger,
 } from "@workspace/ui/components/sidebar"
 import dynamic from "next/dynamic"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs"
 import { SidebarDoctor } from "@/components/sidebar-doctor"
@@ -26,17 +26,18 @@ export default function DoctorLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { data: session, isPending } = authClient.useSession()
 
   useEffect(() => {
     if (isPending || !session) return
     const role = (session.user as { role?: string } | undefined)?.role
-    if (role === "PATIENT") {
+    if (role === "PATIENT" && pathname !== "/doctor/register") {
       router.replace("/patient/dashboard")
     } else if (role === "ADMIN") {
       router.replace("/admin/dashboard")
     }
-  }, [session, isPending, router])
+  }, [session, isPending, pathname, router])
 
   const user = session?.user as
     | {

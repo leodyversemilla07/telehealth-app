@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsString, IsUrl, MaxLength } from "class-validator"
+import { IsOptional, IsString, IsUrl, MaxLength } from "class-validator"
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -9,8 +9,4 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsUrl()
   image?: string
-
-  @IsOptional()
-  @IsEnum(["DOCTOR"] as const)
-  role?: "DOCTOR"
 }

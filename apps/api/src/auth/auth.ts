@@ -20,6 +20,7 @@ const trustedOrigins = (
 
 export const auth = betterAuth({
   appName: "Telehealth Platform",
+  secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",
   trustedOrigins,
   database: prismaAdapter(prisma, {
@@ -106,7 +107,7 @@ export const auth = betterAuth({
   },
   advanced: {
     useSecureCookies: process.env.NODE_ENV === "production",
-    disableCSRFCheck: process.env.NODE_ENV === "production",
+    disableCSRFCheck: false,
     defaultCookieAttributes: {
       sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
       secure: process.env.NODE_ENV === "production",
@@ -165,6 +166,20 @@ export const auth = betterAuth({
           const user = await prisma.user.findUnique({
             where: { email: userEmail },
           })
+          if (
+            user?.banned &&
+            (!user.banExpires || user.banExpires > new Date())
+          ) {
+            return new Response(
+              JSON.stringify({
+                error: "This account is not allowed to sign in.",
+              }),
+              {
+                status: 403,
+                headers: { "Content-Type": "application/json" },
+              },
+            )
+          }
           if (user && isLockedOut(user.lockoutUntil)) {
             return new Response(
               JSON.stringify({

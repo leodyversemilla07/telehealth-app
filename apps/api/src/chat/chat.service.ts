@@ -1,10 +1,37 @@
-import { Injectable, NotFoundException } from "@nestjs/common"
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common"
 import { sanitize } from "../common/utils/sanitize"
 import { PrismaService } from "../prisma/prisma.service"
 
 @Injectable()
 export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
+
+  private async assertCanChat(
+    userId: string,
+    otherUserId: string,
+    appointmentId?: string,
+  ) {
+    const appointment = await this.prisma.appointment.findFirst({
+      where: {
+        ...(appointmentId ? { id: appointmentId } : {}),
+        OR: [
+          { patientId: userId, doctor: { userId: otherUserId } },
+          { patientId: otherUserId, doctor: { userId } },
+        ],
+      },
+      select: { id: true },
+    })
+
+    if (!appointment) {
+      throw new ForbiddenException(
+        "Chat is only available between appointment participants",
+      )
+    }
+  }
 
   /**
    * Send a message from one user to another.
@@ -22,6 +49,8 @@ export class ChatService {
     if (!receiver) {
       throw new NotFoundException("Receiver not found")
     }
+
+    await this.assertCanChat(senderId, receiverId, appointmentId)
 
     const safeContent = sanitize(content, 5000) ?? ""
 
@@ -43,6 +72,8 @@ export class ChatService {
    * Get conversation between two users.
    */
   async getConversation(userId: string, otherUserId: string, limit = 50) {
+    await this.assertCanChat(userId, otherUserId)
+
     return this.prisma.chatMessage.findMany({
       where: {
         OR: [
@@ -135,6 +166,8 @@ export class ChatService {
    * Mark messages as read.
    */
   async markAsRead(userId: string, senderId: string) {
+    await this.assertCanChat(userId, senderId)
+
     return this.prisma.chatMessage.updateMany({
       where: {
         senderId,

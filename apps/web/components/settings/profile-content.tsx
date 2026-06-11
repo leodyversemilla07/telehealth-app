@@ -146,11 +146,11 @@ export function ProfileContent() {
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData()
-      formData.append("avatar", file)
-      return apiClient.post<{ url: string }>("/users/me/avatar", formData)
+      formData.append("file", file)
+      return apiClient.post<{ image?: string }>("/users/me/avatar", formData)
     },
     onSuccess: (data) => {
-      setImageUrl(data.url)
+      setImageUrl(data.image ?? "")
       setPreviewUrl(null)
       toast.success("Avatar uploaded!")
       refetch()

@@ -16,7 +16,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
 
 export function SignUpForm({
@@ -51,16 +50,6 @@ export function SignUpForm({
       return
     }
 
-    if (form.role === "DOCTOR") {
-      try {
-        await apiClient.patch("/users/me", { role: "DOCTOR" })
-      } catch {
-        setError("Account created but role update failed. Contact support.")
-        setLoading(false)
-        return
-      }
-    }
-
     toast.success("Account created successfully!")
     setVerificationSent(true)
   }
@@ -93,7 +82,9 @@ export function SignUpForm({
           </p>
         </div>
         <p className="text-sm text-muted-foreground">
-          Click the link in the email to verify your account and sign in.
+          {form.role === "DOCTOR"
+            ? "After verifying, sign in and complete the doctor application from the doctor registration page."
+            : "Click the link in the email to verify your account and sign in."}
         </p>
         <Button variant="outline" onClick={() => router.push("/sign-in")}>
           Go to Sign In

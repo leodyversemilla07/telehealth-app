@@ -14,6 +14,7 @@
     "format": "biome check --write",
     "format:check": "biome check",
     "seed": "pnpm --filter api exec tsx prisma/seed.ts",
+    "db:seed": "pnpm seed",
     "migrate": "pnpm --filter api exec prisma migrate deploy",
     "db:start": "docker compose up -d postgres",
     "db:stop": "docker compose down",

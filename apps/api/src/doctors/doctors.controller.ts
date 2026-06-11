@@ -26,9 +26,9 @@ export class DoctorsController {
   // ─── Registration (authenticated user) ──────────────────────────────
 
   @Post("register")
-  @Roles(["DOCTOR"])
+  @Roles(["PATIENT", "DOCTOR"])
   @ApiOperation({
-    summary: "Register as a doctor (requires DOCTOR role)",
+    summary: "Submit a doctor profile for admin approval",
   })
   async register(
     @Session() session: UserSession,
