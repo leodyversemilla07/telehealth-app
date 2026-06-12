@@ -41,7 +41,7 @@ const DOCTORS = [
 ]
 
 export function DoctorsSection() {
-  const { data: dynamicDoctors, isLoading: isDoctorsLoading } = useDoctors()
+  const { data: dynamicDoctors, isPending: isDoctorsLoading } = useDoctors()
 
   return (
     <section id="doctors" className="relative overflow-hidden py-24 sm:py-32">

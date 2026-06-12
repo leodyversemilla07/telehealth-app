@@ -40,7 +40,7 @@ import { apiClient } from "@/lib/api-client"
 export default function PatientDashboardPage() {
   const router = useRouter()
 
-  const { data: profile, isLoading: profileLoading } = useQuery<{
+  const { data: profile, isPending: profileLoading } = useQuery<{
     user: { name: string | null }
   }>({
     queryKey: ["patient-profile"],
@@ -50,8 +50,8 @@ export default function PatientDashboardPage() {
   const { data: appointmentsData, isPending: apptsLoading } =
     useMyAppointments()
   const appointments = appointmentsData?.appointments ?? []
-  const { data: records = [], isLoading: recordsLoading } = usePatientRecords()
-  const { data: prescriptions = [], isLoading: rxLoading } =
+  const { data: records = [], isPending: recordsLoading } = usePatientRecords()
+  const { data: prescriptions = [], isPending: rxLoading } =
     usePatientPrescriptions()
 
   const isLoading =
