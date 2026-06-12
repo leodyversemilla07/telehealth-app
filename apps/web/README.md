@@ -48,9 +48,9 @@ apps/web/
 
 ## Core Implementations & Mechanics
 
-### 🌟 Discovery & Doctor Reviews
+### Discovery & Doctor Reviews
 On the landing page and search layouts, the doctor cards render:
-- **Aggregated Ratings**: Displays average review stars (e.g. `4.5 ★`) computed dynamically from patient submissions.
+- **Aggregated Ratings**: Displays average review stars (e.g. `4.5 *`) computed dynamically from patient submissions.
 - **Total Reviews Counter**: Shows review volume (e.g. `(48 reviews)`) to reinforce provider trust signals.
 
 ---

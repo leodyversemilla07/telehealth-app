@@ -53,19 +53,19 @@ src/
 
 | Variable                  | Required | Default                      | Description                       |
 | ------------------------- | -------- | ---------------------------- | --------------------------------- |
-| `DATABASE_URL`            | ✅       | —                            | PostgreSQL connection string      |
-| `PORT`                    | ❌       | `3001`                       | API server port                   |
-| `NODE_ENV`                | ❌       | `development`                | Environment                       |
-| `BETTER_AUTH_SECRET`      | ✅       | —                            | Auth secret (min 32 chars)        |
-| `BETTER_AUTH_URL`         | ✅       | —                            | Public API base URL               |
-| `CORS_ORIGIN`             | ❌       | `http://localhost:3000,...`  | Allowed CORS origins              |
-| `GITHUB_CLIENT_ID`        | ❌       | —                            | GitHub OAuth client ID            |
-| `GITHUB_CLIENT_SECRET`    | ❌       | —                            | GitHub OAuth client secret        |
-| `AWS_REGION`              | ❌       | —                            | S3 region (enables S3 storage)    |
-| `AWS_ACCESS_KEY_ID`       | ❌       | —                            | S3 access key                     |
-| `AWS_SECRET_ACCESS_KEY`   | ❌       | —                            | S3 secret key                     |
-| `S3_BUCKET`               | ❌       | —                            | S3 bucket name                    |
-| `S3_PUBLIC_URL`           | ❌       | —                            | S3 public URL (CloudFront / S3)   |
+| `DATABASE_URL`            | Yes      | -                            | PostgreSQL connection string      |
+| `PORT`                    | No       | `3001`                       | API server port                   |
+| `NODE_ENV`                | No       | `development`                | Environment                       |
+| `BETTER_AUTH_SECRET`      | Yes      | -                            | Auth secret (min 32 chars)        |
+| `BETTER_AUTH_URL`         | Yes      | -                            | Public API base URL               |
+| `CORS_ORIGIN`             | No       | `http://localhost:3000,...`  | Allowed CORS origins              |
+| `GITHUB_CLIENT_ID`        | No       | -                            | GitHub OAuth client ID            |
+| `GITHUB_CLIENT_SECRET`    | No       | -                            | GitHub OAuth client secret        |
+| `AWS_REGION`              | No       | -                            | S3 region (enables S3 storage)    |
+| `AWS_ACCESS_KEY_ID`       | No       | -                            | S3 access key                     |
+| `AWS_SECRET_ACCESS_KEY`   | No       | -                            | S3 secret key                     |
+| `S3_BUCKET`               | No       | -                            | S3 bucket name                    |
+| `S3_PUBLIC_URL`           | No       | -                            | S3 public URL (CloudFront / S3)   |
 
 ## API Routes
 

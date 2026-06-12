@@ -87,7 +87,7 @@ async function seed() {
     "ADMIN",
     "Admin123!",
   )
-  console.log(` ✓ Admin: ${admin.email} / Admin123!`)
+  console.log(` Admin: ${admin.email} / Admin123!`)
 
   // Doctor
   const doctor = await upsertUserWithAccount(
@@ -113,7 +113,7 @@ async function seed() {
       isApproved: true,
     },
   })
-  console.log(` ✓ Doctor: ${doctor.email} / Doctor123! (approved)`)
+  console.log(` Doctor: ${doctor.email} / Doctor123! (approved)`)
 
   // Patients
   const alice = await upsertUserWithAccount(
@@ -137,7 +137,7 @@ async function seed() {
       },
     },
   })
-  console.log(` ✓ Patient: ${alice.email} / Patient123!`)
+  console.log(` Patient: ${alice.email} / Patient123!`)
 
   const bob = await upsertUserWithAccount(
     "bob@example.com",
@@ -160,7 +160,7 @@ async function seed() {
       },
     },
   })
-  console.log(` ✓ Patient: ${bob.email} / Patient123!`)
+  console.log(` Patient: ${bob.email} / Patient123!`)
 
   // Doctor availability (Mon-Fri, 9 AM - 5 PM, 30 min slots)
   await prisma.availabilitySchedule.upsert({
@@ -176,7 +176,7 @@ async function seed() {
       slotDuration: 30,
     },
   })
-  console.log(" ✓ Availability: Mon-Fri 09:00-17:00 (30 min slots)")
+  console.log(" Availability: Mon-Fri 09:00-17:00 (30 min slots)")
 
   // Sample appointment
   const tomorrow = new Date()
@@ -205,7 +205,7 @@ async function seed() {
       type: "VIDEO",
     },
   })
-  console.log(" ✓ Appointment: Alice -> Dr. Santos")
+  console.log(" Appointment: Alice -> Dr. Santos")
 
   console.log("")
   console.log("Seed complete. Credentials:")
