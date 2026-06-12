@@ -1,0 +1,67 @@
+"use client"
+
+import { AlertTriangle, Copy, RefreshCcw } from "lucide-react"
+import { useCallback, useState } from "react"
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  const [copied, setCopied] = useState(false)
+
+  const copyErrorId = useCallback(async () => {
+    if (error.digest) {
+      await navigator.clipboard.writeText(error.digest)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }, [error.digest])
+
+  return (
+    <html lang="en">
+      <body>
+        <div className="flex min-h-svh items-center justify-center p-6 bg-background">
+          <div className="w-full max-w-sm text-center space-y-6">
+            <div className="h-16 w-16 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive mx-auto">
+              <AlertTriangle className="h-8 w-8" />
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                Something went wrong
+              </h1>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                An unexpected error occurred. If this persists, please contact
+                support with the error ID below.
+              </p>
+            </div>
+            {error.digest && (
+              <button
+                type="button"
+                onClick={copyErrorId}
+                aria-label="Copy error ID"
+                className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs font-mono text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
+              >
+                <span className="truncate max-w-[200px]">{error.digest}</span>
+                <Copy className="h-3 w-3 shrink-0" />
+              </button>
+            )}
+            {copied && (
+              <p className="text-xs text-success">Copied to clipboard</p>
+            )}
+            <button
+              type="button"
+              onClick={reset}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Try again
+            </button>
+          </div>
+        </div>
+      </body>
+    </html>
+  )
+}

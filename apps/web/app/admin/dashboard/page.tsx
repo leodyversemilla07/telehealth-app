@@ -51,12 +51,12 @@ interface DashboardStats {
 }
 
 export default function AdminDashboardPage() {
-  const { data: stats, isLoading } = useQuery<DashboardStats>({
+  const { data: stats, isPending } = useQuery<DashboardStats>({
     queryKey: ["admin-stats"],
     queryFn: () => apiClient.get("/admin/dashboard"),
   })
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
         <Skeleton className="h-20 w-full rounded-xl" />
