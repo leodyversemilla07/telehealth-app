@@ -54,7 +54,7 @@ export class VideoService {
       // Stub client — video endpoints will return 503
       this.roomServiceClient = null as unknown as RoomServiceClient
       this.logger.warn(
-        "⚠️  LiveKit not configured — video consultation endpoints will return 503",
+        "LiveKit not configured - video consultation endpoints will return 503",
       )
     }
   }

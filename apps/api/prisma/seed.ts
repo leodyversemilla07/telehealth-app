@@ -78,7 +78,7 @@ async function upsertUserWithAccount(
 }
 
 async function seed() {
-  console.log("🌱 Seeding database ...")
+  console.log("Seeding database ...")
 
   // Admin
   const admin = await upsertUserWithAccount(
@@ -208,7 +208,7 @@ async function seed() {
   console.log(" ✓ Appointment: Alice -> Dr. Santos")
 
   console.log("")
-  console.log("✅ Seed complete. Credentials:")
+  console.log("Seed complete. Credentials:")
   console.log("   admin@example.com  / Admin123!")
   console.log("   doctor@example.com / Doctor123!")
   console.log("   alice@example.com  / Patient123!")
@@ -217,7 +217,7 @@ async function seed() {
 
 seed()
   .catch((err) => {
-    console.error("❌ Seed failed:", err)
+    console.error("Seed failed:", err)
     process.exit(1)
   })
   .finally(() => prisma.$disconnect())

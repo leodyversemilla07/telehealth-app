@@ -17,10 +17,10 @@ const vapidKey = process.env.NEXT_PUBLIC_VAPID_KEY
 
 if (typeof window === "undefined") {
   if (apiWebUrl === undefined) {
-    console.warn('⚠️ NEXT_PUBLIC_API_URL is not set, using "" (dev default)')
+    console.warn('NEXT_PUBLIC_API_URL is not set, using "" (dev default)')
   }
   if (vapidKey === undefined) {
-    console.warn('⚠️ NEXT_PUBLIC_VAPID_KEY is not set, using "" (dev default)')
+    console.warn('NEXT_PUBLIC_VAPID_KEY is not set, using "" (dev default)')
   }
 }
 
