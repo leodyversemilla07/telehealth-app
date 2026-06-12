@@ -1,6 +1,5 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -17,99 +16,27 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
 import { Bell, BellOff, BellRing, CheckCheck } from "lucide-react"
-import { useEffect, useRef } from "react"
-import { type Socket, io as socketIO } from "socket.io-client"
+import {
+  useMarkAllAsRead,
+  useMarkAsRead,
+  useNotificationSocket,
+  useNotifications,
+  useUnreadCount,
+} from "@/hooks/use-notifications"
 import { usePushNotifications } from "@/hooks/use-push-notifications"
-import { apiClient } from "@/lib/api-client"
-
-interface Notification {
-  id: string
-  title: string
-  body: string | null
-  isRead: boolean
-  createdAt: string
-}
-
-function getSocketUrl(): string {
-  // Connect to the API server for WebSocket support.
-  // In production, this is the same domain (nginx proxies WebSocket).
-  if (typeof window === "undefined") return ""
-  return window.location.origin
-}
 
 export function NotificationBell() {
-  const queryClient = useQueryClient()
-  const socketRef = useRef<Socket | null>(null)
   const push = usePushNotifications()
 
-  // Fetch notifications
-  const { data: notificationsResponse, isPending } = useQuery({
-    queryKey: ["notifications"],
-    queryFn: () =>
-      apiClient.get<{ items: Notification[]; total: number }>("/notifications"),
-  })
+  // Shared hooks with consistent query keys
+  const { data: notificationsResponse, isPending } = useNotifications()
   const notifications = notificationsResponse?.items ?? []
+  const { data: unreadData } = useUnreadCount()
+  const markReadMutation = useMarkAsRead()
+  const markAllReadMutation = useMarkAllAsRead()
 
-  // Fetch unread count
-  const { data: unreadData } = useQuery({
-    queryKey: ["notifications-unread"],
-    queryFn: () =>
-      apiClient.get<{ count: number }>("/notifications/unread-count"),
-    refetchInterval: 30_000,
-  })
-
-  // Mark as read mutation
-  const markReadMutation = useMutation({
-    mutationFn: (id: string) => apiClient.patch(`/notifications/${id}/read`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] })
-      queryClient.invalidateQueries({ queryKey: ["notifications-unread"] })
-    },
-  })
-
-  // Mark all as read mutation
-  const markAllReadMutation = useMutation({
-    mutationFn: () => apiClient.patch("/notifications/mark-all-read"),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] })
-      queryClient.invalidateQueries({ queryKey: ["notifications-unread"] })
-    },
-  })
-
-  // Socket.io for real-time notifications
-  useEffect(() => {
-    const url = getSocketUrl()
-
-    const connectSocket = async (token?: string) => {
-      const opts: Record<string, unknown> = {
-        withCredentials: true,
-        transports: ["polling", "websocket"],
-      }
-      if (token) {
-        opts.auth = { token }
-      }
-      socketRef.current = socketIO(url, opts)
-
-      socketRef.current.on("notification", () => {
-        queryClient.invalidateQueries({ queryKey: ["notifications"] })
-        queryClient.invalidateQueries({ queryKey: ["notifications-unread"] })
-      })
-
-      socketRef.current.on("connect_error", (err) => {
-        console.warn("[NotificationSocket] connection error:", err.message)
-      })
-    }
-
-    fetch("/api/auth/get-session", { credentials: "include" })
-      .then((r) => r.json())
-      .then((data) => connectSocket(data?.session?.token))
-      .catch(() => connectSocket())
-
-    return () => {
-      socketRef.current?.disconnect()
-      socketRef.current = null
-    }
-  }, [queryClient])
+  // Real-time socket invalidation
+  useNotificationSocket()
 
   const unreadCount = unreadData?.count ?? 0
 
