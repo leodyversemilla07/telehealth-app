@@ -130,8 +130,8 @@ export function ProfessionalContent() {
   function handleSubmit() {
     const data: Record<string, string> = {}
     if (specialty) data.specialty = specialty
-    if (bio) data.bio = bio
-    if (clinicAddress) data.clinicAddress = clinicAddress
+    data.bio = bio
+    data.clinicAddress = clinicAddress
     if (pricePerVisit) data.pricePerVisit = pricePerVisit
     mutation.mutate(
       data as {

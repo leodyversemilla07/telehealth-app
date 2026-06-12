@@ -321,6 +321,7 @@ export default function DoctorChatPage() {
                             {new Date(msg.createdAt).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
+                              timeZone: "Asia/Manila",
                             })}
                           </p>
                         </div>

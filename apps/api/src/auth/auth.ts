@@ -159,6 +159,14 @@ export const auth = betterAuth({
         }
       }
 
+      // Capture session before sign-out so we can audit-log it in the after hook
+      if (ctx.path === "/sign-out") {
+        const session = await getSessionFromCtx(ctx)
+        if (session) {
+          ;(ctx as Record<string, unknown>).__auditSession = session
+        }
+      }
+
       // Check account lockout before sign-in
       if (ctx.path === "/sign-in/email") {
         const userEmail = ctx.body?.email as string | undefined
@@ -295,7 +303,10 @@ export const auth = betterAuth({
         ctx.path === "/sign-out" &&
         !(ctx.context.returned instanceof Error)
       ) {
-        const session = await getSessionFromCtx(ctx)
+        const session =
+          ((ctx as Record<string, unknown>).__auditSession as {
+            user: { id: string; email: string }
+          } | null) ?? (await getSessionFromCtx(ctx))
         if (session) {
           const ipAddress =
             ctx.request?.headers.get("x-forwarded-for") ||

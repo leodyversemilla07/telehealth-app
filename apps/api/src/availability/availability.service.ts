@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -149,6 +150,12 @@ export class AvailabilityService {
     })
     if (!schedule) {
       throw new NotFoundException("Schedule not found — set availability first")
+    }
+
+    const startDate = new Date(dto.startDate)
+    const endDate = new Date(dto.endDate)
+    if (endDate <= startDate) {
+      throw new BadRequestException("endDate must be after startDate")
     }
 
     return this.prisma.timeOff.create({

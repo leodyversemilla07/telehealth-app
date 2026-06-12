@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common"
+import { Injectable, Logger } from "@nestjs/common"
 import type { NotificationType } from "../generated/prisma/client.js"
 import { PrismaService } from "../prisma/prisma.service"
 import { PushService } from "../push/push.service"
@@ -6,6 +6,7 @@ import { SocketService } from "./socket.service"
 
 @Injectable()
 export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name)
   constructor(
     private readonly prisma: PrismaService,
     private readonly socket: SocketService,
@@ -79,8 +80,10 @@ export class NotificationsService {
     this.socket.emitToUser(userId, "notification", notification)
 
     // Fire-and-forget browser push (non-blocking)
-    this.push.sendToUser(userId, { title, body }).catch(() => {
-      // swallow — push failure must never break the primary flow
+    this.push.sendToUser(userId, { title, body }).catch((err) => {
+      this.logger.warn(
+        `Push notification failed for user ${userId}: ${err instanceof Error ? err.message : String(err)}`,
+      )
     })
 
     return notification

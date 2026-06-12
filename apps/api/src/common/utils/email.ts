@@ -3,6 +3,15 @@ import * as nodemailer from "nodemailer"
 
 const logger = new Logger("Email")
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;")
+}
+
 let transporter: nodemailer.Transporter | null = null
 
 /**
@@ -85,17 +94,17 @@ export async function sendSecurityAlertEmail(
 ): Promise<void> {
   await sendEmail({
     to: email,
-    subject: `[Telehealth Platform] Security Alert: ${title}`,
+    subject: `[Telehealth Platform] Security Alert: ${escapeHtml(title)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1a1a1a;">Security Alert</h2>
-        <p style="color: #333; line-height: 1.6;">${message}</p>
+        <p style="color: #333; line-height: 1.6;">${escapeHtml(message)}</p>
         <p style="color: #666; font-size: 12px; margin-top: 20px;">
           If you did not perform this action, please contact support immediately.
         </p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
         <p style="color: #999; font-size: 11px;">
-          Telehealth Platform — This is an automated security notification.
+          Telehealth Platform - This is an automated security notification.
         </p>
       </div>
     `,

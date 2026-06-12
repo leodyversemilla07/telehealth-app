@@ -65,8 +65,14 @@ export function HealthContent() {
   function handleSubmit() {
     const data: Record<string, unknown> = {}
 
-    if (weight) data.weight = Number.parseFloat(weight)
-    if (height) data.height = Number.parseFloat(height)
+    if (weight) {
+      const parsed = Number.parseFloat(weight)
+      if (!Number.isNaN(parsed)) data.weight = parsed
+    }
+    if (height) {
+      const parsed = Number.parseFloat(height)
+      if (!Number.isNaN(parsed)) data.height = parsed
+    }
     data.medicalHistory = {
       allergies: allergies
         .split(",")
