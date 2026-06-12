@@ -397,7 +397,30 @@ export class RecordsService {
       throw new NotFoundException("Doctor profile not found")
     }
 
-    // Get patient info
+    // Verify the doctor has at least one appointment with this patient
+    // before exposing any PII or medical data.
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        doctorId: doctorProfile.id,
+        patientId,
+      },
+      include: {
+        consultation: {
+          include: {
+            prescriptions: true,
+          },
+        },
+      },
+      orderBy: { startTime: "desc" },
+    })
+
+    if (appointments.length === 0) {
+      throw new ForbiddenException(
+        "No appointments found between this doctor and patient",
+      )
+    }
+
+    // Now safe to fetch patient info
     const patient = await this.prisma.user.findUnique({
       where: { id: patientId },
       select: {
@@ -421,22 +444,6 @@ export class RecordsService {
     if (!patient) {
       throw new NotFoundException("Patient not found")
     }
-
-    // Get appointments for this doctor + patient
-    const appointments = await this.prisma.appointment.findMany({
-      where: {
-        doctorId: doctorProfile.id,
-        patientId,
-      },
-      include: {
-        consultation: {
-          include: {
-            prescriptions: true,
-          },
-        },
-      },
-      orderBy: { startTime: "desc" },
-    })
 
     return { patient, appointments }
   }

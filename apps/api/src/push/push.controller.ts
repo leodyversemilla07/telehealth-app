@@ -10,7 +10,14 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
-import { IsObject, IsOptional, IsString, IsUrl } from "class-validator"
+import { Type } from "class-transformer"
+import {
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUrl,
+  ValidateNested,
+} from "class-validator"
 import { PushService } from "./push.service"
 
 class PushKeysDto {
@@ -26,6 +33,8 @@ class SubscribeDto {
   endpoint!: string
 
   @IsObject()
+  @ValidateNested()
+  @Type(() => PushKeysDto)
   keys!: PushKeysDto
 
   @IsString()

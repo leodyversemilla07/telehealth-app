@@ -143,6 +143,10 @@ export class UsersService {
   ) {
     await this.findById(id) // ensure exists
 
+    // Revoke all active sessions so an already-authenticated banned user
+    // is signed out on next API call.
+    await this.prisma.session.deleteMany({ where: { userId: id } })
+
     const updated = await this.prisma.user.update({
       where: { id },
       data: {

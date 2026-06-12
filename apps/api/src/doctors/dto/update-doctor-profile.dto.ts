@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MaxLength } from "class-validator"
+import { IsOptional, IsString, Matches, MaxLength } from "class-validator"
 
 export class UpdateDoctorProfileDto {
   @IsOptional()
@@ -17,5 +17,8 @@ export class UpdateDoctorProfileDto {
 
   @IsOptional()
   @IsString()
+  @Matches(/^\d+(\.\d{1,2})?$/, {
+    message: "pricePerVisit must be a valid number with up to 2 decimal places",
+  })
   pricePerVisit?: string
 }

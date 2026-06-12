@@ -129,15 +129,15 @@ export class DoctorsService {
         mode: "insensitive" as const,
       }
 
-      // When both specialty filter and search are present, combine with AND
       const searchOr = {
         OR: [{ specialty: searchFilter }, { user: { name: searchFilter } }],
       }
 
       if (filters.specialty) {
-        // Merge search OR with existing specialty filter under AND
-        where.AND = [where, searchOr]
-        // Remove the top-level specialty since it's now inside AND
+        // Combine specialty filter and search with AND — build a fresh
+        // base object instead of referencing `where` to avoid circular
+        // Prisma filter.
+        where.AND = [{ isApproved: true, specialty: where.specialty }, searchOr]
         delete where.specialty
       } else {
         Object.assign(where, searchOr)

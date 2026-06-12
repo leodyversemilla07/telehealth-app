@@ -1,5 +1,6 @@
 import { Type } from "class-transformer"
 import {
+  IsArray,
   IsOptional,
   IsString,
   MaxLength,
@@ -27,6 +28,7 @@ export class CreateConsultationDto {
   plan?: string
 
   @IsOptional()
+  @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreatePrescriptionDto)
   prescriptions?: CreatePrescriptionDto[]
