@@ -47,6 +47,7 @@ export function ThemeToggle({
       variant={variant}
       size={size}
       onClick={cycleTheme}
+      aria-label="Toggle theme"
       className={cn("gap-2", className)}
     >
       {getIcon()}

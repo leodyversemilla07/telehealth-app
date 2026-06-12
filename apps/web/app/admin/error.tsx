@@ -44,6 +44,7 @@ export default function AdminError({
           <button
             type="button"
             onClick={copyErrorId}
+            aria-label="Copy error ID"
             className="inline-flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2 text-xs font-mono text-muted-foreground hover:bg-muted transition-colors cursor-pointer"
           >
             <span className="truncate max-w-[200px]">{error.digest}</span>

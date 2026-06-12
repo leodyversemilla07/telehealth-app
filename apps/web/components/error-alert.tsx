@@ -19,6 +19,7 @@ export function ErrorAlert({
 }: ErrorAlertProps) {
   return (
     <div
+      role="alert"
       className={cn(
         "bg-destructive/10 border border-destructive/20 text-destructive rounded-xl p-6 flex items-start gap-3 shadow-sm max-w-2xl mx-auto",
         className,

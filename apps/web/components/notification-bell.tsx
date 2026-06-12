@@ -53,7 +53,10 @@ export function NotificationBell() {
 
   return (
     <DropdownMenu onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger className="relative h-9 w-9 inline-flex items-center justify-center rounded-lg hover:bg-muted">
+      <DropdownMenuTrigger
+        aria-label="Notifications"
+        className="relative h-9 w-9 inline-flex items-center justify-center rounded-lg hover:bg-muted"
+      >
         <Bell className="h-4 w-4" />
         {unreadCount > 0 && (
           <Badge
