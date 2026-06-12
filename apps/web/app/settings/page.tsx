@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   XCircle,
 } from "lucide-react"
+import { QRCodeSVG } from "qrcode.react"
 import { useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
@@ -779,12 +780,7 @@ export default function SettingsPage() {
                     </p>
                     {totpUri && (
                       <div className="flex justify-center p-4 bg-white rounded-lg border">
-                        {/* biome-ignore lint/performance/noImgElement: External QR image URL is generated dynamically for the TOTP URI. */}
-                        <img
-                          src={`https://chart.googleapis.com/chart?chs=180x180&chld=M|0&cht=qr&chl=${encodeURIComponent(totpUri)}`}
-                          alt="2FA QR Code"
-                          className="h-[180px] w-[180px]"
-                        />
+                        <QRCodeSVG value={totpUri} size={180} />
                       </div>
                     )}
                     <Input

@@ -3,12 +3,18 @@ import { Injectable } from "@nestjs/common"
 import type { StorageProvider } from "./storage.interface"
 
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"] as const
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 
 function sanitizeExtension(filename: string): string {
   const ext = extname(filename).toLowerCase()
-  if (!ext) return ".jpg"
-  return ext.replace(/[^a-z0-9.]/g, "")
+  if (
+    !ext ||
+    !ALLOWED_EXTENSIONS.includes(ext as (typeof ALLOWED_EXTENSIONS)[number])
+  ) {
+    return ".jpg"
+  }
+  return ext
 }
 
 export type AllowedMimeType = (typeof ALLOWED_MIME_TYPES)[number]

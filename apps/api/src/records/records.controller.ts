@@ -36,6 +36,7 @@ export class RecordsController {
   // ─── Get consultation by appointment ID ─────────────────────────────
 
   @Get("appointment/:appointmentId")
+  @Roles(["PATIENT", "DOCTOR", "ADMIN"])
   @ApiOperation({
     summary: "Get consultation details by appointment ID (Patient or Doctor)",
   })
@@ -65,6 +66,7 @@ export class RecordsController {
   // ─── Get single consultation detail ─────────────────────────────────
 
   @Get("consultations/:id")
+  @Roles(["PATIENT", "DOCTOR", "ADMIN"])
   @ApiOperation({
     summary: "Get a single consultation detail (Patient or Doctor)",
   })

@@ -1,8 +1,9 @@
-import { IsDateString, IsOptional, IsString } from "class-validator"
+import { IsDateString, IsOptional, IsString, MaxLength } from "class-validator"
 
 export class BanUserDto {
   @IsOptional()
   @IsString()
+  @MaxLength(1000)
   reason?: string
 
   @IsOptional()
