@@ -102,6 +102,10 @@ async function request<TResponse>(
   try {
     return await response.json()
   } catch {
+    // Response was 200 but body wasn't valid JSON (e.g. proxy error page)
+    if (response.headers.get("content-length") !== "0") {
+      throw new ApiError("Invalid JSON response from API", response.status)
+    }
     return {} as TResponse
   }
 }

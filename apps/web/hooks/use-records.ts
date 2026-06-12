@@ -72,17 +72,20 @@ export function useCreateConsultation() {
   })
 }
 
-export function useAddPrescription(consultationId: string) {
+export function useAddPrescription() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: (dto: CreatePrescriptionInput) =>
+    mutationFn: ({
+      consultationId,
+      ...dto
+    }: CreatePrescriptionInput & { consultationId: string }) =>
       apiClient.post<PrescriptionDto>(
         `/records/consultations/${consultationId}/prescriptions`,
         dto,
       ),
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       qc.invalidateQueries({
-        queryKey: recordKeys.detail(consultationId),
+        queryKey: recordKeys.detail(variables.consultationId),
       })
       qc.invalidateQueries({ queryKey: recordKeys.lists() })
     },

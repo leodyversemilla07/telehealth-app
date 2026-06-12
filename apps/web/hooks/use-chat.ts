@@ -34,6 +34,7 @@ export const chatKeys = {
   conversations: () => [...chatKeys.all, "conversations"] as const,
   conversation: (userId: string) =>
     [...chatKeys.all, "conversation", userId] as const,
+  contacts: () => [...chatKeys.all, "contacts"] as const,
   unreadCount: () => [...chatKeys.all, "unread-count"] as const,
 }
 
@@ -102,7 +103,7 @@ export interface Contact {
 
 export function useContacts() {
   return useQuery({
-    queryKey: ["chat", "contacts"],
+    queryKey: chatKeys.contacts(),
     queryFn: () => apiClient.get<Contact[]>("/chat/contacts"),
   })
 }
