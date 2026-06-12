@@ -51,6 +51,19 @@ export class PushService implements OnModuleInit {
   }
 
   async subscribe(userId: string, dto: SubscribeDto) {
+    // Check if endpoint already belongs to a different user
+    const existing = await this.prisma.pushSubscription.findUnique({
+      where: { endpoint: dto.endpoint },
+      select: { userId: true },
+    })
+
+    if (existing && existing.userId !== userId) {
+      // Delete the old subscription for the other user, then create for this user
+      await this.prisma.pushSubscription.delete({
+        where: { endpoint: dto.endpoint },
+      })
+    }
+
     const sub = await this.prisma.pushSubscription.upsert({
       where: { endpoint: dto.endpoint },
       create: {

@@ -1,9 +1,10 @@
-import { Injectable } from "@nestjs/common"
+import { Injectable, Logger } from "@nestjs/common"
 import { EmailService } from "../common/services/email.service"
 import { PrismaService } from "../prisma/prisma.service"
 
 @Injectable()
 export class SecurityAlertsService {
+  private readonly logger = new Logger(SecurityAlertsService.name)
   constructor(
     private readonly prisma: PrismaService,
     private readonly emailService: EmailService,
@@ -32,7 +33,11 @@ export class SecurityAlertsService {
       },
     })
 
-    await this.emailService.sendSecurityAlert(user.email, title, message)
+    try {
+      await this.emailService.sendSecurityAlert(user.email, title, message)
+    } catch (err) {
+      this.logger.error("Failed to send security alert email:", err)
+    }
 
     return alert
   }

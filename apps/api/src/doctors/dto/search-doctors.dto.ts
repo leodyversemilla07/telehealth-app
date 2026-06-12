@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger"
-import { IsEnum, IsOptional, IsString } from "class-validator"
+import { IsEnum, IsOptional, IsString, Max, Min } from "class-validator"
 
 export enum SortOption {
   PRICE = "price",
@@ -32,4 +32,18 @@ export class SearchDoctorsDto {
   @IsOptional()
   @IsEnum(SortOption)
   sort?: SortOption
+
+  @ApiPropertyOptional({
+    description: "Number of results to return",
+    default: 50,
+  })
+  @IsOptional()
+  @Min(1)
+  @Max(100)
+  limit?: number
+
+  @ApiPropertyOptional({ description: "Offset for pagination", default: 0 })
+  @IsOptional()
+  @Min(0)
+  offset?: number
 }

@@ -171,6 +171,8 @@ export class DoctorsService {
         },
       },
       orderBy,
+      take: filters?.limit ?? 50,
+      skip: filters?.offset ?? 0,
     })
 
     // Batch-fetch average ratings for all doctors in one query

@@ -146,6 +146,7 @@ export class AppointmentsService {
     const duration = phtEndMinutes - phtStartMinutes
 
     if (duration <= 0) return false
+    if (schedule.slotDuration <= 0) return false
 
     return windows.some((window) => {
       const insideWindow =
