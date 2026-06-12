@@ -180,12 +180,12 @@ describe("RecordsService", () => {
     ).rejects.toThrow(ForbiddenException)
   })
 
-  it("getConsultationByAppointment should return null when no consultation exists", async () => {
+  it("getConsultationByAppointment should throw when no consultation exists", async () => {
     prisma.consultation.findUnique.mockResolvedValue(null)
 
     await expect(
       service.getConsultationByAppointment("apt-1", "patient-1", "PATIENT"),
-    ).resolves.toBeNull()
+    ).rejects.toThrow(NotFoundException)
   })
 
   it("addPrescription should throw when consultation is missing", async () => {

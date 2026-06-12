@@ -12,16 +12,11 @@ export class PatientsService {
    * Creates one automatically if it doesn't exist.
    */
   async getOrCreateProfile(userId: string) {
-    let profile = await this.prisma.patientProfile.findUnique({
+    const profile = await this.prisma.patientProfile.upsert({
       where: { userId },
+      create: { userId },
+      update: {},
     })
-
-    if (!profile) {
-      profile = await this.prisma.patientProfile.create({
-        data: { userId },
-      })
-    }
-
     return profile
   }
 

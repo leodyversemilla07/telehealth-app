@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -48,6 +49,10 @@ export class ChatService {
     })
     if (!receiver) {
       throw new NotFoundException("Receiver not found")
+    }
+
+    if (senderId === receiverId) {
+      throw new BadRequestException("Cannot send messages to yourself")
     }
 
     await this.assertCanChat(senderId, receiverId, appointmentId)

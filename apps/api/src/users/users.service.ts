@@ -141,6 +141,9 @@ export class UsersService {
     id: string,
     data: { reason?: string; expiresAt?: Date },
   ) {
+    if (actorId === id) {
+      throw new ForbiddenException("Cannot ban your own account")
+    }
     await this.findById(id) // ensure exists
 
     // Revoke all active sessions so an already-authenticated banned user
@@ -198,6 +201,9 @@ export class UsersService {
    * Promote or demote a user's role (admin only).
    */
   async setRole(actorId: string, id: string, role: Role) {
+    if (actorId === id) {
+      throw new ForbiddenException("Cannot change your own role")
+    }
     await this.findById(id)
 
     const updated = await this.prisma.user.update({

@@ -495,7 +495,11 @@ export class AppointmentsService {
     if (!appt) throw new NotFoundException("Appointment not found")
     if (appt.patientId !== patientId)
       throw new ForbiddenException("Not your appointment")
-    if (appt.status === "COMPLETED" || appt.status === "CANCELLED") {
+    if (
+      appt.status === "COMPLETED" ||
+      appt.status === "CANCELLED" ||
+      appt.status === "IN_PROGRESS"
+    ) {
       throw new ConflictException("Cannot reschedule this appointment")
     }
 
@@ -549,7 +553,7 @@ export class AppointmentsService {
         data: {
           startTime: start,
           endTime: end,
-          status: "BOOKED",
+          status: appt.status === "IN_PROGRESS" ? "CONFIRMED" : "BOOKED",
         },
         include: {
           patient: PATIENT_INCLUDE,

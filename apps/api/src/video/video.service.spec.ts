@@ -34,10 +34,15 @@ describe("VideoService", () => {
     } as unknown as jest.Mocked<ConfigService>
   }
 
-  function mockPrisma(): Mockify<Pick<PrismaService, "appointment">> {
+  function mockPrisma(): Mockify<
+    Pick<PrismaService, "appointment" | "$transaction">
+  > {
     return {
       appointment: { findUnique: jest.fn(), update: jest.fn() },
-    } as unknown as Mockify<Pick<PrismaService, "appointment">>
+      $transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) => {
+        return fn({ appointment: { findUnique: jest.fn(), update: jest.fn() } })
+      }),
+    } as unknown as Mockify<Pick<PrismaService, "appointment" | "$transaction">>
   }
 
   function makeAppointment(overrides: Record<string, unknown> = {}) {
@@ -184,11 +189,11 @@ describe("VideoService", () => {
 
     it("should create room, update appointment, and return token for patient", async () => {
       prisma.appointment.findUnique.mockResolvedValue(makeAppointment())
-      prisma.appointment.update.mockResolvedValue(
-        makeAppointment({
-          roomUrl: "wss://livekit.example.com",
-          status: "IN_PROGRESS",
-        }),
+      const txAppointment = { findUnique: jest.fn(), update: jest.fn() }
+      prisma.$transaction.mockImplementation(
+        async (fn: (tx: unknown) => Promise<unknown>) => {
+          return fn({ appointment: txAppointment })
+        },
       )
 
       const result = await service.joinRoom(
@@ -199,16 +204,17 @@ describe("VideoService", () => {
       expect(result.roomName).toBe("appointment-apt-1")
       expect(result.url).toBe("wss://livekit.example.com")
       expect(result.token).toBe("mock-jwt-token")
-      expect(prisma.appointment.update).toHaveBeenCalled()
+      expect(prisma.$transaction).toHaveBeenCalled()
+      expect(txAppointment.update).toHaveBeenCalled()
     })
 
     it("should allow doctor to join", async () => {
       prisma.appointment.findUnique.mockResolvedValue(makeAppointment())
-      prisma.appointment.update.mockResolvedValue(
-        makeAppointment({
-          roomUrl: "wss://livekit.example.com",
-          status: "IN_PROGRESS",
-        }),
+      const txAppointment = { findUnique: jest.fn(), update: jest.fn() }
+      prisma.$transaction.mockImplementation(
+        async (fn: (tx: unknown) => Promise<unknown>) => {
+          return fn({ appointment: txAppointment })
+        },
       )
 
       const result = await service.joinRoom(

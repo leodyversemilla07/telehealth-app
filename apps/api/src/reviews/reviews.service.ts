@@ -48,18 +48,33 @@ export class ReviewsService {
       throw new ConflictException("You have already reviewed this appointment")
     }
 
-    return this.prisma.review.create({
-      data: {
-        patientId,
-        doctorId: appointment.doctorId,
-        appointmentId,
-        rating,
-        comment: comment || null,
-      },
-      include: {
-        patient: { select: { id: true, name: true, email: true } },
-      },
-    })
+    try {
+      return await this.prisma.review.create({
+        data: {
+          patientId,
+          doctorId: appointment.doctorId,
+          appointmentId,
+          rating,
+          comment: comment || null,
+        },
+        include: {
+          patient: { select: { id: true, name: true, email: true } },
+        },
+      })
+    } catch (err: unknown) {
+      // Handle race condition: two concurrent requests both pass the check above
+      if (
+        err &&
+        typeof err === "object" &&
+        "code" in err &&
+        err.code === "P2002"
+      ) {
+        throw new ConflictException(
+          "You have already reviewed this appointment",
+        )
+      }
+      throw err
+    }
   }
 
   /**
@@ -67,7 +82,7 @@ export class ReviewsService {
    */
   async getDoctorReviews(doctorId: string, limit = 50, offset = 0) {
     const where = { doctorId }
-    const [items, total] = await Promise.all([
+    const [items, total, agg] = await Promise.all([
       this.prisma.review.findMany({
         where,
         include: {
@@ -78,19 +93,18 @@ export class ReviewsService {
         skip: offset,
       }),
       this.prisma.review.count({ where }),
+      this.prisma.review.aggregate({
+        where,
+        _avg: { rating: true },
+      }),
     ])
-
-    const avgRating =
-      items.length > 0
-        ? items.reduce((sum, r) => sum + r.rating, 0) / items.length
-        : 0
 
     return {
       items,
       total,
       limit,
       offset,
-      averageRating: Math.round(avgRating * 10) / 10,
+      averageRating: Math.round((agg._avg.rating ?? 0) * 10) / 10,
     }
   }
 

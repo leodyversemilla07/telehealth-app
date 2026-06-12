@@ -283,7 +283,7 @@ export class RecordsService {
       },
     })
     if (!consultation) {
-      return null
+      throw new NotFoundException("Consultation not found")
     }
 
     // Authorization checks

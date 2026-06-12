@@ -8,6 +8,7 @@ type MockPrisma = {
     findUnique: jest.Mock
     create: jest.Mock
     update: jest.Mock
+    upsert: jest.Mock
   }
 }
 
@@ -17,6 +18,7 @@ function buildMock(): MockPrisma {
       findUnique: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      upsert: jest.fn(),
     },
   }
 }
@@ -42,33 +44,31 @@ describe("PatientsService", () => {
   describe("getOrCreateProfile", () => {
     it("should return existing profile when found", async () => {
       const profile = { id: "p1", userId: "u1" }
-      prisma.patientProfile.findUnique.mockResolvedValue(profile)
+      prisma.patientProfile.upsert.mockResolvedValue(profile)
 
       const result = await service.getOrCreateProfile("u1")
 
       expect(result).toEqual(profile)
-      expect(prisma.patientProfile.create).not.toHaveBeenCalled()
+      expect(prisma.patientProfile.upsert).toHaveBeenCalledWith({
+        where: { userId: "u1" },
+        create: { userId: "u1" },
+        update: {},
+      })
     })
 
     it("should create a new profile when none exists", async () => {
-      prisma.patientProfile.findUnique.mockResolvedValue(null)
-      prisma.patientProfile.create.mockResolvedValue({
-        id: "p-new",
-        userId: "u1",
-      })
+      const newProfile = { id: "p-new", userId: "u1" }
+      prisma.patientProfile.upsert.mockResolvedValue(newProfile)
 
       const result = await service.getOrCreateProfile("u1")
 
       expect(result).toEqual(expect.objectContaining({ id: "p-new" }))
-      expect(prisma.patientProfile.create).toHaveBeenCalledWith({
-        data: { userId: "u1" },
-      })
     })
   })
 
   describe("updateProfile", () => {
     it("should update profile fields", async () => {
-      prisma.patientProfile.findUnique.mockResolvedValue({
+      prisma.patientProfile.upsert.mockResolvedValue({
         id: "p1",
         userId: "u1",
       })

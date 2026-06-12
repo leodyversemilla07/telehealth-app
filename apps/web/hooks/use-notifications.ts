@@ -107,6 +107,7 @@ export function useNotificationSocket(enabled = true) {
   useEffect(() => {
     if (!enabled) return
 
+    let cancelled = false
     const url = getSocketUrl()
 
     // Get session token for cross-origin WebSocket auth
@@ -134,13 +135,14 @@ export function useNotificationSocket(enabled = true) {
     fetch("/api/auth/get-session", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
-        connectSocket(data?.session?.token)
+        if (!cancelled) connectSocket(data?.session?.token)
       })
       .catch(() => {
-        connectSocket()
+        if (!cancelled) connectSocket()
       })
 
     return () => {
+      cancelled = true
       socketRef.current?.disconnect()
       socketRef.current = null
     }

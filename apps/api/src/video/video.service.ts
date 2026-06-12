@@ -202,19 +202,30 @@ export class VideoService {
     let roomUrl = appointment.roomUrl
 
     if (!roomUrl) {
-      const room = await this.createRoom(appointmentId, doctorName, patientName)
-      roomUrl = room.url
+      const room = await this.prisma.$transaction(async (tx) => {
+        // Re-check inside transaction to prevent race condition
+        const fresh = await tx.appointment.findUnique({
+          where: { id: appointmentId },
+          select: { roomUrl: true, status: true },
+        })
+        if (fresh?.roomUrl) return { url: fresh.roomUrl }
 
-      // Update appointment with room URL and set status to IN_PROGRESS
-      await this.prisma.appointment.update({
-        where: { id: appointmentId },
-        data: {
-          roomUrl,
-          status: "IN_PROGRESS",
-        },
+        const room = await this.createRoom(
+          appointmentId,
+          doctorName,
+          patientName,
+        )
+        await tx.appointment.update({
+          where: { id: appointmentId },
+          data: {
+            roomUrl: room.url,
+            status: "IN_PROGRESS",
+          },
+        })
+        return room
       })
+      roomUrl = room.url
     } else if (appointment.status === "CONFIRMED") {
-      // Room already exists but status hasn't been updated yet
       await this.prisma.appointment.update({
         where: { id: appointmentId },
         data: { status: "IN_PROGRESS" },
