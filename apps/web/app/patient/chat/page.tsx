@@ -94,7 +94,7 @@ export default function PatientChatPage() {
     return (
       c.otherUser.name?.toLowerCase().includes(term) ||
       c.otherUser.email.toLowerCase().includes(term) ||
-      c.lastMessage?.content.toLowerCase().includes(term)
+      c.lastMessage?.content?.toLowerCase().includes(term)
     )
   })
 

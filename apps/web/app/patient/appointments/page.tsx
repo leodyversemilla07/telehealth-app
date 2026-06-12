@@ -193,7 +193,7 @@ export default function PatientAppointmentsPage() {
           <div className="space-y-1.5 text-left">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h3 className="text-lg font-bold text-foreground">
-                {appt.doctor.user.name || "Doctor Specialist"}
+                {appt.doctor?.user?.name || "Doctor Specialist"}
               </h3>
               {getStatusBadge(appt.status)}
             </div>
@@ -202,7 +202,7 @@ export default function PatientAppointmentsPage() {
                 variant="secondary"
                 className="text-xs uppercase font-bold py-0"
               >
-                {appt.doctor.specialty}
+                {appt.doctor?.specialty}
               </Badge>
               <Separator orientation="vertical" className="h-3" />
               <span className="flex items-center gap-1">

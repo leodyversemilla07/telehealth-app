@@ -405,7 +405,7 @@ export default function DoctorConsultationDetailPage() {
               <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
             </span>
             <span className="font-bold text-sm text-foreground">
-              Live consultation session with {appt.patient.name}
+              Live consultation session with {appt.patient?.name}
             </span>
           </div>
           <Button
@@ -449,7 +449,7 @@ export default function DoctorConsultationDetailPage() {
               Clinical Consultation Room
             </span>
             <p className="text-xs text-muted-foreground truncate">
-              Patient ID: {appt.patient.id} | Consult Ref: {appt.id}
+              Patient ID: {appt.patient?.id} | Consult Ref: {appt.id}
             </p>
           </div>
         </div>
@@ -473,10 +473,10 @@ export default function DoctorConsultationDetailPage() {
                   </span>
                 </div>
                 <CardTitle className="text-lg font-bold mt-3">
-                  Patient: {appt.patient.name}
+                  Patient: {appt.patient?.name}
                 </CardTitle>
                 <CardDescription className="text-xs font-semibold text-muted-foreground">
-                  Email: {appt.patient.email}
+                  Email: {appt.patient?.email}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-xs">
@@ -710,11 +710,11 @@ export default function DoctorConsultationDetailPage() {
                         </h3>
                         <p>
                           <span className="font-semibold">Name:</span>{" "}
-                          {appt.patient.name}
+                          {appt.patient?.name}
                         </p>
                         <p>
                           <span className="font-semibold">Email:</span>{" "}
-                          {appt.patient.email}
+                          {appt.patient?.email}
                         </p>
                       </div>
                       <div>
@@ -748,11 +748,11 @@ export default function DoctorConsultationDetailPage() {
                         </h3>
                         <p>
                           <span className="font-semibold">Doctor:</span>{" "}
-                          {appt.doctor.user.name}
+                          {appt.doctor?.user?.name}
                         </p>
                         <p>
                           <span className="font-semibold">Specialty:</span>{" "}
-                          {appt.doctor.specialty}
+                          {appt.doctor?.specialty}
                         </p>
                       </div>
                       <div>

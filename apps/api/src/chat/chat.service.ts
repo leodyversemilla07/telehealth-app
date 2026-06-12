@@ -122,20 +122,31 @@ export class ChatService {
 
     // Batch fetch: last message per conversation partner, unread counts, and user profiles
     const [allLastMessages, allUnreadCounts, allUsers] = await Promise.all([
-      this.prisma.chatMessage.findMany({
-        where: {
-          OR: otherUserIds.flatMap((otherUserId) => [
-            { senderId: userId, receiverId: otherUserId },
-            { senderId: otherUserId, receiverId: userId },
-          ]),
-        },
-        orderBy: { createdAt: "desc" },
-        include: {
-          sender: {
-            select: { id: true, name: true, email: true, image: true },
-          },
-        },
-      }),
+      // Use raw query to get only the latest message per conversation partner
+      // instead of fetching all messages and discarding all but one
+      this.prisma.$queryRaw<
+        Array<{
+          id: string
+          content: string
+          senderId: string
+          receiverId: string
+          createdAt: Date
+          senderName: string | null
+          senderEmail: string
+          senderImage: string | null
+        }>
+      >`
+        SELECT DISTINCT ON (partner_id)
+          m.id, m.content, m."senderId", m."receiverId", m."createdAt",
+          u.name AS "senderName", u.email AS "senderEmail", u.image AS "senderImage"
+        FROM "ChatMessage" m
+        JOIN "User" u ON u.id = m."senderId"
+        CROSS JOIN LATERAL (
+          SELECT CASE WHEN m."senderId" = ${userId} THEN m."receiverId" ELSE m."senderId" END AS partner_id
+        ) p
+        WHERE m."senderId" = ${userId} OR m."receiverId" = ${userId}
+        ORDER BY partner_id, m."createdAt" DESC
+      `,
       this.prisma.chatMessage.groupBy({
         by: ["senderId"],
         where: {
@@ -154,8 +165,20 @@ export class ChatService {
     // Index batch results by conversation partner
     const lastMessageByUser = new Map(
       allLastMessages.map((msg) => [
-        msg.senderId === userId ? msg.receiverId : msg.senderId,
-        msg,
+        msg.receiverId === userId ? msg.senderId : msg.receiverId,
+        {
+          id: msg.id,
+          content: msg.content,
+          senderId: msg.senderId,
+          receiverId: msg.receiverId,
+          createdAt: msg.createdAt,
+          sender: {
+            id: msg.senderId,
+            name: msg.senderName,
+            email: msg.senderEmail,
+            image: msg.senderImage,
+          },
+        },
       ]),
     )
     const unreadByUser = new Map(

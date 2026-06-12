@@ -336,7 +336,7 @@ export default function AppointmentDetailPage() {
               <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
             </span>
             <span className="font-bold text-sm text-foreground">
-              Live consultation session with {appt.doctor.user.name}
+              Live consultation session with {appt.doctor?.user?.name}
             </span>
           </div>
           <Button
@@ -416,10 +416,10 @@ export default function AppointmentDetailPage() {
               </span>
             </div>
             <CardTitle className="text-xl font-bold mt-3">
-              Consultation with {appt.doctor.user.name}
+              Consultation with {appt.doctor?.user?.name}
             </CardTitle>
             <CardDescription className="text-xs font-semibold">
-              Specialization: {appt.doctor.specialty}
+              Specialization: {appt.doctor?.specialty}
             </CardDescription>
           </CardHeader>
 
@@ -621,7 +621,7 @@ export default function AppointmentDetailPage() {
               </DialogTitle>
               <DialogDescription className="text-xs">
                 Select a new date and time slot for your consultation with{" "}
-                <strong>{appt.doctor.user.name}</strong>.
+                <strong>{appt.doctor?.user?.name}</strong>.
               </DialogDescription>
             </DialogHeader>
 
@@ -688,8 +688,8 @@ export default function AppointmentDetailPage() {
               <DialogTitle>Cancel Appointment</DialogTitle>
               <DialogDescription>
                 Are you sure you want to cancel this appointment with{" "}
-                <strong>{appt.doctor.user.name}</strong>? This action cannot be
-                undone.
+                <strong>{appt.doctor?.user?.name}</strong>? This action cannot
+                be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="gap-2 sm:gap-0">
@@ -726,18 +726,19 @@ export default function AppointmentDetailPage() {
               <div className="flex gap-3 items-center">
                 <Avatar className="border border-primary/20 shrink-0">
                   <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-sm">
-                    {appt.doctor.user.name?.[0] || appt.doctor.user.email?.[0]}
+                    {appt.doctor?.user?.name?.[0] ||
+                      appt.doctor?.user?.email?.[0]}
                   </AvatarFallback>
                 </Avatar>
                 <div>
                   <h4 className="font-semibold text-sm text-foreground">
-                    {appt.doctor.user.name}
+                    {appt.doctor?.user?.name}
                   </h4>
                   <Badge
                     variant="secondary"
                     className="text-xs mt-0.5 leading-none"
                   >
-                    {appt.doctor.specialty}
+                    {appt.doctor?.specialty}
                   </Badge>
                 </div>
               </div>
@@ -748,14 +749,14 @@ export default function AppointmentDetailPage() {
                 <div className="flex justify-between items-center">
                   <span>Consultation Price:</span>
                   <strong className="text-foreground text-sm font-bold">
-                    {formatPrice(Number(appt.doctor.pricePerVisit) || 0)}
+                    {formatPrice(Number(appt.doctor?.pricePerVisit) || 0)}
                   </strong>
                 </div>
-                {appt.doctor.clinicAddress && (
+                {appt.doctor?.clinicAddress && (
                   <div className="space-y-1">
                     <span>Clinic Address:</span>
                     <p className="text-foreground font-medium text-right truncate">
-                      {appt.doctor.clinicAddress}
+                      {appt.doctor?.clinicAddress}
                     </p>
                   </div>
                 )}
@@ -825,7 +826,7 @@ export default function AppointmentDetailPage() {
                       Rate Your Consultation
                     </h3>
                     <p className="text-xs text-muted-foreground">
-                      Share your experience with Dr. {appt.doctor.user.name}
+                      Share your experience with Dr. {appt.doctor?.user?.name}
                     </p>
                   </div>
 

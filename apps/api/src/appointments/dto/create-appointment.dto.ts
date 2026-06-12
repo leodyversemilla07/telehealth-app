@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
-import { IsDateString, IsEnum, IsOptional, IsString } from "class-validator"
+import {
+  IsDateString,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from "class-validator"
 import { VisitType } from "../../generated/prisma/client.js"
 
 export class CreateAppointmentDto {
@@ -26,6 +32,7 @@ export class CreateAppointmentDto {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(2000)
   reason?: string
 
   @ApiPropertyOptional({
@@ -33,6 +40,7 @@ export class CreateAppointmentDto {
   })
   @IsOptional()
   @IsString()
+  @MaxLength(5000)
   symptoms?: string
 
   @ApiPropertyOptional({

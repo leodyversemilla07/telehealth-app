@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -87,6 +88,9 @@ export class AvailabilityController {
     @Param("doctorId") doctorId: string,
     @Query("date") date: string,
   ) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new BadRequestException("Invalid date format. Use YYYY-MM-DD.")
+    }
     return this.availabilityService.getAvailableSlots(doctorId, date)
   }
 

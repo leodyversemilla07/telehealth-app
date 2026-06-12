@@ -14,6 +14,7 @@ type MockPrisma = {
     updateMany: jest.Mock
     groupBy: jest.Mock
   }
+  $queryRaw: jest.Mock
 }
 
 function buildPrismaMock(): MockPrisma {
@@ -28,6 +29,7 @@ function buildPrismaMock(): MockPrisma {
       updateMany: jest.fn(),
       groupBy: jest.fn(),
     },
+    $queryRaw: jest.fn(),
   }
 }
 
@@ -159,22 +161,19 @@ describe("ChatService", () => {
       prisma.chatMessage.findMany
         .mockResolvedValueOnce([{ receiverId: "u2" }])
         .mockResolvedValueOnce([])
-        // Batched: all last messages
-        .mockResolvedValueOnce([
-          {
-            id: "m1",
-            content: "Last",
-            senderId: "u2",
-            receiverId: "u1",
-            createdAt: new Date("2026-06-01"),
-            sender: {
-              id: "u2",
-              name: "Dr. Smith",
-              email: "smith@test.com",
-              image: null,
-            },
-          },
-        ])
+      // Raw query: last messages per conversation
+      prisma.$queryRaw.mockResolvedValue([
+        {
+          id: "m1",
+          content: "Last",
+          senderId: "u2",
+          receiverId: "u1",
+          createdAt: new Date("2026-06-01"),
+          senderName: "Dr. Smith",
+          senderEmail: "smith@test.com",
+          senderImage: null,
+        },
+      ])
       prisma.chatMessage.groupBy.mockResolvedValue([
         { senderId: "u2", _count: { id: 2 } },
       ])

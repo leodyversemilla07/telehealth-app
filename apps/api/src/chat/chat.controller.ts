@@ -56,7 +56,7 @@ export class ChatController {
     return this.chatService.getConversation(
       session.user.id,
       otherUserId,
-      limit ? parseInt(limit, 10) : 50,
+      Math.min(limit ? parseInt(limit, 10) : 50, 200),
     )
   }
 

@@ -83,6 +83,7 @@ export class AppointmentsController {
   }
 
   @Patch(":id/cancel")
+  @Roles(["PATIENT", "DOCTOR", "ADMIN"])
   @ApiOperation({ summary: "Cancel an appointment (Patient or Doctor)" })
   @ApiParam({ name: "id", description: "Appointment ID" })
   async cancel(@Session() session: UserSession, @Param("id") id: string) {
