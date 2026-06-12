@@ -42,7 +42,8 @@ export function SignUpForm({
       name: form.name,
       email: form.email,
       password: form.password,
-    })
+      role: form.role,
+    } as unknown as Parameters<typeof authClient.signUp.email>[0])
 
     if (signUpError) {
       setError(signUpError.message ?? signUpError.statusText)
