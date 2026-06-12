@@ -5,10 +5,10 @@ import { useCallback, useState } from "react"
 
 export default function GlobalError({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
+  unstable_retry: () => void
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -53,7 +53,7 @@ export default function GlobalError({
             )}
             <button
               type="button"
-              onClick={reset}
+              onClick={unstable_retry}
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors cursor-pointer"
             >
               <RefreshCcw className="h-4 w-4" />

@@ -7,10 +7,10 @@ import { useCallback, useEffect, useState } from "react"
 // biome-ignore lint/suspicious/noShadowRestrictedNames: Next.js requires this name for error boundaries
 export default function Error({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
+  unstable_retry: () => void
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -53,7 +53,7 @@ export default function Error({
           </button>
         )}
         {copied && <p className="text-xs text-success">Copied to clipboard</p>}
-        <Button onClick={reset} variant="default" className="gap-2">
+        <Button onClick={unstable_retry} variant="default" className="gap-2">
           <RefreshCcw className="h-4 w-4" />
           Try again
         </Button>

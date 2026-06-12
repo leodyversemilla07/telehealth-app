@@ -6,10 +6,10 @@ import { useCallback, useEffect, useState } from "react"
 
 export default function AdminError({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string }
-  reset: () => void
+  unstable_retry: () => void
 }) {
   const [copied, setCopied] = useState(false)
 
@@ -52,7 +52,7 @@ export default function AdminError({
           </button>
         )}
         {copied && <p className="text-xs text-success">Copied to clipboard</p>}
-        <Button onClick={reset} variant="default" className="gap-2">
+        <Button onClick={unstable_retry} variant="default" className="gap-2">
           <RefreshCcw className="h-4 w-4" />
           Try again
         </Button>
