@@ -523,31 +523,33 @@ export class AppointmentsService {
       )
     }
 
-    // Check new slot availability
-    const conflict = await this.prisma.appointment.findFirst({
-      where: {
-        doctorId: appt.doctorId,
-        status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
-        id: { not: id },
-        startTime: { lt: end },
-        endTime: { gt: start },
-      },
-    })
-    if (conflict) {
-      throw new ConflictException("This time slot is already booked")
-    }
+    // Check new slot availability and reschedule atomically
+    const rescheduled = await this.prisma.$transaction(async (tx) => {
+      const conflict = await tx.appointment.findFirst({
+        where: {
+          doctorId: appt.doctorId,
+          status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
+          id: { not: id },
+          startTime: { lt: end },
+          endTime: { gt: start },
+        },
+      })
+      if (conflict) {
+        throw new ConflictException("This time slot is already booked")
+      }
 
-    const rescheduled = await this.prisma.appointment.update({
-      where: { id },
-      data: {
-        startTime: start,
-        endTime: end,
-        status: "BOOKED",
-      },
-      include: {
-        patient: PATIENT_INCLUDE,
-        doctor: DOCTOR_INCLUDE,
-      },
+      return tx.appointment.update({
+        where: { id },
+        data: {
+          startTime: start,
+          endTime: end,
+          status: "BOOKED",
+        },
+        include: {
+          patient: PATIENT_INCLUDE,
+          doctor: DOCTOR_INCLUDE,
+        },
+      })
     })
 
     // Audit log

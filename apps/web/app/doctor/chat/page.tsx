@@ -66,9 +66,10 @@ export default function DoctorChatPage() {
 
   const selectedUser = selectedConversation?.otherUser || selectedContact
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  })
+  }, [messages.length])
 
   useEffect(() => {
     if (selectedUserId) {

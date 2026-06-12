@@ -395,7 +395,9 @@ export default function PatientDashboardPage() {
                   key={record.id}
                   className="-mx-2 h-auto w-full cursor-pointer items-start justify-between rounded-lg px-2 py-3 text-left hover:bg-muted/10"
                   onClick={() =>
-                    router.push(`/patient/records/consultations/${record.id}`)
+                    router.push(
+                      `/patient/appointments/${record.appointment.id}`,
+                    )
                   }
                 >
                   <div className="flex gap-3">
