@@ -4,7 +4,7 @@ import { PrismaService } from "../prisma/prisma.service"
 import { ChatService } from "./chat.service"
 
 type MockPrisma = {
-  user: { findUnique: jest.Mock }
+  user: { findUnique: jest.Mock; findMany: jest.Mock }
   appointment: { findFirst: jest.Mock }
   chatMessage: {
     create: jest.Mock
@@ -12,12 +12,13 @@ type MockPrisma = {
     findFirst: jest.Mock
     count: jest.Mock
     updateMany: jest.Mock
+    groupBy: jest.Mock
   }
 }
 
 function buildPrismaMock(): MockPrisma {
   return {
-    user: { findUnique: jest.fn() },
+    user: { findUnique: jest.fn(), findMany: jest.fn() },
     appointment: { findFirst: jest.fn() },
     chatMessage: {
       create: jest.fn(),
@@ -25,6 +26,7 @@ function buildPrismaMock(): MockPrisma {
       findFirst: jest.fn(),
       count: jest.fn(),
       updateMany: jest.fn(),
+      groupBy: jest.fn(),
     },
   }
 }
@@ -153,21 +155,32 @@ describe("ChatService", () => {
     })
 
     it("should return sorted conversations with unread counts", async () => {
+      // First two findMany calls: sent + received messages
       prisma.chatMessage.findMany
         .mockResolvedValueOnce([{ receiverId: "u2" }])
         .mockResolvedValueOnce([])
-      prisma.chatMessage.findFirst.mockResolvedValue({
-        id: "m1",
-        content: "Last",
-        senderId: "u2",
-        createdAt: new Date("2026-06-01"),
-      })
-      prisma.chatMessage.count.mockResolvedValue(2)
-      prisma.user.findUnique.mockResolvedValue({
-        id: "u2",
-        name: "Dr. Smith",
-        email: "smith@test.com",
-      })
+        // Batched: all last messages
+        .mockResolvedValueOnce([
+          {
+            id: "m1",
+            content: "Last",
+            senderId: "u2",
+            receiverId: "u1",
+            createdAt: new Date("2026-06-01"),
+            sender: {
+              id: "u2",
+              name: "Dr. Smith",
+              email: "smith@test.com",
+              image: null,
+            },
+          },
+        ])
+      prisma.chatMessage.groupBy.mockResolvedValue([
+        { senderId: "u2", _count: { id: 2 } },
+      ])
+      prisma.user.findMany.mockResolvedValue([
+        { id: "u2", name: "Dr. Smith", email: "smith@test.com", image: null },
+      ])
 
       const result = await service.getConversations("u1")
 

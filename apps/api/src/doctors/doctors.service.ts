@@ -158,29 +158,33 @@ export class DoctorsService {
         user: {
           select: PUBLIC_USER_SELECT,
         },
-        reviews: {
-          select: {
-            rating: true,
-          },
+        _count: {
+          select: { reviews: true },
         },
       },
       orderBy,
     })
 
-    return doctors.map((doctor) => {
-      const reviews = doctor.reviews || []
-      const avgRating =
-        reviews.length > 0
-          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-          : 0
-
-      return {
-        ...doctor,
-        averageRating: Math.round(avgRating * 10) / 10,
-        totalReviews: reviews.length,
-        reviews: undefined,
-      }
+    // Batch-fetch average ratings for all doctors in one query
+    const doctorIds = doctors.map((d) => d.id)
+    const ratingAggregates = await this.prisma.review.groupBy({
+      by: ["doctorId"],
+      where: { doctorId: { in: doctorIds } },
+      _avg: { rating: true },
     })
+    const avgRatingByDoctor = new Map(
+      ratingAggregates.map((r) => [
+        r.doctorId,
+        Math.round((r._avg.rating || 0) * 10) / 10,
+      ]),
+    )
+
+    return doctors.map((doctor) => ({
+      ...doctor,
+      averageRating: avgRatingByDoctor.get(doctor.id) || 0,
+      totalReviews: doctor._count.reviews,
+      _count: undefined,
+    }))
   }
 
   /**
@@ -193,10 +197,8 @@ export class DoctorsService {
         user: {
           select: PUBLIC_USER_SELECT,
         },
-        reviews: {
-          select: {
-            rating: true,
-          },
+        _count: {
+          select: { reviews: true },
         },
       },
     })
@@ -204,17 +206,20 @@ export class DoctorsService {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
 
-    const reviews = profile.reviews || []
-    const avgRating =
-      reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-        : 0
+    // Aggregate average rating in DB
+    const [ratingAggregate] = await this.prisma.review.groupBy({
+      by: ["doctorId"],
+      where: { doctorId: id },
+      _avg: { rating: true },
+    })
+
+    const avgRating = ratingAggregate?._avg.rating || 0
 
     return {
       ...profile,
       averageRating: Math.round(avgRating * 10) / 10,
-      totalReviews: reviews.length,
-      reviews: undefined,
+      totalReviews: profile._count.reviews,
+      _count: undefined,
     }
   }
 

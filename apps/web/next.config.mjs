@@ -24,7 +24,12 @@ const apiBaseUrl = process.env.API_URL || "http://localhost:3001"
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Transpile workspace packages
-  transpilePackages: ["@workspace/ui"],
+  transpilePackages: ["@workspace/ui", "@workspace/shared"],
+
+  // Optimize tree-shaking for icon libraries
+  experimental: {
+    optimizePackageImports: ["lucide-react", "@workspace/ui"],
+  },
 
   // Output mode (can be set via NEXT_OUTPUT env var)
   output: process.env.NEXT_OUTPUT ?? undefined,
@@ -36,6 +41,7 @@ const nextConfig = {
 
   // Image optimization
   images: {
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       {
         protocol: "https",
@@ -44,6 +50,10 @@ const nextConfig = {
       {
         protocol: "https",
         hostname: "**.cloudfront.net",
+      },
+      {
+        protocol: "https",
+        hostname: "api.dicebear.com",
       },
     ],
   },

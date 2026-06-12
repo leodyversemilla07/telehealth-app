@@ -1,7 +1,17 @@
 "use client"
 
-import { LiveKitRoom, VideoConference } from "@livekit/components-react"
 import type { AvailableSlotDto } from "@workspace/shared"
+import dynamic from "next/dynamic"
+
+const LiveKitRoom = dynamic(
+  () => import("@livekit/components-react").then((mod) => mod.LiveKitRoom),
+  { ssr: false },
+)
+const VideoConference = dynamic(
+  () => import("@livekit/components-react").then((mod) => mod.VideoConference),
+  { ssr: false },
+)
+
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"

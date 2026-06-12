@@ -115,44 +115,54 @@ export class ChatService {
 
     if (otherUserIds.length === 0) return []
 
-    // Get last message and unread count for each conversation
-    const conversations = await Promise.all(
-      otherUserIds.map(async (otherUserId) => {
-        const lastMessage = await this.prisma.chatMessage.findFirst({
-          where: {
-            OR: [
-              { senderId: userId, receiverId: otherUserId },
-              { senderId: otherUserId, receiverId: userId },
-            ],
+    // Batch fetch: last message per conversation partner, unread counts, and user profiles
+    const [allLastMessages, allUnreadCounts, allUsers] = await Promise.all([
+      this.prisma.chatMessage.findMany({
+        where: {
+          OR: otherUserIds.flatMap((otherUserId) => [
+            { senderId: userId, receiverId: otherUserId },
+            { senderId: otherUserId, receiverId: userId },
+          ]),
+        },
+        orderBy: { createdAt: "desc" },
+        include: {
+          sender: {
+            select: { id: true, name: true, email: true, image: true },
           },
-          orderBy: { createdAt: "desc" },
-          include: {
-            sender: {
-              select: { id: true, name: true, email: true, image: true },
-            },
-          },
-        })
-
-        const unreadCount = await this.prisma.chatMessage.count({
-          where: {
-            senderId: otherUserId,
-            receiverId: userId,
-            isRead: false,
-          },
-        })
-
-        const otherUser = await this.prisma.user.findUnique({
-          where: { id: otherUserId },
-          select: { id: true, name: true, email: true, image: true },
-        })
-
-        return {
-          otherUser,
-          lastMessage,
-          unreadCount,
-        }
+        },
       }),
+      this.prisma.chatMessage.groupBy({
+        by: ["senderId"],
+        where: {
+          receiverId: userId,
+          isRead: false,
+          senderId: { in: otherUserIds },
+        },
+        _count: { id: true },
+      }),
+      this.prisma.user.findMany({
+        where: { id: { in: otherUserIds } },
+        select: { id: true, name: true, email: true, image: true },
+      }),
+    ])
+
+    // Index batch results by conversation partner
+    const lastMessageByUser = new Map(
+      allLastMessages.map((msg) => [
+        msg.senderId === userId ? msg.receiverId : msg.senderId,
+        msg,
+      ]),
     )
+    const unreadByUser = new Map(
+      allUnreadCounts.map((g) => [g.senderId, g._count.id]),
+    )
+    const userById = new Map(allUsers.map((u) => [u.id, u]))
+
+    const conversations = otherUserIds.map((otherUserId) => ({
+      otherUser: userById.get(otherUserId) || null,
+      lastMessage: lastMessageByUser.get(otherUserId) || null,
+      unreadCount: unreadByUser.get(otherUserId) || 0,
+    }))
 
     // Sort by last message time
     return conversations.sort((a, b) => {

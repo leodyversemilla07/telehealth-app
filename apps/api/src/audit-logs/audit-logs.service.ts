@@ -5,36 +5,49 @@ import { PrismaService } from "../prisma/prisma.service"
 export class AuditLogsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Create an audit log entry.
+   * Accepts optional pre-resolved emails to avoid extra DB lookups.
+   */
   async createLog(
     actorId: string,
     action: string,
     targetId?: string,
     reason?: string,
+    actorEmail?: string,
+    targetEmail?: string | null,
   ) {
-    // Resolve actor email
-    const actor = await this.prisma.user.findUnique({
-      where: { id: actorId },
-      select: { email: true },
-    })
-    const actorEmail = actor?.email || "unknown@system"
+    // Resolve emails only if not provided by caller
+    let resolvedActorEmail = actorEmail
+    let resolvedTargetEmail = targetEmail
 
-    // Resolve target email if targetId is provided
-    let targetEmail: string | null = null
-    if (targetId) {
-      const target = await this.prisma.user.findUnique({
-        where: { id: targetId },
-        select: { email: true },
-      })
-      targetEmail = target?.email || null
+    if (!resolvedActorEmail || (!resolvedTargetEmail && targetId)) {
+      const [actor, target] = await Promise.all([
+        !resolvedActorEmail
+          ? this.prisma.user.findUnique({
+              where: { id: actorId },
+              select: { email: true },
+            })
+          : null,
+        targetId && !resolvedTargetEmail
+          ? this.prisma.user.findUnique({
+              where: { id: targetId },
+              select: { email: true },
+            })
+          : null,
+      ])
+      resolvedActorEmail =
+        resolvedActorEmail || actor?.email || "unknown@system"
+      resolvedTargetEmail = resolvedTargetEmail || target?.email || null
     }
 
     return this.prisma.auditLog.create({
       data: {
         action,
         actorId,
-        actorEmail,
+        actorEmail: resolvedActorEmail,
         targetId: targetId || null,
-        targetEmail,
+        targetEmail: resolvedTargetEmail,
         reason: reason || null,
       },
     })

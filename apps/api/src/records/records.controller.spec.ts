@@ -170,7 +170,11 @@ describe("RecordsController", () => {
       .set("x-user-id", "patient-1")
       .expect(200)
 
-    expect(serviceMock.getPatientRecords).toHaveBeenCalledWith("patient-1")
+    expect(serviceMock.getPatientRecords).toHaveBeenCalledWith(
+      "patient-1",
+      50,
+      0,
+    )
   })
 
   it("should reject doctor access when not assigned to consultation", async () => {

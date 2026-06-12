@@ -5,10 +5,12 @@ import {
   Get,
   Param,
   Post,
+  Query,
 } from "@nestjs/common"
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
+import { PaginationDto } from "../common/dto/pagination.dto"
 import { CreateConsultationDto } from "./dto/create-consultation.dto"
 import { CreatePrescriptionDto } from "./dto/create-prescription.dto"
 import { RecordsService } from "./records.service"
@@ -59,8 +61,15 @@ export class RecordsController {
   @ApiOperation({
     summary: "Get all my medical records / consultations (Patient)",
   })
-  async getMyRecords(@Session() session: UserSession) {
-    return this.recordsService.getPatientRecords(session.user.id)
+  async getMyRecords(
+    @Session() session: UserSession,
+    @Query() pagination: PaginationDto,
+  ) {
+    return this.recordsService.getPatientRecords(
+      session.user.id,
+      pagination.limit,
+      pagination.offset,
+    )
   }
 
   // ─── Get single consultation detail ─────────────────────────────────
@@ -132,8 +141,15 @@ export class RecordsController {
   @ApiOperation({
     summary: "Get all my prescriptions across all consultations (Patient)",
   })
-  async getMyPrescriptions(@Session() session: UserSession) {
-    return this.recordsService.getPatientPrescriptions(session.user.id)
+  async getMyPrescriptions(
+    @Session() session: UserSession,
+    @Query() pagination: PaginationDto,
+  ) {
+    return this.recordsService.getPatientPrescriptions(
+      session.user.id,
+      pagination.limit,
+      pagination.offset,
+    )
   }
 
   // ─── Doctor: Access patient records ─────────────────────────────────
@@ -143,8 +159,15 @@ export class RecordsController {
   @ApiOperation({
     summary: "Get all patients the doctor has seen",
   })
-  async getDoctorPatients(@Session() session: UserSession) {
-    return this.recordsService.getDoctorPatients(session.user.id)
+  async getDoctorPatients(
+    @Session() session: UserSession,
+    @Query() pagination: PaginationDto,
+  ) {
+    return this.recordsService.getDoctorPatients(
+      session.user.id,
+      pagination.limit,
+      pagination.offset,
+    )
   }
 
   @Get("doctor/patient/:patientId")

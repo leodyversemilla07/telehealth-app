@@ -116,30 +116,40 @@ export class RecordsService {
   /**
    * Get all consultations for a patient, including prescriptions.
    */
-  async getPatientRecords(patientId: string) {
-    return this.prisma.consultation.findMany({
-      where: {
-        appointment: { patientId },
-      },
-      include: {
-        prescriptions: true,
-        appointment: {
-          select: {
-            id: true,
-            startTime: true,
-            endTime: true,
-            doctor: {
-              select: {
-                id: true,
-                specialty: true,
-                user: { select: { name: true } },
+  async getPatientRecords(patientId: string, limit = 50, offset = 0) {
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.consultation.findMany({
+        where: {
+          appointment: { patientId },
+        },
+        include: {
+          prescriptions: true,
+          appointment: {
+            select: {
+              id: true,
+              startTime: true,
+              endTime: true,
+              doctor: {
+                select: {
+                  id: true,
+                  specialty: true,
+                  user: { select: { name: true } },
+                },
               },
             },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    })
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.consultation.count({
+        where: {
+          appointment: { patientId },
+        },
+      }),
+    ])
+    return { items, total, limit, offset }
   }
 
   /**
@@ -303,35 +313,47 @@ export class RecordsService {
   /**
    * Get all prescriptions for a patient across all consultations.
    */
-  async getPatientPrescriptions(patientId: string) {
-    return this.prisma.prescription.findMany({
-      where: {
-        consultation: {
-          appointment: { patientId },
+  async getPatientPrescriptions(patientId: string, limit = 50, offset = 0) {
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.prescription.findMany({
+        where: {
+          consultation: {
+            appointment: { patientId },
+          },
         },
-      },
-      include: {
-        consultation: {
-          select: {
-            id: true,
-            diagnosis: true,
-            appointment: {
-              select: {
-                startTime: true,
-                doctor: {
-                  select: {
-                    id: true,
-                    specialty: true,
-                    user: { select: { name: true } },
+        include: {
+          consultation: {
+            select: {
+              id: true,
+              diagnosis: true,
+              appointment: {
+                select: {
+                  startTime: true,
+                  doctor: {
+                    select: {
+                      id: true,
+                      specialty: true,
+                      user: { select: { name: true } },
+                    },
                   },
                 },
               },
             },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    })
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.prescription.count({
+        where: {
+          consultation: {
+            appointment: { patientId },
+          },
+        },
+      }),
+    ])
+    return { items, total, limit, offset }
   }
 
   // ─── Doctor: Access patient records ──────────────────────────────────
@@ -339,7 +361,7 @@ export class RecordsService {
   /**
    * Get all patients a doctor has seen, with appointment counts.
    */
-  async getDoctorPatients(doctorUserId: string) {
+  async getDoctorPatients(doctorUserId: string, limit = 50, offset = 0) {
     const doctorProfile = await this.prisma.doctorProfile.findUnique({
       where: { userId: doctorUserId },
     })
@@ -347,42 +369,35 @@ export class RecordsService {
       throw new NotFoundException("Doctor profile not found")
     }
 
-    const appointments = await this.prisma.appointment.findMany({
-      where: { doctorId: doctorProfile.id },
-      select: {
-        patientId: true,
-        patient: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-      },
-    })
+    // Use groupBy to count appointments per patient without fetching all records
+    const [grouped, totalDistinct] = await Promise.all([
+      this.prisma.appointment.groupBy({
+        by: ["patientId"],
+        where: { doctorId: doctorProfile.id },
+        _count: { id: true },
+        orderBy: { _count: { id: "desc" } },
+        take: limit,
+        skip: offset,
+      }),
+      this.prisma.appointment.groupBy({
+        by: ["patientId"],
+        where: { doctorId: doctorProfile.id },
+      }),
+    ])
 
-    // Deduplicate patients
-    const patientMap = new Map<
-      string,
-      {
-        id: string
-        name: string | null
-        email: string
-        appointmentCount: number
-      }
-    >()
-    for (const appt of appointments) {
-      const existing = patientMap.get(appt.patientId)
-      if (existing) {
-        existing.appointmentCount++
-      } else {
-        patientMap.set(appt.patientId, {
-          ...appt.patient,
-          appointmentCount: 1,
-        })
-      }
-    }
-    return Array.from(patientMap.values())
+    const patientIds = grouped.map((g) => g.patientId)
+    const patients = await this.prisma.user.findMany({
+      where: { id: { in: patientIds } },
+      select: { id: true, name: true, email: true },
+    })
+    const patientById = new Map(patients.map((p) => [p.id, p]))
+
+    const items = grouped.map((g) => ({
+      ...patientById.get(g.patientId),
+      appointmentCount: g._count.id,
+    }))
+
+    return { items, total: totalDistinct.length, limit, offset }
   }
 
   /**

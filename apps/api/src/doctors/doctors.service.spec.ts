@@ -16,6 +16,9 @@ type MockPrisma = {
     findMany: jest.Mock
     update: jest.Mock
   }
+  review: {
+    groupBy: jest.Mock
+  }
   $transaction: jest.Mock
 }
 
@@ -37,6 +40,9 @@ describe("DoctorsService", () => {
         findMany: jest.fn(),
         update: jest.fn(),
       },
+      review: {
+        groupBy: jest.fn(),
+      },
       $transaction: jest.fn(),
     }
   }
@@ -53,6 +59,9 @@ describe("DoctorsService", () => {
 
     service = module.get<DoctorsService>(DoctorsService)
     prisma = prismaMock
+
+    // Default mock for review.groupBy (used by findApproved and findById)
+    prisma.review.groupBy.mockResolvedValue([])
   })
 
   // ─── findApproved ─────────────────────────────────────────────────────
@@ -64,30 +73,34 @@ describe("DoctorsService", () => {
           id: "doc-1",
           specialty: "Cardiology",
           isApproved: true,
-          averageRating: 0,
-          totalReviews: 0,
-          reviews: undefined,
+          _count: { reviews: 2 },
           user: { name: "Dr. Cruz" },
         },
         {
           id: "doc-2",
           specialty: "Dermatology",
           isApproved: true,
-          averageRating: 0,
-          totalReviews: 0,
-          reviews: undefined,
+          _count: { reviews: 0 },
           user: { name: "Dr. Reyes" },
         },
       ]
       prisma.doctorProfile.findMany.mockResolvedValue(doctors)
+      prisma.review.groupBy.mockResolvedValue([
+        { doctorId: "doc-1", _avg: { rating: 4.5 } },
+      ])
 
       const result = await service.findApproved()
-      expect(result).toEqual(doctors)
-      expect(prisma.doctorProfile.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({ isApproved: true }),
-        }),
-      )
+      expect(result).toHaveLength(2)
+      expect(result[0]).toMatchObject({
+        id: "doc-1",
+        averageRating: 4.5,
+        totalReviews: 2,
+      })
+      expect(result[1]).toMatchObject({
+        id: "doc-2",
+        averageRating: 0,
+        totalReviews: 0,
+      })
     })
 
     it("should filter by specialty when provided", async () => {
@@ -164,14 +177,19 @@ describe("DoctorsService", () => {
         id: "doc-1",
         specialty: "Cardiology",
         isApproved: true,
-        averageRating: 0,
-        totalReviews: 0,
-        reviews: undefined,
+        _count: { reviews: 5 },
       }
       prisma.doctorProfile.findFirst.mockResolvedValue(profile)
+      prisma.review.groupBy.mockResolvedValue([
+        { doctorId: "doc-1", _avg: { rating: 4.2 } },
+      ])
 
       const result = await service.findById("doc-1")
-      expect(result).toEqual(profile)
+      expect(result).toMatchObject({
+        id: "doc-1",
+        averageRating: 4.2,
+        totalReviews: 5,
+      })
     })
   })
 
