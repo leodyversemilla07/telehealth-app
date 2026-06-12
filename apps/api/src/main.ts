@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
-import { ValidationPipe } from "@nestjs/common"
+import { Logger, ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import type { Request, Response } from "express"
 import express from "express"
@@ -14,6 +14,7 @@ import { setupSwagger } from "./config/swagger.config"
 import { SocketService } from "./notifications/socket.service"
 
 async function bootstrap() {
+  const logger = new Logger("Bootstrap")
   const app = await NestFactory.create(AppModule, {
     bodyParser: false,
     bufferLogs: true,
@@ -154,12 +155,12 @@ async function bootstrap() {
 
     socket.data.userId = session.user.id
     socket.join(session.user.id)
-    console.log(
+    logger.log(
       `[Socket] Client connected: ${socket.id} (user: ${session.user.id})`,
     )
 
     socket.on("disconnect", () => {
-      console.log(`[Socket] Client disconnected: ${socket.id}`)
+      logger.log(`[Socket] Client disconnected: ${socket.id}`)
     })
 
     socket.on("join", () => {
@@ -171,7 +172,7 @@ async function bootstrap() {
   const socketService = app.get(SocketService)
   socketService.setServer(io)
 
-  console.log(`🚀 Server running on port ${process.env.PORT ?? 3001}`)
+  logger.log(`Server running on port ${process.env.PORT ?? 3001}`)
   await app.listen(process.env.PORT ?? 3001)
 }
 bootstrap()
