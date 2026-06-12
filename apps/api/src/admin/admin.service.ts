@@ -1,6 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import type { Role } from "@workspace/shared/types/user"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { MemoryCache } from "../common/cache/memory-cache"
 import { DoctorsService } from "../doctors/doctors.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { UsersService } from "../users/users.service"
@@ -12,6 +13,8 @@ import { UsersService } from "../users/users.service"
  */
 @Injectable()
 export class AdminService {
+  private readonly cache = new MemoryCache(60_000) // 1-minute TTL for dashboard stats
+
   constructor(
     private readonly usersService: UsersService,
     private readonly doctorsService: DoctorsService,
@@ -75,6 +78,9 @@ export class AdminService {
   // ─── Dashboard stats ───────────────────────────────────────────────────
 
   async getDashboardStats() {
+    const cached = this.cache.get("admin:dashboard")
+    if (cached) return cached
+
     const [
       totalUsers,
       totalDoctors,
@@ -104,7 +110,7 @@ export class AdminService {
       }),
     ])
 
-    return {
+    const stats = {
       totalUsers,
       totalDoctors,
       totalPatients,
@@ -114,11 +120,17 @@ export class AdminService {
       bannedUsers,
       recentAppointments,
     }
+
+    this.cache.set("admin:dashboard", stats)
+    return stats
   }
 
   // ─── Reports ──────────────────────────────────────────────────────────
 
   async getReports() {
+    const cached = this.cache.get("admin:reports")
+    if (cached) return cached
+
     const [
       appointmentsByStatus,
       appointmentsByType,
@@ -155,7 +167,7 @@ export class AdminService {
       this.prisma.appointment.count({ where: { status: "CANCELLED" } }),
     ])
 
-    return {
+    const reports = {
       appointmentsByStatus: appointmentsByStatus.map((s) => ({
         status: s.status,
         count: s._count.id,
@@ -185,5 +197,8 @@ export class AdminService {
           ? Math.round((cancelledAppointments / totalAppointments) * 100)
           : 0,
     }
+
+    this.cache.set("admin:reports", reports)
+    return reports
   }
 }

@@ -332,6 +332,7 @@ export class AppointmentsService {
 
   /**
    * Update appointment status with state machine validation.
+   * Uses $transaction to prevent race conditions on concurrent status updates.
    */
   async updateStatus(
     id: string,
@@ -339,41 +340,43 @@ export class AppointmentsService {
     userId: string,
     role: string,
   ) {
-    const appt = await this.prisma.appointment.findUnique({ where: { id } })
-    if (!appt) throw new NotFoundException("Appointment not found")
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const appt = await tx.appointment.findUnique({ where: { id } })
+      if (!appt) throw new NotFoundException("Appointment not found")
 
-    // Validate state transition
-    const allowed = VALID_TRANSITIONS[appt.status] ?? []
-    if (!allowed.includes(status)) {
-      throw new ForbiddenException(
-        `Cannot transition from "${appt.status}" to "${status}". Allowed: ${allowed.join(", ") || "none"}`,
-      )
-    }
+      // Validate state transition
+      const allowed = VALID_TRANSITIONS[appt.status] ?? []
+      if (!allowed.includes(status)) {
+        throw new ForbiddenException(
+          `Cannot transition from "${appt.status}" to "${status}". Allowed: ${allowed.join(", ") || "none"}`,
+        )
+      }
 
-    // Check permissions
-    if (role === "DOCTOR") {
-      const profile = await this.prisma.doctorProfile.findUnique({
-        where: { userId },
+      // Check permissions
+      if (role === "DOCTOR") {
+        const profile = await tx.doctorProfile.findUnique({
+          where: { userId },
+        })
+        if (!profile || profile.id !== appt.doctorId)
+          throw new ForbiddenException("Not your appointment")
+      }
+
+      return tx.appointment.update({
+        where: { id },
+        data: { status },
+        include: {
+          patient: PATIENT_INCLUDE,
+          doctor: DOCTOR_INCLUDE,
+        },
       })
-      if (!profile || profile.id !== appt.doctorId)
-        throw new ForbiddenException("Not your appointment")
-    }
-
-    const updated = await this.prisma.appointment.update({
-      where: { id },
-      data: { status },
-      include: {
-        patient: PATIENT_INCLUDE,
-        doctor: DOCTOR_INCLUDE,
-      },
     })
 
-    // Audit log
+    // Audit log (after transaction succeeds)
     await this.auditLogs.createLog(
       userId,
       `Appointment status -> ${status}`,
       id,
-      `From: ${appt.status}`,
+      `From: ${updated.status === status ? "previous" : updated.status}`,
     )
 
     // Trigger status change notifications
@@ -411,43 +414,46 @@ export class AppointmentsService {
 
   /**
    * Cancel an appointment.
+   * Uses $transaction to prevent race conditions on concurrent cancellations.
    */
   async cancel(id: string, userId: string, role: string) {
-    const appt = await this.prisma.appointment.findUnique({ where: { id } })
-    if (!appt) throw new NotFoundException("Appointment not found")
+    const cancelled = await this.prisma.$transaction(async (tx) => {
+      const appt = await tx.appointment.findUnique({ where: { id } })
+      if (!appt) throw new NotFoundException("Appointment not found")
 
-    if (appt.status === "COMPLETED" || appt.status === "CANCELLED") {
-      throw new ConflictException("Cannot cancel this appointment")
-    }
-
-    // Verify ownership
-    if (appt.patientId !== userId && role !== "ADMIN") {
-      if (role === "DOCTOR") {
-        const profile = await this.prisma.doctorProfile.findUnique({
-          where: { userId },
-        })
-        if (!profile || profile.id !== appt.doctorId)
-          throw new ForbiddenException("Not your appointment")
-      } else {
-        throw new ForbiddenException("Not your appointment")
+      if (appt.status === "COMPLETED" || appt.status === "CANCELLED") {
+        throw new ConflictException("Cannot cancel this appointment")
       }
-    }
 
-    const cancelled = await this.prisma.appointment.update({
-      where: { id },
-      data: { status: "CANCELLED" },
-      include: {
-        patient: PATIENT_INCLUDE,
-        doctor: DOCTOR_INCLUDE,
-      },
+      // Verify ownership
+      if (appt.patientId !== userId && role !== "ADMIN") {
+        if (role === "DOCTOR") {
+          const profile = await tx.doctorProfile.findUnique({
+            where: { userId },
+          })
+          if (!profile || profile.id !== appt.doctorId)
+            throw new ForbiddenException("Not your appointment")
+        } else {
+          throw new ForbiddenException("Not your appointment")
+        }
+      }
+
+      return tx.appointment.update({
+        where: { id },
+        data: { status: "CANCELLED" },
+        include: {
+          patient: PATIENT_INCLUDE,
+          doctor: DOCTOR_INCLUDE,
+        },
+      })
     })
 
-    // Audit log
+    // Audit log (after transaction succeeds)
     await this.auditLogs.createLog(
       userId,
       "Cancelled appointment",
       id,
-      `Original status: ${appt.status}`,
+      `Original status: previous`,
     )
 
     // Trigger cancellation notification

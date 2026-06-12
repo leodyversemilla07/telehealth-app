@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
+import { MemoryCache } from "../common/cache/memory-cache"
 import { PrismaService } from "../prisma/prisma.service"
 import type {
   RegisterDoctorDto,
@@ -18,6 +19,8 @@ const PUBLIC_USER_SELECT = {
 
 @Injectable()
 export class DoctorsService {
+  private readonly cache = new MemoryCache(120_000) // 2-minute TTL for doctor search
+
   constructor(private readonly prisma: PrismaService) {}
 
   /**
@@ -112,6 +115,11 @@ export class DoctorsService {
    * Supports optional filtering by specialty, search (name/specialty), and sorting.
    */
   async findApproved(filters?: SearchDoctorsDto) {
+    // Cache key based on filters (cache for 2 minutes)
+    const cacheKey = `doctors:approved:${JSON.stringify(filters || {})}`
+    const cached = this.cache.get(cacheKey)
+    if (cached) return cached as Awaited<ReturnType<typeof this.findApproved>>
+
     const where: Record<string, unknown> = { isApproved: true }
 
     // Filter by specialty (case-insensitive partial match)
@@ -179,12 +187,15 @@ export class DoctorsService {
       ]),
     )
 
-    return doctors.map((doctor) => ({
+    const result = doctors.map((doctor) => ({
       ...doctor,
       averageRating: avgRatingByDoctor.get(doctor.id) || 0,
       totalReviews: doctor._count.reviews,
       _count: undefined,
     }))
+
+    this.cache.set(cacheKey, result)
+    return result
   }
 
   /**
@@ -292,6 +303,7 @@ export class DoctorsService {
     if (!profile) {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
+    this.cache.invalidatePrefix("doctors:approved")
     return this.prisma.doctorProfile.update({
       where: { id },
       data: { isApproved: true },
@@ -308,6 +320,7 @@ export class DoctorsService {
     if (!profile) {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
+    this.cache.invalidatePrefix("doctors:approved")
     return this.prisma.doctorProfile.update({
       where: { id },
       data: { isApproved: false },
