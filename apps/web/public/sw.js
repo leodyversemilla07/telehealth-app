@@ -1,7 +1,7 @@
 // public/sw.js — Telehealth App Service Worker for Web Push Notifications
 // This file MUST be at the root of /public so it's served at /sw.js
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", () => {
   // Activate immediately without waiting for old tabs to close
   self.skipWaiting()
 })

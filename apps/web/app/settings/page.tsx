@@ -339,7 +339,9 @@ export default function SettingsPage() {
         <div className="space-y-4">
           {/* Avatar */}
           <div className="flex items-center gap-4">
-            <button
+            <Button
+              variant="outline"
+              size="icon"
               type="button"
               onDragOver={(e) => {
                 e.preventDefault()
@@ -356,7 +358,7 @@ export default function SettingsPage() {
                 if (f) validateAndUploadFile(f)
               }}
               onClick={() => fileInputRef.current?.click()}
-              className={`relative h-16 w-16 rounded-full border-2 flex items-center justify-center overflow-hidden shrink-0 transition-all ${
+              className={`relative h-16 w-16 shrink-0 overflow-hidden rounded-full border-2 p-0 transition-all ${
                 dragOver
                   ? "border-primary scale-105"
                   : "border-border hover:border-primary/50"
@@ -373,6 +375,7 @@ export default function SettingsPage() {
                 accept="image/jpeg,image/png,image/webp"
               />
               {previewUrl || imageUrl ? (
+                // biome-ignore lint/performance/noImgElement: Avatar previews can be blob URLs, which next/image does not optimize.
                 <img
                   src={previewUrl || imageUrl}
                   alt="Avatar"
@@ -391,7 +394,7 @@ export default function SettingsPage() {
                   <Spinner className="h-4 w-4 text-white" />
                 </div>
               )}
-            </button>
+            </Button>
             <div className="text-sm">
               <p className="font-medium">{user.email}</p>
               <p className="text-muted-foreground text-xs">
@@ -403,8 +406,10 @@ export default function SettingsPage() {
           {/* Avatar Presets */}
           <div className="flex gap-2">
             {AVATAR_PRESETS.map((preset) => (
-              <button
+              <Button
                 key={preset.name}
+                variant="outline"
+                size="icon"
                 type="button"
                 onClick={() => {
                   setImageUrl(preset.url)
@@ -413,18 +418,19 @@ export default function SettingsPage() {
                     image: preset.url,
                   })
                 }}
-                className={`h-10 w-10 rounded-full border-2 overflow-hidden hover:scale-110 transition-transform ${
+                className={`h-10 w-10 overflow-hidden rounded-full border-2 p-0 hover:scale-110 ${
                   imageUrl === preset.url
                     ? "border-primary ring-2 ring-primary/20"
                     : "border-border"
                 }`}
               >
+                {/* biome-ignore lint/performance/noImgElement: Preset avatar assets are tiny fixed-size images. */}
                 <img
                   src={preset.url}
                   alt={preset.name}
                   className="h-full w-full object-contain"
                 />
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -773,6 +779,7 @@ export default function SettingsPage() {
                     </p>
                     {totpUri && (
                       <div className="flex justify-center p-4 bg-white rounded-lg border">
+                        {/* biome-ignore lint/performance/noImgElement: External QR image URL is generated dynamically for the TOTP URI. */}
                         <img
                           src={`https://chart.googleapis.com/chart?chs=180x180&chld=M|0&cht=qr&chl=${encodeURIComponent(totpUri)}`}
                           alt="2FA QR Code"

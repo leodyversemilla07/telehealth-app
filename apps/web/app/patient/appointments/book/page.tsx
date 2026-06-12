@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { Separator } from "@workspace/ui/components/separator"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
@@ -407,15 +408,18 @@ export default function BookAppointmentPage() {
                       </strong>
                     </div>
                     {doctor.clinicAddress && (
-                      <div className="flex justify-between gap-1 items-start text-muted-foreground pt-1 border-t border-border/10">
-                        <span>Location:</span>
-                        <span
-                          className="text-foreground text-right truncate max-w-32.5"
-                          title={doctor.clinicAddress}
-                        >
-                          {doctor.clinicAddress}
-                        </span>
-                      </div>
+                      <>
+                        <Separator className="bg-border/10" />
+                        <div className="flex justify-between gap-1 items-start text-muted-foreground">
+                          <span>Location:</span>
+                          <span
+                            className="text-foreground text-right truncate max-w-32.5"
+                            title={doctor.clinicAddress}
+                          >
+                            {doctor.clinicAddress}
+                          </span>
+                        </div>
+                      </>
                     )}
                   </div>
                 </CardContent>

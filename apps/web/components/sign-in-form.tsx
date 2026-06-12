@@ -59,14 +59,13 @@ export function SignInForm({
     }
 
     const role = data?.user?.role ?? "PATIENT"
-    const dashboard =
-      callbackUrl && callbackUrl.startsWith("/")
-        ? callbackUrl
-        : role === "ADMIN"
-          ? "/admin/dashboard"
-          : role === "DOCTOR"
-            ? "/doctor/dashboard"
-            : "/patient/dashboard"
+    const dashboard = callbackUrl?.startsWith("/")
+      ? callbackUrl
+      : role === "ADMIN"
+        ? "/admin/dashboard"
+        : role === "DOCTOR"
+          ? "/doctor/dashboard"
+          : "/patient/dashboard"
 
     toast.success("Successfully logged in!")
     router.push(dashboard)
@@ -110,14 +109,13 @@ export function SignInForm({
       const role =
         (sessionRes.data?.user as { role?: string } | undefined)?.role ??
         "PATIENT"
-      const dashboard =
-        callbackUrl && callbackUrl.startsWith("/")
-          ? callbackUrl
-          : role === "ADMIN"
-            ? "/admin/dashboard"
-            : role === "DOCTOR"
-              ? "/doctor/dashboard"
-              : "/patient/dashboard"
+      const dashboard = callbackUrl?.startsWith("/")
+        ? callbackUrl
+        : role === "ADMIN"
+          ? "/admin/dashboard"
+          : role === "DOCTOR"
+            ? "/doctor/dashboard"
+            : "/patient/dashboard"
       router.push(dashboard)
     } catch (err) {
       setTwoFactorError(
@@ -216,88 +214,84 @@ export function SignInForm({
   }
 
   return (
-    <>
-      <form
-        className={cn("flex flex-col gap-6", className)}
-        onSubmit={handleSubmit}
-        {...props}
-      >
-        <FieldGroup>
-          <div className="flex flex-col items-center gap-1 text-center">
-            <h1 className="text-2xl font-bold">Sign In</h1>
-            <p className="text-sm text-balance text-muted-foreground">
-              Enter your email below to sign in to your account
-            </p>
+    <form
+      className={cn("flex flex-col gap-6", className)}
+      onSubmit={handleSubmit}
+      {...props}
+    >
+      <FieldGroup>
+        <div className="flex flex-col items-center gap-1 text-center">
+          <h1 className="text-2xl font-bold">Sign In</h1>
+          <p className="text-sm text-balance text-muted-foreground">
+            Enter your email below to sign in to your account
+          </p>
+        </div>
+
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            id="email"
+            type="email"
+            placeholder="m@example.com"
+            value={form.email}
+            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+            required
+            disabled={loading}
+          />
+        </Field>
+
+        <Field>
+          <div className="flex items-center">
+            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <Link
+              href="/forgot-password"
+              className="ml-auto text-sm underline-offset-4 hover:underline"
+            >
+              Forgot your password?
+            </Link>
           </div>
+          <Input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            value={form.password}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, password: e.target.value }))
+            }
+            required
+            disabled={loading}
+          />
+        </Field>
 
-          <Field>
-            <FieldLabel htmlFor="email">Email</FieldLabel>
-            <Input
-              id="email"
-              type="email"
-              placeholder="m@example.com"
-              value={form.email}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, email: e.target.value }))
-              }
-              required
-              disabled={loading}
-            />
-          </Field>
+        {error && (
+          <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
+            <ShieldAlert className="size-4 shrink-0" />
+            <p>{error}</p>
+          </div>
+        )}
 
-          <Field>
-            <div className="flex items-center">
-              <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Link
-                href="/forgot-password"
-                className="ml-auto text-sm underline-offset-4 hover:underline"
-              >
-                Forgot your password?
-              </Link>
-            </div>
-            <Input
-              id="password"
-              type="password"
-              placeholder="••••••••"
-              value={form.password}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, password: e.target.value }))
-              }
-              required
-              disabled={loading}
-            />
-          </Field>
+        <Field>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? (
+              <>
+                <Spinner className="mr-2 size-4" />
+                Signing in...
+              </>
+            ) : (
+              "Sign In"
+            )}
+          </Button>
+        </Field>
 
-          {error && (
-            <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
-              <ShieldAlert className="size-4 shrink-0" />
-              <p>{error}</p>
-            </div>
-          )}
-
-          <Field>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <>
-                  <Spinner className="mr-2 size-4" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-          </Field>
-
-          <Field>
-            <FieldDescription className="text-center">
-              Don&apos;t have an account?{" "}
-              <Link href="/sign-up" className="underline underline-offset-4">
-                Sign up
-              </Link>
-            </FieldDescription>
-          </Field>
-        </FieldGroup>
-      </form>
-    </>
+        <Field>
+          <FieldDescription className="text-center">
+            Don&apos;t have an account?{" "}
+            <Link href="/sign-up" className="underline underline-offset-4">
+              Sign up
+            </Link>
+          </FieldDescription>
+        </Field>
+      </FieldGroup>
+    </form>
   )
 }

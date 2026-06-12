@@ -14,7 +14,6 @@ import {
   CalendarPlus,
   ClipboardList,
   FileText,
-  HeartPulse,
   LayoutDashboard,
   LifeBuoy,
   MessageSquare,
@@ -89,7 +88,11 @@ export function SidebarPatient({
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              render={<a href="/patient/dashboard" />}
+              render={
+                <a href="/patient/dashboard">
+                  <span className="sr-only">Patient dashboard</span>
+                </a>
+              }
             >
               <Image
                 src="/logo.png"

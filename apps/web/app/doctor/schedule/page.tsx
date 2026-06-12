@@ -130,30 +130,36 @@ export default function DoctorSchedulePage() {
       scheduleLoaded.current = true
       setSlotDuration(schedule.slotDuration)
 
-      const loadedDays = { ...days }
-      for (const day of WEEKDAYS) {
-        const rawJson = schedule[day.key]
-        try {
-          const parsed = JSON.parse(rawJson || "[]") as string[]
-          if (parsed.length > 0 && parsed[0]) {
-            const [start, end] = parsed[0].split("-")
-            loadedDays[day.key] = {
-              active: true,
-              start: start ?? "09:00",
-              end: end ?? "17:00",
+      setDays((currentDays) => {
+        const loadedDays = { ...currentDays }
+        for (const day of WEEKDAYS) {
+          const rawJson = schedule[day.key]
+          try {
+            const parsed = JSON.parse(rawJson || "[]") as string[]
+            if (parsed.length > 0 && parsed[0]) {
+              const [start, end] = parsed[0].split("-")
+              loadedDays[day.key] = {
+                active: true,
+                start: start ?? "09:00",
+                end: end ?? "17:00",
+              }
+            } else {
+              loadedDays[day.key] = {
+                active: false,
+                start: "09:00",
+                end: "17:00",
+              }
             }
-          } else {
+          } catch {
             loadedDays[day.key] = {
               active: false,
               start: "09:00",
               end: "17:00",
             }
           }
-        } catch {
-          loadedDays[day.key] = { active: false, start: "09:00", end: "17:00" }
         }
-      }
-      setDays(loadedDays)
+        return loadedDays
+      })
     }
   }, [schedule])
 

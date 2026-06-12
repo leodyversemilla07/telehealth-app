@@ -74,7 +74,14 @@ export function SidebarAdmin({
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<a href="/admin/dashboard" />}>
+            <SidebarMenuButton
+              size="lg"
+              render={
+                <a href="/admin/dashboard">
+                  <span className="sr-only">Admin dashboard</span>
+                </a>
+              }
+            >
               <Image
                 src="/logo.png"
                 alt="Telehealth"

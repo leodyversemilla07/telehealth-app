@@ -83,8 +83,9 @@ export function DynamicBreadcrumbs({ rootLabel }: { rootLabel: string }) {
       if (isStandalone) {
         const lastIdx = items.length - 1
         if (lastIdx >= 0) {
+          const previousItem = items[lastIdx]
           items[lastIdx] = {
-            label: LABEL_MAP[segment] || items[lastIdx]!.label,
+            label: LABEL_MAP[segment] || previousItem?.label || rootLabel,
             href: currentPath,
           }
         }
@@ -106,9 +107,14 @@ export function DynamicBreadcrumbs({ rootLabel }: { rootLabel: string }) {
         {items.flatMap((item, index) => {
           const content =
             index === items.length - 1 ? (
-              <BreadcrumbPage>{item.label}</BreadcrumbPage>
+              <BreadcrumbPage key={`page-${item.href}`}>
+                {item.label}
+              </BreadcrumbPage>
             ) : (
-              <BreadcrumbLink render={<Link href={item.href} />}>
+              <BreadcrumbLink
+                key={`link-${item.href}`}
+                render={<Link href={item.href} />}
+              >
                 {item.label}
               </BreadcrumbLink>
             )

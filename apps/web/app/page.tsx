@@ -3,6 +3,7 @@
 import type { UserDto } from "@workspace/shared"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Activity,
   ArrowRight,
@@ -128,9 +129,7 @@ const TESTIMONIALS = [
 ]
 
 function SkeletonBlock({ className }: { className?: string }) {
-  return (
-    <div className={`rounded-lg bg-foreground/10 animate-pulse ${className}`} />
-  )
+  return <Skeleton className={className} />
 }
 
 export default function Page() {

@@ -156,7 +156,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<a href="#" />}>
+            <SidebarMenuButton
+              size="lg"
+              render={
+                <a href="/">
+                  <span className="sr-only">Telehealth home</span>
+                </a>
+              }
+            >
               <Image
                 src="/logo.png"
                 alt="Telehealth"

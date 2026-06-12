@@ -71,11 +71,12 @@ export function ThemeRadioGroup() {
         const isActive = theme === t.value
 
         return (
-          <button
+          <Button
             key={t.value}
+            variant="outline"
             type="button"
             onClick={() => setTheme(t.value)}
-            className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
+            className={`h-auto flex-col gap-2 rounded-xl border-2 p-4 ${
               isActive
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border bg-card text-muted-foreground hover:border-primary/50 hover:text-foreground"
@@ -83,7 +84,7 @@ export function ThemeRadioGroup() {
           >
             <Icon className="size-5" />
             <span className="text-xs font-medium">{t.label}</span>
-          </button>
+          </Button>
         )
       })}
     </div>

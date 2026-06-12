@@ -9,10 +9,17 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Input } from "@workspace/ui/components/input"
+import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { MessageSquare, Plus, Search, Send, UserPlus } from "lucide-react"
+import {
+  ArrowLeft,
+  MessageSquare,
+  Plus,
+  Search,
+  Send,
+  UserPlus,
+} from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import type { Contact, Conversation } from "@/hooks/use-chat"
 import {
   useChatMessages,
   useContacts,
@@ -61,13 +68,13 @@ export default function PatientChatPage() {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+  })
 
   useEffect(() => {
     if (selectedUserId) {
       markAsRead.mutate(selectedUserId)
     }
-  }, [selectedUserId])
+  }, [selectedUserId, markAsRead.mutate])
 
   const handleSend = () => {
     if (!message.trim() || !selectedUserId) return
@@ -163,13 +170,15 @@ export default function PatientChatPage() {
                 </div>
               ) : (
                 filteredContacts.map((contact) => (
-                  <button
+                  <Button
+                    variant="ghost"
+                    type="button"
                     key={contact.id}
                     onClick={() => {
                       setSelectedUserId(contact.id)
                       setShowContacts(false)
                     }}
-                    className="w-full p-3 text-left hover:bg-muted/30 transition-colors border-b border-border/10"
+                    className="h-auto w-full justify-start rounded-none border-b border-border/10 p-3 text-left hover:bg-muted/30"
                   >
                     <div className="flex items-center gap-3">
                       <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
@@ -185,7 +194,7 @@ export default function PatientChatPage() {
                       </div>
                       <Plus className="h-4 w-4 text-muted-foreground" />
                     </div>
-                  </button>
+                  </Button>
                 ))
               )
             ) : isPending ? (
@@ -198,10 +207,12 @@ export default function PatientChatPage() {
               </div>
             ) : (
               filteredConversations.map((conv) => (
-                <button
+                <Button
+                  variant="ghost"
+                  type="button"
                   key={conv.otherUser.id}
                   onClick={() => setSelectedUserId(conv.otherUser.id)}
-                  className={`w-full p-3 text-left hover:bg-muted/30 transition-colors border-b border-border/10 ${
+                  className={`h-auto w-full justify-start rounded-none border-b border-border/10 p-3 text-left hover:bg-muted/30 ${
                     selectedUserId === conv.otherUser.id ? "bg-muted/50" : ""
                   }`}
                 >
@@ -225,7 +236,7 @@ export default function PatientChatPage() {
                       </p>
                     </div>
                   </div>
-                </button>
+                </Button>
               ))
             )}
           </div>
@@ -250,26 +261,16 @@ export default function PatientChatPage() {
             <>
               {/* Header with back button on mobile */}
               <div className="p-3 border-b border-border/20 flex items-center gap-3">
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
                   type="button"
-                  className="lg:hidden mr-1 p-1 rounded-lg hover:bg-muted/50 text-muted-foreground transition-colors"
+                  className="mr-1 text-muted-foreground lg:hidden"
                   onClick={() => setSelectedUserId(null)}
                   aria-label="Back to conversations"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m15 18-6-6 6-6" />
-                  </svg>
-                </button>
+                  <ArrowLeft className="h-[18px] w-[18px]" />
+                </Button>
                 <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                   {selectedUser?.name?.[0] || selectedUser?.email?.[0] || "?"}
                 </div>
@@ -326,7 +327,8 @@ export default function PatientChatPage() {
               </div>
 
               {/* Input */}
-              <div className="p-3 border-t border-border/20">
+              <Separator className="bg-border/20" />
+              <div className="p-3">
                 <div className="flex gap-2">
                   <Input
                     placeholder="Type a message..."

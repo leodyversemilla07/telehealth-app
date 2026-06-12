@@ -76,7 +76,11 @@ export function SidebarDoctor({
           <SidebarMenuItem>
             <SidebarMenuButton
               size="lg"
-              render={<a href="/doctor/dashboard" />}
+              render={
+                <a href="/doctor/dashboard">
+                  <span className="sr-only">Doctor dashboard</span>
+                </a>
+              }
             >
               <Image
                 src="/logo.png"

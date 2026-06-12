@@ -213,10 +213,12 @@ export function ProfileContent() {
       <div className="space-y-4">
         {/* Avatar */}
         <div className="flex items-center gap-4">
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="relative h-16 w-16 rounded-full border-2 border-border hover:border-primary/50 flex items-center justify-center overflow-hidden transition-all"
+            className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-border p-0 hover:border-primary/50"
           >
             <input
               type="file"
@@ -229,6 +231,7 @@ export function ProfileContent() {
               accept="image/jpeg,image/png,image/webp"
             />
             {previewUrl || imageUrl ? (
+              // biome-ignore lint/performance/noImgElement: Avatar previews can be blob URLs, which next/image does not optimize.
               <img
                 src={previewUrl || imageUrl}
                 alt="Avatar"
@@ -247,7 +250,7 @@ export function ProfileContent() {
                 <Spinner className="h-4 w-4 text-white" />
               </div>
             )}
-          </button>
+          </Button>
           <div className="text-sm">
             <p className="font-medium">{user?.email}</p>
             <p className="text-muted-foreground text-xs">
@@ -274,6 +277,7 @@ export function ProfileContent() {
                   : "border-border"
               }`}
             >
+              {/* biome-ignore lint/performance/noImgElement: Preset avatar assets are tiny fixed-size images. */}
               <img
                 src={preset.url}
                 alt={preset.name}

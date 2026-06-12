@@ -236,7 +236,8 @@ export default function PatientAppointmentsPage() {
               {appt.reason || "No consultation summary provided."}
             </p>
             {appt.symptoms && (
-              <div className="mt-2.5 pt-2.5 border-t border-border/15">
+              <div className="mt-2.5 flex flex-col gap-2.5">
+                <Separator className="bg-border/15" />
                 <span className="font-bold text-muted-foreground uppercase tracking-wider text-xs">
                   Symptoms:
                 </span>

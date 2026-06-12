@@ -43,7 +43,7 @@ export function NavMain({
       <SidebarMenu className="gap-1">
         {items.map((item) => {
           const isActive = item.items?.length
-            ? pathname === item.url || pathname.startsWith(item.url + "/")
+            ? pathname === item.url || pathname.startsWith(`${item.url}/`)
             : pathname === item.url
 
           if (!item.items?.length) {
@@ -52,7 +52,11 @@ export function NavMain({
                 <SidebarMenuButton
                   tooltip={item.title}
                   isActive={isActive}
-                  render={<a href={item.url} />}
+                  render={
+                    <a href={item.url}>
+                      <span className="sr-only">{item.title}</span>
+                    </a>
+                  }
                 >
                   {item.icon}
                   <span>{item.title}</span>
@@ -70,7 +74,11 @@ export function NavMain({
               <SidebarMenuButton
                 tooltip={item.title}
                 isActive={isActive}
-                render={<a href={item.url} />}
+                render={
+                  <a href={item.url}>
+                    <span className="sr-only">{item.title}</span>
+                  </a>
+                }
               >
                 {item.icon}
                 <span>{item.title}</span>
@@ -91,7 +99,11 @@ export function NavMain({
                       <SidebarMenuSubItem key={subItem.title}>
                         <SidebarMenuSubButton
                           isActive={isSubActive}
-                          render={<a href={subItem.url} />}
+                          render={
+                            <a href={subItem.url}>
+                              <span className="sr-only">{subItem.title}</span>
+                            </a>
+                          }
                         >
                           <span>{subItem.title}</span>
                         </SidebarMenuSubButton>

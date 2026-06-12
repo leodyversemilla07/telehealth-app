@@ -198,6 +198,7 @@ export function TwoFactorContent() {
                   </p>
                   {totpUri && (
                     <div className="flex justify-center p-4 bg-white rounded-lg border">
+                      {/* biome-ignore lint/performance/noImgElement: External QR image URL is generated dynamically for the TOTP URI. */}
                       <img
                         src={`https://chart.googleapis.com/chart?chs=180x180&chld=M|0&cht=qr&chl=${encodeURIComponent(totpUri)}`}
                         alt="2FA QR Code"

@@ -1,3 +1,4 @@
+import { Separator } from "@workspace/ui/components/separator"
 import Image from "next/image"
 
 const FOOTER_ROWS = [
@@ -107,7 +108,8 @@ export function Footer({
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-border dark:border-white/8 pt-8">
+        <div className="flex flex-col gap-8">
+          <Separator className="bg-border dark:bg-white/8" />
           <p className="font-mono text-xs leading-relaxed text-muted-foreground/50 dark:text-white/30">
             &copy; Telehealth 2026. All rights reserved.
           </p>

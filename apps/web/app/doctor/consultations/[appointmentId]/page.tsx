@@ -29,6 +29,14 @@ import {
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
   AlertCircle,
@@ -421,7 +429,7 @@ export default function DoctorConsultationDetailPage() {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: printStyles }} />
+      <style>{printStyles}</style>
       <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
         {/* Header */}
         <div className="flex items-center gap-3">
@@ -792,48 +800,48 @@ export default function DoctorConsultationDetailPage() {
                           <h3 className="font-bold text-sm border-b border-gray-300 pb-1 mb-3">
                             PRESCRIPTIONS
                           </h3>
-                          <table className="w-full border-collapse text-xs">
-                            <thead>
-                              <tr className="bg-gray-100">
-                                <th className="border border-gray-300 p-1.5 text-left">
+                          <Table className="text-xs">
+                            <TableHeader>
+                              <TableRow className="bg-gray-100">
+                                <TableHead className="h-auto border border-gray-300 p-1.5 text-left">
                                   Medication
-                                </th>
-                                <th className="border border-gray-300 p-1.5 text-left">
+                                </TableHead>
+                                <TableHead className="h-auto border border-gray-300 p-1.5 text-left">
                                   Dosage
-                                </th>
-                                <th className="border border-gray-300 p-1.5 text-left">
+                                </TableHead>
+                                <TableHead className="h-auto border border-gray-300 p-1.5 text-left">
                                   Frequency
-                                </th>
-                                <th className="border border-gray-300 p-1.5 text-left">
+                                </TableHead>
+                                <TableHead className="h-auto border border-gray-300 p-1.5 text-left">
                                   Duration
-                                </th>
-                                <th className="border border-gray-300 p-1.5 text-left">
+                                </TableHead>
+                                <TableHead className="h-auto border border-gray-300 p-1.5 text-left">
                                   Instructions
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
+                                </TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
                               {consultationRecord.prescriptions.map((rx) => (
-                                <tr key={rx.id}>
-                                  <td className="border border-gray-300 p-1.5 font-medium">
+                                <TableRow key={rx.id}>
+                                  <TableCell className="border border-gray-300 p-1.5 font-medium">
                                     {rx.medicationName}
-                                  </td>
-                                  <td className="border border-gray-300 p-1.5">
+                                  </TableCell>
+                                  <TableCell className="border border-gray-300 p-1.5">
                                     {rx.dosage}
-                                  </td>
-                                  <td className="border border-gray-300 p-1.5">
+                                  </TableCell>
+                                  <TableCell className="border border-gray-300 p-1.5">
                                     {rx.frequency}
-                                  </td>
-                                  <td className="border border-gray-300 p-1.5">
+                                  </TableCell>
+                                  <TableCell className="border border-gray-300 p-1.5">
                                     {rx.duration}
-                                  </td>
-                                  <td className="border border-gray-300 p-1.5">
+                                  </TableCell>
+                                  <TableCell className="border border-gray-300 p-1.5">
                                     {rx.instructions || "—"}
-                                  </td>
-                                </tr>
+                                  </TableCell>
+                                </TableRow>
                               ))}
-                            </tbody>
-                          </table>
+                            </TableBody>
+                          </Table>
                         </div>
                       )}
 

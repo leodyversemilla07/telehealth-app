@@ -22,11 +22,9 @@ import {
   Video,
 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { useMyAppointments } from "@/hooks/use-appointments"
 
 export default function DoctorDashboardPage() {
-  const router = useRouter()
   const { data, isPending } = useMyAppointments()
   const appointments = data?.appointments ?? []
 

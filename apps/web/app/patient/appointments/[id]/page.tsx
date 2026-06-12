@@ -22,7 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog"
-import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -823,11 +822,13 @@ export default function AppointmentDetailPage() {
                   {/* Star Rating */}
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="icon-lg"
                         key={star}
                         type="button"
                         onClick={() => setReviewRating(star)}
-                        className="p-0.5 transition-colors"
+                        className="hover:bg-transparent"
                       >
                         <Star
                           className={`h-8 w-8 ${
@@ -836,7 +837,7 @@ export default function AppointmentDetailPage() {
                               : "text-muted-foreground hover:text-amber-200"
                           }`}
                         />
-                      </button>
+                      </Button>
                     ))}
                     <span className="ml-2 text-sm text-muted-foreground">
                       {reviewRating}/5

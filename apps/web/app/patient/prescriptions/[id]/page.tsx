@@ -202,7 +202,8 @@ export default function PrescriptionDetailPage() {
           )}
         </CardContent>
 
-        <div className="border-t border-border/20 bg-muted/15 px-8 py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-left">
+        <Separator className="bg-border/20" />
+        <div className="bg-muted/15 px-8 py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4 text-left">
           <div className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
             <FileCheck className="h-3.5 w-3.5 text-primary shrink-0" />
             PDEA S2 / PRC Credentials Verified. Electronic Signature Encrypted.

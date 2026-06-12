@@ -81,7 +81,7 @@ export function useCreateReview() {
         rating: data.rating,
         comment: data.comment,
       }),
-    onSuccess: (_data, variables) => {
+    onSuccess: (_data) => {
       queryClient.invalidateQueries({ queryKey: reviewKeys.patient() })
       queryClient.invalidateQueries({ queryKey: reviewKeys.all })
     },

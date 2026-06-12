@@ -30,7 +30,6 @@ import {
   MessageSquare,
   Pill,
   Stethoscope,
-  Video,
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -108,17 +107,6 @@ export default function PatientDashboardPage() {
         )
       default:
         return null
-    }
-  }
-
-  const getVisitTypeIcon = (type: string) => {
-    switch (type) {
-      case "VIDEO":
-        return <Video className="h-3.5 w-3.5" />
-      case "PHONE":
-        return <PhoneIcon className="h-3.5 w-3.5" />
-      default:
-        return <MapPinIcon className="h-3.5 w-3.5" />
     }
   }
 
@@ -300,7 +288,7 @@ export default function PatientDashboardPage() {
                       router.push(`/patient/appointments/${nextAppointment.id}`)
                     }
                   >
-                    <Video className="h-3.5 w-3.5 mr-1" />
+                    <Stethoscope className="h-3.5 w-3.5 mr-1" />
                     Join Call
                   </Button>
                 )}
@@ -401,9 +389,11 @@ export default function PatientDashboardPage() {
           ) : (
             <div className="divide-y divide-border/20">
               {records.slice(0, 5).map((record) => (
-                <div
+                <Button
+                  variant="ghost"
+                  type="button"
                   key={record.id}
-                  className="py-3 flex items-start justify-between gap-4 group hover:bg-muted/10 transition-colors rounded-lg px-2 -mx-2 cursor-pointer"
+                  className="-mx-2 h-auto w-full cursor-pointer items-start justify-between rounded-lg px-2 py-3 text-left hover:bg-muted/10"
                   onClick={() =>
                     router.push(`/patient/records/consultations/${record.id}`)
                   }
@@ -428,52 +418,13 @@ export default function PatientDashboardPage() {
                     </div>
                   </div>
                   <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground shrink-0 mt-2 transition-transform group-hover:translate-x-0.5" />
-                </div>
+                </Button>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-function PhoneIcon(props: React.ComponentProps<"svg">) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-    </svg>
-  )
-}
-
-function MapPinIcon(props: React.ComponentProps<"svg">) {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      {...props}
-    >
-      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
   )
 }
 
@@ -491,6 +442,7 @@ function ClipboardIcon(props: React.ComponentProps<"svg">) {
       strokeLinejoin="round"
       {...props}
     >
+      <title>Clipboard</title>
       <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
     </svg>

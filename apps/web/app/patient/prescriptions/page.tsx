@@ -190,30 +190,33 @@ export default function PatientPrescriptionsPage() {
 
                   {/* Consultation Diagnosis Context */}
                   {rx.consultation && (
-                    <div className="mt-4 pt-4 border-t border-border/30 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-                      <div className="space-y-1">
-                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
-                          <User className="h-3 w-3" /> Prescribing Doctor
-                        </span>
-                        <p className="text-foreground font-semibold">
-                          {rx.consultation.appointment?.doctor?.user?.name ||
-                            "Verified Doctor"}
-                        </p>
-                        <p className="text-xs text-muted-foreground font-medium">
-                          Specialization:{" "}
-                          {rx.consultation.appointment?.doctor?.specialty}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
-                          <HeartPulse className="h-3 w-3" /> Diagnosis Context
-                        </span>
-                        <p
-                          className="text-foreground font-medium truncate max-w-62.5"
-                          title={rx.consultation.diagnosis ?? "Unspecified"}
-                        >
-                          {rx.consultation.diagnosis || "Unspecified"}
-                        </p>
+                    <div className="mt-4 flex flex-col gap-4 text-xs">
+                      <Separator className="bg-border/30" />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                            <User className="h-3 w-3" /> Prescribing Doctor
+                          </span>
+                          <p className="text-foreground font-semibold">
+                            {rx.consultation.appointment?.doctor?.user?.name ||
+                              "Verified Doctor"}
+                          </p>
+                          <p className="text-xs text-muted-foreground font-medium">
+                            Specialization:{" "}
+                            {rx.consultation.appointment?.doctor?.specialty}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                            <HeartPulse className="h-3 w-3" /> Diagnosis Context
+                          </span>
+                          <p
+                            className="text-foreground font-medium truncate max-w-62.5"
+                            title={rx.consultation.diagnosis ?? "Unspecified"}
+                          >
+                            {rx.consultation.diagnosis || "Unspecified"}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   )}

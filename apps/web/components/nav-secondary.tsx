@@ -25,7 +25,14 @@ export function NavSecondary({
         <SidebarMenu className="gap-1">
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton size="sm" render={<a href={item.url} />}>
+              <SidebarMenuButton
+                size="sm"
+                render={
+                  <a href={item.url}>
+                    <span className="sr-only">{item.title}</span>
+                  </a>
+                }
+              >
                 {item.icon}
                 <span>{item.title}</span>
               </SidebarMenuButton>

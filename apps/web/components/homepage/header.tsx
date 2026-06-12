@@ -5,6 +5,7 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@workspace/ui/components/navigation-menu"
+import { Separator } from "@workspace/ui/components/separator"
 import {
   Sheet,
   SheetContent,
@@ -116,50 +117,53 @@ export function Header({
             </SheetHeader>
             <nav className="mt-6 flex flex-col gap-1">
               {NAV_ITEMS.map((item) => (
-                <button
+                <Button
+                  variant="ghost"
                   key={item.href}
                   type="button"
                   onClick={() => handleNavClick(item.href)}
-                  className="flex items-center rounded-lg px-4 py-3 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white text-left"
+                  className="h-auto justify-start rounded-lg px-4 py-3 text-left text-sm text-muted-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
                 >
                   {item.label}
-                </button>
+                </Button>
               ))}
-              <div className="my-3 border-t border-border/80 dark:border-white/10" />
+              <Separator className="my-3 bg-border/80 dark:bg-white/10" />
               {isAuthenticated ? (
-                <button
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={() => {
                     setMobileOpen(false)
                     onDashboard()
                   }}
-                  className="flex items-center gap-2 rounded-lg px-4 py-3 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white text-left"
+                  className="h-auto justify-start rounded-lg px-4 py-3 text-left text-sm text-muted-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
                 >
                   <LayoutDashboard className="size-4" />
                   Dashboard
-                </button>
+                </Button>
               ) : (
                 <>
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     onClick={() => {
                       setMobileOpen(false)
                       onSignIn()
                     }}
-                    className="flex items-center rounded-lg px-4 py-3 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white text-left"
+                    className="h-auto justify-start rounded-lg px-4 py-3 text-left text-sm text-muted-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
                   >
                     Sign in
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     type="button"
                     onClick={() => {
                       setMobileOpen(false)
                       onCreateAccount()
                     }}
-                    className="flex items-center rounded-lg px-4 py-3 text-sm font-medium text-foreground bg-muted transition hover:bg-muted/80 dark:text-white dark:bg-white/10 dark:hover:bg-white/15 text-left mt-1"
+                    className="mt-1 h-auto justify-start rounded-lg bg-muted px-4 py-3 text-left text-sm font-medium text-foreground hover:bg-muted/80 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                   >
                     Get started
-                  </button>
+                  </Button>
                 </>
               )}
             </nav>
