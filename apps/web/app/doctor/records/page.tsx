@@ -16,7 +16,7 @@ import {
   EmptyTitle,
 } from "@workspace/ui/components/empty"
 import { Separator } from "@workspace/ui/components/separator"
-import { Spinner } from "@workspace/ui/components/spinner"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Calendar, ClipboardList, Clock, HeartPulse, User } from "lucide-react"
 import { ErrorAlert } from "@/components/error-alert"
 import { useMyAppointments } from "@/hooks/use-appointments"
@@ -42,8 +42,10 @@ export default function DoctorRecordsPage() {
       </Card>
 
       {isPending && (
-        <div className="flex items-center justify-center py-12">
-          <Spinner className="h-8 w-8 text-primary" />
+        <div className="space-y-4">
+          {Array.from({ length: 2 }).map((_, idx) => (
+            <Skeleton key={idx} className="h-48 rounded-xl" />
+          ))}
         </div>
       )}
 

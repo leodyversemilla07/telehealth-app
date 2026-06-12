@@ -39,13 +39,6 @@ interface Patient {
   appointmentCount: number
 }
 
-const _STATUS_COLORS: Record<string, string> = {
-  CONFIRMED: "text-success bg-success/10 border-success/30",
-  COMPLETED: "text-info bg-info/10 border-info/30",
-  CANCELLED: "text-destructive bg-destructive/10 border-destructive/30",
-  PENDING: "text-warning bg-warning/10 border-warning/30",
-}
-
 export default function DoctorPatientsPage() {
   const [searchQuery, setSearchQuery] = useState("")
 

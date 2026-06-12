@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Calendar,
   CalendarDays,
@@ -50,6 +51,30 @@ export default function DoctorDashboardPage() {
         new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
     )[0]
 
+  if (isPending) {
+    return (
+      <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <Skeleton className="h-28 w-full rounded-xl" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       {/* Header */}
@@ -84,7 +109,7 @@ export default function DoctorDashboardPage() {
                   Scheduled
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
-                  {isPending ? "..." : upcomingConsults}
+                  {upcomingConsults}
                 </p>
               </div>
               <div className="h-9 w-9 rounded-lg bg-sky-100 dark:bg-sky-900/50 flex items-center justify-center text-sky-600 dark:text-sky-400">
@@ -102,7 +127,7 @@ export default function DoctorDashboardPage() {
                   In Consultation
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1 flex items-center gap-2">
-                  {isPending ? "..." : activeConsults}
+                  {activeConsults}
                   {activeConsults > 0 && (
                     <span className="relative flex h-2.5 w-2.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
@@ -126,7 +151,7 @@ export default function DoctorDashboardPage() {
                   Completed
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
-                  {isPending ? "..." : completedConsults}
+                  {completedConsults}
                 </p>
               </div>
               <div className="h-9 w-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
@@ -144,7 +169,7 @@ export default function DoctorDashboardPage() {
                   Total Logs
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
-                  {isPending ? "..." : totalAppts}
+                  {totalAppts}
                 </p>
               </div>
               <div className="h-9 w-9 rounded-lg bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center text-violet-600 dark:text-violet-400">

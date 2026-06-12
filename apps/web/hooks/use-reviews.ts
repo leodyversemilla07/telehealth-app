@@ -18,43 +18,11 @@ export interface Review {
   }
 }
 
-export interface DoctorReviewsResponse {
-  items: Review[]
-  total: number
-  limit: number
-  offset: number
-  averageRating: number
-}
-
-export const reviewKeys = {
+const reviewKeys = {
   all: ["reviews"] as const,
-  doctor: (doctorId: string) =>
-    [...reviewKeys.all, "doctor", doctorId] as const,
   patient: () => [...reviewKeys.all, "patient"] as const,
   check: (appointmentId: string) =>
     [...reviewKeys.all, "check", appointmentId] as const,
-}
-
-export function useDoctorReviews(
-  doctorId: string,
-  limit?: number,
-  offset?: number,
-) {
-  return useQuery({
-    queryKey: [...reviewKeys.doctor(doctorId), { limit, offset }],
-    queryFn: () =>
-      apiClient.get<DoctorReviewsResponse>(`/reviews/doctor/${doctorId}`, {
-        params: { limit, offset },
-      }),
-    enabled: !!doctorId,
-  })
-}
-
-export function usePatientReviews() {
-  return useQuery({
-    queryKey: reviewKeys.patient(),
-    queryFn: () => apiClient.get<Review[]>("/reviews/patient"),
-  })
 }
 
 export function useCheckReview(appointmentId: string) {
