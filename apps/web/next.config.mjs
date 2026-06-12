@@ -91,6 +91,19 @@ const nextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https://api.dicebear.com https://*.amazonaws.com https://*.cloudfront.net",
+              "connect-src 'self' wss: ws:",
+              "font-src 'self'",
+              "object-src 'none'",
+              "frame-ancestors 'none'",
+            ].join("; "),
+          },
         ],
       },
     ]

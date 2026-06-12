@@ -46,6 +46,9 @@ self.addEventListener("notificationclick", (event) => {
 
   const targetUrl = event.notification.data?.url || "/"
 
+  // Only allow same-origin relative paths to prevent open redirect
+  if (!targetUrl.startsWith("/") || targetUrl.startsWith("//")) return
+
   event.waitUntil(
     self.clients
       .matchAll({ type: "window", includeUncontrolled: true })
