@@ -16,6 +16,7 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
 import { Bell, BellOff, BellRing, CheckCheck } from "lucide-react"
+import { useState } from "react"
 import {
   useMarkAllAsRead,
   useMarkAsRead,
@@ -26,6 +27,7 @@ import {
 import { usePushNotifications } from "@/hooks/use-push-notifications"
 
 export function NotificationBell() {
+  const [isOpen, setIsOpen] = useState(false)
   const push = usePushNotifications()
 
   // Shared hooks with consistent query keys
@@ -35,8 +37,8 @@ export function NotificationBell() {
   const markReadMutation = useMarkAsRead()
   const markAllReadMutation = useMarkAllAsRead()
 
-  // Real-time socket invalidation
-  useNotificationSocket()
+  // Real-time socket — only connects when dropdown is open
+  useNotificationSocket(isOpen)
 
   const unreadCount = unreadData?.count ?? 0
 
@@ -50,7 +52,7 @@ export function NotificationBell() {
   const PushIcon = push.isSubscribed ? BellRing : BellOff
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={setIsOpen}>
       <DropdownMenuTrigger className="relative h-9 w-9 inline-flex items-center justify-center rounded-lg hover:bg-muted">
         <Bell className="h-4 w-4" />
         {unreadCount > 0 && (

@@ -50,6 +50,7 @@ export function useUnreadCount() {
     queryFn: () =>
       apiClient.get<UnreadCountResponse>("/notifications/unread-count"),
     refetchInterval: 30_000, // poll every 30s as fallback
+    refetchIntervalInBackground: false, // stop polling when tab is hidden
   })
 }
 
@@ -94,7 +95,7 @@ function getSocketUrl(): string {
   return window.location.origin
 }
 
-export function useNotificationSocket() {
+export function useNotificationSocket(enabled = true) {
   const queryClient = useQueryClient()
   const socketRef = useRef<Socket | null>(null)
 
@@ -104,6 +105,8 @@ export function useNotificationSocket() {
   }, [queryClient])
 
   useEffect(() => {
+    if (!enabled) return
+
     const url = getSocketUrl()
 
     // Get session token for cross-origin WebSocket auth
@@ -141,5 +144,5 @@ export function useNotificationSocket() {
       socketRef.current?.disconnect()
       socketRef.current = null
     }
-  }, [invalidateAll])
+  }, [enabled, invalidateAll])
 }
