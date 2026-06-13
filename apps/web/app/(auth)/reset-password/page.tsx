@@ -7,58 +7,83 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { CheckCircle2, Key, Lock, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { Suspense, useState } from "react"
+import { Suspense, useActionState } from "react"
+import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
+
+type ResetState = {
+  error: string | null
+  success: boolean
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button
+      type="submit"
+      className="w-full py-5 rounded-xl text-sm font-semibold"
+      disabled={pending}
+    >
+      {pending ? (
+        <>
+          <Spinner className="mr-2 h-4 w-4" />
+          Resetting...
+        </>
+      ) : (
+        "Reset password"
+      )}
+    </Button>
+  )
+}
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
 
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [done, setDone] = useState(false)
+  const [state, formAction] = useActionState<ResetState, FormData>(
+    async (_prev, formData) => {
+      const password = formData.get("password") as string
+      const confirmPassword = formData.get("confirmPassword") as string
+      const resetToken = formData.get("token") as string
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
+      if (!resetToken) {
+        return {
+          error: "Missing reset token. Use the link from your email.",
+          success: false,
+        }
+      }
 
-    if (!token) {
-      setError("Missing reset token. Use the link from your email.")
-      return
-    }
+      if (!password || password.length < 8) {
+        return {
+          error: "Password must be at least 8 characters.",
+          success: false,
+        }
+      }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.")
-      return
-    }
+      if (password !== confirmPassword) {
+        return { error: "Passwords do not match.", success: false }
+      }
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.")
-      return
-    }
+      const { error: resetError } = await authClient.resetPassword({
+        newPassword: password,
+        token: resetToken,
+      })
 
-    setLoading(true)
+      if (resetError) {
+        return {
+          error: resetError.message ?? "Failed to reset password.",
+          success: false,
+        }
+      }
 
-    const { error: resetError } = await authClient.resetPassword({
-      newPassword: password,
-      token,
-    })
+      toast.success("Password reset successfully!")
+      return { error: null, success: true }
+    },
+    { error: null, success: false },
+  )
 
-    if (resetError) {
-      setError(resetError.message ?? "Failed to reset password.")
-      setLoading(false)
-      return
-    }
-
-    toast.success("Password reset successfully!")
-    setDone(true)
-    setLoading(false)
-  }
-
-  if (done) {
+  if (state.success) {
     return (
       <div className="flex min-h-svh items-center justify-center p-6 bg-linear-to-br from-background via-background/95 to-muted/10">
         <div className="w-full max-w-sm space-y-6 bg-card/65 backdrop-blur-md border border-border/30 p-8 rounded-2xl shadow-xl text-center">
@@ -96,20 +121,20 @@ function ResetPasswordForm() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form action={formAction} className="space-y-4">
+          <input type="hidden" name="token" value={token ?? ""} />
+
           <div className="space-y-2">
             <Label htmlFor="password">New Password</Label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 className="pl-9 py-5 rounded-xl border-border/60"
                 required
-                disabled={loading}
               />
             </div>
           </div>
@@ -120,38 +145,23 @@ function ResetPasswordForm() {
               <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="confirmPassword"
+                name="confirmPassword"
                 type="password"
                 placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="pl-9 py-5 rounded-xl border-border/60"
                 required
-                disabled={loading}
               />
             </div>
           </div>
 
-          {error && (
+          {state.error && (
             <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
               <ShieldAlert className="h-4 w-4 shrink-0" />
-              <p>{error}</p>
+              <p>{state.error}</p>
             </div>
           )}
 
-          <Button
-            type="submit"
-            className="w-full py-5 rounded-xl text-sm font-semibold"
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <Spinner className="mr-2 h-4 w-4" />
-                Resetting...
-              </>
-            ) : (
-              "Reset password"
-            )}
-          </Button>
+          <SubmitButton />
         </form>
       </div>
     </div>
