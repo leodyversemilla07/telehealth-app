@@ -2,7 +2,10 @@
 
 import { Button } from "@workspace/ui/components/button"
 import { AlertTriangle, Copy, RefreshCcw } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { createLogger } from "@/lib/logger"
+
+const log = createLogger("AdminError")
 
 export default function AdminError({
   error,
@@ -12,18 +15,26 @@ export default function AdminError({
   unstable_retry: () => void
 }) {
   const [copied, setCopied] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   useEffect(() => {
-    console.error("Admin error:", error)
+    log.error("Admin error:", error)
   }, [error])
 
   const copyErrorId = useCallback(async () => {
     if (error.digest) {
       await navigator.clipboard.writeText(error.digest)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      if (timerRef.current) clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => setCopied(false), 2000)
     }
   }, [error.digest])
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center p-6">

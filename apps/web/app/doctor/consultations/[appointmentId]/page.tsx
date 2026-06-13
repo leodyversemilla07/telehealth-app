@@ -319,14 +319,6 @@ export default function DoctorConsultationDetailPage() {
     }
   }
 
-  // Format Helper
-  const _formatPrice = (price: number) => {
-    return new Intl.NumberFormat("en-PH", {
-      style: "currency",
-      currency: "PHP",
-    }).format(price)
-  }
-
   if (apptLoading || recordLoading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">

@@ -1,7 +1,10 @@
 "use client"
 
 import { AlertTriangle, Copy, RefreshCcw } from "lucide-react"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { createLogger } from "@/lib/logger"
+
+const log = createLogger("GlobalError")
 
 export default function GlobalError({
   error,
@@ -11,14 +14,26 @@ export default function GlobalError({
   unstable_retry: () => void
 }) {
   const [copied, setCopied] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
+
+  useEffect(() => {
+    log.error("Global error (root layout crash):", error)
+  }, [error])
 
   const copyErrorId = useCallback(async () => {
     if (error.digest) {
       await navigator.clipboard.writeText(error.digest)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      if (timerRef.current) clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => setCopied(false), 2000)
     }
   }, [error.digest])
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   return (
     <html lang="en">

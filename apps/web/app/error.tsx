@@ -2,7 +2,10 @@
 
 import { Button } from "@workspace/ui/components/button"
 import { AlertTriangle, Copy, RefreshCcw } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { createLogger } from "@/lib/logger"
+
+const log = createLogger("ErrorBoundary")
 
 // biome-ignore lint/suspicious/noShadowRestrictedNames: Next.js requires this name for error boundaries
 export default function Error({
@@ -13,18 +16,26 @@ export default function Error({
   unstable_retry: () => void
 }) {
   const [copied, setCopied] = useState(false)
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null)
 
   useEffect(() => {
-    console.error("Unhandled error:", error)
+    log.error("Unhandled error:", error)
   }, [error])
 
   const copyErrorId = useCallback(async () => {
     if (error.digest) {
       await navigator.clipboard.writeText(error.digest)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      if (timerRef.current) clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => setCopied(false), 2000)
     }
   }, [error.digest])
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   return (
     <div className="flex min-h-svh items-center justify-center p-6 bg-background">
