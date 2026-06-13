@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   Logger,
@@ -156,6 +157,20 @@ export class AvailabilityService {
     const endDate = new Date(dto.endDate)
     if (endDate <= startDate) {
       throw new BadRequestException("endDate must be after startDate")
+    }
+
+    // Check for overlapping time-off blocks
+    const overlapping = await this.prisma.timeOff.findFirst({
+      where: {
+        scheduleId: schedule.id,
+        startDate: { lt: endDate },
+        endDate: { gt: startDate },
+      },
+    })
+    if (overlapping) {
+      throw new ConflictException(
+        "Time-off period overlaps with an existing block",
+      )
     }
 
     return this.prisma.timeOff.create({

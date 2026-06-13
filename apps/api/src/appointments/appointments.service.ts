@@ -195,22 +195,22 @@ export class AppointmentsService {
       )
     }
 
-    const overlappingTimeOff = await this.prisma.timeOff.findFirst({
-      where: {
-        scheduleId: schedule.id,
-        startDate: { lt: end },
-        endDate: { gt: start },
-      },
-    })
-
-    if (overlappingTimeOff) {
-      throw new ConflictException(
-        "Doctor is unavailable during the selected time window",
-      )
-    }
-
     // Check for double-booking and create appointment atomically
     const appointment = await this.prisma.$transaction(async (tx) => {
+      // Re-check time-off inside transaction to prevent race conditions
+      const overlappingTimeOff = await tx.timeOff.findFirst({
+        where: {
+          scheduleId: schedule.id,
+          startDate: { lt: end },
+          endDate: { gt: start },
+        },
+      })
+      if (overlappingTimeOff) {
+        throw new ConflictException(
+          "Doctor is unavailable during the selected time window",
+        )
+      }
+
       const overlapping = await tx.appointment.findFirst({
         where: {
           doctorId: dto.doctorId,
@@ -241,13 +241,17 @@ export class AppointmentsService {
       })
     })
 
-    // Audit log
-    await this.auditLogs.createLog(
-      userId,
-      "Booked appointment",
-      appointment.id,
-      `Type: ${appointment.type}`,
-    )
+    // Audit log (best-effort, don't fail the mutation)
+    try {
+      await this.auditLogs.createLog(
+        userId,
+        "Booked appointment",
+        appointment.id,
+        `Type: ${appointment.type}`,
+      )
+    } catch (err) {
+      this.logger.error("Failed to create audit log:", err)
+    }
 
     // Trigger push notifications
     try {
@@ -372,13 +376,17 @@ export class AppointmentsService {
       })
     })
 
-    // Audit log (after transaction succeeds)
-    await this.auditLogs.createLog(
-      userId,
-      `Appointment status -> ${status}`,
-      id,
-      `From: ${updated.status === status ? "previous" : updated.status}`,
-    )
+    // Audit log (after transaction succeeds, best-effort)
+    try {
+      await this.auditLogs.createLog(
+        userId,
+        `Appointment status -> ${status}`,
+        id,
+        `From: ${updated.status === status ? "previous" : updated.status}`,
+      )
+    } catch (err) {
+      this.logger.error("Failed to create audit log:", err)
+    }
 
     // Trigger status change notifications
     try {
@@ -449,13 +457,17 @@ export class AppointmentsService {
       })
     })
 
-    // Audit log (after transaction succeeds)
-    await this.auditLogs.createLog(
-      userId,
-      "Cancelled appointment",
-      id,
-      `Original status: previous`,
-    )
+    // Audit log (after transaction succeeds, best-effort)
+    try {
+      await this.auditLogs.createLog(
+        userId,
+        "Cancelled appointment",
+        id,
+        `Original status: previous`,
+      )
+    } catch (err) {
+      this.logger.error("Failed to create audit log:", err)
+    }
 
     // Trigger cancellation notification
     try {
@@ -567,13 +579,17 @@ export class AppointmentsService {
       })
     })
 
-    // Audit log
-    await this.auditLogs.createLog(
-      patientId,
-      "Rescheduled appointment",
-      id,
-      `New: ${dto.startTime}`,
-    )
+    // Audit log (best-effort)
+    try {
+      await this.auditLogs.createLog(
+        patientId,
+        "Rescheduled appointment",
+        id,
+        `New: ${dto.startTime}`,
+      )
+    } catch (err) {
+      this.logger.error("Failed to create audit log:", err)
+    }
 
     // Trigger reschedule notification to the doctor
     try {
