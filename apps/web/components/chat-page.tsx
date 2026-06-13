@@ -89,7 +89,7 @@ export function ChatPage({
   }, [selectedUserId, markAsRead.mutate])
 
   const handleSend = () => {
-    if (!message.trim() || !selectedUserId) return
+    if (!message.trim() || !selectedUserId || sendMessage.isPending) return
     sendMessage.mutate(
       { receiverId: selectedUserId, content: message.trim() },
       {
@@ -298,7 +298,7 @@ export function ChatPage({
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
-                {messagesLoading ? (
+                {messagesLoading || !currentUserId ? (
                   <div className="text-center py-8">
                     <Spinner className="size-5 text-muted-foreground mx-auto" />
                   </div>

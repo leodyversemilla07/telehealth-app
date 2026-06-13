@@ -226,9 +226,17 @@ export class VideoService {
       })
       roomUrl = room.url
     } else if (appointment.status === "CONFIRMED") {
-      await this.prisma.appointment.update({
-        where: { id: appointmentId },
-        data: { status: "IN_PROGRESS" },
+      await this.prisma.$transaction(async (tx) => {
+        const current = await tx.appointment.findUnique({
+          where: { id: appointmentId },
+          select: { status: true },
+        })
+        if (current?.status === "CONFIRMED") {
+          await tx.appointment.update({
+            where: { id: appointmentId },
+            data: { status: "IN_PROGRESS" },
+          })
+        }
       })
     }
 
@@ -313,12 +321,21 @@ export class VideoService {
       participants: ["doctor", "patient"],
     })
 
-    await this.prisma.appointment.update({
-      where: { id: appointmentId },
-      data: {
-        status: "COMPLETED",
-        notes: metadata,
-      },
+    await this.prisma.$transaction(async (tx) => {
+      const current = await tx.appointment.findUnique({
+        where: { id: appointmentId },
+        select: { status: true },
+      })
+      if (current?.status !== "IN_PROGRESS") {
+        throw new ForbiddenException("Appointment is no longer in progress")
+      }
+      await tx.appointment.update({
+        where: { id: appointmentId },
+        data: {
+          status: "COMPLETED",
+          notes: metadata,
+        },
+      })
     })
 
     return {

@@ -1,5 +1,6 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -50,12 +51,14 @@ import { useRouter } from "next/navigation"
 import { useOptimistic, useState } from "react"
 import { toast } from "sonner"
 import {
+  appointmentKeys,
   useCancelAppointment,
   useMyAppointments,
 } from "@/hooks/use-appointments"
 
 export default function PatientAppointmentsPage() {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   // 1. Fetch patient appointments (Consumes hydrated server cache instantly)
   const { data, isPending, error } = useMyAppointments()
@@ -92,6 +95,10 @@ export default function PatientAppointmentsPage() {
         })
       },
       onError: (err: Error) => {
+        // Refetch to revert optimistic state
+        queryClient.invalidateQueries({
+          queryKey: appointmentKeys.lists(),
+        })
         toast.error(err.message || "Failed to cancel appointment", {
           id: "cancel-appt",
         })

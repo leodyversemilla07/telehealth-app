@@ -146,24 +146,25 @@ export class UsersService {
     }
     await this.findById(id) // ensure exists
 
-    // Revoke all active sessions so an already-authenticated banned user
-    // is signed out on next API call.
-    await this.prisma.session.deleteMany({ where: { userId: id } })
+    // Revoke all active sessions and ban user atomically
+    const updated = await this.prisma.$transaction(async (tx) => {
+      await tx.session.deleteMany({ where: { userId: id } })
 
-    const updated = await this.prisma.user.update({
-      where: { id },
-      data: {
-        banned: true,
-        banReason: data.reason ?? null,
-        banExpires: data.expiresAt ?? null,
-      },
-      select: {
-        id: true,
-        email: true,
-        banned: true,
-        banReason: true,
-        banExpires: true,
-      },
+      return tx.user.update({
+        where: { id },
+        data: {
+          banned: true,
+          banReason: data.reason ?? null,
+          banExpires: data.expiresAt ?? null,
+        },
+        select: {
+          id: true,
+          email: true,
+          banned: true,
+          banReason: true,
+          banExpires: true,
+        },
+      })
     })
 
     await this.auditLogs.createLog(

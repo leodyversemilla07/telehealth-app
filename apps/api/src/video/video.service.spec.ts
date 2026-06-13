@@ -37,10 +37,14 @@ describe("VideoService", () => {
   function mockPrisma(): Mockify<
     Pick<PrismaService, "appointment" | "$transaction">
   > {
+    const appointment = {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    }
     return {
-      appointment: { findUnique: jest.fn(), update: jest.fn() },
+      appointment,
       $transaction: jest.fn(async (fn: (tx: unknown) => Promise<unknown>) => {
-        return fn({ appointment: { findUnique: jest.fn(), update: jest.fn() } })
+        return fn({ appointment })
       }),
     } as unknown as Mockify<Pick<PrismaService, "appointment" | "$transaction">>
   }

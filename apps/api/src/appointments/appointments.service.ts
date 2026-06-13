@@ -496,13 +496,6 @@ export class AppointmentsService {
     if (!appt) throw new NotFoundException("Appointment not found")
     if (appt.patientId !== patientId)
       throw new ForbiddenException("Not your appointment")
-    if (
-      appt.status === "COMPLETED" ||
-      appt.status === "CANCELLED" ||
-      appt.status === "IN_PROGRESS"
-    ) {
-      throw new ConflictException("Cannot reschedule this appointment")
-    }
 
     const { start, end } = this.parseIsoTimeRange(dto.startTime, dto.endTime)
 
@@ -536,6 +529,17 @@ export class AppointmentsService {
 
     // Check new slot availability and reschedule atomically
     const rescheduled = await this.prisma.$transaction(async (tx) => {
+      // Re-validate status inside transaction to prevent race conditions
+      const current = await tx.appointment.findUnique({ where: { id } })
+      if (
+        !current ||
+        current.status === "COMPLETED" ||
+        current.status === "CANCELLED" ||
+        current.status === "IN_PROGRESS"
+      ) {
+        throw new ConflictException("Cannot reschedule this appointment")
+      }
+
       const conflict = await tx.appointment.findFirst({
         where: {
           doctorId: appt.doctorId,
@@ -554,7 +558,7 @@ export class AppointmentsService {
         data: {
           startTime: start,
           endTime: end,
-          status: appt.status === "IN_PROGRESS" ? "CONFIRMED" : "BOOKED",
+          status: "BOOKED",
         },
         include: {
           patient: PATIENT_INCLUDE,

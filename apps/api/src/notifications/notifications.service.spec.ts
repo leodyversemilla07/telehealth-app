@@ -1,3 +1,4 @@
+import { NotFoundException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
 import type { Mockify } from "../../test/mocks/prisma-client"
 import { PrismaService } from "../prisma/prisma.service"
@@ -83,23 +84,23 @@ describe("NotificationsService", () => {
   })
 
   describe("markAsRead", () => {
-    it("should return null when notification not found", async () => {
+    it("should throw NotFoundException when notification not found", async () => {
       prisma.notification.findUnique.mockResolvedValue(null)
 
-      const result = await service.markAsRead("u1", "n1")
-
-      expect(result).toBeNull()
+      await expect(service.markAsRead("u1", "n1")).rejects.toThrow(
+        NotFoundException,
+      )
     })
 
-    it("should return null when notification belongs to another user", async () => {
+    it("should throw NotFoundException when notification belongs to another user", async () => {
       prisma.notification.findUnique.mockResolvedValue({
         id: "n1",
         userId: "other-user",
       })
 
-      const result = await service.markAsRead("u1", "n1")
-
-      expect(result).toBeNull()
+      await expect(service.markAsRead("u1", "n1")).rejects.toThrow(
+        NotFoundException,
+      )
     })
 
     it("should return notification unchanged if already read", async () => {

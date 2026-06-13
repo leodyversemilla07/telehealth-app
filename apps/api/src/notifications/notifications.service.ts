@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common"
+import { Injectable, Logger, NotFoundException } from "@nestjs/common"
 import type { NotificationType } from "../generated/prisma/client.js"
 import { PrismaService } from "../prisma/prisma.service"
 import { PushService } from "../push/push.service"
@@ -46,7 +46,7 @@ export class NotificationsService {
     })
 
     if (!notification || notification.userId !== userId) {
-      return null
+      throw new NotFoundException("Notification not found")
     }
 
     if (notification.isRead) {

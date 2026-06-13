@@ -18,6 +18,7 @@ type MockPrisma = {
     delete: jest.Mock
     deleteMany: jest.Mock
   }
+  $transaction: jest.Mock
 }
 
 function buildPrismaMock(): MockPrisma {
@@ -34,6 +35,7 @@ function buildPrismaMock(): MockPrisma {
       delete: jest.fn(),
       deleteMany: jest.fn(),
     },
+    $transaction: jest.fn(),
   }
 }
 
@@ -81,6 +83,14 @@ describe("Banned user security", () => {
         banReason: "Spam",
         banExpires: null,
       })
+      prisma.$transaction.mockImplementation(
+        async (fn: (tx: MockPrisma) => Promise<unknown>) => {
+          return fn({
+            user: prisma.user,
+            session: prisma.session,
+          } as unknown as MockPrisma)
+        },
+      )
 
       await service.banUser("admin-id", "u1", { reason: "Spam" })
 
@@ -101,6 +111,14 @@ describe("Banned user security", () => {
         banReason: "TOS violation",
         banExpires: new Date("2026-12-31"),
       })
+      prisma.$transaction.mockImplementation(
+        async (fn: (tx: MockPrisma) => Promise<unknown>) => {
+          return fn({
+            user: prisma.user,
+            session: prisma.session,
+          } as unknown as MockPrisma)
+        },
+      )
 
       const result = await service.banUser("admin-id", "u1", {
         reason: "TOS violation",
