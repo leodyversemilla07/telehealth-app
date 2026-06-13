@@ -11,6 +11,7 @@
     "test": "turbo test",
     "test:api": "pnpm --filter api test",
     "test:web": "pnpm --filter web test",
+    "test:e2e": "pnpm --filter web test:e2e",
     "format": "biome check --write",
     "format:check": "biome check",
     "seed": "pnpm --filter api exec tsx prisma/seed.ts",
