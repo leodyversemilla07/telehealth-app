@@ -125,15 +125,18 @@ describe("AvailabilityService", () => {
       "friday",
       "saturday",
     ] as const
-    const dayKey = dayKeys[new Date(date).getDay()] ?? "monday"
+    // 2026-06-15 is Sunday in UTC, but in PHT (+8) it's also Sunday
+    const dayKey =
+      dayKeys[new Date(`${date}T12:00:00.000+08:00`).getDay()] ?? "monday"
 
     const schedule: Record<string, unknown> = {
       id: "sched-1",
       slotDuration: 30,
       appointments: [
         {
-          startTime: new Date(`${date}T09:30:00.000Z`),
-          endTime: new Date(`${date}T10:00:00.000Z`),
+          // Booked at 09:30 PHT → 01:30 UTC, overlaps with PHT slot 09:00-10:00
+          startTime: new Date(`${date}T01:30:00.000Z`),
+          endTime: new Date(`${date}T02:00:00.000Z`),
         },
       ],
       timeOffs: [],

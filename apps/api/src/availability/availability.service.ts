@@ -10,6 +10,34 @@ import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
 import type { CreateTimeOffDto, SetAvailabilityDto } from "./dto"
 
+/**
+ * Convert a PHT date string ("YYYY-MM-DD") to the UTC date range
+ * that covers the full day in PHT (00:00 PHT to 23:59:59.999 PHT).
+ */
+function phtDateToUTCRange(date: string): { start: Date; end: Date } {
+  // PHT midnight = UTC 16:00 previous day
+  const phtMidnight = new Date(`${date}T00:00:00.000+08:00`)
+  const phtEndOfDay = new Date(`${date}T23:59:59.999+08:00`)
+  return { start: phtMidnight, end: phtEndOfDay }
+}
+
+/**
+ * Get the day of week for a PHT date string.
+ * Uses Intl to avoid server timezone issues.
+ */
+function getPHTDayOfWeek(date: string): string {
+  const phtDate = new Date(`${date}T12:00:00.000+08:00`)
+  const dayIndex = phtDate.getDay()
+  return DAY_BY_INDEX[dayIndex] ?? "monday"
+}
+
+/**
+ * Convert a PHT time ("HH:mm") on a given PHT date to a UTC Date.
+ */
+function phtTimeToUTC(date: string, time: string): Date {
+  return new Date(`${date}T${time}:00.000+08:00`)
+}
+
 type DayKey =
   | "monday"
   | "tuesday"
@@ -223,16 +251,16 @@ export class AvailabilityService {
    * then excludes already-booked appointments and time-offs.
    */
   async getAvailableSlots(doctorId: string, date: string) {
+    // Convert PHT date to UTC range for DB queries
+    const { start: phtDayStart, end: phtDayEnd } = phtDateToUTCRange(date)
+
     const schedule = await this.prisma.availabilitySchedule.findUnique({
       where: { doctorId },
       include: {
         appointments: {
           where: {
             status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
-            startTime: {
-              gte: new Date(`${date}T00:00:00.000Z`),
-              lt: new Date(`${date}T23:59:59.999Z`),
-            },
+            startTime: { gte: phtDayStart, lt: phtDayEnd },
           },
         },
         timeOffs: true,
@@ -241,10 +269,8 @@ export class AvailabilityService {
 
     if (!schedule) return []
 
-    const targetDate = new Date(date)
-    const dayOfWeek = targetDate.getDay()
-    const dayKey = DAY_BY_INDEX[dayOfWeek]
-    if (!dayKey) return []
+    // Get day of week in PHT timezone (not server timezone)
+    const dayKey = getPHTDayOfWeek(date)
 
     const daySlots: string[] = (() => {
       try {
@@ -258,11 +284,9 @@ export class AvailabilityService {
 
     if (daySlots.length === 0) return []
 
-    // Check time-offs covering this date
-    const dateStart = new Date(`${date}T00:00:00.000Z`)
-    const dateEnd = new Date(`${date}T23:59:59.999Z`)
+    // Check time-offs covering this date (compare in PHT date range)
     const hasTimeOff = schedule.timeOffs.some(
-      (to) => to.startDate <= dateEnd && to.endDate >= dateStart,
+      (to) => to.startDate <= phtDayEnd && to.endDate >= phtDayStart,
     )
     if (hasTimeOff) return []
 
@@ -281,22 +305,29 @@ export class AvailabilityService {
     }[] = []
 
     for (const entry of daySlots) {
-      // Each entry is like "09:00-17:00"
+      // Each entry is like "09:00-17:00" in PHT
       const [startStr, endStr] = (entry as string).split("-")
       if (!startStr || !endStr) continue
 
+      // Parse PHT times directly (no conversion needed for slot iteration)
       const [startH, startM] = startStr.split(":").map(Number)
       const [endH, endM] = endStr.split(":").map(Number)
       const startMinutes = (startH ?? 0) * 60 + (startM ?? 0)
       const endMinutes = (endH ?? 0) * 60 + (endM ?? 0)
 
       for (let m = startMinutes; m + duration <= endMinutes; m += duration) {
-        const slotStart = `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`
-        const slotEnd = `${String(Math.floor((m + duration) / 60)).padStart(2, "0")}:${String((m + duration) % 60).padStart(2, "0")}`
+        const slotStartH = Math.floor(m / 60)
+        const slotStartM = m % 60
+        const slotEndH = Math.floor((m + duration) / 60)
+        const slotEndM = (m + duration) % 60
 
-        // Check if already booked
-        const slotStartUTC = new Date(`${date}T${slotStart}:00.000Z`)
-        const slotEndUTC = new Date(`${date}T${slotEnd}:00.000Z`)
+        // Slot times in PHT (displayed to user)
+        const slotStartPHT = `${String(slotStartH).padStart(2, "0")}:${String(slotStartM).padStart(2, "0")}`
+        const slotEndPHT = `${String(slotEndH).padStart(2, "0")}:${String(slotEndM).padStart(2, "0")}`
+
+        // Convert to UTC for overlap check with booked appointments (stored as UTC)
+        const slotStartUTC = phtTimeToUTC(date, slotStartPHT)
+        const slotEndUTC = phtTimeToUTC(date, slotEndPHT)
 
         const isBooked = bookedTimes.some((bt) => {
           return slotStartUTC < bt.end && slotEndUTC > bt.start
@@ -304,8 +335,8 @@ export class AvailabilityService {
 
         if (!isBooked) {
           slots.push({
-            startTime: `${date}T${slotStart}:00`,
-            endTime: `${date}T${slotEnd}:00`,
+            startTime: `${date}T${slotStartPHT}:00`,
+            endTime: `${date}T${slotEndPHT}:00`,
             scheduleId: schedule.id,
             available: true,
           })
