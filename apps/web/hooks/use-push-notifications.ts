@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { createLogger } from "@/lib/logger"
 import {
   getCurrentSubscription,
   getServiceWorkerRegistration,
@@ -8,6 +9,8 @@ import {
   subscribeToPush,
   unsubscribeFromPush,
 } from "@/lib/push"
+
+const log = createLogger("Push")
 
 export type PushPermission = "default" | "granted" | "denied" | "unsupported"
 
@@ -64,7 +67,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
         setPermission(Notification.permission as PushPermission)
       }
     } catch (err) {
-      console.error("[Push] Subscribe failed:", err)
+      log.error("Subscribe failed:", err)
       setPermission(Notification.permission as PushPermission)
     } finally {
       setIsLoading(false)
@@ -77,7 +80,7 @@ export function usePushNotifications(): UsePushNotificationsReturn {
       await unsubscribeFromPush()
       setIsSubscribed(false)
     } catch (err) {
-      console.error("[Push] Unsubscribe failed:", err)
+      log.error("Unsubscribe failed:", err)
     } finally {
       setIsLoading(false)
     }

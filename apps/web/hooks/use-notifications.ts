@@ -4,6 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef } from "react"
 import { type Socket, io as socketIO } from "socket.io-client"
 import { apiClient } from "@/lib/api-client"
+import { createLogger } from "@/lib/logger"
+
+const log = createLogger("NotificationSocket")
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -126,7 +129,7 @@ export function useNotificationSocket(enabled = true) {
       })
 
       socketRef.current.on("connect_error", (err) => {
-        console.warn("[NotificationSocket] connection error:", err.message)
+        log.warn("connection error:", err.message)
       })
     }
 

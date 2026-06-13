@@ -12,15 +12,19 @@
  *   - Local dev: http://localhost:3001
  */
 
+import { createLogger } from "@/lib/logger"
+
+const log = createLogger("Env")
+
 const apiWebUrl = process.env.NEXT_PUBLIC_API_URL
 const vapidKey = process.env.NEXT_PUBLIC_VAPID_KEY
 
 if (typeof window === "undefined") {
   if (apiWebUrl === undefined) {
-    console.warn('NEXT_PUBLIC_API_URL is not set, using "" (dev default)')
+    log.warn('NEXT_PUBLIC_API_URL is not set, using "" (dev default)')
   }
   if (vapidKey === undefined) {
-    console.warn('NEXT_PUBLIC_VAPID_KEY is not set, using "" (dev default)')
+    log.warn('NEXT_PUBLIC_VAPID_KEY is not set, using "" (dev default)')
   }
 }
 

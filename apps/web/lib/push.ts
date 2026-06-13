@@ -2,6 +2,9 @@
 
 import { apiClient } from "@/lib/api-client"
 import { env } from "@/lib/env"
+import { createLogger } from "@/lib/logger"
+
+const log = createLogger("Push")
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -36,7 +39,7 @@ export async function getServiceWorkerRegistration(): Promise<ServiceWorkerRegis
     await navigator.serviceWorker.ready
     return reg
   } catch (err) {
-    console.warn("[Push] Service worker registration failed:", err)
+    log.warn("Service worker registration failed:", err)
     return null
   }
 }
@@ -54,14 +57,14 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
 
   const vapidKey = env.NEXT_PUBLIC_VAPID_KEY
   if (!vapidKey) {
-    console.warn("[Push] NEXT_PUBLIC_VAPID_KEY is not configured")
+    log.warn("NEXT_PUBLIC_VAPID_KEY is not configured")
     return null
   }
 
   // Request permission
   const permission = await Notification.requestPermission()
   if (permission !== "granted") {
-    console.warn("[Push] Notification permission denied")
+    log.warn("Notification permission denied")
     return null
   }
 
