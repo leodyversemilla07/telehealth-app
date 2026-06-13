@@ -12,12 +12,16 @@ import {
 } from "@nestjs/common"
 import { FileInterceptor } from "@nestjs/platform-express"
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
   ApiBody,
   ApiConsumes,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from "@nestjs/swagger"
 import { Throttle } from "@nestjs/throttler"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
@@ -40,6 +44,8 @@ export class UsersController {
 
   @Get("me")
   @ApiOperation({ summary: "Get current user profile and session" })
+  @ApiOkResponse({ description: "User profile and session" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
   async getProfile(
     @Session() session: UserSession,
   ): Promise<{ user: PublicUserDto; session: object }> {
@@ -48,6 +54,9 @@ export class UsersController {
 
   @Patch("me")
   @ApiOperation({ summary: "Update current user's name / image" })
+  @ApiOkResponse({ description: "Updated user profile" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
   async updateMyProfile(
     @Session() session: UserSession,
     @Body() dto: UpdateProfileDto,
@@ -75,6 +84,9 @@ export class UsersController {
       properties: { file: { type: "string", format: "binary" } },
     },
   })
+  @ApiOkResponse({ description: "Avatar uploaded successfully" })
+  @ApiBadRequestResponse({ description: "No file or invalid file type" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
   async uploadAvatar(
     @Session() session: UserSession,
     // biome-ignore lint/suspicious/noExplicitAny: Multer file structure is dynamically parsed in Express middleware
@@ -113,6 +125,8 @@ export class UsersController {
 
   @Get("me/sessions")
   @ApiOperation({ summary: "List all active sessions for current user" })
+  @ApiOkResponse({ description: "List of active sessions" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
   async getMySessions(@Session() session: UserSession) {
     return this.usersService.getActiveSessions(
       session.user.id,
@@ -123,6 +137,9 @@ export class UsersController {
   @Delete("me/sessions/:id")
   @ApiOperation({ summary: "Revoke a specific session" })
   @ApiParam({ name: "id", description: "Session ID to revoke" })
+  @ApiOkResponse({ description: "Session revoked" })
+  @ApiNotFoundResponse({ description: "Session not found" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
   async revokeMySession(
     @Session() session: UserSession,
     @Param("id") id: string,
@@ -132,6 +149,8 @@ export class UsersController {
 
   @Delete("me/sessions")
   @ApiOperation({ summary: "Revoke all other sessions" })
+  @ApiOkResponse({ description: "Other sessions revoked" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
   async revokeMyOtherSessions(@Session() session: UserSession) {
     return this.usersService.revokeOtherSessions(
       session.user.id,
@@ -144,6 +163,7 @@ export class UsersController {
   @Get("public")
   @AllowAnonymous()
   @ApiOperation({ summary: "Public health-check endpoint (no auth)" })
+  @ApiOkResponse({ description: "Public endpoint response" })
   async publicRoute(): Promise<{ message: string }> {
     return { message: "Public endpoint" }
   }

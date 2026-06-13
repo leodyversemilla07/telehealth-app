@@ -7,7 +7,16 @@ import {
   HttpStatus,
   Post,
 } from "@nestjs/common"
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { Type } from "class-transformer"
@@ -56,6 +65,9 @@ export class PushController {
 
   @Get("vapid-public-key")
   @ApiOperation({ summary: "Get the VAPID public key for Web Push" })
+  @ApiOkResponse({ description: "VAPID public key" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   getVapidPublicKey() {
     return { publicKey: this.pushService.getVapidPublicKey() }
   }
@@ -63,6 +75,10 @@ export class PushController {
   @Post("subscribe")
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Register a browser push subscription" })
+  @ApiCreatedResponse({ description: "Push subscription registered" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async subscribe(@Session() session: UserSession, @Body() dto: SubscribeDto) {
     return this.pushService.subscribe(session.user.id, dto)
   }
@@ -70,6 +86,10 @@ export class PushController {
   @Delete("subscribe")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Remove a browser push subscription" })
+  @ApiOkResponse({ description: "Push subscription removed" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async unsubscribe(
     @Session() session: UserSession,
     @Body() dto: UnsubscribeDto,

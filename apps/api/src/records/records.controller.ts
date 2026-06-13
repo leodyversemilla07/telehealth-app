@@ -7,7 +7,18 @@ import {
   Post,
   Query,
 } from "@nestjs/common"
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { PaginationDto } from "../common/dto/pagination.dto"
@@ -28,6 +39,10 @@ export class RecordsController {
   @ApiOperation({
     summary: "Create consultation notes after a completed appointment (Doctor)",
   })
+  @ApiCreatedResponse({ description: "Consultation created" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async createConsultation(
     @Session() session: UserSession,
     @Body() dto: CreateConsultationDto,
@@ -43,6 +58,10 @@ export class RecordsController {
     summary: "Get consultation details by appointment ID (Patient or Doctor)",
   })
   @ApiParam({ name: "appointmentId", description: "Appointment ID" })
+  @ApiOkResponse({ description: "Consultation details" })
+  @ApiNotFoundResponse({ description: "Not found" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getConsultationByAppointment(
     @Session() session: UserSession,
     @Param("appointmentId") appointmentId: string,
@@ -61,6 +80,9 @@ export class RecordsController {
   @ApiOperation({
     summary: "Get all my medical records / consultations (Patient)",
   })
+  @ApiOkResponse({ description: "List of consultations" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getMyRecords(
     @Session() session: UserSession,
     @Query() pagination: PaginationDto,
@@ -80,6 +102,10 @@ export class RecordsController {
     summary: "Get a single consultation detail (Patient or Doctor)",
   })
   @ApiParam({ name: "id", description: "Consultation ID" })
+  @ApiOkResponse({ description: "Consultation details" })
+  @ApiNotFoundResponse({ description: "Not found" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getConsultation(
     @Session() session: UserSession,
     @Param("id") id: string,
@@ -122,6 +148,11 @@ export class RecordsController {
     summary: "Add a prescription to an existing consultation (Doctor)",
   })
   @ApiParam({ name: "id", description: "Consultation ID" })
+  @ApiCreatedResponse({ description: "Prescription added" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiNotFoundResponse({ description: "Not found" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async addPrescription(
     @Session() session: UserSession,
     @Param("id") consultationId: string,
@@ -141,6 +172,9 @@ export class RecordsController {
   @ApiOperation({
     summary: "Get all my prescriptions across all consultations (Patient)",
   })
+  @ApiOkResponse({ description: "List of prescriptions" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getMyPrescriptions(
     @Session() session: UserSession,
     @Query() pagination: PaginationDto,
@@ -159,6 +193,9 @@ export class RecordsController {
   @ApiOperation({
     summary: "Get all patients the doctor has seen",
   })
+  @ApiOkResponse({ description: "List of patients" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getDoctorPatients(
     @Session() session: UserSession,
     @Query() pagination: PaginationDto,
@@ -176,6 +213,10 @@ export class RecordsController {
     summary: "Get a patient's medical history for the doctor",
   })
   @ApiParam({ name: "patientId", description: "Patient user ID" })
+  @ApiOkResponse({ description: "Patient medical history" })
+  @ApiNotFoundResponse({ description: "Not found" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getPatientRecordsForDoctor(
     @Session() session: UserSession,
     @Param("patientId") patientId: string,

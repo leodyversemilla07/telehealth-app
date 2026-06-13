@@ -1,5 +1,5 @@
 import { Controller, Get } from "@nestjs/common"
-import { ApiOperation, ApiTags } from "@nestjs/swagger"
+import { ApiOkResponse, ApiOperation, ApiTags } from "@nestjs/swagger"
 import { SkipThrottle } from "@nestjs/throttler"
 import { AllowAnonymous } from "@thallesp/nestjs-better-auth"
 import { AppService } from "./app.service"
@@ -13,6 +13,7 @@ export class AppController {
   @SkipThrottle()
   @AllowAnonymous()
   @ApiOperation({ summary: "Health check with database connectivity" })
+  @ApiOkResponse({ description: "Service is healthy" })
   getHealth() {
     return this.appService.getHealth()
   }

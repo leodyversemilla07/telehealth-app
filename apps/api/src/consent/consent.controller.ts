@@ -1,5 +1,14 @@
 import { Body, Controller, Get, Post } from "@nestjs/common"
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { ConsentService } from "./consent.service"
@@ -16,6 +25,10 @@ export class ConsentController {
   @ApiOperation({
     summary: "Record a consent action (privacy policy, data sharing, etc.)",
   })
+  @ApiCreatedResponse({ description: "Consent recorded" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async recordConsent(
     @Session() session: UserSession,
     @Body() body: RecordConsentDto,
@@ -36,6 +49,9 @@ export class ConsentController {
 
   @Get()
   @ApiOperation({ summary: "Get current user's consent history" })
+  @ApiOkResponse({ description: "Consent history" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getMyConsents(@Session() session: UserSession) {
     return this.consentService.getUserConsents(session.user.id)
   }

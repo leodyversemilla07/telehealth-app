@@ -10,11 +10,17 @@ import {
   Query,
 } from "@nestjs/common"
 import {
+  ApiBadRequestResponse,
   ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiTags,
+  ApiUnauthorizedResponse,
 } from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
@@ -33,6 +39,10 @@ export class AvailabilityController {
   @Put()
   @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Set weekly availability schedule (Doctor)" })
+  @ApiOkResponse({ description: "Availability updated" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async setAvailability(
     @Session() session: UserSession,
     @Body() dto: SetAvailabilityDto,
@@ -43,6 +53,9 @@ export class AvailabilityController {
   @Get("mine")
   @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Get my availability schedule (Doctor)" })
+  @ApiOkResponse({ description: "Doctor availability schedule" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getMyAvailability(@Session() session: UserSession) {
     return this.availabilityService.getMyAvailability(session.user.id)
   }
@@ -52,6 +65,10 @@ export class AvailabilityController {
   @Post("time-off")
   @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Add a time-off period (Doctor)" })
+  @ApiCreatedResponse({ description: "Time-off period added" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async addTimeOff(
     @Session() session: UserSession,
     @Body() dto: CreateTimeOffDto,
@@ -62,6 +79,9 @@ export class AvailabilityController {
   @Get("time-off")
   @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Get my time-off blocks (Doctor)" })
+  @ApiOkResponse({ description: "List of time-off blocks" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getTimeOff(@Session() session: UserSession) {
     return this.availabilityService.getTimeOff(session.user.id)
   }
@@ -70,6 +90,10 @@ export class AvailabilityController {
   @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Remove a time-off entry (Doctor)" })
   @ApiParam({ name: "id", description: "Time-off ID" })
+  @ApiOkResponse({ description: "Time-off entry removed" })
+  @ApiNotFoundResponse({ description: "Not found" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async deleteTimeOff(
     @Session() session: UserSession,
     @Param("id") id: string,
@@ -84,6 +108,8 @@ export class AvailabilityController {
   @ApiOperation({ summary: "Get available slots for a date (public)" })
   @ApiParam({ name: "doctorId", description: "Doctor profile ID" })
   @ApiQuery({ name: "date", description: "Date in YYYY-MM-DD format" })
+  @ApiOkResponse({ description: "Available time slots" })
+  @ApiNotFoundResponse({ description: "Not found" })
   async getAvailableSlots(
     @Param("doctorId") doctorId: string,
     @Query("date") date: string,
@@ -98,6 +124,8 @@ export class AvailabilityController {
   @AllowAnonymous()
   @ApiOperation({ summary: "Get a doctor's weekly schedule (public)" })
   @ApiParam({ name: "doctorId", description: "Doctor profile ID" })
+  @ApiOkResponse({ description: "Doctor weekly schedule" })
+  @ApiNotFoundResponse({ description: "Not found" })
   async getSchedule(@Param("doctorId") doctorId: string) {
     return this.availabilityService.getSchedule(doctorId)
   }

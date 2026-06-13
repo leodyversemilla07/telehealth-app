@@ -7,7 +7,18 @@ import {
   Post,
   Query,
 } from "@nestjs/common"
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from "@nestjs/swagger"
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from "@nestjs/swagger"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { AllowAnonymous, Roles, Session } from "@thallesp/nestjs-better-auth"
 import { DoctorsService } from "./doctors.service"
@@ -30,6 +41,10 @@ export class DoctorsController {
   @ApiOperation({
     summary: "Submit a doctor profile for admin approval",
   })
+  @ApiCreatedResponse({ description: "Doctor profile submitted" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async register(
     @Session() session: UserSession,
     @Body() dto: RegisterDoctorDto,
@@ -42,6 +57,9 @@ export class DoctorsController {
   @Get("profile")
   @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Get current doctor's own profile" })
+  @ApiOkResponse({ description: "Doctor profile" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getMyProfile(@Session() session: UserSession) {
     return this.doctorsService.findByUserId(session.user.id)
   }
@@ -49,6 +67,10 @@ export class DoctorsController {
   @Patch("profile")
   @Roles(["DOCTOR"])
   @ApiOperation({ summary: "Update current doctor's own profile" })
+  @ApiOkResponse({ description: "Doctor profile updated" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async updateMyProfile(
     @Session() session: UserSession,
     @Body() dto: UpdateDoctorProfileDto,
@@ -64,6 +86,7 @@ export class DoctorsController {
     summary:
       "List all approved doctors with optional search, filter, and sort (public)",
   })
+  @ApiOkResponse({ description: "List of approved doctors" })
   async findAllApproved(@Query() query: SearchDoctorsDto) {
     return this.doctorsService.findApproved(query)
   }
@@ -72,6 +95,8 @@ export class DoctorsController {
   @AllowAnonymous()
   @ApiOperation({ summary: "Get a doctor profile by ID (public)" })
   @ApiParam({ name: "id", description: "Doctor profile ID" })
+  @ApiOkResponse({ description: "Doctor profile" })
+  @ApiNotFoundResponse({ description: "Not found" })
   async findOne(@Param("id") id: string) {
     return this.doctorsService.findById(id)
   }

@@ -1,5 +1,13 @@
 import { Body, Controller, Post } from "@nestjs/common"
-import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger"
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from "@nestjs/swagger"
 import { Roles } from "@thallesp/nestjs-better-auth"
 import { GetRecommendationDto } from "./dto"
 import { RecommendationsService } from "./recommendations.service"
@@ -18,6 +26,10 @@ export class RecommendationsController {
     summary:
       "Get AI-powered doctor recommendations based on symptoms (patient only)",
   })
+  @ApiOkResponse({ description: "Doctor recommendations" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async getRecommendation(@Body() dto: GetRecommendationDto) {
     return this.recommendationsService.getRecommendation(dto.symptoms)
   }
@@ -27,6 +39,10 @@ export class RecommendationsController {
   @ApiOperation({
     summary: "AI Symptom Checker - analyze symptoms and get recommendations",
   })
+  @ApiOkResponse({ description: "Symptom analysis results" })
+  @ApiBadRequestResponse({ description: "Invalid input" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
   async checkSymptoms(@Body() dto: GetRecommendationDto) {
     return this.recommendationsService.checkSymptoms(dto.symptoms)
   }
