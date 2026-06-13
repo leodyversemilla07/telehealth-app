@@ -47,7 +47,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useOptimistic, useState } from "react"
 import { toast } from "sonner"
 import {
   useCancelAppointment,
@@ -61,30 +61,40 @@ export default function PatientAppointmentsPage() {
   const { data, isPending, error } = useMyAppointments()
   const appointments = data?.appointments ?? []
 
+  // Optimistic state: instantly mark appointment as CANCELLED before server confirms
+  const [optimisticAppointments, updateOptimistic] = useOptimistic(
+    appointments,
+    (current: typeof appointments, cancelledId: string) =>
+      current.map((a: (typeof appointments)[number]) =>
+        a.id === cancelledId ? { ...a, status: "CANCELLED" as const } : a,
+      ),
+  )
+
   // 2. Cancel appointment mutation
   const cancelMutation = useCancelAppointment()
 
   // Cancel confirmation dialog state
   const [cancelDialogId, setCancelDialogId] = useState<string | null>(null)
 
-  // Handle appointment cancellation
+  // Handle appointment cancellation with optimistic update
   const handleCancel = () => {
     if (!cancelDialogId) return
 
+    const id = cancelDialogId
+    setCancelDialogId(null)
+    updateOptimistic(id)
     toast.loading("Cancelling appointment...", { id: "cancel-appt" })
 
-    cancelMutation.mutate(cancelDialogId, {
+    cancelMutation.mutate(id, {
       onSuccess: () => {
         toast.success("Appointment successfully cancelled", {
           id: "cancel-appt",
         })
-        setCancelDialogId(null)
       },
       onError: (err: Error) => {
         toast.error(err.message || "Failed to cancel appointment", {
           id: "cancel-appt",
         })
-        setCancelDialogId(null)
       },
     })
   }
@@ -156,13 +166,13 @@ export default function PatientAppointmentsPage() {
     }
   }
 
-  const upcoming = appointments.filter(
+  const upcoming = optimisticAppointments.filter(
     (a) =>
       a.status === "BOOKED" ||
       a.status === "CONFIRMED" ||
       a.status === "IN_PROGRESS",
   )
-  const past = appointments.filter(
+  const past = optimisticAppointments.filter(
     (a) => a.status === "COMPLETED" || a.status === "CANCELLED",
   )
 
@@ -350,7 +360,7 @@ export default function PatientAppointmentsPage() {
       )}
 
       {/* Empty State */}
-      {!isPending && !error && appointments.length === 0 && (
+      {!isPending && !error && optimisticAppointments.length === 0 && (
         <Empty className="py-12">
           <EmptyHeader>
             <EmptyMedia variant="icon">
@@ -377,7 +387,7 @@ export default function PatientAppointmentsPage() {
       )}
 
       {/* Appointments with Tabs */}
-      {!isPending && !error && appointments.length > 0 && (
+      {!isPending && !error && optimisticAppointments.length > 0 && (
         <Tabs defaultValue="upcoming">
           <TabsList>
             <TabsTrigger value="upcoming">
