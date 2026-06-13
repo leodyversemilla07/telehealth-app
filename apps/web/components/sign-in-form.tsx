@@ -1,6 +1,5 @@
 "use client"
 
-import type { SignInDto } from "@workspace/shared"
 import { Button } from "@workspace/ui/components/button"
 import {
   Field,
@@ -14,9 +13,31 @@ import { cn } from "@workspace/ui/lib/utils"
 import { ArrowLeft, Key, Shield, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { useActionState, useRef, useState, useTransition } from "react"
+import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
+
+type SignInState = {
+  error: string | null
+  twoFactorRequired: boolean
+}
+
+function SubmitButton({ children }: { children: React.ReactNode }) {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? (
+        <>
+          <Spinner className="mr-2 size-4" />
+          {children === "Sign In" ? "Signing in..." : "Verifying Code..."}
+        </>
+      ) : (
+        children
+      )}
+    </Button>
+  )
+}
 
 export function SignInForm({
   className,
@@ -25,114 +46,114 @@ export function SignInForm({
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackUrl = searchParams.get("callbackUrl")
-  const [form, setForm] = useState<SignInDto>({ email: "", password: "" })
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-
+  const formRef = useRef<HTMLFormElement>(null)
   const [showTwoFactor, setShowTwoFactor] = useState(false)
   const [twoFactorCode, setTwoFactorCode] = useState("")
-  const [twoFactorLoading, setTwoFactorLoading] = useState(false)
-  const [twoFactorError, setTwoFactorError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+  const [state, formAction] = useActionState<SignInState, FormData>(
+    async (_prev, formData) => {
+      const email = formData.get("email") as string
+      const password = formData.get("password") as string
 
-    const res = await authClient.signIn.email(form)
-
-    if (res.error) {
-      setError(res.error.message ?? res.error.statusText)
-      setLoading(false)
-      return
-    }
-
-    const data = res.data as {
-      twoFactorRedirect?: boolean
-      user?: { role?: string }
-    } | null
-    if (data?.twoFactorRedirect) {
-      toast.info("Two-Factor Authentication is required for this account.")
-      setShowTwoFactor(true)
-      setLoading(false)
-      return
-    }
-
-    const role = data?.user?.role ?? "PATIENT"
-    const safeCallbackUrl =
-      callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
-        ? callbackUrl
-        : undefined
-    const dashboard =
-      safeCallbackUrl ??
-      (role === "ADMIN"
-        ? "/admin/dashboard"
-        : role === "DOCTOR"
-          ? "/doctor/dashboard"
-          : "/patient/dashboard")
-
-    toast.success("Successfully logged in!")
-    router.push(dashboard)
-  }
-
-  async function handleTwoFactorSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    if (!twoFactorCode.trim()) return
-
-    setTwoFactorLoading(true)
-    setTwoFactorError(null)
-
-    const isTotp = /^\d{6}$/.test(twoFactorCode.trim())
-
-    try {
-      if (isTotp) {
-        const { error: totpError } = await authClient.twoFactor.verifyTotp({
-          code: twoFactorCode.trim(),
-        })
-        if (totpError) {
-          setTwoFactorError(totpError.message ?? "Invalid verification code.")
-          setTwoFactorLoading(false)
-          return
-        }
-      } else {
-        const { error: backupError } =
-          await authClient.twoFactor.verifyBackupCode({
-            code: twoFactorCode.trim(),
-          })
-        if (backupError) {
-          setTwoFactorError(
-            backupError.message ?? "Invalid recovery backup code.",
-          )
-          setTwoFactorLoading(false)
-          return
+      if (!email || !password) {
+        return {
+          error: "Email and password are required",
+          twoFactorRequired: false,
         }
       }
 
-      toast.success("Multi-Factor authentication successful!")
-      const sessionRes = await authClient.getSession()
-      const role =
-        (sessionRes.data?.user as { role?: string } | undefined)?.role ??
-        "PATIENT"
-      const safeCallbackUrl2FA =
+      const res = await authClient.signIn.email({ email, password })
+
+      if (res.error) {
+        return {
+          error: res.error.message ?? res.error.statusText ?? "Sign in failed",
+          twoFactorRequired: false,
+        }
+      }
+
+      const data = res.data as {
+        twoFactorRedirect?: boolean
+        user?: { role?: string }
+      } | null
+
+      if (data?.twoFactorRedirect) {
+        toast.info("Two-Factor Authentication is required for this account.")
+        return { error: null, twoFactorRequired: true }
+      }
+
+      const role = data?.user?.role ?? "PATIENT"
+      const safeCallbackUrl =
         callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
           ? callbackUrl
           : undefined
-      const dashboard2FA =
-        safeCallbackUrl2FA ??
+      const dashboard =
+        safeCallbackUrl ??
         (role === "ADMIN"
           ? "/admin/dashboard"
           : role === "DOCTOR"
             ? "/doctor/dashboard"
             : "/patient/dashboard")
-      router.push(dashboard2FA)
-    } catch (err) {
-      setTwoFactorError(
-        err instanceof Error
-          ? err.message
-          : "An unexpected error occurred during verification.",
-      )
-      setTwoFactorLoading(false)
-    }
+
+      toast.success("Successfully logged in!")
+      router.push(dashboard)
+      return { error: null, twoFactorRequired: false }
+    },
+    { error: null, twoFactorRequired: false },
+  )
+
+  async function handleTwoFactorSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!twoFactorCode.trim()) return
+
+    startTransition(async () => {
+      try {
+        const isTotp = /^\d{6}$/.test(twoFactorCode.trim())
+
+        if (isTotp) {
+          const { error: totpError } = await authClient.twoFactor.verifyTotp({
+            code: twoFactorCode.trim(),
+          })
+          if (totpError) {
+            toast.error(totpError.message ?? "Invalid verification code.")
+            return
+          }
+        } else {
+          const { error: backupError } =
+            await authClient.twoFactor.verifyBackupCode({
+              code: twoFactorCode.trim(),
+            })
+          if (backupError) {
+            toast.error(backupError.message ?? "Invalid recovery backup code.")
+            return
+          }
+        }
+
+        toast.success("Multi-Factor authentication successful!")
+        const sessionRes = await authClient.getSession()
+        const role =
+          (sessionRes.data?.user as { role?: string } | undefined)?.role ??
+          "PATIENT"
+        const safeCallbackUrl2FA =
+          callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//")
+            ? callbackUrl
+            : undefined
+        const dashboard2FA =
+          safeCallbackUrl2FA ??
+          (role === "ADMIN"
+            ? "/admin/dashboard"
+            : role === "DOCTOR"
+              ? "/doctor/dashboard"
+              : "/patient/dashboard")
+        router.push(dashboard2FA)
+      } catch (err) {
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : "An unexpected error occurred during verification.",
+        )
+      }
+    })
   }
 
   if (showTwoFactor) {
@@ -168,7 +189,7 @@ export function SignInForm({
                     placeholder="000000 or backup-code"
                     value={twoFactorCode}
                     onChange={(e) => setTwoFactorCode(e.target.value)}
-                    disabled={twoFactorLoading}
+                    disabled={isPending}
                     className="pl-10 font-mono tracking-wider"
                     required
                     autoFocus
@@ -176,28 +197,8 @@ export function SignInForm({
                 </div>
               </Field>
 
-              {twoFactorError && (
-                <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
-                  <ShieldAlert className="size-4 shrink-0" />
-                  <p>{twoFactorError}</p>
-                </div>
-              )}
-
               <Field>
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={twoFactorLoading}
-                >
-                  {twoFactorLoading ? (
-                    <>
-                      <Spinner className="mr-2 size-4" />
-                      Verifying Code...
-                    </>
-                  ) : (
-                    "Verify Code"
-                  )}
-                </Button>
+                <SubmitButton>Verify Code</SubmitButton>
               </Field>
             </FieldGroup>
 
@@ -209,7 +210,6 @@ export function SignInForm({
               onClick={() => {
                 setShowTwoFactor(false)
                 setTwoFactorCode("")
-                setTwoFactorError(null)
               }}
             >
               <ArrowLeft className="size-3" />
@@ -223,8 +223,9 @@ export function SignInForm({
 
   return (
     <form
+      ref={formRef}
       className={cn("flex flex-col gap-6", className)}
-      onSubmit={handleSubmit}
+      action={formAction}
       {...props}
     >
       <FieldGroup>
@@ -239,12 +240,10 @@ export function SignInForm({
           <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input
             id="email"
+            name="email"
             type="email"
             placeholder="m@example.com"
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             required
-            disabled={loading}
           />
         </Field>
 
@@ -260,35 +259,22 @@ export function SignInForm({
           </div>
           <Input
             id="password"
+            name="password"
             type="password"
             placeholder="••••••••"
-            value={form.password}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, password: e.target.value }))
-            }
             required
-            disabled={loading}
           />
         </Field>
 
-        {error && (
+        {state.error && (
           <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
             <ShieldAlert className="size-4 shrink-0" />
-            <p>{error}</p>
+            <p>{state.error}</p>
           </div>
         )}
 
         <Field>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? (
-              <>
-                <Spinner className="mr-2 size-4" />
-                Signing in...
-              </>
-            ) : (
-              "Sign In"
-            )}
-          </Button>
+          <SubmitButton>Sign In</SubmitButton>
         </Field>
 
         <Field>

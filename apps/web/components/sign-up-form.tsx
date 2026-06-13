@@ -1,6 +1,5 @@
 "use client"
 
-import type { SignUpDto } from "@workspace/shared"
 import { Button } from "@workspace/ui/components/button"
 import {
   Field,
@@ -14,48 +13,83 @@ import { cn } from "@workspace/ui/lib/utils"
 import { ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useActionState, useState } from "react"
+import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
+
+type SignUpState = {
+  error: string | null
+  success: boolean
+  email: string
+  role: string
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus()
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? (
+        <>
+          <Spinner className="mr-2 size-4" />
+          Creating account...
+        </>
+      ) : (
+        "Create Account"
+      )}
+    </Button>
+  )
+}
 
 export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
   const router = useRouter()
-  const [form, setForm] = useState<SignUpDto>({
-    name: "",
-    email: "",
-    password: "",
-    role: "PATIENT",
-  })
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [verificationSent, setVerificationSent] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<"PATIENT" | "DOCTOR">(
+    "PATIENT",
+  )
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError(null)
-    setLoading(true)
+  const [state, formAction] = useActionState<SignUpState, FormData>(
+    async (_prev, formData) => {
+      const name = formData.get("name") as string
+      const email = formData.get("email") as string
+      const password = formData.get("password") as string
+      const role = formData.get("role") as string
 
-    const { error: signUpError } = await authClient.signUp.email({
-      name: form.name,
-      email: form.email,
-      password: form.password,
-      role: form.role,
-    } as unknown as Parameters<typeof authClient.signUp.email>[0])
+      if (!name || !email || !password) {
+        return {
+          error: "All fields are required",
+          success: false,
+          email: "",
+          role,
+        }
+      }
 
-    if (signUpError) {
-      setError(signUpError.message ?? signUpError.statusText)
-      setLoading(false)
-      return
-    }
+      const { error: signUpError } = await authClient.signUp.email({
+        name,
+        email,
+        password,
+        role,
+      } as unknown as Parameters<typeof authClient.signUp.email>[0])
 
-    toast.success("Account created successfully!")
-    setVerificationSent(true)
-  }
+      if (signUpError) {
+        return {
+          error:
+            signUpError.message ?? signUpError.statusText ?? "Sign up failed",
+          success: false,
+          email: "",
+          role,
+        }
+      }
 
-  if (verificationSent) {
+      toast.success("Account created successfully!")
+      return { error: null, success: true, email, role }
+    },
+    { error: null, success: false, email: "", role: "PATIENT" },
+  )
+
+  if (state.success) {
     return (
       <div className="flex flex-col items-center gap-6 text-center p-8">
         <div className="size-16 rounded-full bg-primary/10 flex items-center justify-center">
@@ -79,11 +113,11 @@ export function SignUpForm({
           <p className="text-muted-foreground mt-2">
             We sent a verification link to
             <br />
-            <span className="font-medium text-foreground">{form.email}</span>
+            <span className="font-medium text-foreground">{state.email}</span>
           </p>
         </div>
         <p className="text-sm text-muted-foreground">
-          {form.role === "DOCTOR"
+          {state.role === "DOCTOR"
             ? "After verifying, sign in and complete the doctor application from the doctor registration page."
             : "Click the link in the email to verify your account and sign in."}
         </p>
@@ -97,7 +131,7 @@ export function SignUpForm({
   return (
     <form
       className={cn("flex flex-col gap-6", className)}
-      onSubmit={handleSubmit}
+      action={formAction}
       {...props}
     >
       <FieldGroup>
@@ -112,12 +146,10 @@ export function SignUpForm({
           <FieldLabel htmlFor="name">Name</FieldLabel>
           <Input
             id="name"
+            name="name"
             type="text"
             placeholder="John Doe"
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             required
-            disabled={loading}
           />
         </Field>
 
@@ -125,12 +157,10 @@ export function SignUpForm({
           <FieldLabel htmlFor="email">Email</FieldLabel>
           <Input
             id="email"
+            name="email"
             type="email"
             placeholder="m@example.com"
-            value={form.email}
-            onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             required
-            disabled={loading}
           />
         </Field>
 
@@ -138,28 +168,24 @@ export function SignUpForm({
           <FieldLabel htmlFor="password">Password</FieldLabel>
           <Input
             id="password"
+            name="password"
             type="password"
             placeholder="••••••••"
-            value={form.password}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, password: e.target.value }))
-            }
             required
-            disabled={loading}
           />
         </Field>
 
         <Field>
           <FieldLabel>I want to join as</FieldLabel>
+          <input type="hidden" name="role" value={selectedRole} />
           <div className="grid grid-cols-2 gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => setForm((f) => ({ ...f, role: "PATIENT" }))}
-              disabled={loading}
+              onClick={() => setSelectedRole("PATIENT")}
               className={cn(
                 "flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer h-auto w-full",
-                form.role === "PATIENT"
+                selectedRole === "PATIENT"
                   ? "border-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
                   : "border-border bg-background text-muted-foreground hover:bg-muted/30",
               )}
@@ -183,11 +209,10 @@ export function SignUpForm({
             <Button
               type="button"
               variant="outline"
-              onClick={() => setForm((f) => ({ ...f, role: "DOCTOR" }))}
-              disabled={loading}
+              onClick={() => setSelectedRole("DOCTOR")}
               className={cn(
                 "flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer h-auto w-full",
-                form.role === "DOCTOR"
+                selectedRole === "DOCTOR"
                   ? "border-primary bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary"
                   : "border-border bg-background text-muted-foreground hover:bg-muted/30",
               )}
@@ -211,24 +236,15 @@ export function SignUpForm({
           </div>
         </Field>
 
-        {error && (
+        {state.error && (
           <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
             <ShieldAlert className="size-4 shrink-0" />
-            <p>{error}</p>
+            <p>{state.error}</p>
           </div>
         )}
 
         <Field>
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? (
-              <>
-                <Spinner className="mr-2 size-4" />
-                Creating account...
-              </>
-            ) : (
-              "Create Account"
-            )}
-          </Button>
+          <SubmitButton />
         </Field>
 
         <Field>
