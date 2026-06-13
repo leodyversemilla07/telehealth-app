@@ -3,7 +3,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import type {
   ConsultationWithPrescriptionsDto,
-  PrescriptionDto,
   PrescriptionWithConsultationDto,
 } from "@workspace/shared"
 import { apiClient } from "@/lib/api-client"
@@ -47,17 +46,6 @@ export function usePatientRecords() {
   })
 }
 
-export function useConsultation(id: string) {
-  return useQuery({
-    queryKey: recordKeys.detail(id),
-    queryFn: () =>
-      apiClient.get<ConsultationWithPrescriptionsDto>(
-        `/records/consultations/${id}`,
-      ),
-    enabled: !!id,
-  })
-}
-
 // ─── Doctor Mutations ────────────────────────────────────────
 
 export function useCreateConsultation() {
@@ -69,26 +57,6 @@ export function useCreateConsultation() {
         dto,
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: recordKeys.lists() }),
-  })
-}
-
-export function useAddPrescription() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: ({
-      consultationId,
-      ...dto
-    }: CreatePrescriptionInput & { consultationId: string }) =>
-      apiClient.post<PrescriptionDto>(
-        `/records/consultations/${consultationId}/prescriptions`,
-        dto,
-      ),
-    onSuccess: (_data, variables) => {
-      qc.invalidateQueries({
-        queryKey: recordKeys.detail(variables.consultationId),
-      })
-      qc.invalidateQueries({ queryKey: recordKeys.lists() })
-    },
   })
 }
 

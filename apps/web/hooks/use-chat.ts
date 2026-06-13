@@ -55,14 +55,6 @@ export function useChatMessages(otherUserId: string) {
   })
 }
 
-export function useUnreadCount() {
-  return useQuery({
-    queryKey: chatKeys.unreadCount(),
-    queryFn: () => apiClient.get<{ count: number }>("/chat/unread-count"),
-    refetchInterval: 10000,
-  })
-}
-
 export function useSendMessage() {
   const queryClient = useQueryClient()
 

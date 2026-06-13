@@ -10,13 +10,6 @@ import type {
 } from "@workspace/shared"
 import { apiClient } from "@/lib/api-client"
 
-// Re-export doctor hooks from dedicated module for backward compatibility
-export {
-  doctorKeys,
-  useDoctor,
-  useDoctors as useApprovedDoctors,
-} from "./use-doctors"
-
 // ─── Types ────────────────────────────────────────────────────
 
 export interface PaginatedResponse<T> {

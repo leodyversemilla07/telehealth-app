@@ -13,7 +13,6 @@ export const doctorKeys = {
     search?: string
     sort?: "price" | "name"
   }) => [...doctorKeys.all, "list", filters] as const,
-  detail: (id: string) => [...doctorKeys.all, "detail", id] as const,
 }
 
 // ─── Doctor Discovery ────────────────────────────────────────
@@ -27,13 +26,5 @@ export function useDoctors(filters?: {
     queryKey: doctorKeys.list(filters),
     queryFn: () =>
       apiClient.get<DoctorProfileDto[]>("/doctors", { params: filters }),
-  })
-}
-
-export function useDoctor(id: string) {
-  return useQuery({
-    queryKey: doctorKeys.detail(id),
-    queryFn: () => apiClient.get<DoctorProfileDto>(`/doctors/by-id/${id}`),
-    enabled: !!id,
   })
 }
