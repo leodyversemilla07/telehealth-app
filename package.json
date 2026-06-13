@@ -23,13 +23,12 @@
     "deploy": "pm2 restart ecosystem.config.js --update-env"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.15",
-    "@nestjs/cli": "^11.0.21",
-    "@types/uuid": "^11.0.0",
+    "@biomejs/biome": "^2.4.16",
+    "@nestjs/cli": "^11.0.23",
     "@workspace/typescript-config": "workspace:*",
     "concurrently": "^9.2.1",
     "prisma": "^7.8.0",
-    "turbo": "^2.8.17",
+    "turbo": "^2.9.18",
     "typescript": "5.9.3"
   },
   "packageManager": "pnpm@11.4.0",
