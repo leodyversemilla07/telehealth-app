@@ -112,7 +112,8 @@ export class AppointmentsService {
       }
 
       return windows
-    } catch {
+    } catch (err) {
+      this.logger.debug(`Failed to parse schedule windows: ${String(err)}`)
       return []
     }
   }

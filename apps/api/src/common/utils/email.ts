@@ -47,17 +47,29 @@ function getTransporter(): nodemailer.Transporter {
       })
       logger.log("Email transporter: Gmail SMTP")
     } else {
-      // Fallback to Ethereal for development
-      logger.warn("No email provider configured. Using Ethereal (test only)")
-      transporter = nodemailer.createTransport({
-        host: "smtp.ethereal.email",
-        port: 587,
-        secure: false,
-        auth: {
-          user: "test@ethereal.email",
-          pass: "test",
-        },
-      })
+      // Fallback to Ethereal for development only
+      if (process.env.NODE_ENV === "production") {
+        logger.error(
+          "No email provider configured in production. Emails will not be sent.",
+        )
+        // Return a no-op transporter that silently drops emails
+        transporter = {
+          sendMail: async () => {
+            logger.error("Email not sent — no provider configured")
+          },
+        } as unknown as nodemailer.Transporter
+      } else {
+        logger.warn("No email provider configured. Using Ethereal (test only)")
+        transporter = nodemailer.createTransport({
+          host: "smtp.ethereal.email",
+          port: 587,
+          secure: false,
+          auth: {
+            user: "test@ethereal.email",
+            pass: "test",
+          },
+        })
+      }
     }
   }
   return transporter

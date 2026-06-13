@@ -277,7 +277,10 @@ export class AvailabilityService {
         return JSON.parse(
           ((schedule as Record<string, unknown>)[dayKey] as string) || "[]",
         )
-      } catch {
+      } catch (err) {
+        this.logger.debug(
+          `Failed to parse day slots for ${dayKey}: ${String(err)}`,
+        )
         return []
       }
     })()

@@ -89,8 +89,7 @@ export class UsersController {
   @ApiUnauthorizedResponse({ description: "Not authenticated" })
   async uploadAvatar(
     @Session() session: UserSession,
-    // biome-ignore lint/suspicious/noExplicitAny: Multer file structure is dynamically parsed in Express middleware
-    @UploadedFile() file: any,
+    @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
       throw new BadRequestException("No file provided")

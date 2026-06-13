@@ -1,8 +1,7 @@
 import type { StorageProvider } from "./storage.interface"
 
 // Dynamic import to avoid requiring @aws-sdk/client-s3 when not using S3
-// biome-ignore lint/suspicious/noExplicitAny: dynamic optional dependency
-async function getS3(): Promise<any> {
+async function getS3() {
   return import("@aws-sdk/client-s3")
 }
 
@@ -11,8 +10,9 @@ async function getS3(): Promise<any> {
  * Falls back to LocalStorage if AWS credentials are not configured.
  */
 export class S3Storage implements StorageProvider {
-  // biome-ignore lint/suspicious/noExplicitAny: dynamic S3 client loaded lazily
-  private _client: any
+  private _client: InstanceType<
+    Awaited<ReturnType<typeof getS3>>["S3Client"]
+  > | null = null
   private readonly bucket: string
   private readonly publicUrlBase: string
 
