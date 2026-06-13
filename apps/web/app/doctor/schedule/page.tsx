@@ -57,6 +57,9 @@ import {
   useMyTimeOff,
   useSetAvailability,
 } from "@/hooks/use-availability"
+import { createLogger } from "@/lib/logger"
+
+const log = createLogger("Schedule")
 
 interface DayConfig {
   active: boolean
@@ -151,6 +154,7 @@ export default function DoctorSchedulePage() {
               }
             }
           } catch {
+            log.warn("Failed to parse schedule for", day.key)
             loadedDays[day.key] = {
               active: false,
               start: "09:00",

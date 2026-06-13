@@ -102,7 +102,10 @@ export async function unsubscribeFromPush(): Promise<boolean> {
       body: JSON.stringify({ endpoint: sub.endpoint }),
     })
   } catch {
-    // Best-effort API call; always unsubscribe locally
+    // Best-effort API call; always unsubscribe locally even if server call fails
+    log.warn(
+      "Failed to unsubscribe from push on server (local unsubscribe still proceeds)",
+    )
   }
 
   await sub.unsubscribe()

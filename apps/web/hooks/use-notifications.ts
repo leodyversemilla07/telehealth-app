@@ -141,6 +141,7 @@ export function useNotificationSocket(enabled = true) {
         if (!cancelled) connectSocket(data?.session?.token)
       })
       .catch(() => {
+        log.debug("Session fetch failed, connecting socket without auth")
         if (!cancelled) connectSocket()
       })
 
