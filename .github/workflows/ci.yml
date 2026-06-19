@@ -121,11 +121,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build workspace dependencies
+        run: pnpm --filter @workspace/shared build
+
       - name: Run tests
         run: pnpm --filter web test
 
       - name: Build Web
-        run: pnpm --filter web build
+        run: pnpm --filter web... build
 
   # ─────────────────────────────────────────────────────────────
   # Deploy to EC2 (only on push to main)
@@ -154,13 +157,14 @@ jobs:
             # Install dependencies
             pnpm install --frozen-lockfile
             
+            # Build workspace dependencies
+            pnpm --filter @workspace/shared build
+            
             # Build API
             pnpm --filter api build
             
             # Build Web (standalone mode)
-            cd apps/web
-            NEXT_OUTPUT=standalone pnpm build
-            cd ../..
+            pnpm --filter web build
             
             # Copy static files for standalone
             cp -r apps/web/public apps/web/.next/standalone/apps/web/
