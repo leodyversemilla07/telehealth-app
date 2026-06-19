@@ -6,8 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common"
+import { Cron, CronExpression } from "@nestjs/schedule"
 import { formatPHTFull } from "@workspace/shared"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { EmailService } from "../common/services/email.service"
 import type { AppointmentStatus } from "../generated/prisma/client.js"
 import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
@@ -61,6 +63,7 @@ export class AppointmentsService {
     private readonly prisma: PrismaService,
     private readonly notifications: NotificationsService,
     private readonly auditLogs: AuditLogsService,
+    private readonly email: EmailService,
   ) {}
 
   private parseIsoTimeRange(startIso: string, endIso: string) {
@@ -610,8 +613,9 @@ export class AppointmentsService {
 
   /**
    * Send reminders for appointments happening in the next 24 hours.
-   * Can be called by a cron job or manually.
+   * Runs every hour to catch newly booked appointments.
    */
+  @Cron(CronExpression.EVERY_HOUR)
   async sendUpcomingReminders() {
     const now = new Date()
     const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
@@ -634,7 +638,7 @@ export class AppointmentsService {
         const doctorName = appt.doctor.user.name ?? "Doctor"
         const patientName = appt.patient.name ?? "Patient"
 
-        // Notify patient
+        // In-app notification for patient
         await this.notifications.createNotification(
           appt.patientId,
           "APPOINTMENT_REMINDER",
@@ -642,13 +646,45 @@ export class AppointmentsService {
           `Your consultation with Dr. ${doctorName} is scheduled for ${formattedTime}.`,
         )
 
-        // Notify doctor
+        // In-app notification for doctor
         await this.notifications.createNotification(
           appt.doctor.user.id,
           "APPOINTMENT_REMINDER",
           "Upcoming Appointment Reminder",
           `You have a consultation with ${patientName} scheduled for ${formattedTime}.`,
         )
+
+        // Email reminders (best-effort)
+        const patientEmail = appt.patient.email
+        const doctorEmail = appt.doctor.user.email
+        if (patientEmail) {
+          this.email
+            .sendAppointmentReminder(
+              patientEmail,
+              appt.patient.name ?? "Patient",
+              `Dr. ${doctorName}`,
+              formattedTime,
+            )
+            .catch((e) =>
+              this.logger.error(
+                `Failed to email patient reminder: ${e instanceof Error ? e.message : String(e)}`,
+              ),
+            )
+        }
+        if (doctorEmail) {
+          this.email
+            .sendAppointmentReminder(
+              doctorEmail,
+              doctorName,
+              patientName,
+              formattedTime,
+            )
+            .catch((e) =>
+              this.logger.error(
+                `Failed to email doctor reminder: ${e instanceof Error ? e.message : String(e)}`,
+              ),
+            )
+        }
 
         sent++
       } catch (err) {
