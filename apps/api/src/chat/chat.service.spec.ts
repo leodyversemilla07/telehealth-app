@@ -1,5 +1,6 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
+import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { ChatService } from "./chat.service"
 
@@ -46,6 +47,10 @@ describe("ChatService", () => {
         {
           provide: PrismaService,
           useValue: prismaMock as unknown as PrismaService,
+        },
+        {
+          provide: SocketService,
+          useValue: { emitToUser: jest.fn() },
         },
       ],
     }).compile()
