@@ -4,6 +4,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
 import {
+  FileText,
   Heart,
   Key,
   Lock,
@@ -66,6 +67,13 @@ function getSettingsNavItems(role: string): NavItem[] {
     })
   }
 
+  // Privacy & Consent for all roles (NPC compliance)
+  items.push({
+    title: "Privacy & Consent",
+    href: `${base}/privacy`,
+    icon: <FileText className="h-4 w-4" />,
+  })
+
   if (role === "doctor") {
     items.splice(1, 0, {
       title: "Professional Info",
@@ -79,15 +87,16 @@ function getSettingsNavItems(role: string): NavItem[] {
 
 export function SettingsLayout({
   children,
-  role,
+  role: userRole,
 }: {
   children: React.ReactNode
+  /** User role for rendering the correct settings nav items */
   role?: "patient" | "doctor" | "admin"
 }) {
   const pathname = usePathname()
 
   // Infer role from pathname if not explicitly provided
-  let resolvedRole = role
+  let resolvedRole = userRole
   if (!resolvedRole && pathname) {
     if (pathname.includes("/patient/settings")) {
       resolvedRole = "patient"
