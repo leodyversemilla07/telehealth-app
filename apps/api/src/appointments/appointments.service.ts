@@ -134,9 +134,14 @@ export class AppointmentsService {
       return false
     }
 
-    // Appointment times from getAvailableSlots are PHT-local (no timezone
-    // suffix). Treat them directly as PHT for schedule comparison.
-    const dayKey = DAY_BY_INDEX[start.getDay()]
+    // The dates are stored as UTC. Convert to PHT (UTC+8) explicitly so the
+    // schedule comparison works regardless of server timezone.
+    const phtOffsetMs = 8 * 60 * 60 * 1000
+
+    const phtStart = new Date(start.getTime() + phtOffsetMs)
+    const phtEnd = new Date(end.getTime() + phtOffsetMs)
+
+    const dayKey = DAY_BY_INDEX[phtStart.getUTCDay()]
     if (!dayKey) return false
 
     const rawDaySchedule = schedule[dayKey]
@@ -145,8 +150,9 @@ export class AppointmentsService {
     const windows = this.parseScheduleWindows(rawDaySchedule)
     if (windows.length === 0) return false
 
-    const phtStartMinutes = start.getHours() * 60 + start.getMinutes()
-    const phtEndMinutes = end.getHours() * 60 + end.getMinutes()
+    const phtStartMinutes =
+      phtStart.getUTCHours() * 60 + phtStart.getUTCMinutes()
+    const phtEndMinutes = phtEnd.getUTCHours() * 60 + phtEnd.getUTCMinutes()
     const duration = phtEndMinutes - phtStartMinutes
 
     if (duration <= 0) return false
