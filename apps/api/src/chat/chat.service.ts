@@ -2,14 +2,21 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from "@nestjs/common"
 import { sanitize } from "../common/utils/sanitize"
+import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 
 @Injectable()
 export class ChatService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(ChatService.name)
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly socket: SocketService,
+  ) {}
 
   private async assertCanChat(
     userId: string,
@@ -59,7 +66,7 @@ export class ChatService {
 
     const safeContent = sanitize(content, 5000) ?? ""
 
-    return this.prisma.chatMessage.create({
+    const message = await this.prisma.chatMessage.create({
       data: {
         senderId,
         receiverId,
@@ -71,6 +78,19 @@ export class ChatService {
         receiver: { select: { id: true, name: true, email: true } },
       },
     })
+
+    // Real-time delivery: emit to the receiver via Socket.io
+    try {
+      this.socket.emitToUser(receiverId, "chat:message", message)
+      // Also emit to the sender so their other sessions get the message
+      this.socket.emitToUser(senderId, "chat:message", message)
+    } catch (err) {
+      this.logger.error(
+        `Failed to emit chat message via socket: ${err instanceof Error ? err.message : String(err)}`,
+      )
+    }
+
+    return message
   }
 
   /**

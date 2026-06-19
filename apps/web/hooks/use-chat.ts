@@ -51,7 +51,9 @@ export function useChatMessages(otherUserId: string) {
     queryFn: () =>
       apiClient.get<ChatMessage[]>(`/chat/conversation/${otherUserId}`),
     enabled: !!otherUserId,
-    refetchInterval: 3000,
+    // Socket.io handles real-time delivery; this is a fallback for edge cases
+    refetchInterval: 30_000,
+    staleTime: 10_000,
   })
 }
 

@@ -27,6 +27,7 @@ import {
   useMarkAsRead,
   useSendMessage,
 } from "@/hooks/use-chat"
+import { useChatSocket } from "@/hooks/use-chat-socket"
 import { apiClient } from "@/lib/api-client"
 
 interface UserProfile {
@@ -55,6 +56,9 @@ export function ChatPage({
   })
 
   const currentUserId = userData?.user?.id || ""
+
+  // Real-time chat via Socket.io — eliminates 3-second polling delay
+  useChatSocket(currentUserId, true)
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [message, setMessage] = useState("")
