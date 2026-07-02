@@ -48,6 +48,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
       )
     }
 
+    // Add rate limit headers when throttled
+    if (status === HttpStatus.TOO_MANY_REQUESTS) {
+      response.setHeader("Retry-After", "60")
+      response.setHeader("X-RateLimit-Limit", "30")
+      response.setHeader("X-RateLimit-Remaining", "0")
+      response.setHeader(
+        "X-RateLimit-Reset",
+        Math.ceil(Date.now() / 1000 + 60).toString(),
+      )
+    }
+
     // Return standardized response shape matching front-end expectations
     response.status(status).json({
       statusCode: status,

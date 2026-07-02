@@ -85,6 +85,7 @@ const nextConfig = {
 
   // Headers for security
   async headers() {
+    const isProduction = process.env.NODE_ENV === "production"
     return [
       {
         source: "/(.*)",
@@ -102,6 +103,19 @@ const nextConfig = {
             value: "strict-origin-when-cross-origin",
           },
           {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=()",
+          },
+          // HSTS: only in production to avoid issues with localhost
+          ...(isProduction
+            ? [
+                {
+                  key: "Strict-Transport-Security",
+                  value: "max-age=63072000; includeSubDomains; preload",
+                },
+              ]
+            : []),
+          {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
@@ -112,6 +126,8 @@ const nextConfig = {
               "font-src 'self'",
               "object-src 'none'",
               "frame-ancestors 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
             ].join("; "),
           },
         ],
