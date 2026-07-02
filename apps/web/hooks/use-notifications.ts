@@ -137,7 +137,8 @@ export function useNotificationSocket(enabled = true) {
       })
     }
 
-    // Use the auth client's internal session fetch for consistency
+    // Fetch session token for cross-origin WebSocket auth
+    // Uses the Better Auth REST endpoint directly for socket initialization
     fetch("/api/auth/get-session", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {
