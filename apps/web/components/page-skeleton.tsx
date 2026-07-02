@@ -6,16 +6,21 @@ import { Skeleton } from "@workspace/ui/components/skeleton"
  */
 export function PageSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+    <div
+      className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4"
+      role="status"
+      aria-label="Loading page content"
+    >
       {/* Header skeleton */}
-      <Skeleton className="h-24 rounded-xl" />
+      <Skeleton className="h-24 rounded-xl" aria-hidden="true" />
 
       {/* Content skeletons */}
-      <div className="space-y-4">
+      <div className="space-y-4" aria-hidden="true">
         {Array.from({ length: rows }).map((_, i) => (
           <Skeleton key={i} className="h-32 rounded-xl" />
         ))}
       </div>
+      <span className="sr-only">Loading...</span>
     </div>
   )
 }
@@ -23,13 +28,18 @@ export function PageSkeleton({ rows = 3 }: { rows?: number }) {
 /** Compact skeleton for smaller pages (settings, auth, etc.) */
 export function CompactSkeleton({ rows = 2 }: { rows?: number }) {
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-      <Skeleton className="h-16 rounded-xl" />
-      <div className="space-y-3">
+    <div
+      className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4"
+      role="status"
+      aria-label="Loading page content"
+    >
+      <Skeleton className="h-16 rounded-xl" aria-hidden="true" />
+      <div className="space-y-3" aria-hidden="true">
         {Array.from({ length: rows }).map((_, i) => (
           <Skeleton key={i} className="h-20 rounded-xl" />
         ))}
       </div>
+      <span className="sr-only">Loading...</span>
     </div>
   )
 }
@@ -37,9 +47,13 @@ export function CompactSkeleton({ rows = 2 }: { rows?: number }) {
 /** Table skeleton for data-heavy pages (users, doctors, audit logs) */
 export function TableSkeleton({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-      <Skeleton className="h-20 rounded-xl" />
-      <div className="space-y-1">
+    <div
+      className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4"
+      role="status"
+      aria-label="Loading table content"
+    >
+      <Skeleton className="h-20 rounded-xl" aria-hidden="true" />
+      <div className="space-y-1" aria-hidden="true">
         {/* Table header */}
         <Skeleton className="h-10 rounded-lg" />
         {/* Table rows */}
@@ -47,6 +61,7 @@ export function TableSkeleton({ rows = 5 }: { rows?: number }) {
           <Skeleton key={i} className="h-14 rounded-lg" />
         ))}
       </div>
+      <span className="sr-only">Loading...</span>
     </div>
   )
 }

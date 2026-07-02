@@ -47,9 +47,16 @@ export function ErrorBoundary({
   }, [])
 
   return (
-    <div className="flex min-h-[60vh] items-center justify-center p-6">
+    <div
+      className="flex min-h-[60vh] items-center justify-center p-6"
+      role="alert"
+      aria-live="assertive"
+    >
       <div className="w-full max-w-sm text-center space-y-6">
-        <div className="h-16 w-16 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive mx-auto">
+        <div
+          className="h-16 w-16 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive mx-auto"
+          aria-hidden="true"
+        >
           <AlertTriangle className="h-8 w-8" />
         </div>
         <div className="space-y-2">
@@ -72,9 +79,18 @@ export function ErrorBoundary({
             <Copy className="h-3 w-3 shrink-0" />
           </button>
         )}
-        {copied && <p className="text-xs text-success">Copied to clipboard</p>}
-        <Button onClick={reset} variant="default" className="gap-2">
-          <RefreshCcw className="h-4 w-4" />
+        {copied && (
+          <p className="text-xs text-success" role="status" aria-live="polite">
+            Copied to clipboard
+          </p>
+        )}
+        <Button
+          onClick={reset}
+          variant="default"
+          className="gap-2"
+          aria-label="Try again"
+        >
+          <RefreshCcw className="h-4 w-4" aria-hidden="true" />
           Try again
         </Button>
       </div>
