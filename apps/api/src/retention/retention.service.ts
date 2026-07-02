@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common"
+import { ConfigService } from "@nestjs/config"
 import { Cron, CronExpression } from "@nestjs/schedule"
 import { PrismaService } from "../prisma/prisma.service"
 
@@ -6,7 +7,10 @@ import { PrismaService } from "../prisma/prisma.service"
 export class RetentionService {
   private readonly logger = new Logger(RetentionService.name)
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async purgeOldRecords() {
@@ -34,7 +38,8 @@ export class RetentionService {
   }
 
   private async purgeNotifications(): Promise<string> {
-    const retentionDays = Number(process.env.RETENTION_NOTIFICATIONS_DAYS) || 90
+    const retentionDays =
+      this.config.get<number>("RETENTION_NOTIFICATIONS_DAYS") || 90
     const cutoff = new Date()
     cutoff.setDate(cutoff.getDate() - retentionDays)
     const count = await this.prisma.notification.deleteMany({
@@ -45,7 +50,7 @@ export class RetentionService {
 
   private async purgeSecurityAlerts(): Promise<string> {
     const retentionDays =
-      Number(process.env.RETENTION_SECURITY_ALERTS_DAYS) || 730
+      this.config.get<number>("RETENTION_SECURITY_ALERTS_DAYS") || 730
     const cutoff = new Date()
     cutoff.setDate(cutoff.getDate() - retentionDays)
     const count = await this.prisma.securityAlert.deleteMany({
@@ -55,7 +60,8 @@ export class RetentionService {
   }
 
   private async purgeAuditLogs(): Promise<string> {
-    const retentionDays = Number(process.env.RETENTION_AUDIT_LOGS_DAYS) || 2555
+    const retentionDays =
+      this.config.get<number>("RETENTION_AUDIT_LOGS_DAYS") || 2555
     const cutoff = new Date()
     cutoff.setDate(cutoff.getDate() - retentionDays)
     const count = await this.prisma.auditLog.deleteMany({

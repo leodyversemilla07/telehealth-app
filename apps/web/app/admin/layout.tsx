@@ -9,6 +9,7 @@ import {
 import { ShieldAlert } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs"
 import { SidebarAdmin } from "@/components/sidebar-admin"
 
@@ -26,7 +27,7 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { data: session } = authClient.useSession()
+  const { data: session, isPending } = authClient.useSession()
 
   const user = session?.user as
     | {
@@ -36,6 +37,26 @@ export default function AdminLayout({
         image?: string | null
       }
     | undefined
+
+  // Redirect non-admin users to appropriate dashboard (Rules of Hooks: always call)
+  useEffect(() => {
+    if (!isPending && session) {
+      if (user?.role === "PATIENT") {
+        router.replace("/patient/dashboard")
+      } else if (user?.role === "DOCTOR") {
+        router.replace("/doctor/dashboard")
+      }
+    }
+  }, [session, isPending, user?.role, router])
+
+  // Show loading spinner while session is being determined
+  if (isPending) {
+    return (
+      <div className="flex min-h-screen bg-background items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    )
+  }
 
   if (user && user.role !== "ADMIN") {
     return (

@@ -34,15 +34,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
           "Internal server error"
 
     // Log the error for internal tracking (exclude common client-side 4xx errors from high-severity alerts)
+    const requestId = (request as unknown as { requestId?: string }).requestId
+    const logPrefix = requestId ? `[${requestId}]` : ""
     if (status >= 500) {
       this.logger.error(
-        `[500 Internal Error] Path: ${request.url} | Message: ${
+        `${logPrefix} [500 Internal Error] Path: ${request.url} | Message: ${
           exception instanceof Error ? exception.stack : message
         }`,
       )
     } else {
       this.logger.warn(
-        `[Client Error] Path: ${request.url} | Status: ${status} | Message: ${message}`,
+        `${logPrefix} [Client Error] Path: ${request.url} | Status: ${status} | Message: ${message}`,
       )
     }
 
@@ -51,6 +53,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
+      requestId,
       message: Array.isArray(message) ? message.join(", ") : message,
       error:
         exception instanceof HttpException

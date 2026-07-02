@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
-import { Logger, ValidationPipe } from "@nestjs/common"
+import { Logger, ValidationPipe, VersioningType } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import type { Request, Response } from "express"
 import express from "express"
@@ -10,6 +10,7 @@ import { AppModule } from "./app.module"
 import { auth } from "./auth/auth"
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter"
 import { PhtDateInterceptor } from "./common/interceptors/pht-date.interceptor"
+import { RequestIdInterceptor } from "./common/interceptors/request-id.interceptor"
 import { setupSwagger } from "./config/swagger.config"
 import { SocketService } from "./notifications/socket.service"
 
@@ -30,6 +31,14 @@ async function bootstrap() {
 
   // Enforce API route namespacing
   app.setGlobalPrefix("api")
+
+  // API versioning — enables /api/v1/* routes for future breaking changes
+  // Current endpoints remain at /api/* for backwards compatibility
+  app.enableVersioning({
+    type: VersioningType.URI,
+    defaultVersion: "1",
+    prefix: "v",
+  })
 
   // Enable shutdown hooks to prevent database pool leaks on SIGTERM/SIGINT
   app.enableShutdownHooks()
@@ -66,6 +75,10 @@ async function bootstrap() {
     mkdirSync(uploadsDir, { recursive: true })
   }
   app.use("/uploads", express.static(uploadsDir))
+
+  // ── Request ID Interceptor ────────────────────────────────────────────
+  // Generates unique request IDs for end-to-end tracing and logging.
+  app.useGlobalInterceptors(new RequestIdInterceptor())
 
   // ── PHT Date Interceptor ─────────────────────────────────────────────
   // SRS §5.1 & Appendix D: "All times displayed in Philippine Standard Time (UTC+8)"

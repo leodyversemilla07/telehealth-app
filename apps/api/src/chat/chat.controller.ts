@@ -11,6 +11,7 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger"
+import { Throttle } from "@nestjs/throttler"
 import type { UserSession } from "@thallesp/nestjs-better-auth"
 import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { IsOptional, IsString, MaxLength } from "class-validator"
@@ -37,6 +38,7 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Post("send")
+  @Throttle({ default: { limit: 30, ttl: 60_000 } }) // 30 messages per minute
   @ApiOperation({ summary: "Send a message" })
   @ApiCreatedResponse({ description: "Message sent" })
   @ApiBadRequestResponse({ description: "Invalid input" })

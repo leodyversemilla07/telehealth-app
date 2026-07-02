@@ -18,6 +18,21 @@ export class ChatService {
     private readonly socket: SocketService,
   ) {}
 
+  /**
+   * Assert that the current user can chat with the other user.
+   *
+   * Authorization policy:
+   * - Users can chat if they have ANY shared appointment (any status).
+   * - This allows continued communication even after an appointment is
+   *   cancelled or completed (e.g., follow-up questions, prescription
+   *   clarifications, or post-visit care coordination).
+   * - If `appointmentId` is provided, the check is scoped to that specific
+   *   appointment. If omitted, any shared appointment suffices.
+   * - The chat is strictly between a patient and a doctor (no admin chat).
+   *
+   * To restrict to active appointments only, add:
+   *   status: { in: ['BOOKED', 'CONFIRMED', 'IN_PROGRESS'] }
+   */
   private async assertCanChat(
     userId: string,
     otherUserId: string,

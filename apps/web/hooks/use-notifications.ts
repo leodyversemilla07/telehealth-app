@@ -118,6 +118,10 @@ export function useNotificationSocket(enabled = true) {
       const opts: Record<string, unknown> = {
         withCredentials: true,
         transports: ["polling", "websocket"],
+        reconnection: true,
+        reconnectionAttempts: 10,
+        reconnectionDelay: 1000,
+        reconnectionDelayMax: 30000,
       }
       if (token) {
         opts.auth = { token }
@@ -133,8 +137,7 @@ export function useNotificationSocket(enabled = true) {
       })
     }
 
-    // Try to get session token from the auth client's cookie
-    // The cookie is accessible because API calls go through same-origin proxy
+    // Use the auth client's internal session fetch for consistency
     fetch("/api/auth/get-session", { credentials: "include" })
       .then((r) => r.json())
       .then((data) => {

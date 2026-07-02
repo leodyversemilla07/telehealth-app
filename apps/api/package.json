@@ -44,6 +44,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "helmet": "^8.2.0",
+    "isomorphic-dompurify": "^3.18.0",
     "livekit-server-sdk": "^2.15.4",
     "nestjs-pino": "^4.6.1",
     "nodemailer": "^8.0.11",
@@ -92,6 +93,7 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "moduleNameMapper": {
+      "^isomorphic-dompurify$": "<rootDir>/../test/mocks/isomorphic-dompurify.ts",
       "^@generated/prisma/client\\.js$": "<rootDir>/../test/mocks/prisma-client.ts",
       "^@thallesp/nestjs-better-auth$": "<rootDir>/../test/mocks/nestjs-better-auth.ts",
       "^@/prisma/prisma\\.service$": "<rootDir>/../test/mocks/prisma.service.ts",
