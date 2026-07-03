@@ -5,7 +5,6 @@ describe("API Client", () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
-
   afterEach(() => {
     vi.useRealTimers()
     vi.restoreAllMocks()
@@ -30,7 +29,6 @@ describe("API Client", () => {
         json: () => Promise.resolve({ data: "test" }),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       const result = await apiClient.get("/test")
       expect(mockFetch).toHaveBeenCalled()
       expect(result).toEqual({ data: "test" })
@@ -44,10 +42,12 @@ describe("API Client", () => {
         json: () => Promise.resolve({ id: "1" }),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       const result = await apiClient.post("/test", { name: "test" })
       expect(mockFetch).toHaveBeenCalled()
-      const [, options] = mockFetch.mock.calls[0]
+      const [, options] = mockFetch.mock.calls.at(0) as [
+        RequestInfo,
+        RequestInit,
+      ]
       expect(options.method).toBe("POST")
       expect(options.body).toBe(JSON.stringify({ name: "test" }))
       expect(result).toEqual({ id: "1" })
@@ -61,9 +61,8 @@ describe("API Client", () => {
         json: () => Promise.resolve([]),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       await apiClient.get("/test", { params: { page: 1, limit: 10 } })
-      const [url] = mockFetch.mock.calls[0]
+      const [url] = mockFetch.mock.calls.at(0) as [RequestInfo]
       expect(url).toContain("page=1")
       expect(url).toContain("limit=10")
     })
@@ -77,7 +76,6 @@ describe("API Client", () => {
           Promise.resolve({ message: "Resource not found", statusCode: 404 }),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       await expect(apiClient.get("/not-found")).rejects.toThrow(ApiError)
     })
 
@@ -88,7 +86,6 @@ describe("API Client", () => {
         headers: new Headers(),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       const result = await apiClient.delete("/test")
       expect(result).toEqual({})
     })
@@ -101,11 +98,13 @@ describe("API Client", () => {
         json: () => Promise.resolve({ uploaded: true }),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       const formData = new FormData()
       formData.append("file", new Blob(["test"]), "test.txt")
       await apiClient.post("/upload", formData)
-      const [, options] = mockFetch.mock.calls[0]
+      const [, options] = mockFetch.mock.calls.at(0) as [
+        RequestInfo,
+        RequestInit,
+      ]
       expect(options.headers).not.toHaveProperty("Content-Type")
     })
 
@@ -117,9 +116,11 @@ describe("API Client", () => {
         json: () => Promise.resolve({}),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       await apiClient.get("/test")
-      const [, options] = mockFetch.mock.calls[0]
+      const [, options] = mockFetch.mock.calls.at(0) as [
+        RequestInfo,
+        RequestInit,
+      ]
       expect(options.credentials).toBe("include")
     })
   })
@@ -133,7 +134,6 @@ describe("API Client", () => {
         json: () => Promise.resolve({ message: "Invalid input" }),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       await expect(apiClient.get("/test", { retries: 2 })).rejects.toThrow(
         ApiError,
       )
@@ -148,7 +148,6 @@ describe("API Client", () => {
         json: () => Promise.resolve({ message: "Unauthorized" }),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       await expect(apiClient.get("/test", { retries: 2 })).rejects.toThrow(
         ApiError,
       )
@@ -163,7 +162,6 @@ describe("API Client", () => {
         json: () => Promise.resolve({ message: "Forbidden" }),
       })
       vi.stubGlobal("fetch", mockFetch)
-
       await expect(apiClient.get("/test", { retries: 2 })).rejects.toThrow(
         ApiError,
       )
