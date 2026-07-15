@@ -17,16 +17,15 @@
     "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
-    "@livekit/components-react": "^2.9.21",
+    "@livekit/components-react": "^2.9.23",
     "@livekit/components-styles": "^1.2.0",
-    "@tanstack/react-query": "^5.101.0",
-    "@tanstack/react-query-devtools": "^5.101.0",
+    "@tanstack/react-query": "^5.101.2",
     "@workspace/shared": "workspace:*",
     "@workspace/ui": "workspace:*",
-    "better-auth": "^1.6.16",
-    "livekit-client": "^2.19.2",
-    "lucide-react": "^1.17.0",
-    "next": "16.2.9",
+    "better-auth": "^1.6.23",
+    "livekit-client": "^2.20.1",
+    "lucide-react": "^1.24.0",
+    "next": "16.2.10",
     "next-themes": "^0.4.6",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.7",
@@ -35,8 +34,9 @@
     "sonner": "^2.0.7"
   },
   "devDependencies": {
-    "@playwright/test": "^1.60.0",
-    "@tailwindcss/postcss": "^4.3.0",
+    "@playwright/test": "^1.61.1",
+    "@tailwindcss/postcss": "^4.3.2",
+    "@tanstack/react-query-devtools": "^5.101.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/node": "^25.9.3",
@@ -45,6 +45,6 @@
     "@workspace/typescript-config": "workspace:*",
     "jsdom": "^29.1.1",
     "typescript": "^5.9.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.10"
   }
 }
