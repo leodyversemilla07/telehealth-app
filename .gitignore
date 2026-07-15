@@ -32,6 +32,9 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 *.pem
+
+# Vercel
+.vercel
 !.github/workflows/*.yml
 
 # IDE
@@ -46,8 +49,3 @@ Thumbs.db
 # OS
 .DS_Store
 Desktop.ini
-
-# Elastic Beanstalk
-.elasticbeanstalk/*
-!.elasticbeanstalk/*.cfg.yml
-!.elasticbeanstalk/*.global.yml

@@ -1,29 +1,6 @@
 # Telehealth App
 
-A telehealth platform connecting patients with licensed Philippine healthcare providers through video consultations, secure messaging, electronic prescriptions, and integrated health record management.
-
-[![CI](https://github.com/your-username/telehealth-app/actions/workflows/ci.yml/badge.svg)](https://github.com/your-username/telehealth-app/actions/workflows/ci.yml)
-
-## 🏗️ Architecture
-
-```
-telehealth-app/
-├── apps/
-│   ├── api/          # NestJS 11 REST API
-│   └── web/          # Next.js 16 frontend
-├── packages/
-│   ├── shared/       # Zod schemas & TypeScript types
-│   └── ui/           # shadcn/ui components
-├── docs/
-│   ├── DEPLOYMENT.md # Complete deployment guide
-│   ├── SRS.md        # Software Requirements Specification
-│   └── DESIGN-SYSTEM.md
-└── .github/
-    └── workflows/
-        └── ci.yml    # CI/CD pipeline
-```
-
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
@@ -33,11 +10,10 @@ telehealth-app/
 | **Auth** | Better Auth (email/password, 2FA, lockout) |
 | **Video** | LiveKit |
 | **Real-time** | Socket.io (WebSocket) |
-| **Email** | AWS SES |
-| **Storage** | AWS S3 |
-| **Hosting** | AWS EC2 + RDS |
+| **Email** | Nodemailer (local SMTP/Mailhog) |
+| **Storage** | Local filesystem (S3-compatible in prod) |
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Local Development
 
@@ -59,9 +35,7 @@ pnpm dev
 - **API:** http://localhost:3001
 - **Swagger:** http://localhost:3001/api/docs
 
-### Production
-
-See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) for complete deployment guide.
+> Note: This project is currently configured for local development only. Deployment scripts and hosting configs have been removed.
 
 ## 📦 Available Scripts
 
@@ -117,41 +91,8 @@ pnpm db:seed          # Seed database
 - ✅ Audit logging (NPC compliance)
 - ✅ Security alerts
 
-## 🚢 Deployment
+## Documentation
 
-### CI/CD Pipeline
-
-- **On Push to Main:** Auto-deploy to EC2
-- **On Pull Request:** Run tests + lint
-
-### Manual Deployment
-
-```bash
-# Deploy to EC2
-ssh ec2-user@your-server
-cd /home/ec2-user/telehealth-app
-git pull
-pnpm install
-pnpm --filter api build
-cd apps/web && NEXT_OUTPUT=standalone pnpm build
-cd ../..
-pm2 restart all
-```
-
-### Environment Variables
-
-See [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md#environment-variables) for all required variables.
-
-**Critical:**
-```bash
-BETTER_AUTH_URL=https://api.tele-health.app  # MUST be production URL!
-BETTER_AUTH_SECRET=<generate with: openssl rand -base64 32>
-DATABASE_URL=postgresql://...
-```
-
-## 📚 Documentation
-
-- [Deployment Guide](./docs/DEPLOYMENT.md) — Complete EC2 deployment
 - [Software Requirements](./docs/SRS.md) — NPC compliance, features
 - [Design System](./docs/DESIGN-SYSTEM.md) — Colors, components
 

@@ -10,14 +10,12 @@ const workspaceRoot = path.resolve(__dirname, "..", "..")
 /**
  * API_URL (server-only):
  *   Used by Next.js rewrites to proxy /api/* → the NestJS backend.
- *   - Local dev: http://localhost:3001
- *   - Production (Docker): http://api:3001 (internal Docker network)
- *   - Production (external): https://api.tele-health.app
+ *   Local dev default: http://localhost:3001
  *
  * NEXT_PUBLIC_API_URL (client-side):
- *   - Empty string (recommended): same-origin mode via Next rewrites
- *   - This means all /api/* requests go to the same domain (tele-health.app)
- *     and nginx proxies them to the API service
+ *   Optional. Set this if the browser should call the API directly
+ *   instead of going through Next's same-origin /api rewrites.
+ *   Local default: empty (uses rewrites).
  */
 const apiBaseUrl = process.env.API_URL || "http://localhost:3001"
 
@@ -31,9 +29,6 @@ const nextConfig = {
     optimizePackageImports: ["lucide-react", "@workspace/ui"],
   },
 
-  // Output mode (can be set via NEXT_OUTPUT env var)
-  output: process.env.NEXT_OUTPUT ?? undefined,
-
   // Turbopack configuration
   turbopack: {
     root: workspaceRoot,
@@ -43,14 +38,6 @@ const nextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "**.amazonaws.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**.cloudfront.net",
-      },
       {
         protocol: "https",
         hostname: "api.dicebear.com",
@@ -121,7 +108,7 @@ const nextConfig = {
               "default-src 'self'",
               "script-src 'self'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https://api.dicebear.com https://*.amazonaws.com https://*.cloudfront.net",
+              "img-src 'self' data: https://api.dicebear.com",
               "connect-src 'self' wss: ws:",
               "font-src 'self'",
               "object-src 'none'",

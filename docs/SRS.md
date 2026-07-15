@@ -134,10 +134,9 @@ The Telehealth Application is a web-based platform connecting patients with lice
 - **Auth**: Better Auth (email/password, 2FA)
 - **AI Recommendation**: NVIDIA NIM — Nemotron-3-Super-120B-A12B (`nvidia/nemotron-3-super-120b-a12b`), fallback: Qwen3.5-122B-A10B (`qwen/qwen3.5-122b-a10b`)
 - **Monorepo**: Turborepo + pnpm workspaces
-- **Video**: LiveKit (self-hosted on AWS EC2)
+- **Video**: LiveKit
 - **Notifications**: WebSocket via Socket.io (NestJS Gateway)
-- **File Storage**: AWS S3
-- **Deployment**: Docker / AWS Elastic Beanstalk (API + Web), no Vercel
+- **File Storage**: Local filesystem (S3-compatible interface for future swap)
 
 ### 2.2 Product Functions
 
@@ -224,7 +223,7 @@ The system supports the following high-level functions:
 
 4. **Monorepo Architecture** — All code must live within the existing `telehealth-app` structure and adhere to its conventions (Turborepo, Biome linting, shared packages).
 
-5. **Deployment Target** — AWS Elastic Beanstalk for both API and web frontend. No Vercel. LiveKit self-hosted on AWS EC2.
+5. **Monorepo Architecture** — All code must live within the existing `telehealth-app` structure and adhere to its conventions (Turborepo, Biome linting, shared packages).
 
 6. **Database** — PostgreSQL; schema changes managed via Prisma migrations in the `apps/api` workspace.
 
@@ -239,10 +238,10 @@ The system supports the following high-level functions:
 
 - **Dependencies**
 - Better Auth library for authentication flows.
-- LiveKit (self-hosted on AWS EC2) for video consultations.
+- LiveKit for video consultations (self-hosted or cloud).
 - NVIDIA NIM API (Nemotron-3-Super-120B-A12B, fallback: Qwen3.5-122B-A10B) for AI-powered doctor recommendations. OpenAI-compatible endpoint at `integrate.api.nvidia.com/v1`.
-- AWS S3 for file storage (profile photos, attachments).
-- PostgreSQL database availability via Docker (development) or AWS RDS (production).
+- Local filesystem for file storage (profile photos, attachments).
+- PostgreSQL database availability via Docker (development).
 - Socket.io for real-time WebSocket notifications.
 
 ---
@@ -463,9 +462,9 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 | Service | Interface Type | Purpose | Data |
 |---|---|---|---|
 | **Better Auth** | REST API + SDK | Authentication, session management, RBAC | User credentials, roles, sessions |
-| **LiveKit** | JavaScript SDK + REST API (self-hosted on AWS EC2) | Video room creation and management | Room tokens, participant identities |
+| **LiveKit** | JavaScript SDK + REST API | Video room creation and management | Room tokens, participant identities |
 | **NVIDIA NIM** (Nemotron-3-Super-120B-A12B) | OpenAI-compatible REST API (`integrate.api.nvidia.com/v1`) | AI doctor recommendation based on symptoms | Symptom description, doctor specialty data, recommendation result |
-| **AWS S3** | S3 API | File storage for attachments (profile photos, documents) | File binaries, metadata |
+| **Local Filesystem** | Filesystem API | File storage for attachments (profile photos, documents) | File binaries, metadata |
 | **PostgreSQL** | Prisma ORM + SQL | Primary data storage | All application data |
 | **Socket.io** | WebSocket (NestJS Gateway) | Real-time push notifications | Appointment events, notification payloads |
 
@@ -801,7 +800,7 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 | Email verification required | NPC | ✅ requireEmailVerification: true |
 | Security alerts for sensitive actions | NPC | ✅ SecurityAlert model — password change, etc. |
 | Minimum 5-year record retention | NPC | Retention scheduling service (`retention/`) |
-| Data stored in PH or equivalent jurisdiction | NPC | ✅ AWS deployment (AP-Southeast-1 Singapore) |
+| Data stored in PH or equivalent jurisdiction | NPC | ⬜ To be addressed when production deployment is planned |
 
 ### Appendix E: Deliverables Checklist (WC Launchpad Submission — SE Track)
 
@@ -809,7 +808,7 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 |---|---|---|
 | Pair Programming Session | Schedule via booking link | ⬜ To be scheduled |
 | Video Recording | Max 15 min — app walkthrough, code overview, challenges | ⬜ To be recorded |
-| Deployed Application URL | AWS Elastic Beanstalk | ⬜ To be deployed |
+| Local Development Setup | Docker compose + pnpm dev | ✅ Ready |
 | Git Repository | https://github.com/leodyversemilla07/telehealth-app | ✅ Private/accessible |
 
 **Deadline:** 11:59 PM, May 30, 2026  

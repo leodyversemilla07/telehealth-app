@@ -20,8 +20,7 @@
     "db:start": "docker compose up -d postgres",
     "db:stop": "docker compose down",
     "db:reset": "pnpm --filter api exec prisma migrate reset --force && pnpm seed",
-    "db:studio": "pnpm --filter api exec prisma studio",
-    "deploy": "pm2 restart ecosystem.config.js --update-env"
+    "db:studio": "pnpm --filter api exec prisma studio"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
