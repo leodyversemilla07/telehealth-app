@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "🔍 Checking staged files with Biome ..."
+echo "Checking staged files with Biome ..."
 npx biome check --staged --no-errors-on-unmatched
-echo "✅ Biome check passed"
+echo "Biome check passed"
