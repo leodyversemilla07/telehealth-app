@@ -38,7 +38,7 @@ const patientProfileBaseSchema = z.object({
   philhealthNumber: z.string().nullable(),
   weight: z.number().nullable(),
   height: z.number().nullable(),
-  medicalHistory: z.record(z.unknown()).nullable(),
+  medicalHistory: z.record(z.string(), z.unknown()).nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 })

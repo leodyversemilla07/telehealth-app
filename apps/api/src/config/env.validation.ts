@@ -7,7 +7,7 @@ export const envSchema = z.object({
   // ── Database ──────────────────────────────────────────────────────────────
   DATABASE_URL: z
     .string({
-      required_error: "DATABASE_URL is required",
+      error: "DATABASE_URL is required",
     })
     .min(1, "DATABASE_URL must not be empty"),
 
@@ -20,7 +20,7 @@ export const envSchema = z.object({
   // ── Better Auth ───────────────────────────────────────────────────────────
   BETTER_AUTH_SECRET: z
     .string({
-      required_error: "BETTER_AUTH_SECRET is required",
+      error: "BETTER_AUTH_SECRET is required",
     })
     .min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
   BETTER_AUTH_URL: z.string().optional().default("http://localhost:3001"),
