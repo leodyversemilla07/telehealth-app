@@ -10,6 +10,7 @@ type MockPrisma = {
     findUnique: jest.Mock
     findMany: jest.Mock
     update: jest.Mock
+    delete: jest.Mock
   }
   session: {
     findMany: jest.Mock
@@ -39,6 +40,7 @@ describe("UsersService", () => {
         findUnique: jest.fn(),
         findMany: jest.fn(),
         update: jest.fn(),
+        delete: jest.fn(),
       },
       session: {
         findMany: jest.fn(),
@@ -186,5 +188,22 @@ describe("UsersService", () => {
       "Revoked other active sessions",
       "u1",
     )
+  })
+
+  it("deleteAccount should audit-log and permanently delete the user", async () => {
+    prisma.user.delete.mockResolvedValue({ id: "u1" })
+
+    const result = await service.deleteAccount("u1", "u1@x.com")
+
+    expect(auditLogs.createLog).toHaveBeenCalledWith(
+      "u1",
+      "Deleted own account",
+      "u1",
+      undefined,
+      "u1@x.com",
+      "u1@x.com",
+    )
+    expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: "u1" } })
+    expect(result).toEqual({ success: true })
   })
 })

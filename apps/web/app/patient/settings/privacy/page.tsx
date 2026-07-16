@@ -1,11 +1,22 @@
 "use client"
 
+import { Button } from "@workspace/ui/components/button"
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@workspace/ui/components/dialog"
 import {
   Empty,
   EmptyDescription,
@@ -16,7 +27,15 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
-import { ClipboardList, FileText, History, ShieldCheck } from "lucide-react"
+import {
+  AlertTriangle,
+  ClipboardList,
+  FileText,
+  History,
+  ShieldCheck,
+  Trash2,
+} from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { SettingsLayout } from "@/components/settings-layout"
@@ -27,12 +46,42 @@ import {
   useConsentStatus,
   useRecordConsent,
 } from "@/hooks/use-consent"
+import { apiClient } from "@/lib/api-client"
+import { authClient } from "@/lib/auth-client"
 
 export default function PrivacyConsentPage() {
   const { data: logs = [], isPending } = useConsentLogs()
   const consentStatus = useConsentStatus()
   const recordConsent = useRecordConsent()
   const [pendingChanges, setPendingChanges] = useState<Set<string>>(new Set())
+
+  const router = useRouter()
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const handleDeleteAccount = async () => {
+    if (!deleteConfirmed) return
+    setIsDeleting(true)
+    try {
+      await apiClient.delete("/users/me")
+      toast.success("Your account has been permanently deleted.")
+      try {
+        await authClient.signOut()
+      } catch {
+        // Session is already gone after deletion; ignore.
+      }
+      router.push("/")
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to delete account.",
+      )
+    } finally {
+      setIsDeleting(false)
+      setDeleteOpen(false)
+      setDeleteConfirmed(false)
+    }
+  }
 
   const handleToggle = (consentType: string, granted: boolean) => {
     setPendingChanges((prev) => new Set(prev).add(consentType))
@@ -224,6 +273,73 @@ export default function PrivacyConsentPage() {
             .
           </p>
         </div>
+
+        <Separator />
+
+        {/* Delete Account — RA 10173 right to erasure */}
+        <Card className="border-destructive/30">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                  Delete Account
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Permanently remove your account and all associated personal
+                  data. This action cannot be undone.
+                </CardDescription>
+              </div>
+              <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+                <DialogTrigger
+                  render={
+                    <Button variant="destructive" size="sm">
+                      Delete Account
+                    </Button>
+                  }
+                />
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                      Delete your account?
+                    </DialogTitle>
+                    <DialogDescription>
+                      This permanently deletes your account, profile, and
+                      personal data, including appointment and medical-record
+                      history. This cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <label className="flex items-start gap-2 text-xs text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={deleteConfirmed}
+                      onChange={(e) => setDeleteConfirmed(e.target.checked)}
+                      className="mt-0.5"
+                    />
+                    I understand this action is permanent and cannot be undone.
+                  </label>
+                  <DialogFooter>
+                    <DialogClose
+                      render={
+                        <Button variant="outline" disabled={isDeleting}>
+                          Cancel
+                        </Button>
+                      }
+                    />
+                    <Button
+                      variant="destructive"
+                      disabled={!deleteConfirmed || isDeleting}
+                      onClick={handleDeleteAccount}
+                    >
+                      {isDeleting ? "Deleting..." : "Delete Account"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CardHeader>
+        </Card>
       </div>
     </SettingsLayout>
   )

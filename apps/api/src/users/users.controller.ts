@@ -158,6 +158,16 @@ export class UsersController {
     )
   }
 
+  @Delete("me")
+  @ApiOperation({
+    summary: "Delete current user's account (right to erasure, RA 10173)",
+  })
+  @ApiOkResponse({ description: "Account permanently deleted" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  async deleteMyAccount(@Session() session: UserSession) {
+    return this.usersService.deleteAccount(session.user.id, session.user.email)
+  }
+
   // ─── Public ───────────────────────────────────────────────────────────────
 
   @Get("public")

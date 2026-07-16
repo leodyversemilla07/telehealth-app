@@ -297,4 +297,27 @@ export class UsersService {
 
     return { success: true }
   }
+
+  /**
+   * Permanently delete the current user's account (right to erasure, RA 10173).
+   * Related records (sessions, accounts, profiles, appointments, consents,
+   * notifications, etc.) are removed via Prisma cascade rules. Audit logs are
+   * intentionally retained for compliance.
+   */
+  async deleteAccount(userId: string, email: string) {
+    // Log the erasure before the row is gone (AuditLog has no FK to User).
+    await this.auditLogs.createLog(
+      userId,
+      "Deleted own account",
+      userId,
+      undefined,
+      email,
+      email,
+    )
+
+    // Cascade removes sessions, accounts, profiles, appointments, consents, etc.
+    await this.prisma.user.delete({ where: { id: userId } })
+
+    return { success: true }
+  }
 }
