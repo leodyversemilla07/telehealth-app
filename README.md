@@ -21,7 +21,11 @@
 # Install dependencies
 pnpm install
 
-# Start PostgreSQL
+# Create env files from the templates (DATABASE_URL, secrets, etc.)
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
+
+# Start PostgreSQL (see docker-compose.yml)
 docker compose up -d postgres
 
 # Setup database
