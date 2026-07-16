@@ -7,6 +7,7 @@ import {
   Logger,
 } from "@nestjs/common"
 import { Request, Response } from "express"
+import { codeForStatus, type ErrorCode } from "../errors/error-codes"
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -27,11 +28,40 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.getResponse()
         : "Internal Server Error"
 
-    const message =
+    const rawMessage =
       typeof exceptionResponse === "string"
         ? exceptionResponse
-        : (exceptionResponse as Record<string, unknown>).message ||
-          "Internal server error"
+        : ((exceptionResponse as Record<string, unknown>).message ??
+          "Internal server error")
+
+    // SRS Appendix C / NFR-REL-03: every error carries a machine `code`.
+    // Prefer an explicit code attached to the exception; otherwise derive one
+    // from the HTTP status using the standardized error-code table.
+    const responseObject =
+      typeof exceptionResponse === "object" && exceptionResponse !== null
+        ? (exceptionResponse as Record<string, unknown>)
+        : null
+    const explicitCode = responseObject?.code
+    const code = (
+      typeof explicitCode === "string" ? explicitCode : codeForStatus(status)
+    ) as ErrorCode
+
+    // Structured details (validation constraints, context, etc.).
+    const explicitDetails = responseObject?.details
+    const details =
+      explicitDetails !== undefined
+        ? explicitDetails
+        : Array.isArray(rawMessage)
+          ? rawMessage
+          : undefined
+
+    const message = Array.isArray(rawMessage)
+      ? rawMessage.join(", ")
+      : rawMessage
+
+    // `error` is the human-readable description (mirrors Better Auth's
+    // message/code split); `code` is the machine-readable Appendix C code.
+    const error = message
 
     // Log the error for internal tracking (exclude common client-side 4xx errors from high-severity alerts)
     const requestId = (request as unknown as { requestId?: string }).requestId
@@ -59,17 +89,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
       )
     }
 
-    // Return standardized response shape matching front-end expectations
+    // Return standardized response shape (SRS NFR-REL-03): every error includes
+    // a machine `code` and optional `details`, alongside the human `error`.
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
       requestId,
-      message: Array.isArray(message) ? message.join(", ") : message,
-      error:
-        exception instanceof HttpException
-          ? exception.name
-          : "InternalServerError",
+      message,
+      error,
+      code,
+      details,
     })
   }
 }

@@ -7,12 +7,22 @@ import { env } from "@/lib/env"
 export class ApiError extends Error {
   statusCode: number
   error?: string
+  code?: string
+  details?: unknown
 
-  constructor(message: string, statusCode: number, error?: string) {
+  constructor(
+    message: string,
+    statusCode: number,
+    error?: string,
+    code?: string,
+    details?: unknown,
+  ) {
     super(message)
     this.name = "ApiError"
     this.statusCode = statusCode
     this.error = error
+    this.code = code
+    this.details = details
   }
 }
 
@@ -137,7 +147,13 @@ async function request<TResponse>(
         const statusCode = errorData?.statusCode || response.status
         const error = errorData?.error
 
-        const apiError = new ApiError(message, statusCode, error)
+        const apiError = new ApiError(
+          message,
+          statusCode,
+          error,
+          errorData?.code,
+          errorData?.details,
+        )
 
         // Retry if eligible and not last attempt
         if (isRetryable(apiError) && attempt < retries) {

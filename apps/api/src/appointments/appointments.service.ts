@@ -5,10 +5,12 @@ import {
   Injectable,
   Logger,
   NotFoundException,
+  UnprocessableEntityException,
 } from "@nestjs/common"
 import { Cron, CronExpression } from "@nestjs/schedule"
 import { formatPHTFull } from "@workspace/shared"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { ERROR_CODES } from "../common/errors/error-codes"
 import { EmailService } from "../common/services/email.service"
 import type { AppointmentStatus } from "../generated/prisma/client.js"
 import { NotificationsService } from "../notifications/notifications.service"
@@ -230,7 +232,10 @@ export class AppointmentsService {
         },
       })
       if (overlapping) {
-        throw new ConflictException("This time slot is already booked")
+        throw new ConflictException({
+          code: ERROR_CODES.SLOT_UNAVAILABLE,
+          message: "This time slot is already booked",
+        })
       }
 
       return tx.appointment.create({
@@ -464,9 +469,11 @@ export class AppointmentsService {
         const msUntilStart = appt.startTime.getTime() - Date.now()
         // Only restrict upcoming appointments that fall inside the window.
         if (msUntilStart > 0 && msUntilStart < windowHours * 3_600_000) {
-          throw new BadRequestException(
-            `Cancellations are only allowed at least ${windowHours} hours before the scheduled appointment time.`,
-          )
+          throw new UnprocessableEntityException({
+            code: ERROR_CODES.CANCELLATION_WINDOW,
+            message: `Cancellations are only allowed at least ${windowHours} hours before the scheduled appointment time.`,
+            details: { hoursBeforeStart: windowHours },
+          })
         }
       }
 
@@ -585,7 +592,10 @@ export class AppointmentsService {
         },
       })
       if (conflict) {
-        throw new ConflictException("This time slot is already booked")
+        throw new ConflictException({
+          code: ERROR_CODES.SLOT_UNAVAILABLE,
+          message: "This time slot is already booked",
+        })
       }
 
       return tx.appointment.update({
