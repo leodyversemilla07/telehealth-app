@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation"
 import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
+import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
 
 type SignUpState = {
@@ -50,12 +51,23 @@ export function SignUpForm({
     "PATIENT",
   )
 
+  const [consent, setConsent] = useState(false)
+
   const [state, formAction] = useActionState<SignUpState, FormData>(
     async (_prev, formData) => {
       const name = formData.get("name") as string
       const email = formData.get("email") as string
       const password = formData.get("password") as string
       const role = formData.get("role") as string
+
+      if (!consent) {
+        return {
+          error: "You must accept the Privacy Policy to create an account.",
+          success: false,
+          email: "",
+          role,
+        }
+      }
 
       if (!name || !email || !password) {
         return {
@@ -81,6 +93,19 @@ export function SignUpForm({
           email: "",
           role,
         }
+      }
+
+      // Record privacy-consent acceptance (best-effort). Better Auth auto
+      // signs the user in on sign-up, so the session cookie is available for
+      // the authenticated /consent request. Failure here is non-fatal; the
+      // user can manage consent later in settings.
+      try {
+        await apiClient.post("/consent", {
+          consentType: "privacy_policy",
+          granted: true,
+        })
+      } catch {
+        // Non-fatal: consent can be recorded later in settings.
       }
 
       toast.success("Account created successfully!")
@@ -233,6 +258,33 @@ export function SignUpForm({
               </svg>
               Doctor
             </Button>
+          </div>
+        </Field>
+
+        <Field>
+          <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-3">
+            <input
+              id="consent"
+              type="checkbox"
+              checked={consent}
+              onChange={(e) => setConsent(e.target.checked)}
+              className="mt-0.5 size-4 shrink-0 cursor-pointer rounded border-border accent-primary"
+              aria-describedby="consent-desc"
+            />
+            <label
+              htmlFor="consent"
+              className="text-sm leading-relaxed text-muted-foreground"
+            >
+              I have read and agree to the{" "}
+              <Link
+                href="/patient/settings/privacy"
+                className="text-primary underline underline-offset-4"
+              >
+                Privacy Policy
+              </Link>{" "}
+              and consent to the processing of my personal data in accordance
+              with the Data Privacy Act of 2012 (RA 10173).
+            </label>
           </div>
         </Field>
 

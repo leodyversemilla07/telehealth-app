@@ -457,6 +457,19 @@ export class AppointmentsService {
         }
       }
 
+      // F-APPT-05 / SRS CANCELLATION_WINDOW: patients may only cancel at least
+      // the configured notice period before the appointment start time.
+      if (role === "PATIENT") {
+        const windowHours = Number(process.env.CANCELLATION_WINDOW_HOURS) || 24
+        const msUntilStart = appt.startTime.getTime() - Date.now()
+        // Only restrict upcoming appointments that fall inside the window.
+        if (msUntilStart > 0 && msUntilStart < windowHours * 3_600_000) {
+          throw new BadRequestException(
+            `Cancellations are only allowed at least ${windowHours} hours before the scheduled appointment time.`,
+          )
+        }
+      }
+
       return tx.appointment.update({
         where: { id },
         data: { status: "CANCELLED" },
