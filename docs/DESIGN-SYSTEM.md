@@ -1,12 +1,12 @@
 # Telehealth Design System
 
-> Built on shadcn/ui with Tailwind CSS v4 and OKLCH color tokens.
+> Built on Base UI primitives with Tailwind CSS v4 and OKLCH color tokens.
 
 ---
 
 ## Color Tokens
 
-### Standard shadcn Tokens
+### Standard Tokens
 
 | Token | Light Mode | Dark Mode | Usage |
 |-------|------------|-----------|-------|
@@ -92,7 +92,7 @@ const chartConfig = {
 
 ## How to Add New Tokens
 
-Follow the shadcn pattern:
+Follow the component pattern (compose Base UI primitives, co-locate in @workspace/ui):
 
 ```css
 /* 1. Define in :root */

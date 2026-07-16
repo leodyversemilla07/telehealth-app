@@ -4,7 +4,7 @@
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | Next.js 16, React 19, Tailwind CSS v4, shadcn/ui |
+| **Frontend** | Next.js 16, React 19, Tailwind CSS v4, Base UI |
 | **Backend** | NestJS 11, Express |
 | **Database** | PostgreSQL 16 (Prisma ORM) |
 | **Auth** | Better Auth (email/password, 2FA, lockout) |
@@ -60,9 +60,9 @@ pnpm db:seed          # Seed database
 | Route | Description |
 |-------|-------------|
 | `/sign-in`, `/sign-up` | Authentication |
-| `/patient/*` | Patient dashboard (11 pages) |
-| `/doctor/*` | Doctor dashboard (11 pages) |
-| `/admin/*` | Admin dashboard (8 pages) |
+| `/patient/*` | Patient area (19 pages) |
+| `/doctor/*` | Doctor area (17 pages) |
+| `/admin/*` | Admin area (12 pages) |
 
 ### API Endpoints (21 modules)
 
@@ -116,3 +116,9 @@ pnpm --filter api test:e2e
 ## 📄 License
 
 Private — All rights reserved.
+
+## ⚠️ Known Limitations
+
+- **Video consultations:** the in-browser call UI and Socket.io signaling exist, but backend LiveKit room/token creation is stubbed (returns HTTP 503). End-to-end video is not yet functional.
+- **Production compliance:** registering as a Personal Information Controller (PIC) and storing data in the Philippines (or equivalent jurisdiction) are deferred to the production-hardening milestone.
+- **Everything else** in the SRS scope is implemented; `pnpm build`, `pnpm typecheck`, `pnpm lint`, and `pnpm test` all pass.

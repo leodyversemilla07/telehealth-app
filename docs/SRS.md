@@ -67,15 +67,15 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 
 ### 1.2 Product Scope
 
-| Feature | Description | Priority |
-|---|---|---|---|
+| Feature | Description | Status |
+|---|---|---|
 | Patient Account | Register using email and password | ✅ Implemented |
 | Patient Profile | Name, birthday, weight, height, profile picture, contact details, basic medical history | ✅ Implemented |
 | Doctor Discovery | Browse doctors, view availability, filter by specialization | ✅ Implemented |
 | AI Recommendation | AI recommends doctors based on patient symptoms/needs via NVIDIA NIM | ✅ Implemented |
 | Appointment Booking | Book, reschedule, cancel consultations online | ✅ Implemented |
 | Real-time Notifications | Push notifications for booked, upcoming, and updated appointments | ✅ Implemented |
-| Consultation Session | Join video call for virtual consultation (LiveKit) | ✅ Implemented |
+| Consultation Session | Join video call for virtual consultation (LiveKit) | 🟡 Partial — UI + signaling present; backend LiveKit room creation is stubbed (returns 503) |
 | Appointment History | View past consultations and records | ✅ Implemented |
 | Medical Records | View basic medical records and prescriptions | ✅ Implemented |
 | Doctor Account | Register using email and password | ✅ Implemented |
@@ -85,6 +85,10 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 | In-app Chat | Secure real-time messaging between patient and doctor | ✅ Implemented |
 | Doctor Reviews | Rate and review doctors after consultations | ✅ Implemented |
 | Admin Dashboard | Manage users, approve doctors, view audit logs | ✅ Implemented |
+| Privacy Consent at Sign-up | Explicit consent checkbox + ConsentLog on registration (F-AUTH-07) | ✅ Implemented |
+| Account Deletion (RA 10173) | DELETE /api/users/me + Delete Account UI | ✅ Implemented |
+| Server-side Route Guard | Next.js 16 proxy.ts session check on protected areas | ✅ Implemented |
+| Standardized Error Codes | SRS Appendix C codes in every error response (NFR-REL-03) | ✅ Implemented |
 
 ### 1.3 Definitions, Acronyms, and Abbreviations
 
@@ -128,7 +132,7 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 
 The Telehealth Application is a web-based platform connecting patients with licensed Philippine healthcare providers through video consultations. It is built with a monorepo architecture using:
 
-- **Frontend**: Next.js 16 + React 19 + Tailwind CSS v4 + shadcn/ui (`apps/web`)
+- **Frontend**: Next.js 16 + React 19 + Tailwind CSS v4 + Base UI (`apps/web`)
 - **Backend**: NestJS 11 REST API (`apps/api`)
 - **Database**: PostgreSQL 16 via Prisma ORM with `@prisma/adapter-pg`
 - **Auth**: Better Auth (email/password, 2FA)
@@ -362,6 +366,8 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 **Priority:** Critical
 
+> **Implementation note:** The in-browser call UI and Socket.io signaling scaffolding exist, but backend LiveKit room/token creation (`video.service.ts`) is currently stubbed and returns HTTP 503. End-to-end video is not yet functional.
+
 #### Functional Requirements
 
 | ID | Requirement | Verification |
@@ -415,7 +421,7 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 #### General Requirements
 
-- **UI-01** — All pages shall be built using the shared `@workspace/ui` component library (shadcn/ui + Tailwind CSS).
+- **UI-01** — All pages shall be built using the shared `@workspace/ui` component library (Base UI + Tailwind CSS).
 - **UI-02** — The UI shall support light and dark themes, with theme preference stored and respected.
 - **UI-03** — The UI shall be responsive and functional on screen sizes from 320px (mobile) to 2560px (ultrawide desktop). **Mobile-first design is mandatory**.
 - **UI-04** — All forms shall display validation errors inline, below the relevant input.
@@ -472,7 +478,7 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 | Package | Purpose | Location |
 |---|---|---|
-| `@workspace/ui` | Shared UI components (shadcn/ui) | `packages/ui` |
+| `@workspace/ui` | Shared UI components (Base UI) | `packages/ui` |
 | `@workspace/shared` | Shared types, validation schemas, utilities | `packages/shared` |
 
 ### 4.4 Communications Interfaces
@@ -510,16 +516,16 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 | NFR-SEC-06 | All database queries shall use parameterized queries to prevent SQL injection. |
 | NFR-SEC-07 | Access to health records shall be logged with: user ID, timestamp, IP address, action performed, resource ID. |
 | NFR-SEC-08 | Audit logs shall be immutable (write-once, append-only) and stored for a minimum of 5 years per NPC guidelines. |
-| NFR-SEC-09 | A Data Privacy Officer (DPO) contact shall be displayed on the privacy page and registration flow per NPC requirement. |
-| NFR-SEC-10 | The system shall provide a mechanism for users to exercise their data privacy rights: access, correction, deletion, and portability (RA 10173). |
+| NFR-SEC-09 | A Data Privacy Officer (DPO) contact shall be displayed on the privacy page and registration flow per NPC requirement. — ✅ Implemented (DPO contact shown on privacy page and registration consent notice). |
+| NFR-SEC-10 | The system shall provide a mechanism for users to exercise their data privacy rights: access, correction, deletion, and portability (RA 10173). — ✅ Implemented (access/correction via settings endpoints; deletion via DELETE /api/users/me; portability via records API). |
 
 ### 5.3 Reliability and Availability
 
 | ID | Requirement | Target |
 |---|---|---|
 | NFR-REL-01 | System uptime (excluding planned maintenance) | 99.9% uptime |
-| NFR-REL-02 | Graceful degradation | Video call continues in audio-only mode if video fails; messaging remains available if video service is down |
-| NFR-REL-03 | Error handling | All API errors return consistent JSON structure: `{ error: string, code: string, details?: any }` |
+| NFR-REL-02 | Graceful degradation | Video call continues in audio-only mode if video fails; messaging remains available if video service is down — ⚠️ Partial (messaging/Socket.io operational; video graceful-degradation not yet exercisable because backend video is stubbed). |
+| NFR-REL-03 | Error handling | All API errors return consistent JSON structure: `{ error: string, code: string, details?: any }` — ✅ Implemented (HttpExceptionFilter emits { error, code, details } with SRS Appendix C codes). |
 | NFR-REL-04 | Retry policy | Transient failures (network timeouts, 5xx) shall retry up to 3 times with exponential backoff |
 
 ### 5.4 Usability
@@ -788,9 +794,9 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 | Privacy notice prominently displayed | NPC Advisory 2020-01 | ✅ Privacy notice during sign-up flow |
 | Patient right to data access | RA 10173 Sec. 16 | ✅ Records/consultation history available via API |
 | Patient right to data correction | RA 10173 Sec. 17 | ✅ Profile settings update endpoints |
-| Patient right to data deletion | RA 10173 Sec. 18 | 🔧 Account deletion endpoint planned |
+| Patient right to data deletion | RA 10173 Sec. 18 | ✅ Implemented — DELETE /api/users/me + Delete Account UI |
 | Patient right to data portability | RA 10173 Sec. 19 | ✅ All data accessible via API for export |
-| Appointment of Data Protection Officer | NPC Circular 16-01 | ⬜ Contact displayed on privacy page |
+| Appointment of Data Protection Officer | NPC Circular 16-01 | ✅ Implemented — DPO contact (dpo@tele-health.app) shown on privacy page |
 | Register as Personal Information Controller | NPC | ⬜ Production requirement |
 | PRC license verification for all doctors | PRC | ✅ Doctor registration with PRC license + admin approval workflow |
 | Account lockout after failed attempts | NPC | ✅ Lockout after 5 failed attempts (configurable) |
