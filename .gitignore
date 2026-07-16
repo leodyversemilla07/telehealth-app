@@ -46,6 +46,9 @@ Thumbs.db
 *.swo
 *~
 
+# TypeScript build info
+*.tsbuildinfo
+
 # OS
 .DS_Store
 Desktop.ini

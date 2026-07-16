@@ -84,6 +84,11 @@
           }
         }
       }
+    },
+    {
+      "includes": ["**/next-env.d.ts"],
+      "linter": { "enabled": false },
+      "formatter": { "enabled": false }
     }
   ]
 }

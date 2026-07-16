@@ -27,13 +27,13 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.2",
     "@turbo/gen": "^2.9.18",
-    "@types/node": "^25.9.3",
+    "@types/node": "^22.20.1",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@workspace/typescript-config": "workspace:*",
     "shadcn": "^4.11.0",
     "tailwindcss": "^4.3.2",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "exports": {
     "./globals.css": "./src/styles/globals.css",
