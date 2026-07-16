@@ -18,13 +18,7 @@ import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
-
-type SignUpState = {
-  error: string | null
-  success: boolean
-  email: string
-  role: string
-}
+import { type SignUpState, submitSignUp } from "./sign-up-submit"
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -55,61 +49,15 @@ export function SignUpForm({
 
   const [state, formAction] = useActionState<SignUpState, FormData>(
     async (_prev, formData) => {
-      const name = formData.get("name") as string
-      const email = formData.get("email") as string
-      const password = formData.get("password") as string
-      const role = formData.get("role") as string
-
-      if (!consent) {
-        return {
-          error: "You must accept the Privacy Policy to create an account.",
-          success: false,
-          email: "",
-          role,
-        }
-      }
-
-      if (!name || !email || !password) {
-        return {
-          error: "All fields are required",
-          success: false,
-          email: "",
-          role,
-        }
-      }
-
-      const { error: signUpError } = await authClient.signUp.email({
-        name,
-        email,
-        password,
-        role,
-      } as unknown as Parameters<typeof authClient.signUp.email>[0])
-
-      if (signUpError) {
-        return {
-          error:
-            signUpError.message ?? signUpError.statusText ?? "Sign up failed",
-          success: false,
-          email: "",
-          role,
-        }
-      }
-
-      // Record privacy-consent acceptance (best-effort). Better Auth auto
-      // signs the user in on sign-up, so the session cookie is available for
-      // the authenticated /consent request. Failure here is non-fatal; the
-      // user can manage consent later in settings.
-      try {
-        await apiClient.post("/consent", {
-          consentType: "privacy_policy",
-          granted: true,
-        })
-      } catch {
-        // Non-fatal: consent can be recorded later in settings.
-      }
-
-      toast.success("Account created successfully!")
-      return { error: null, success: true, email, role }
+      const result = await submitSignUp(formData, consent, {
+        signUpEmail: (input) =>
+          authClient.signUp.email(
+            input as unknown as Parameters<typeof authClient.signUp.email>[0],
+          ),
+        recordConsent: (data) => apiClient.post("/consent", data),
+      })
+      if (result.success) toast.success("Account created successfully!")
+      return result
     },
     { error: null, success: false, email: "", role: "PATIENT" },
   )
