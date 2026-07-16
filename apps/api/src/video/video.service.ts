@@ -51,10 +51,11 @@ export class VideoService {
         this.livekitApiSecret,
       )
     } else {
-      // Stub client — video endpoints will return 503
+      // No LiveKit credentials provided — video endpoints throw
+      // ForbiddenException("Video consultation is not configured") (not 503).
       this.roomServiceClient = null as unknown as RoomServiceClient
       this.logger.warn(
-        "LiveKit not configured - video consultation endpoints will return 503",
+        "LiveKit not configured - video consultation endpoints will return 403 'not configured'",
       )
     }
   }

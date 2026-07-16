@@ -75,7 +75,7 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 | AI Recommendation | AI recommends doctors based on patient symptoms/needs via NVIDIA NIM | ✅ Implemented |
 | Appointment Booking | Book, reschedule, cancel consultations online | ✅ Implemented |
 | Real-time Notifications | Push notifications for booked, upcoming, and updated appointments | ✅ Implemented |
-| Consultation Session | Join video call for virtual consultation (LiveKit) | 🟡 Partial — UI + signaling present; backend LiveKit room creation is stubbed (returns 503) |
+| Consultation Session | Join video call for virtual consultation (LiveKit) | ✅ Implemented (requires LIVEKIT_* credentials) |
 | Appointment History | View past consultations and records | ✅ Implemented |
 | Medical Records | View basic medical records and prescriptions | ✅ Implemented |
 | Doctor Account | Register using email and password | ✅ Implemented |
@@ -366,7 +366,7 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 **Priority:** Critical
 
-> **Implementation note:** The in-browser call UI and Socket.io signaling scaffolding exist, but backend LiveKit room/token creation (`video.service.ts`) is currently stubbed and returns HTTP 503. End-to-end video is not yet functional.
+> **Implementation note:** Video is fully implemented in the backend via `livekit-server-sdk` (`createRoom`, `generateToken`, `joinRoom`, `endRoom`) and the web uses `@livekit/components-react`. It requires `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` to be configured; when unconfigured the endpoints return `403 Video consultation is not configured`.
 
 #### Functional Requirements
 

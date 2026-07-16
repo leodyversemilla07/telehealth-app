@@ -119,6 +119,6 @@ Private — All rights reserved.
 
 ## ⚠️ Known Limitations
 
-- **Video consultations:** the in-browser call UI and Socket.io signaling exist, but backend LiveKit room/token creation is stubbed (returns HTTP 503). End-to-end video is not yet functional.
+- **Video consultations:** fully implemented (backend `livekit-server-sdk` + web `@livekit/components-react`); requires `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` to connect. Without credentials the endpoints return `403 Video consultation is not configured`.
 - **Production compliance:** registering as a Personal Information Controller (PIC) and storing data in the Philippines (or equivalent jurisdiction) are deferred to the production-hardening milestone.
 - **Everything else** in the SRS scope is implemented; `pnpm build`, `pnpm typecheck`, `pnpm lint`, and `pnpm test` all pass.
