@@ -23,7 +23,7 @@ import { NextResponse } from "next/server"
  * Runs before rewrites, on the Node.js runtime, so we can do a real server-side
  * session check via the backend's /api/auth/get-session.
  */
-const PROTECTED_PREFIXES = ["/admin", "/doctor", "/patient", "/settings"]
+const PROTECTED_PREFIXES = ["/admin", "/doctor", "/patient"]
 
 /**
  * Extract the origin from a URL (handles ws:// and wss:// schemes too).
