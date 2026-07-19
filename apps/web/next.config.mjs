@@ -91,7 +91,7 @@ const nextConfig = {
           },
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), payment=()",
+            value: "camera=self, microphone=self, geolocation=(), payment=()",
           },
           // HSTS: only in production to avoid issues with localhost
           ...(isProduction
