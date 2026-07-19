@@ -4,6 +4,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
 import {
+  Bell,
   FileText,
   Heart,
   Key,
@@ -53,6 +54,11 @@ function getSettingsNavItems(role: string): NavItem[] {
       icon: <Lock className="h-4 w-4" />,
     },
     {
+      title: "Notifications",
+      href: `${base}/notifications`,
+      icon: <Bell className="h-4 w-4" />,
+    },
+    {
       title: "Security Alerts",
       href: `${base}/alerts`,
       icon: <Shield className="h-4 w-4" />,
@@ -87,11 +93,11 @@ function getSettingsNavItems(role: string): NavItem[] {
 
 export function SettingsLayout({
   children,
-  role: userRole,
+  userRole,
 }: {
   children: React.ReactNode
   /** User role for rendering the correct settings nav items */
-  role?: "patient" | "doctor" | "admin"
+  userRole?: "patient" | "doctor" | "admin"
 }) {
   const pathname = usePathname()
 

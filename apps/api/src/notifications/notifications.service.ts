@@ -67,24 +67,83 @@ export class NotificationsService {
     return { success: true }
   }
 
+  async getPreferences(userId: string) {
+    const prefs = await this.prisma.notificationPreference.findUnique({
+      where: { userId },
+    })
+    if (!prefs) {
+      return {
+        appointmentReminder: true,
+        appointmentConfirmation: true,
+        appointmentCancelled: true,
+        newMessage: true,
+        scheduleUpdated: true,
+        system: true,
+        pushEnabled: true,
+        emailEnabled: false,
+      }
+    }
+    return prefs
+  }
+
+  async updatePreferences(
+    userId: string,
+    data: {
+      appointmentReminder?: boolean
+      appointmentConfirmation?: boolean
+      appointmentCancelled?: boolean
+      newMessage?: boolean
+      scheduleUpdated?: boolean
+      system?: boolean
+      pushEnabled?: boolean
+      emailEnabled?: boolean
+    },
+  ) {
+    return this.prisma.notificationPreference.upsert({
+      where: { userId },
+      create: { userId, ...data },
+      update: data,
+    })
+  }
+
   async createNotification(
     userId: string,
     type: NotificationType,
     title: string,
     body?: string,
   ) {
+    // Check user's notification preferences before creating
+    const prefs = await this.getPreferences(userId)
+
+    // Map notification type to preference field name
+    const typeToPref: Record<string, keyof typeof prefs> = {
+      APPOINTMENT_REMINDER: "appointmentReminder",
+      APPOINTMENT_CONFIRMATION: "appointmentConfirmation",
+      APPOINTMENT_CANCELLED: "appointmentCancelled",
+      NEW_MESSAGE: "newMessage",
+      SCHEDULE_UPDATED: "scheduleUpdated",
+      SYSTEM: "system",
+    }
+
+    const prefKey = typeToPref[type]
+    if (prefKey && prefs[prefKey] === false) {
+      return null
+    }
+
     const notification = await this.prisma.notification.create({
       data: { userId, type, title, body },
     })
 
-    this.socket.emitToUser(userId, "notification", notification)
+    if (prefs.pushEnabled) {
+      this.socket.emitToUser(userId, "notification", notification)
 
-    // Fire-and-forget browser push (non-blocking)
-    this.push.sendToUser(userId, { title, body }).catch((err) => {
-      this.logger.warn(
-        `Push notification failed for user ${userId}: ${err instanceof Error ? err.message : String(err)}`,
-      )
-    })
+      // Fire-and-forget browser push (non-blocking)
+      this.push.sendToUser(userId, { title, body }).catch((err) => {
+        this.logger.warn(
+          `Push notification failed for user ${userId}: ${err instanceof Error ? err.message : String(err)}`,
+        )
+      })
+    }
 
     return notification
   }

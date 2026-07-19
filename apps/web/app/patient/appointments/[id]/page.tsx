@@ -12,6 +12,7 @@ const VideoConference = dynamic(
   { ssr: false },
 )
 
+import { useRemoteParticipants } from "@livekit/components-react"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -68,6 +69,24 @@ import { useAppointmentConsultation } from "@/hooks/use-records"
 import { useCheckReview, useCreateReview } from "@/hooks/use-reviews"
 import { useJoinRoom } from "@/hooks/use-video"
 import "@livekit/components-styles"
+
+// F-CONSULT-03: Show a waiting overlay until the doctor connects.
+function DoctorWaitingOverlay() {
+  const remoteParticipants = useRemoteParticipants()
+  if (remoteParticipants.length > 0) return null
+
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="text-center text-white">
+        <Video className="mx-auto mb-4 size-12 text-primary" />
+        <h3 className="text-lg font-bold">Waiting for doctor</h3>
+        <p className="mt-2 text-sm text-white/70">
+          Your doctor will join the consultation shortly
+        </p>
+      </div>
+    </div>
+  )
+}
 
 export default function AppointmentDetailPage() {
   const params = useParams()
@@ -347,7 +366,8 @@ export default function AppointmentDetailPage() {
               saveCallToken(null)
               saveCallUrl(null)
               toast.info("Left the consultation room.")
-              refetch()
+              // F-CONSULT-05: Redirect to post-visit appointments list
+              router.push("/patient/appointments")
             }}
           >
             Leave Consultation Room
@@ -355,7 +375,7 @@ export default function AppointmentDetailPage() {
         </div>
 
         {/* LiveKit Calling Container */}
-        <div className="h-[70vh] rounded-2xl border border-border/50 bg-black overflow-hidden relative shadow-2xl">
+        <div className="relative h-[70vh] rounded-2xl border border-border/50 bg-black overflow-hidden shadow-2xl">
           <LiveKitRoom
             token={activeCallToken}
             serverUrl={activeCallUrl}
@@ -365,11 +385,14 @@ export default function AppointmentDetailPage() {
             onDisconnected={() => {
               saveCallToken(null)
               saveCallUrl(null)
-              refetch()
+              // F-CONSULT-05: Redirect to post-visit appointments list
+              router.push("/patient/appointments")
             }}
             data-lk-theme="default"
             className="h-full w-full"
           >
+            {/* F-CONSULT-03: Show waiting overlay until doctor joins */}
+            <DoctorWaitingOverlay />
             <VideoConference />
           </LiveKitRoom>
         </div>

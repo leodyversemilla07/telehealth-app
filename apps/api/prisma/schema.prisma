@@ -72,8 +72,9 @@ model User {
   doctorProfile   DoctorProfile?
   consentLogs     ConsentLog[]
   appointments    Appointment[] @relation("PatientAppointments")
-  notifications      Notification[]
-  pushSubscriptions  PushSubscription[]
+  notifications                   Notification[]
+  notificationPreference          NotificationPreference?
+  pushSubscriptions               PushSubscription[]
   sentMessages     ChatMessage[] @relation("ChatSender")
   receivedMessages ChatMessage[] @relation("ChatReceiver")
   reviews          Review[]      @relation("PatientReviews")
@@ -278,6 +279,24 @@ model Notification {
 
   @@index([userId])
   @@map("notifications")
+}
+
+model NotificationPreference {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  appointmentReminder   Boolean @default(true)
+  appointmentConfirmation Boolean @default(true)
+  appointmentCancelled  Boolean @default(true)
+  newMessage            Boolean @default(true)
+  scheduleUpdated       Boolean @default(true)
+  system                Boolean @default(true)
+
+  pushEnabled Boolean @default(true)
+  emailEnabled Boolean @default(false)
+
+  @@map("notification_preferences")
 }
 
 model PushSubscription {

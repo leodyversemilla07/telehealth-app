@@ -11,6 +11,7 @@ const VideoConference = dynamic(
   { ssr: false },
 )
 
+import { useRemoteParticipants } from "@livekit/components-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -78,6 +79,22 @@ import {
 } from "@/hooks/use-records"
 import { useEndRoom, useJoinRoom } from "@/hooks/use-video"
 import "@livekit/components-styles"
+
+// F-CONSULT-03: Show a banner when the patient is already waiting.
+function PatientWaitingBanner() {
+  const remoteParticipants = useRemoteParticipants()
+  if (remoteParticipants.length === 0) return null
+
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-700 dark:text-amber-300">
+      <span className="relative flex size-2">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
+        <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+      </span>
+      Patient is in the waiting room
+    </div>
+  )
+}
 
 interface PrescriptionInput {
   medicationName: string
@@ -160,11 +177,8 @@ export default function DoctorConsultationDetailPage() {
     error: apptError,
     refetch: refetchAppt,
   } = useAppointment(appointmentId)
-  const {
-    data: consultationRecord,
-    isPending: recordLoading,
-    refetch: refetchRecord,
-  } = useAppointmentConsultation(appointmentId)
+  const { data: consultationRecord, isPending: recordLoading } =
+    useAppointmentConsultation(appointmentId)
 
   // 2. Mutations
   const updateStatusMutation = useUpdateAppointmentStatus()
@@ -306,8 +320,8 @@ export default function DoctorConsultationDetailPage() {
       toast.success("Clinical chart successfully signed and encrypted!", {
         id: "chart-sub",
       })
-      refetchAppt()
-      refetchRecord()
+      // F-CONSULT-05: Redirect to post-visit summary after chart finalization
+      router.push("/doctor/consultations")
     } catch (err) {
       const message =
         err instanceof Error
@@ -411,7 +425,11 @@ export default function DoctorConsultationDetailPage() {
         </div>
 
         {/* LiveKit Calling Container */}
-        <div className="h-[70vh] rounded-2xl border border-border/50 bg-black overflow-hidden relative shadow-2xl">
+        <div className="relative h-[70vh] rounded-2xl border border-border/50 bg-black overflow-hidden shadow-2xl">
+          {/* F-CONSULT-03: Show banner when patient is waiting */}
+          <div className="absolute left-4 top-4 z-10">
+            <PatientWaitingBanner />
+          </div>
           <LiveKitRoom
             token={activeCallToken}
             serverUrl={activeCallUrl}

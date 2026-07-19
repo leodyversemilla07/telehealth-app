@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Query } from "@nestjs/common"
+import { Body, Controller, Get, Param, Patch, Put, Query } from "@nestjs/common"
 import {
   ApiBearerAuth,
   ApiForbiddenResponse,
@@ -40,6 +40,35 @@ export class NotificationsController {
   @ApiForbiddenResponse({ description: "Forbidden" })
   async getUnreadCount(@Session() session: UserSession) {
     return this.notificationsService.getUnreadCount(session.user.id)
+  }
+
+  @Get("preferences")
+  @ApiOperation({ summary: "Get notification preferences" })
+  @ApiOkResponse({ description: "Notification preferences" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  async getPreferences(@Session() session: UserSession) {
+    return this.notificationsService.getPreferences(session.user.id)
+  }
+
+  @Put("preferences")
+  @ApiOperation({ summary: "Update notification preferences" })
+  @ApiOkResponse({ description: "Preferences updated" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  async updatePreferences(
+    @Session() session: UserSession,
+    @Body()
+    data: {
+      appointmentReminder?: boolean
+      appointmentConfirmation?: boolean
+      appointmentCancelled?: boolean
+      newMessage?: boolean
+      scheduleUpdated?: boolean
+      system?: boolean
+      pushEnabled?: boolean
+      emailEnabled?: boolean
+    },
+  ) {
+    return this.notificationsService.updatePreferences(session.user.id, data)
   }
 
   @Patch("mark-all-read")

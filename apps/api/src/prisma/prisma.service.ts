@@ -78,6 +78,9 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   get review() {
     return this.client.review
   }
+  get notificationPreference() {
+    return this.client.notificationPreference
+  }
   get pushSubscription() {
     return this.client.pushSubscription
   }

@@ -234,6 +234,16 @@ export function SignUpForm({
               with the Data Privacy Act of 2012 (RA 10173).
             </label>
           </div>
+          <p className="mt-1 text-xs text-muted-foreground px-1">
+            For data privacy concerns, contact our Data Protection Officer at{" "}
+            <a
+              href="mailto:dpo@tele-health.app"
+              className="underline underline-offset-2"
+            >
+              dpo@tele-health.app
+            </a>
+            .
+          </p>
         </Field>
 
         {state.error && (
