@@ -4,6 +4,7 @@ import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 import { Monitor, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
+import * as React from "react"
 
 interface ThemeToggleProps {
   variant?: "default" | "outline" | "ghost"
@@ -19,6 +20,8 @@ export function ThemeToggle({
   className,
 }: ThemeToggleProps) {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => setMounted(true), [])
 
   function cycleTheme() {
     if (theme === "light") {
@@ -50,14 +53,20 @@ export function ThemeToggle({
       aria-label="Toggle theme"
       className={cn("gap-2", className)}
     >
-      {getIcon()}
-      {showLabel && <span>{getLabel()}</span>}
+      {/* The real theme is only known on the client after mount (read from
+          localStorage / system preference). Render a stable placeholder until
+          then so the server HTML and first client render match — otherwise
+          React throws a hydration mismatch. */}
+      {mounted ? getIcon() : <Monitor className="size-4" />}
+      {showLabel && <span>{mounted ? getLabel() : "System"}</span>}
     </Button>
   )
 }
 
 export function ThemeRadioGroup() {
   const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+  React.useEffect(() => setMounted(true), [])
 
   const themes = [
     { value: "light", label: "Light", icon: Sun },
@@ -69,7 +78,7 @@ export function ThemeRadioGroup() {
     <div className="flex gap-2">
       {themes.map((t) => {
         const Icon = t.icon
-        const isActive = theme === t.value
+        const isActive = mounted && theme === t.value
 
         return (
           <Button

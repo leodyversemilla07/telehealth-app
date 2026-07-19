@@ -8,6 +8,12 @@ import { cn } from "@workspace/ui/lib/utils"
 import { QueryProvider } from "@/components/query-provider"
 import { ThemeProvider } from "@/components/theme-provider"
 
+// Force dynamic rendering so the per-request CSP nonce (generated in
+// apps/web/proxy.ts) is injected into Next.js's framework/inline scripts.
+// Nonce-based CSP only works during dynamic rendering; without this, statically
+// prerendered pages would ship scripts without the nonce and break in prod.
+export const dynamic = "force-dynamic"
+
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 const fontMono = Geist_Mono({

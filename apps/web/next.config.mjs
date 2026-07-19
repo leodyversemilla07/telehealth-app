@@ -102,21 +102,10 @@ const nextConfig = {
                 },
               ]
             : []),
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self'",
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https://api.dicebear.com",
-              "connect-src 'self' wss: ws:",
-              "font-src 'self'",
-              "object-src 'none'",
-              "frame-ancestors 'none'",
-              "base-uri 'self'",
-              "form-action 'self'",
-            ].join("; "),
-          },
+          // NOTE: The Content-Security-Policy header is generated per-request
+          // with a fresh nonce in apps/web/proxy.ts (Next.js 16's renamed
+          // middleware). A static CSP here would block Next.js's own inline
+          // scripts (HMR/`__next_r`) and break dev mode. Do not re-add it here.
         ],
       },
     ]
