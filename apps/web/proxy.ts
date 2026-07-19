@@ -25,7 +25,25 @@ import { NextResponse } from "next/server"
  */
 const PROTECTED_PREFIXES = ["/admin", "/doctor", "/patient", "/settings"]
 
+/**
+ * Extract the origin from a URL (handles ws:// and wss:// schemes too).
+ */
+function extractOrigin(rawUrl: string): string | null {
+  try {
+    const u = new URL(rawUrl)
+    return u.origin
+  } catch {
+    return null
+  }
+}
+
 function buildCsp(nonce: string, isDev: boolean): string {
+  // If LIVEKIT_URL is configured, explicitly allow its origin for WebSocket
+  // connections (the LiveKit client SDK connects directly to that server).
+  // Without this, only 'self' WebSocket connections (Socket.io via rewrites)
+  // would be allowed, and the video call would fail in the browser.
+  const livekitOrigin = extractOrigin(process.env.LIVEKIT_URL ?? "")
+
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
@@ -33,7 +51,7 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // inject inline styles/style attributes that can't carry the nonce.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https://api.dicebear.com",
-    "connect-src 'self' wss: ws:",
+    `connect-src 'self'${livekitOrigin ? ` ${livekitOrigin}` : ""} wss: ws:`,
     "font-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
@@ -50,11 +68,9 @@ export async function proxy(request: NextRequest) {
   const isDev = process.env.NODE_ENV === "development"
   const csp = buildCsp(nonce, isDev)
 
-  // Forward the nonce + CSP on the *request* headers. Next.js reads the nonce
-  // from the incoming CSP header while rendering and auto-applies it to its
-  // framework/inline scripts and styles.
+  // Forward the CSP on the *request* headers so Next.js reads the nonce during
+  // rendering and auto-applies it to its framework/inline scripts.
   const requestHeaders = new Headers(request.headers)
-  requestHeaders.set("x-nonce", nonce)
   requestHeaders.set("Content-Security-Policy", csp)
 
   const withCsp = (res: NextResponse) => {
@@ -85,8 +101,8 @@ export async function proxy(request: NextRequest) {
       const data = (await sessionRes.json()) as { user?: unknown } | null
       authenticated = Boolean(data?.user)
     }
-  } catch {
-    // Network/auth failure -> treat as unauthenticated and redirect.
+  } catch (err) {
+    console.warn("Session check failed, treating as unauthenticated:", err)
     authenticated = false
   }
 
