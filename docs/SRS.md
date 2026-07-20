@@ -649,6 +649,19 @@ The complete schema is maintained at `apps/api/prisma/schema.prisma`. All primar
 - title, body?, isRead, readAt?
 ```
 
+**NotificationPreference Model:**
+```
+- id, userId (unique)
+- appointmentReminder, appointmentConfirmation, appointmentCancelled
+- newMessage, scheduleUpdated, system (all Boolean @default(true))
+- pushEnabled (Boolean @default(true)), emailEnabled (Boolean @default(false))
+```
+
+**PushSubscription Model:**
+```
+- id, userId, endpoint (unique), p256dh, auth, userAgent?
+```
+
 **NotificationType enum:** APPOINTMENT_REMINDER, APPOINTMENT_CONFIRMATION, APPOINTMENT_CANCELLED, NEW_MESSAGE, SCHEDULE_UPDATED, SYSTEM
 
 **SecurityAlert Model:**
@@ -798,14 +811,14 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 | Patient right to data portability | RA 10173 Sec. 19 | ✅ All data accessible via API for export |
 | Appointment of Data Protection Officer | NPC Circular 16-01 | ✅ Implemented — DPO contact (dpo@tele-health.app) shown on privacy page |
 | Register as Personal Information Controller | NPC | ⬜ Production requirement |
-| PRC license verification for all doctors | PRC | ✅ Doctor registration with PRC license + admin approval workflow |
+| PRC license verification for all doctors | PRC | ✅ Doctor registration with PRC license + admin approval workflow + auto-reverification cron (6-month expiry check) |
 | Account lockout after failed attempts | NPC | ✅ Lockout after 5 failed attempts (configurable) |
 | Audit logging of all auth events | NPC | ✅ AuditLog table — login, logout, failed attempts |
 | Password complexity enforcement | NPC | ✅ Min 8 chars, uppercase, lowercase, number, special char |
 | Session management with expiry | NPC | ✅ 7-day session expiry, rotation every 24h |
 | Email verification required | NPC | ✅ requireEmailVerification: true |
 | Security alerts for sensitive actions | NPC | ✅ SecurityAlert model — password change, etc. |
-| Minimum 5-year record retention | NPC | Retention scheduling service (`retention/`) |
+| Minimum 5-year record retention | NPC | ✅ Retention scheduling service (`retention/`) with daily cron for PRC license verification |
 | Data stored in PH or equivalent jurisdiction | NPC | ⬜ To be addressed when production deployment is planned |
 
 ### Appendix E: Deliverables Checklist (WC Launchpad Submission — SE Track)
@@ -834,7 +847,11 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 | Dynamic Breadcrumbs | Context-aware navigation breadcrumbs |
 | Design System | Custom telehealth-themed design system (oklch color palette) |
 | Shared UI Components | Empty states, spinners, date pickers, navigation menus |
-| Philippine Compliance | Consent logging, audit trails, PRC license validation, PDEA S2 support |
+| Notification Preferences | Per-type notification toggles (in-app, push, email) for all roles |
+| Waiting Room Overlay | Patient sees waiting state until doctor admits; doctor sees "Patient is waiting" banner |
+| PRC Auto-Reverification | Daily cron that deactivates expired licenses and warns expiring ones |
+| Bundle Analyzer | @next/bundle-analyzer for monitoring page weight (NFR-PERF-04/05) |
+| Philippine Compliance | Consent logging, audit trails, PRC license validation, PDEA S2 support, DPO contact |
 
 ---
 
@@ -846,6 +863,7 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 | 1.1 | 2026-05-27 | System | Provider→Doctor rename throughout; updated Appendix A (normalized Consultation/Prescription models); updated Appendix B (API routes to match implementation: /doctors, /availability, /records, /video, /notifications, /consent) |
 | 1.2 | 2026-05-29 | System | Added Doctor Reviews/Ratings schema and JSON structures in Appendix A. |
 | 1.3 | 2026-05-30 | System | Updated schema to uuid(); added lockout, 2FA, chat, review, security models. Added bonus features. Final deliverable checklist. |
+| 1.4 | 2026-07-20 | System | Added NotificationPreference model + preference UI; PRC auto-reverification cron; waiting room overlay (F-CONSULT-03); post-visit redirect (F-CONSULT-05); bundle analyzer (NFR-PERF-04/05); DPO email in sign-up (NFR-SEC-09). |
 
 ---
 

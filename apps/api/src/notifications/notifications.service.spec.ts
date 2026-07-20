@@ -8,7 +8,9 @@ import { SocketService } from "./socket.service"
 
 describe("NotificationsService", () => {
   let service: NotificationsService
-  let prisma: Mockify<Pick<PrismaService, "notification">>
+  let prisma: Mockify<
+    Pick<PrismaService, "notification" | "notificationPreference">
+  >
   let socket: Mockify<Pick<SocketService, "emitToUser">>
   let push: { sendToUser: jest.Mock }
 
@@ -21,6 +23,10 @@ describe("NotificationsService", () => {
         update: jest.fn(),
         updateMany: jest.fn(),
         create: jest.fn(),
+      },
+      notificationPreference: {
+        findUnique: jest.fn().mockResolvedValue(null),
+        upsert: jest.fn(),
       },
     }
     const socketMock = { emitToUser: jest.fn() }
@@ -37,7 +43,7 @@ describe("NotificationsService", () => {
 
     service = module.get<NotificationsService>(NotificationsService)
     prisma = module.get(PrismaService) as Mockify<
-      Pick<PrismaService, "notification">
+      Pick<PrismaService, "notification" | "notificationPreference">
     >
     socket = module.get(SocketService) as Mockify<
       Pick<SocketService, "emitToUser">

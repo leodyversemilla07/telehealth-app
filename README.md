@@ -55,45 +55,52 @@ pnpm db:seed          # Seed database
 
 ## 📁 Project Structure
 
-### Frontend Pages (53 pages)
+### Frontend Pages (~55 pages)
 
 | Route | Description |
 |-------|-------------|
-| `/sign-in`, `/sign-up` | Authentication |
-| `/patient/*` | Patient area (19 pages) |
-| `/doctor/*` | Doctor area (17 pages) |
-| `/admin/*` | Admin area (12 pages) |
+| `/sign-in`, `/sign-up` | Authentication, password reset, 2FA |
+| `/patient/*` | Patient area (20 pages — dashboard, appointments, chat, records, prescriptions, symptoms, settings) |
+| `/doctor/*` | Doctor area (18 pages — dashboard, consultations, chat, patients, records, schedule, settings) |
+| `/admin/*` | Admin area (13 pages — dashboard, users, doctors, audit-logs, reports, settings) |
 
-### API Endpoints (21 modules)
+### API Endpoints (17 modules)
 
 | Module | Description |
 |--------|-------------|
 | `/api/auth/*` | Authentication (2FA, lockout, verification) |
 | `/api/doctors/*` | Doctor profiles & search |
-| `/api/appointments/*` | Book & manage appointments |
-| `/api/records/*` | Medical records & prescriptions |
-| `/api/video/*` | Video consultation rooms |
+| `/api/appointments/*` | Book, reschedule, cancel appointments |
+| `/api/records/*` | Medical records, consultation notes, prescriptions |
+| `/api/video/*` | Video consultation rooms (LiveKit) |
 | `/api/chat/*` | Real-time messaging |
-| `/api/admin/*` | Admin operations |
+| `/api/notifications/*` | Notifications + preferences |
+| `/api/reviews/*` | Doctor reviews & ratings |
+| `/api/recommendations` | AI symptom-based doctor recommendation |
+| `/api/availability/*` | Doctor schedules & time-off |
+| `/api/admin/*` | Admin operations, audit logs, reports |
+| `/api/storage/*` | File upload |
 
-### Database Models (18 models)
+### Database Models (19 models)
 
 - **Core:** User, Session, Account, Verification
 - **Profiles:** PatientProfile, DoctorProfile, AvailabilitySchedule, TimeOff
 - **Appointments:** Appointment, Consultation, Prescription
-- **Communication:** Notification, PushSubscription, ChatMessage
+- **Communication:** Notification, NotificationPreference, PushSubscription, ChatMessage
 - **Security:** ConsentLog, AuditLog, SecurityAlert, Review
 
 ## 🔐 Security Features
 
 - ✅ Email verification required
-- ✅ Two-factor authentication (TOTP)
-- ✅ Account lockout (5 failed attempts)
-- ✅ Password complexity validation
-- ✅ Session rotation (7-day expiry)
+- ✅ Two-factor authentication (TOTP with backup codes)
+- ✅ Account lockout (5 failed attempts, configurable)
+- ✅ Password complexity validation (min 8, upper, lower, number, special)
+- ✅ Session rotation (7-day expiry, rotation every 24h)
 - ✅ Rate limiting (20 req/min auth)
 - ✅ Audit logging (NPC compliance)
-- ✅ Security alerts
+- ✅ Security alerts (password change, etc.)
+- ✅ PRC license verification + auto-reverification daily cron
+- ✅ Notification preference controls (per-type toggles)
 
 ## Documentation
 
@@ -121,4 +128,4 @@ Private — All rights reserved.
 
 - **Video consultations:** fully implemented (backend `livekit-server-sdk` + web `@livekit/components-react`); requires `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` to connect. Without credentials the endpoints return `403 Video consultation is not configured`.
 - **Production compliance:** registering as a Personal Information Controller (PIC) and storing data in the Philippines (or equivalent jurisdiction) are deferred to the production-hardening milestone.
-- **Everything else** in the SRS scope is implemented; `pnpm build`, `pnpm typecheck`, `pnpm lint`, and `pnpm test` all pass.
+- **All SRS requirements** are implemented; `pnpm build`, `pnpm typecheck`, `pnpm lint`, and `pnpm test` all pass (199 tests, 25 suites).
