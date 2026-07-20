@@ -76,8 +76,22 @@ export class PrismaService {
   notification = {
     create: jest.fn(),
     findMany: jest.fn(),
+    findUnique: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
     count: jest.fn(),
+  }
+
+  notificationPreference = {
+    findUnique: jest.fn(),
+    upsert: jest.fn(),
+  }
+
+  pushSubscription = {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    delete: jest.fn(),
+    deleteMany: jest.fn(),
   }
 
   consultation = {

@@ -8,7 +8,13 @@
   },
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/../src/$1",
-    "^@generated/(.*)$": "<rootDir>/../generated/$1",
-    "^@thallesp/nestjs-better-auth$": "<rootDir>/mocks/nestjs-better-auth.ts"
+    "^@generated/(.*)$": "<rootDir>/../test/mocks/prisma-client.ts",
+    "^generated/prisma/client\\.js$": "<rootDir>/mocks/prisma-client.ts",
+    "^@thallesp/nestjs-better-auth$": "<rootDir>/mocks/nestjs-better-auth.ts",
+    "^@workspace/shared$": "<rootDir>/mocks/workspace-shared.ts",
+    "^isomorphic-dompurify$": "<rootDir>/mocks/isomorphic-dompurify.ts",
+    "^@/prisma/prisma\\.service$": "<rootDir>/mocks/prisma.service.ts",
+    "^@/notifications/notifications\\.service$": "<rootDir>/mocks/notifications.service.ts",
+    ".*generated/prisma/client\\.js$": "<rootDir>/mocks/prisma-client.ts"
   }
 }
