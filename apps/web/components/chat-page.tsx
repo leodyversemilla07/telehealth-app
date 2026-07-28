@@ -8,6 +8,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty"
 import { Input } from "@workspace/ui/components/input"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -44,6 +51,52 @@ interface ChatPageProps {
   emptyContactsMessage: string
 }
 
+function AvatarInitials({
+  name,
+  email,
+  size = "md",
+}: {
+  name?: string | null
+  email?: string
+  size?: "sm" | "md" | "lg"
+}) {
+  const sizeClasses = {
+    sm: "h-8 w-8 text-xs",
+    md: "h-9 w-9 text-xs",
+    lg: "h-10 w-10 text-sm",
+  }
+  const initial = name?.[0] || email?.[0] || "?"
+  return (
+    <div
+      className={`${sizeClasses[size]} rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shrink-0`}
+    >
+      {initial}
+    </div>
+  )
+}
+
+function EmptyState({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <div className="flex-1 flex items-center justify-center text-muted-foreground">
+      <Empty className="py-8">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">{icon}</EmptyMedia>
+          <EmptyTitle>{title}</EmptyTitle>
+          <EmptyDescription>{description}</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    </div>
+  )
+}
+
 export function ChatPage({
   userRole,
   description,
@@ -57,7 +110,7 @@ export function ChatPage({
 
   const currentUserId = userData?.user?.id || ""
 
-  // Real-time chat via Socket.io — eliminates 3-second polling delay
+  // Real-time chat via Socket.io
   useChatSocket(currentUserId, true)
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
@@ -123,6 +176,102 @@ export function ChatPage({
 
   const otherRoleLabel = userRole === "PATIENT" ? "Doctor" : "Patient"
 
+  function renderConversationItem(conv: (typeof conversations)[number]) {
+    const isSelected = selectedUserId === conv.otherUser.id
+    return (
+      <Button
+        variant="ghost"
+        type="button"
+        key={conv.otherUser.id}
+        onClick={() => setSelectedUserId(conv.otherUser.id)}
+        className={`h-auto w-full justify-start rounded-none border-b border-border/10 p-3 text-left transition-colors ${
+          isSelected ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/30"
+        }`}
+      >
+        <div className="flex items-center gap-3 w-full">
+          <AvatarInitials
+            name={conv.otherUser.name}
+            email={conv.otherUser.email}
+          />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-sm font-medium text-foreground truncate">
+                {conv.otherUser.name || conv.otherUser.email}
+              </span>
+              {conv.unreadCount > 0 && (
+                <span className="h-5 min-w-[20px] rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1 shrink-0">
+                  {conv.unreadCount}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground truncate mt-0.5">
+              {conv.lastMessage?.content || "No messages yet"}
+            </p>
+          </div>
+        </div>
+      </Button>
+    )
+  }
+
+  function renderContactItem(contact: (typeof contacts)[number]) {
+    return (
+      <Button
+        variant="ghost"
+        type="button"
+        key={contact.id}
+        onClick={() => {
+          setSelectedUserId(contact.id)
+          setShowContacts(false)
+        }}
+        className="h-auto w-full justify-start rounded-none border-b border-border/10 p-3 text-left hover:bg-muted/30"
+      >
+        <div className="flex items-center gap-3 w-full">
+          <AvatarInitials name={contact.name} email={contact.email} />
+          <div className="flex-1 min-w-0">
+            <span className="text-sm font-medium text-foreground truncate block">
+              {contact.name || contact.email}
+            </span>
+            <span className="text-xs text-muted-foreground truncate block">
+              {contact.email}
+            </span>
+          </div>
+          <Plus className="h-4 w-4 text-muted-foreground shrink-0" />
+        </div>
+      </Button>
+    )
+  }
+
+  function renderMessage(msg: (typeof messages)[number]) {
+    const isMine = msg.senderId === currentUserId
+    return (
+      <div
+        key={msg.id}
+        className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+      >
+        <div
+          className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm ${
+            isMine
+              ? "bg-primary text-primary-foreground rounded-br-md"
+              : "bg-muted/60 text-foreground rounded-bl-md border border-border/10"
+          }`}
+        >
+          <p className="leading-relaxed">{msg.content}</p>
+          <p
+            className={`text-[10px] mt-1.5 ${
+              isMine ? "text-primary-foreground/60" : "text-muted-foreground/70"
+            }`}
+          >
+            {new Date(msg.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              timeZone: "Asia/Manila",
+            })}
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <Card>
@@ -141,15 +290,15 @@ export function ChatPage({
             selectedUserId ? "hidden lg:flex" : "flex"
           } w-full lg:w-80 border border-border/40 rounded-xl bg-card shadow-sm flex-col`}
         >
-          <div className="p-3 border-b border-border/20">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="p-3 border-b border-border/20 space-y-2">
+            <div className="flex items-center gap-2">
               <Button
                 variant={showContacts ? "secondary" : "ghost"}
                 size="sm"
                 className="h-7 text-xs flex-1"
                 onClick={() => setShowContacts(false)}
               >
-                <MessageSquare className="h-3.5 w-3.5 mr-1" />
+                <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
                 Chats
               </Button>
               <Button
@@ -158,7 +307,7 @@ export function ChatPage({
                 className="h-7 text-xs flex-1"
                 onClick={() => setShowContacts(true)}
               >
-                <UserPlus className="h-3.5 w-3.5 mr-1" />
+                <UserPlus className="h-3.5 w-3.5 mr-1.5" />
                 New Chat
               </Button>
             </div>
@@ -176,6 +325,7 @@ export function ChatPage({
               />
             </div>
           </div>
+
           <div className="flex-1 overflow-y-auto">
             {showContacts ? (
               contactsLoading ? (
@@ -187,33 +337,7 @@ export function ChatPage({
                   {emptyContactsMessage}
                 </div>
               ) : (
-                filteredContacts.map((contact) => (
-                  <Button
-                    variant="ghost"
-                    type="button"
-                    key={contact.id}
-                    onClick={() => {
-                      setSelectedUserId(contact.id)
-                      setShowContacts(false)
-                    }}
-                    className="h-auto w-full justify-start rounded-none border-b border-border/10 p-3 text-left hover:bg-muted/30"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-                        {contact.name?.[0] || contact.email[0]}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <span className="text-sm font-medium truncate block">
-                          {contact.name || contact.email}
-                        </span>
-                        <span className="text-xs text-muted-foreground truncate block">
-                          {contact.email}
-                        </span>
-                      </div>
-                      <Plus className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </Button>
-                ))
+                filteredContacts.map(renderContactItem)
               )
             ) : isPending ? (
               <div className="p-6 text-center">
@@ -224,38 +348,7 @@ export function ChatPage({
                 No conversations yet
               </div>
             ) : (
-              filteredConversations.map((conv) => (
-                <Button
-                  variant="ghost"
-                  type="button"
-                  key={conv.otherUser.id}
-                  onClick={() => setSelectedUserId(conv.otherUser.id)}
-                  className={`h-auto w-full justify-start rounded-none border-b border-border/10 p-3 text-left hover:bg-muted/30 ${
-                    selectedUserId === conv.otherUser.id ? "bg-muted/50" : ""
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-                      {conv.otherUser.name?.[0] || conv.otherUser.email[0]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium truncate">
-                          {conv.otherUser.name || conv.otherUser.email}
-                        </span>
-                        {conv.unreadCount > 0 && (
-                          <span className="h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center shrink-0">
-                            {conv.unreadCount}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">
-                        {conv.lastMessage?.content || "No messages yet"}
-                      </p>
-                    </div>
-                  </div>
-                </Button>
-              ))
+              filteredConversations.map(renderConversationItem)
             )}
           </div>
         </div>
@@ -267,16 +360,14 @@ export function ChatPage({
           } flex-1 border border-border/40 rounded-xl bg-card shadow-sm flex-col`}
         >
           {!selectedUserId ? (
-            <div className="flex-1 flex items-center justify-center text-muted-foreground">
-              <div className="text-center">
-                <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                <p className="text-sm">
-                  Select a conversation to start chatting
-                </p>
-              </div>
-            </div>
+            <EmptyState
+              icon={<MessageSquare className="h-8 w-8" />}
+              title="No conversation selected"
+              description="Select a conversation from the list to start chatting"
+            />
           ) : (
             <>
+              {/* Chat header */}
               <div className="p-3 border-b border-border/20 flex items-center gap-3">
                 <Button
                   variant="ghost"
@@ -288,11 +379,13 @@ export function ChatPage({
                 >
                   <ArrowLeft className="h-[18px] w-[18px]" />
                 </Button>
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                  {selectedUser?.name?.[0] || selectedUser?.email?.[0] || "?"}
-                </div>
-                <div>
-                  <p className="text-sm font-medium">
+                <AvatarInitials
+                  name={selectedUser?.name}
+                  email={selectedUser?.email}
+                  size="md"
+                />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {selectedUser?.name || selectedUser?.email}
                   </p>
                   <p className="text-xs text-muted-foreground">
@@ -301,6 +394,7 @@ export function ChatPage({
                 </div>
               </div>
 
+              {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3">
                 {messagesLoading || !currentUserId ? (
                   <div className="text-center py-8">
@@ -311,38 +405,12 @@ export function ChatPage({
                     No messages yet. Start the conversation!
                   </div>
                 ) : (
-                  messages.map((msg) => {
-                    const isMine = msg.senderId === currentUserId
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex ${isMine ? "justify-end" : "justify-start"}`}
-                      >
-                        <div
-                          className={`max-w-[70%] rounded-xl px-3 py-2 text-sm ${
-                            isMine
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted text-foreground"
-                          }`}
-                        >
-                          <p>{msg.content}</p>
-                          <p
-                            className={`text-xs mt-1 ${isMine ? "text-primary-foreground/70" : "text-muted-foreground"}`}
-                          >
-                            {new Date(msg.createdAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              timeZone: "Asia/Manila",
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  })
+                  messages.map(renderMessage)
                 )}
                 <div ref={messagesEndRef} />
               </div>
 
+              {/* Input */}
               <Separator className="bg-border/20" />
               <div className="p-3">
                 <div className="flex gap-2">
@@ -350,18 +418,24 @@ export function ChatPage({
                     placeholder="Type a message..."
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSend()
+                      }
+                    }}
                     className="flex-1"
                   />
                   <Button
                     size="sm"
                     onClick={handleSend}
                     disabled={!message.trim() || sendMessage.isPending}
+                    className="shrink-0"
                   >
                     {sendMessage.isPending ? (
-                      <Spinner className="size-4" />
+                      <Spinner className="size-4" data-icon="inline-start" />
                     ) : (
-                      <Send className="h-4 w-4" />
+                      <Send className="size-4" />
                     )}
                   </Button>
                 </div>
