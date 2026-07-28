@@ -9,11 +9,9 @@ type AppointmentStatus =
   | "CANCELLED"
 
 const STATUS_STYLES: Record<AppointmentStatus, string> = {
-  BOOKED:
-    "text-sky-600 border-sky-200 bg-sky-50/50 dark:text-sky-400 dark:border-sky-800 dark:bg-sky-950/50",
-  CONFIRMED:
-    "text-emerald-600 border-emerald-200 bg-emerald-50/50 dark:text-emerald-400 dark:border-emerald-800 dark:bg-emerald-950/50",
-  IN_PROGRESS: "bg-amber-500 hover:bg-amber-600 text-white animate-pulse",
+  BOOKED: "text-info border-info bg-info/10",
+  CONFIRMED: "text-success border-success bg-success/10",
+  IN_PROGRESS: "bg-warning text-warning-foreground animate-pulse",
   COMPLETED: "bg-secondary text-secondary-foreground",
   CANCELLED: "bg-destructive text-destructive-foreground",
 }

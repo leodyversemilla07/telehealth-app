@@ -1,15 +1,21 @@
 "use client"
 
 import { Button } from "@workspace/ui/components/button"
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { CheckCircle2, Key, Lock, ShieldAlert } from "lucide-react"
+import { CheckCircle2, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useActionState } from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
+import { AuthLayout } from "@/components/auth-layout"
 import { authClient } from "@/lib/auth-client"
 
 type ResetState = {
@@ -20,14 +26,10 @@ type ResetState = {
 function SubmitButton() {
   const { pending } = useFormStatus()
   return (
-    <Button
-      type="submit"
-      className="w-full py-5 rounded-xl text-sm font-semibold"
-      disabled={pending}
-    >
+    <Button type="submit" className="w-full" disabled={pending}>
       {pending ? (
         <>
-          <Spinner className="mr-2 h-4 w-4" />
+          <Spinner data-icon="inline-start" />
           Resetting...
         </>
       ) : (
@@ -85,86 +87,79 @@ function ResetPasswordForm() {
 
   if (state.success) {
     return (
-      <div className="flex min-h-svh items-center justify-center p-6 bg-linear-to-br from-background via-background/95 to-muted/10">
-        <div className="w-full max-w-sm space-y-6 bg-card/65 backdrop-blur-md border border-border/30 p-8 rounded-2xl shadow-xl text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 mx-auto">
-            <CheckCircle2 className="h-7 w-7" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-xl font-bold tracking-tight">
-              Password updated
-            </h1>
-            <p className="text-sm text-muted-foreground">
+      <AuthLayout variant="center">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-success/10 text-success">
+              <CheckCircle2 className="size-6" />
+            </div>
+            <h1 className="text-xl font-bold">Password updated</h1>
+            <FieldDescription className="text-balance">
               Your password has been reset successfully.
-            </p>
+            </FieldDescription>
           </div>
-          <Link
-            href="/sign-in"
-            className="inline-flex items-center justify-center w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors"
+          <Button
+            className="w-full"
+            nativeButton={false}
+            render={<Link href="/sign-in" />}
           >
             Sign in with new password
-          </Link>
+          </Button>
         </div>
-      </div>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-6 bg-linear-to-br from-background via-background/95 to-muted/10">
-      <div className="w-full max-w-sm space-y-6 bg-card/65 backdrop-blur-md border border-border/30 p-8 rounded-2xl shadow-xl">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Set new password
-          </h1>
-          <p className="text-muted-foreground text-sm">
+    <AuthLayout variant="center">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <h1 className="text-xl font-bold">Set new password</h1>
+          <FieldDescription className="text-balance">
             Enter your new password below.
-          </p>
+          </FieldDescription>
         </div>
 
-        <form action={formAction} className="space-y-4">
-          <input type="hidden" name="token" value={token ?? ""} />
+        <form action={formAction}>
+          <FieldGroup>
+            <input type="hidden" name="token" value={token ?? ""} />
 
-          <div className="space-y-2">
-            <Label htmlFor="password">New Password</Label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Field>
+              <FieldLabel htmlFor="password">New Password</FieldLabel>
               <Input
                 id="password"
                 name="password"
                 type="password"
                 placeholder="••••••••"
-                className="pl-9 py-5 rounded-xl border-border/60"
                 required
               />
-            </div>
-          </div>
+            </Field>
 
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <div className="relative">
-              <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Field>
+              <FieldLabel htmlFor="confirmPassword">
+                Confirm Password
+              </FieldLabel>
               <Input
                 id="confirmPassword"
                 name="confirmPassword"
                 type="password"
                 placeholder="••••••••"
-                className="pl-9 py-5 rounded-xl border-border/60"
                 required
               />
-            </div>
-          </div>
+            </Field>
 
-          {state.error && (
-            <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
-              <ShieldAlert className="h-4 w-4 shrink-0" />
-              <p>{state.error}</p>
-            </div>
-          )}
+            {state.error && (
+              <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
+                <ShieldAlert className="h-4 w-4 shrink-0" />
+                <p>{state.error}</p>
+              </div>
+            )}
 
-          <SubmitButton />
+            <SubmitButton />
+          </FieldGroup>
         </form>
       </div>
-    </div>
+    </AuthLayout>
   )
 }
 
@@ -173,7 +168,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <div className="flex min-h-svh items-center justify-center">
-          <Spinner className="h-8 w-8 text-primary" />
+          <Spinner className="size-8 text-primary" />
         </div>
       }
     >

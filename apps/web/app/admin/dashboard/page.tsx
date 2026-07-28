@@ -124,7 +124,7 @@ export default function AdminDashboardPage() {
                   {stats?.totalDoctors ?? 0}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center text-success">
                 <ShieldCheck className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -142,7 +142,7 @@ export default function AdminDashboardPage() {
                   {stats?.totalPatients ?? 0}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center text-violet-600 dark:text-violet-400">
+              <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center text-accent-foreground">
                 <Activity className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -160,7 +160,7 @@ export default function AdminDashboardPage() {
                   {stats?.totalAppointments ?? 0}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
                 <Calendar className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -176,11 +176,11 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Pending Approval
               </span>
-              <p className="text-3xl font-extrabold text-amber-600 dark:text-amber-400">
+              <p className="text-3xl font-extrabold text-warning">
                 {stats?.pendingDoctors ?? 0}
               </p>
             </div>
-            <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400">
+            <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
               <ShieldAlert className="h-4.5 w-4.5" />
             </div>
           </CardContent>
@@ -192,11 +192,11 @@ export default function AdminDashboardPage() {
               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Approved Doctors
               </span>
-              <p className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
+              <p className="text-3xl font-extrabold text-success">
                 {stats?.approvedDoctors ?? 0}
               </p>
             </div>
-            <div className="h-9 w-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+            <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center text-success">
               <CheckCircle2 className="h-4.5 w-4.5" />
             </div>
           </CardContent>
@@ -233,28 +233,28 @@ export default function AdminDashboardPage() {
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-emerald-500/30 hover:bg-emerald-500/5"
+          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-success/30 hover:bg-success/5"
           render={<Link href="/admin/doctors" />}
         >
-          <ShieldCheck className="h-5 w-5 text-emerald-500" />
+          <ShieldCheck className="h-5 w-5 text-success" />
           <span className="text-xs font-medium">Manage Doctors</span>
         </Button>
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-amber-500/30 hover:bg-amber-500/5"
+          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-warning/30 hover:bg-warning/5"
           render={<Link href="/admin/reports" />}
         >
-          <FileText className="h-5 w-5 text-amber-500" />
+          <FileText className="h-5 w-5 text-warning" />
           <span className="text-xs font-medium">View Reports</span>
         </Button>
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-violet-500/30 hover:bg-violet-500/5"
+          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-accent/30 hover:bg-accent/5"
           render={<Link href="/admin/audit-logs" />}
         >
-          <History className="h-5 w-5 text-violet-500" />
+          <History className="h-5 w-5 text-accent-foreground" />
           <span className="text-xs font-medium">Audit Logs</span>
         </Button>
       </div>

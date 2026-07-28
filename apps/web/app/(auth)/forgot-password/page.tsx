@@ -1,14 +1,20 @@
 "use client"
 
 import { Button } from "@workspace/ui/components/button"
+import {
+  Field,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
-import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { ArrowLeft, CheckCircle2, Mail, ShieldAlert } from "lucide-react"
+import { ArrowLeft, CheckCircle2, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useActionState } from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
+import { AuthLayout } from "@/components/auth-layout"
 import { env } from "@/lib/env"
 
 type ForgotState = {
@@ -20,14 +26,10 @@ type ForgotState = {
 function SubmitButton() {
   const { pending } = useFormStatus()
   return (
-    <Button
-      type="submit"
-      className="w-full py-5 rounded-xl text-sm font-semibold"
-      disabled={pending}
-    >
+    <Button type="submit" className="w-full" disabled={pending}>
       {pending ? (
         <>
-          <Spinner className="mr-2 h-4 w-4" />
+          <Spinner data-icon="inline-start" />
           Sending link...
         </>
       ) : (
@@ -37,7 +39,7 @@ function SubmitButton() {
   )
 }
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordForm() {
   const [state, formAction] = useActionState<ForgotState, FormData>(
     async (_prev, formData) => {
       const email = formData.get("email") as string
@@ -76,82 +78,82 @@ export default function ForgotPasswordPage() {
 
   if (state.success) {
     return (
-      <div className="flex min-h-svh items-center justify-center p-6 bg-gradient-to-br from-background via-background/95 to-muted/10">
-        <div className="w-full max-w-sm space-y-6 bg-card/65 backdrop-blur-md border border-border/30 p-8 rounded-2xl shadow-xl text-center">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 mx-auto">
-            <CheckCircle2 className="h-7 w-7" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-xl font-bold tracking-tight">
-              Check your email
-            </h1>
-            <p className="text-sm text-muted-foreground leading-relaxed">
+      <AuthLayout variant="center">
+        <div className="flex flex-col gap-6">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-success/10 text-success">
+              <CheckCircle2 className="size-6" />
+            </div>
+            <h1 className="text-xl font-bold">Check your email</h1>
+            <FieldDescription className="text-balance">
               We&apos;ve sent a password reset link to{" "}
               <strong className="text-foreground">{state.email}</strong>. It
               will expire in 1 hour.
-            </p>
+            </FieldDescription>
           </div>
-          <Link
-            href="/sign-in"
-            className="inline-flex items-center gap-1.5 text-sm text-primary underline underline-offset-4 font-semibold hover:text-primary/80"
+          <Button
+            variant="outline"
+            className="w-full"
+            nativeButton={false}
+            render={<Link href="/sign-in" />}
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
+            <ArrowLeft className="size-4" />
             Back to sign in
-          </Link>
+          </Button>
         </div>
-      </div>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center p-6 bg-gradient-to-br from-background via-background/95 to-muted/10">
-      <div className="w-full max-w-sm space-y-6 bg-card/65 backdrop-blur-md border border-border/30 p-8 rounded-2xl shadow-xl">
-        <div className="space-y-2 text-center">
-          <h1 className="text-2xl font-bold tracking-tight">
-            Forgot password?
-          </h1>
-          <p className="text-muted-foreground text-sm">
+    <AuthLayout variant="center">
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <h1 className="text-xl font-bold">Forgot password?</h1>
+          <FieldDescription className="text-balance">
             Enter the email address linked to your account and we&apos;ll send
             you a recovery link.
-          </p>
+          </FieldDescription>
         </div>
 
-        <form action={formAction} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <form action={formAction}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
               <Input
                 id="email"
                 name="email"
                 type="email"
                 placeholder="m@example.com"
-                className="pl-9 py-5 rounded-xl border-border/60"
                 required
               />
-            </div>
-          </div>
+            </Field>
 
-          {state.error && (
-            <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
-              <ShieldAlert className="h-4 w-4 shrink-0" />
-              <p>{state.error}</p>
-            </div>
-          )}
+            {state.error && (
+              <div className="flex items-center gap-2 text-destructive text-sm bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
+                <ShieldAlert className="h-4 w-4 shrink-0" />
+                <p>{state.error}</p>
+              </div>
+            )}
 
-          <SubmitButton />
+            <SubmitButton />
+          </FieldGroup>
         </form>
 
-        <p className="text-muted-foreground text-center text-xs pt-2">
+        <FieldDescription className="text-center">
           Remember your password?{" "}
           <Link
             href="/sign-in"
-            className="text-primary underline underline-offset-4 font-semibold hover:text-primary/80"
+            className="underline underline-offset-4 font-semibold"
           >
             Sign In
           </Link>
-        </p>
+        </FieldDescription>
       </div>
-    </div>
+    </AuthLayout>
   )
+}
+
+export default function ForgotPasswordPage() {
+  return <ForgotPasswordForm />
 }

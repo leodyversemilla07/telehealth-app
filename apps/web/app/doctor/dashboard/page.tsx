@@ -112,7 +112,7 @@ export default function DoctorDashboardPage() {
                   {upcomingConsults}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-sky-100 dark:bg-sky-900/50 flex items-center justify-center text-sky-600 dark:text-sky-400">
+              <div className="h-9 w-9 rounded-lg bg-info/10 flex items-center justify-center text-info">
                 <CalendarDays className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -130,13 +130,13 @@ export default function DoctorDashboardPage() {
                   {activeConsults}
                   {activeConsults > 0 && (
                     <span className="relative flex h-2.5 w-2.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-warning opacity-75" />
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-warning" />
                     </span>
                   )}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
                 <Video className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function DoctorDashboardPage() {
                   {completedConsults}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center text-success">
                 <CheckCircle2 className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -172,7 +172,7 @@ export default function DoctorDashboardPage() {
                   {totalAppts}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center text-violet-600 dark:text-violet-400">
+              <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center text-accent-foreground">
                 <ClipboardList className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -282,29 +282,29 @@ export default function DoctorDashboardPage() {
         </Button>
         <Button
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-emerald-500/30 hover:bg-emerald-500/5"
+          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-success/30 hover:bg-success/5"
           nativeButton={false}
           render={<Link href="/doctor/schedule" />}
         >
-          <CalendarDays className="h-5 w-5 text-emerald-500" />
+          <CalendarDays className="h-5 w-5 text-success" />
           <span className="text-xs font-medium">Manage Schedule</span>
         </Button>
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-violet-500/30 hover:bg-violet-500/5"
+          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-accent/30 hover:bg-accent/5"
           render={<Link href="/doctor/patients" />}
         >
-          <Users className="h-5 w-5 text-violet-500" />
+          <Users className="h-5 w-5 text-accent-foreground" />
           <span className="text-xs font-medium">Patient List</span>
         </Button>
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-amber-500/30 hover:bg-amber-500/5"
+          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-warning/30 hover:bg-warning/5"
           render={<Link href="/doctor/records" />}
         >
-          <FileText className="h-5 w-5 text-amber-500" />
+          <FileText className="h-5 w-5 text-warning" />
           <span className="text-xs font-medium">Medical Records</span>
         </Button>
       </div>

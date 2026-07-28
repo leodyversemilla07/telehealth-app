@@ -89,13 +89,13 @@ export default function PatientDashboardPage() {
     switch (status) {
       case "BOOKED":
         return (
-          <Badge className="text-xs bg-info text-info-foreground font-bold uppercase">
+          <Badge className="text-xs bg-info/10 text-info border-info font-bold uppercase">
             Booked
           </Badge>
         )
       case "CONFIRMED":
         return (
-          <Badge className="text-xs bg-success text-success-foreground font-bold uppercase">
+          <Badge className="text-xs bg-success/10 text-success border-success font-bold uppercase">
             Confirmed
           </Badge>
         )
@@ -147,7 +147,7 @@ export default function PatientDashboardPage() {
                   {upcoming.length}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-sky-100 dark:bg-sky-900/50 flex items-center justify-center text-sky-600 dark:text-sky-400">
+              <div className="h-9 w-9 rounded-lg bg-info/10 flex items-center justify-center text-info">
                 <Calendar className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function PatientDashboardPage() {
                   {completedCount}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center text-success">
                 <FileText className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -183,7 +183,7 @@ export default function PatientDashboardPage() {
                   {records.length}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-violet-100 dark:bg-violet-900/50 flex items-center justify-center text-violet-600 dark:text-violet-400">
+              <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center text-accent-foreground">
                 <ClipboardIcon className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function PatientDashboardPage() {
                   {prescriptions.length}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
                 <Pill className="h-4.5 w-4.5" />
               </div>
             </div>
@@ -211,13 +211,13 @@ export default function PatientDashboardPage() {
 
       {/* Next Appointment Highlight */}
       {nextAppointment ? (
-        <Card className="border-emerald-200 dark:border-emerald-800 overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <Card className="border-success/20 dark:border-success/30 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-success/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <CardTitle className="text-sm font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
+                <CardTitle className="text-sm font-bold text-success uppercase tracking-wider">
                   Next Appointment
                 </CardTitle>
               </div>
@@ -283,7 +283,7 @@ export default function PatientDashboardPage() {
                   nextAppointment.status === "IN_PROGRESS") && (
                   <Button
                     size="sm"
-                    className="text-xs h-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                    className="text-xs h-8 font-bold"
                     onClick={() =>
                       router.push(`/patient/appointments/${nextAppointment.id}`)
                     }
@@ -312,28 +312,28 @@ export default function PatientDashboardPage() {
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-emerald-500/30 hover:bg-emerald-500/5"
+          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-success/30 hover:bg-success/5"
           render={<Link href="/patient/records" />}
         >
-          <FileText className="h-5 w-5 text-emerald-500" />
+          <FileText className="h-5 w-5 text-success" />
           <span className="text-xs font-medium">Medical Records</span>
         </Button>
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-violet-500/30 hover:bg-violet-500/5"
+          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-accent/30 hover:bg-accent/5"
           render={<Link href="/patient/chat" />}
         >
-          <MessageSquare className="h-5 w-5 text-violet-500" />
+          <MessageSquare className="h-5 w-5 text-accent-foreground" />
           <span className="text-xs font-medium">Messages</span>
         </Button>
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-amber-500/30 hover:bg-amber-500/5"
+          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-warning/30 hover:bg-warning/5"
           render={<Link href="/patient/prescriptions" />}
         >
-          <Pill className="h-5 w-5 text-amber-500" />
+          <Pill className="h-5 w-5 text-warning" />
           <span className="text-xs font-medium">Prescriptions</span>
         </Button>
       </div>
