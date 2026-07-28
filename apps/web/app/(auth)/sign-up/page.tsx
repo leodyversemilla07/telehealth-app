@@ -3,7 +3,7 @@ import { SignUpForm } from "@/components/sign-up-form"
 
 export default function SignUpPage() {
   return (
-    <AuthLayout variant="sign-up">
+    <AuthLayout variant="center">
       <SignUpForm />
     </AuthLayout>
   )

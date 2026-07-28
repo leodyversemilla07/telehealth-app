@@ -7,31 +7,110 @@ const TESTIMONIALS = [
   {
     quote:
       "I booked an appointment at 10pm and saw a doctor within 15 minutes. The video quality was excellent and I had a prescription by morning.",
-    author: "Patient",
-    role: "Maria L.",
+    author: "Maria L.",
+    role: "Patient",
     rating: 5,
+    featured: true,
   },
   {
     quote:
       "As a busy parent, being able to consult a pediatrician from home saves us hours. Our kids get quality care without the waiting room stress.",
-    author: "Patient",
-    role: "David K.",
+    author: "David K.",
+    role: "Patient",
     rating: 5,
   },
   {
     quote:
       "The platform handles everything — scheduling, video, prescriptions, records. It's the most streamlined telehealth experience I've used.",
-    author: "Doctor",
-    role: "Dr. Sarah W.",
+    author: "Dr. Sarah W.",
+    role: "Doctor",
     rating: 5,
   },
 ]
 
+function TestimonialCard({
+  quote,
+  author,
+  role,
+  rating,
+  featured,
+}: {
+  quote: string
+  author: string
+  role: string
+  rating: number
+  featured?: boolean
+}) {
+  return (
+    <div
+      className={`group relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-300 reveal-on-scroll ${
+        featured
+          ? "border-primary/20 bg-gradient-to-br from-primary/[0.04] to-primary/[0.01] sm:col-span-2 lg:col-span-2 hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10"
+          : "border-border bg-card/50 hover:border-primary/20 hover:bg-card hover:shadow-lg hover:shadow-primary/5"
+      }`}
+    >
+      {/* Decorative quote mark */}
+      <div
+        className={`pointer-events-none absolute select-none text-6xl leading-none font-serif transition-all duration-300 ${
+          featured
+            ? "-right-1 -top-3 text-primary/[0.08] group-hover:text-primary/[0.12]"
+            : "-right-2 -top-2 text-primary/5 group-hover:text-primary/10"
+        }`}
+        aria-hidden="true"
+      >
+        &ldquo;
+      </div>
+
+      {/* Featured glow */}
+      {featured && (
+        <div className="pointer-events-none absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-primary/[0.04] blur-3xl" />
+      )}
+
+      <div className="relative z-10">
+        <div className="mb-4 flex gap-1">
+          {Array.from({ length: rating }).map((_, j) => (
+            <Star key={j} className="size-4 fill-warning text-warning" />
+          ))}
+        </div>
+        <p
+          className={`leading-relaxed relative z-10 ${
+            featured ? "text-base" : "text-sm"
+          } text-muted-foreground`}
+        >
+          &ldquo;{quote}&rdquo;
+        </p>
+      </div>
+
+      <div className="relative z-10 mt-6 flex items-center gap-3">
+        <div
+          className={`flex items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary transition-all duration-300 group-hover:bg-primary/15 ${
+            featured ? "size-12 text-base" : "size-10"
+          } group-hover:scale-105`}
+        >
+          {featured ? (
+            <span className="text-lg">{author.charAt(0)}</span>
+          ) : (
+            author.charAt(0)
+          )}
+        </div>
+        <div>
+          <div className="text-sm font-medium text-card-foreground">
+            {author}
+          </div>
+          <div className="text-xs text-muted-foreground">{role}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function TestimonialsSection() {
   return (
     <section id="testimonials" className="relative py-24 sm:py-32">
+      <div className="absolute inset-0 -z-10 bg-dot-grid-subtle [mask-image:radial-gradient(ellipse_70%_50%_at_50%_50%,black,transparent_70%)]" />
+
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-        <div className="mb-16 text-center">
+        <div className="mb-16 text-center reveal-on-scroll">
           <Badge
             variant="outline"
             className="mb-4 rounded-full border-border text-muted-foreground"
@@ -41,43 +120,15 @@ export function TestimonialsSection() {
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
             Trusted by thousands of
             <br />
-            <span className="text-primary">patients and doctors</span>
+            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+              patients and doctors
+            </span>
           </h2>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
           {TESTIMONIALS.map((testimonial, i) => (
-            <div
-              key={i}
-              className="flex flex-col justify-between rounded-2xl border border-border bg-card p-6"
-            >
-              <div>
-                <div className="mb-4 flex gap-1">
-                  {Array.from({ length: testimonial.rating }).map((_, j) => (
-                    <Star
-                      key={j}
-                      className="size-4 fill-warning text-warning"
-                    />
-                  ))}
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  &ldquo;{testimonial.quote}&rdquo;
-                </p>
-              </div>
-              <div className="mt-6 flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                  {testimonial.role.charAt(0)}
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-card-foreground">
-                    {testimonial.role}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {testimonial.author}
-                  </div>
-                </div>
-              </div>
-            </div>
+            <TestimonialCard key={i} {...testimonial} />
           ))}
         </div>
       </div>

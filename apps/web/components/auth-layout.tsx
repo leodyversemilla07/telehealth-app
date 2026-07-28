@@ -3,10 +3,18 @@ import Link from "next/link"
 
 interface AuthLayoutProps {
   children: React.ReactNode
-  variant?: "sign-in" | "sign-up"
+  variant?: "sign-in" | "sign-up" | "center"
 }
 
 export function AuthLayout({ children, variant = "sign-in" }: AuthLayoutProps) {
+  if (variant === "center") {
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-background p-6 md:p-10">
+        <div className="w-full max-w-sm">{children}</div>
+      </div>
+    )
+  }
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">

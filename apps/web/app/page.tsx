@@ -9,6 +9,7 @@ import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
 import { Footer } from "@/components/homepage/footer"
 import { Header } from "@/components/homepage/header"
+import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 import { authClient } from "@/lib/auth-client"
 
 const FeaturesSection = dynamic(
@@ -82,11 +83,17 @@ export default function Page() {
         ? "Open doctor workspace"
         : "Open patient dashboard"
 
+  const scrollRef = useScrollReveal()
+
   return (
-    <main className="min-h-svh bg-background text-foreground">
+    <main ref={scrollRef} className="min-h-svh bg-background text-foreground">
       {/* Hero Section */}
       <section id="top" className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/5 via-background to-background dark:from-primary/10 dark:via-background dark:to-background" />
+        {/* Subtle geometric background */}
+        <div className="absolute inset-0 -z-10 bg-dot-grid [mask-image:radial-gradient(ellipse_80%_50%_at_50%_0%,black,transparent_70%)]" />
+        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.07] via-background to-background dark:from-primary/[0.12] dark:via-background dark:to-background" />
+        {/* Soft radial glow */}
+        <div className="absolute left-1/2 top-0 -z-10 h-[600px] w-[800px] -translate-x-1/2 rounded-full bg-primary/[0.04] blur-[120px] dark:bg-primary/[0.06]" />
 
         <Header
           isAuthenticated={Boolean(session)}
@@ -96,8 +103,8 @@ export default function Page() {
           onDashboard={() => router.push(workspacePath)}
         />
 
-        <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center px-5 pb-24 pt-16 text-center sm:px-8 lg:pb-32 lg:pt-24">
-          <div className="mb-8 flex flex-wrap items-center justify-center gap-2">
+        <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center px-5 pb-24 pt-24 text-center sm:px-8 lg:pb-32 lg:pt-32">
+          <div className="mb-8 flex flex-wrap items-center justify-center gap-2 reveal-on-scroll">
             {TRUST_BADGES.map((badge) => (
               <Badge
                 key={badge}
@@ -109,19 +116,31 @@ export default function Page() {
             ))}
           </div>
 
-          <h1 className="max-w-4xl text-5xl font-bold leading-[1.1] tracking-tight sm:text-6xl lg:text-7xl">
-            <span className="text-foreground">Care moves faster</span>
-            <br />
-            <span className="text-primary">when every handoff is visible.</span>
-          </h1>
+          <div className="reveal-on-scroll" style={{ transitionDelay: "80ms" }}>
+            <h1 className="max-w-4xl text-5xl font-bold leading-[1.08] tracking-tight sm:text-6xl lg:text-7xl">
+              <span className="text-foreground">Care moves faster</span>
+              <br />
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
+                when every handoff is visible.
+              </span>
+            </h1>
+          </div>
 
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
-            A telehealth workspace for booking, secure video visits, doctor
-            schedules, prescriptions, and patient notifications. Built for
-            patients who value their time.
-          </p>
+          <div
+            className="reveal-on-scroll"
+            style={{ transitionDelay: "160ms" }}
+          >
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+              A telehealth workspace for booking, secure video visits, doctor
+              schedules, prescriptions, and patient notifications. Built for
+              patients who value their time.
+            </p>
+          </div>
 
-          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
+          <div
+            className="mt-10 flex flex-col items-center gap-4 sm:flex-row reveal-on-scroll"
+            style={{ transitionDelay: "240ms" }}
+          >
             {isPending ? (
               <>
                 <SkeletonBlock className="h-12 w-44" />
@@ -131,7 +150,7 @@ export default function Page() {
               <Button
                 size="lg"
                 onClick={() => router.push(workspacePath)}
-                className="rounded-full bg-primary px-8 text-primary-foreground hover:bg-primary/90"
+                className="rounded-full bg-primary px-8 text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/25 hover:scale-[1.02] active:scale-[0.98]"
               >
                 {dashboardLabel}
                 <ArrowRight className="ml-2 size-4" />
@@ -141,7 +160,7 @@ export default function Page() {
                 <Button
                   size="lg"
                   onClick={() => router.push("/sign-up")}
-                  className="rounded-full bg-primary px-8 text-primary-foreground hover:bg-primary/90"
+                  className="rounded-full bg-primary px-8 text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:shadow-xl hover:shadow-primary/25 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Get started free
                   <ArrowRight className="ml-2 size-4" />
@@ -156,6 +175,28 @@ export default function Page() {
                 </Button>
               </>
             )}
+          </div>
+
+          {/* Stats bar */}
+          <div
+            className="mt-16 grid grid-cols-2 gap-8 sm:grid-cols-4 reveal-on-scroll"
+            style={{ transitionDelay: "320ms" }}
+          >
+            {[
+              ["50K+", "Active patients"],
+              ["200+", "Licensed doctors"],
+              ["15K+", "Monthly visits"],
+              ["4.9", "Patient rating"],
+            ].map(([value, label]) => (
+              <div key={label} className="text-center">
+                <div className="text-2xl font-bold text-foreground sm:text-3xl">
+                  {value}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {label}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>
