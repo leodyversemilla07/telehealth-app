@@ -92,6 +92,28 @@ export const auth = betterAuth({
   },
 
   plugins: [twoFactor()],
+
+  /** Social login providers */
+  socialProviders: {
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? {
+          google: {
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            redirectURI: process.env.GOOGLE_REDIRECT_URI,
+          },
+        }
+      : {}),
+    ...(process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
+      ? {
+          apple: {
+            clientId: process.env.APPLE_CLIENT_ID,
+            clientSecret: process.env.APPLE_CLIENT_SECRET,
+            redirectURI: process.env.APPLE_REDIRECT_URI,
+          },
+        }
+      : {}),
+  },
   basePath: "/api/auth",
   /**
    * Session configuration:
