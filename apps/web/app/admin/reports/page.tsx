@@ -174,7 +174,7 @@ export default function AdminReportsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Completion Rate
             </CardTitle>
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
+            <TrendingUp className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{reports.completionRate}%</div>
@@ -190,7 +190,7 @@ export default function AdminReportsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Cancellation Rate
             </CardTitle>
-            <CalendarX className="h-4 w-4 text-red-500" />
+            <CalendarX className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -226,7 +226,7 @@ export default function AdminReportsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Audit Events
             </CardTitle>
-            <ShieldCheck className="h-4 w-4 text-blue-500" />
+            <ShieldCheck className="h-4 w-4 text-info" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalAuditActions}</div>
@@ -344,10 +344,10 @@ export default function AdminReportsPage() {
               let color = "bg-muted-foreground"
               let icon = <Users className="h-4 w-4" />
               if (r.role === "ADMIN") {
-                color = "bg-amber-500"
+                color = "bg-warning"
                 icon = <ShieldCheck className="h-4 w-4 text-white" />
               } else if (r.role === "DOCTOR") {
-                color = "bg-emerald-500"
+                color = "bg-success"
                 icon = <UserCheck className="h-4 w-4 text-white" />
               } else {
                 color = "bg-primary"

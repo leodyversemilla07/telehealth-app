@@ -181,7 +181,7 @@ export function UserTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-xs gap-1 h-7 font-medium px-2.5 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200"
+                        className="text-xs gap-1 h-7 font-medium px-2.5 hover:bg-success/10 hover:text-success hover:border-success/20"
                         disabled={isUnbanPending}
                         onClick={() => onUnban(user.id)}
                       >

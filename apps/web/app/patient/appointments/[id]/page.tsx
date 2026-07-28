@@ -351,8 +351,8 @@ export default function AppointmentDetailPage() {
         <div className="flex items-center justify-between bg-card border border-border/40 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
             </span>
             <span className="font-bold text-sm text-foreground">
               Live consultation session with {appt.doctor?.user?.name}
@@ -609,7 +609,7 @@ export default function AppointmentDetailPage() {
                 {isJoinable && (
                   <Button
                     size="sm"
-                    className="text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm"
+                    className="text-xs h-9 font-bold flex items-center gap-1.5 shadow-sm"
                     disabled={joinRoomMutation.isPending}
                     onClick={handleJoinCall}
                   >
@@ -811,7 +811,7 @@ export default function AppointmentDetailPage() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CheckCircle className="h-4 w-4 text-emerald-500" />
+                    <CheckCircle className="h-4 w-4 text-success" />
                     <span>You have already reviewed this consultation.</span>
                   </div>
                   {reviewCheck.review && (
@@ -822,7 +822,7 @@ export default function AppointmentDetailPage() {
                             key={i}
                             className={`h-4 w-4 ${
                               i < (reviewCheck.review?.rating ?? 0)
-                                ? "text-amber-400 fill-amber-400"
+                                ? "text-warning fill-warning"
                                 : "text-muted-foreground"
                             }`}
                           />
@@ -845,7 +845,7 @@ export default function AppointmentDetailPage() {
                 <CardContent className="pt-6 space-y-4">
                   <div>
                     <h3 className="text-sm font-semibold flex items-center gap-2">
-                      <Star className="h-4 w-4 text-amber-400" />
+                      <Star className="h-4 w-4 text-warning" />
                       Rate Your Consultation
                     </h3>
                     <p className="text-xs text-muted-foreground">
@@ -867,8 +867,8 @@ export default function AppointmentDetailPage() {
                         <Star
                           className={`h-8 w-8 ${
                             star <= reviewRating
-                              ? "text-amber-400 fill-amber-400"
-                              : "text-muted-foreground hover:text-amber-200"
+                              ? "text-warning fill-warning"
+                              : "text-muted-foreground hover:text-warning/60"
                           }`}
                         />
                       </Button>

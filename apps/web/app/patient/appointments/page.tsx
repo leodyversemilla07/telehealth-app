@@ -50,6 +50,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useOptimistic, useState } from "react"
 import { toast } from "sonner"
+import { StatusBadge } from "@/components/status-badge"
 import {
   appointmentKeys,
   useCancelAppointment,
@@ -107,58 +108,14 @@ export default function PatientAppointmentsPage() {
   }
 
   // Get status badge colors
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "BOOKED":
-        return (
-          <Badge
-            variant="outline"
-            className="text-xs text-sky-600 border-sky-200 bg-sky-50/50 font-bold uppercase dark:text-sky-400 dark:border-sky-800 dark:bg-sky-950/50"
-          >
-            Booked
-          </Badge>
-        )
-      case "CONFIRMED":
-        return (
-          <Badge
-            variant="outline"
-            className="text-xs text-emerald-600 border-emerald-200 bg-emerald-50/50 font-bold uppercase dark:text-emerald-400 dark:border-emerald-800 dark:bg-emerald-950/50"
-          >
-            Confirmed
-          </Badge>
-        )
-      case "IN_PROGRESS":
-        return (
-          <Badge className="text-xs bg-warning text-warning-foreground font-bold uppercase animate-pulse">
-            In Progress
-          </Badge>
-        )
-      case "COMPLETED":
-        return (
-          <Badge variant="secondary" className="text-xs font-bold uppercase">
-            Completed
-          </Badge>
-        )
-      case "CANCELLED":
-        return (
-          <Badge variant="destructive" className="text-xs font-bold uppercase">
-            Cancelled
-          </Badge>
-        )
-      default:
-        return <Badge variant="outline">{status}</Badge>
-    }
-  }
-
-  // Get visit type icon helper
   const getVisitTypeIcon = (type: string) => {
     switch (type) {
       case "VIDEO":
         return <Video className="h-3.5 w-3.5 text-primary" />
       case "PHONE":
-        return <Phone className="h-3.5 w-3.5 text-sky-500" />
+        return <Phone className="h-3.5 w-3.5 text-info" />
       default:
-        return <MapPin className="h-3.5 w-3.5 text-emerald-500" />
+        return <MapPin className="h-3.5 w-3.5 text-success" />
     }
   }
 
@@ -212,7 +169,7 @@ export default function PatientAppointmentsPage() {
               <h3 className="text-lg font-bold text-foreground">
                 {appt.doctor?.user?.name || "Doctor Specialist"}
               </h3>
-              {getStatusBadge(appt.status)}
+              <StatusBadge status={appt.status} />
             </div>
             <div className="text-xs text-muted-foreground font-semibold flex items-center gap-1.5">
               <Badge
@@ -304,7 +261,7 @@ export default function PatientAppointmentsPage() {
             {isJoinable && (
               <Button
                 size="sm"
-                className="text-xs h-8 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1 shadow-sm"
+                className="text-xs h-8 font-bold flex items-center gap-1 shadow-sm"
                 onClick={() => router.push(`/patient/appointments/${appt.id}`)}
               >
                 <Video className="h-3.5 w-3.5" />

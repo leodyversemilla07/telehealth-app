@@ -100,8 +100,8 @@ export function TwoFactorContent() {
 
       {is2FAEnabled ? (
         <div className="space-y-4">
-          <div className="flex items-center gap-3 p-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5">
-            <ShieldCheck className="h-5 w-5 text-emerald-500 shrink-0" />
+          <div className="flex items-center gap-3 p-4 rounded-lg border border-success/20 bg-success/5">
+            <ShieldCheck className="h-5 w-5 text-success shrink-0" />
             <div>
               <p className="text-sm font-medium">
                 Two-factor authentication is enabled
@@ -223,7 +223,7 @@ export function TwoFactorContent() {
 
               {step === "backup" && (
                 <div className="space-y-3">
-                  <p className="text-sm font-medium flex items-center gap-2 text-emerald-600">
+                  <p className="text-sm font-medium flex items-center gap-2 text-success">
                     <CheckCircle2 className="h-4 w-4" /> Step 3: Save your
                     backup codes
                   </p>

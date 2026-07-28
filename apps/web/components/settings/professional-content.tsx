@@ -185,7 +185,7 @@ export function ProfessionalContent() {
 
       <div className="space-y-4">
         {!isApproved && (
-          <div className="flex items-center gap-2 text-amber-600 text-sm bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 p-3 rounded-xl">
+          <div className="flex items-center gap-2 text-warning text-sm bg-warning/10 border border-warning/20 p-3 rounded-xl">
             <Stethoscope className="size-4 shrink-0" />
             <p>
               Your profile is pending admin verification. Some fields may not be

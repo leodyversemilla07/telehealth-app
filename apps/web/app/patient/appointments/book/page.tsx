@@ -377,8 +377,8 @@ export default function BookAppointmentPage() {
                           >
                             {doctor.specialty}
                           </Badge>
-                          <div className="flex items-center gap-0.5 text-amber-500 text-xs font-semibold shrink-0">
-                            <Star className="h-3 w-3 fill-amber-500 text-amber-500 shrink-0" />
+                          <div className="flex items-center gap-0.5 text-warning text-xs font-semibold shrink-0">
+                            <Star className="h-3 w-3 fill-warning text-warning shrink-0" />
                             <span>
                               {doctor.averageRating !== undefined &&
                               doctor.averageRating > 0

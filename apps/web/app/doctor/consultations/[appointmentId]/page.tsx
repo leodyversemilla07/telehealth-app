@@ -86,10 +86,10 @@ function PatientWaitingBanner() {
   if (remoteParticipants.length === 0) return null
 
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-700 dark:text-amber-300">
+    <div className="flex items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 px-4 py-2 text-sm text-warning">
       <span className="relative flex size-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-        <span className="relative inline-flex size-2 rounded-full bg-amber-500" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-warning opacity-75" />
+        <span className="relative inline-flex size-2 rounded-full bg-warning" />
       </span>
       Patient is in the waiting room
     </div>
@@ -407,8 +407,8 @@ export default function DoctorConsultationDetailPage() {
         <div className="flex items-center justify-between bg-card border border-border/40 rounded-xl p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
             </span>
             <span className="font-bold text-sm text-foreground">
               Live consultation session with {appt.patient?.name}
@@ -566,7 +566,7 @@ export default function DoctorConsultationDetailPage() {
                   <CardHeader className="border-b border-border/10 px-6 pt-6 pb-4">
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex items-center gap-2">
-                        <FileCheck className="h-5 w-5 text-emerald-600" />
+                        <FileCheck className="h-5 w-5 text-success" />
                         <CardTitle className="text-base font-bold text-success">
                           Signed EHR Clinical Chart
                         </CardTitle>
@@ -1126,7 +1126,7 @@ export default function DoctorConsultationDetailPage() {
                         </>
                       ) : (
                         <>
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                           Complete & Submit Chart
                         </>
                       )}
@@ -1156,7 +1156,7 @@ export default function DoctorConsultationDetailPage() {
                   {isJoinable && (
                     <Button
                       size="sm"
-                      className="text-xs h-9 bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center gap-1.5 shadow-sm"
+                      className="text-xs h-9 font-bold flex items-center gap-1.5 shadow-sm"
                       disabled={joinRoomMutation.isPending}
                       onClick={handleJoinCall}
                     >
@@ -1209,7 +1209,7 @@ export default function DoctorConsultationDetailPage() {
                 createConsultationMutation.isPending ||
                 updateStatusMutation.isPending
               }
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+              className="font-bold"
             >
               {createConsultationMutation.isPending ||
               updateStatusMutation.isPending

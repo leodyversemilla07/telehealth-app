@@ -141,11 +141,11 @@ export default function AdminDoctorsPage() {
         </div>
         <div className="flex items-center gap-3 text-xs text-muted-foreground font-medium">
           <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3 text-amber-500" />
+            <Clock className="h-3 w-3 text-warning" />
             Pending: <strong className="text-foreground">{pending}</strong>
           </span>
           <span className="flex items-center gap-1">
-            <CheckCircle className="h-3 w-3 text-emerald-500" />
+            <CheckCircle className="h-3 w-3 text-success" />
             Approved: <strong className="text-foreground">{approved}</strong>
           </span>
           <span>

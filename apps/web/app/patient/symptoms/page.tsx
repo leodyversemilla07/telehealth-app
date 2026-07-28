@@ -62,9 +62,9 @@ const SEVERITY_CONFIG: Record<
     bg: "bg-warning/10 border-warning/30",
   },
   high: {
-    color: "text-orange-600 dark:text-orange-400",
+    color: "text-warning",
     icon: AlertTriangle,
-    bg: "bg-orange-50 dark:bg-orange-950/50 border-orange-200 dark:border-orange-800",
+    bg: "bg-warning/20 border-warning/40",
   },
   urgent: {
     color: "text-destructive",
