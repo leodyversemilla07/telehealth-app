@@ -5,6 +5,9 @@ export const roleSchema = z.enum(["PATIENT", "DOCTOR", "ADMIN"])
 export const userSchema = z.object({
   id: z.string(),
   name: z.string().nullable(),
+  firstName: z.string().nullable(),
+  middleName: z.string().nullable(),
+  lastName: z.string().nullable(),
   email: z.string().email(),
   emailVerified: z.boolean(),
   mobile: z.string().nullable(),
@@ -22,6 +25,9 @@ export const userSchema = z.object({
 export const publicUserSchema = userSchema.pick({
   id: true,
   name: true,
+  firstName: true,
+  middleName: true,
+  lastName: true,
   email: true,
   image: true,
   role: true,
@@ -48,6 +54,9 @@ export const patientProfileSchema = patientProfileBaseSchema.extend({
     .object({
       id: z.string(),
       name: z.string().nullable(),
+      firstName: z.string().nullable(),
+      middleName: z.string().nullable(),
+      lastName: z.string().nullable(),
       email: z.string().email(),
       image: z.string().url().nullable(),
     })
@@ -75,6 +84,9 @@ export const doctorProfileSchema = doctorProfileBaseSchema.extend({
   user: z.object({
     id: z.string(),
     name: z.string().nullable(),
+    firstName: z.string().nullable(),
+    middleName: z.string().nullable(),
+    lastName: z.string().nullable(),
     email: z.string().email(),
     image: z.string().url().nullable(),
   }),

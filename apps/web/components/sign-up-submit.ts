@@ -16,6 +16,9 @@ export type SignUpState = {
 export interface SignUpDeps {
   signUpEmail: (input: {
     name: string
+    firstName: string
+    middleName: string
+    lastName: string
     email: string
     password: string
     role: string
@@ -31,7 +34,9 @@ export async function submitSignUp(
   consent: boolean,
   deps: SignUpDeps,
 ): Promise<SignUpState> {
-  const name = (formData.get("name") as string) ?? ""
+  const firstName = (formData.get("firstName") as string) ?? ""
+  const middleName = (formData.get("middleName") as string) ?? ""
+  const lastName = (formData.get("lastName") as string) ?? ""
   const email = (formData.get("email") as string) ?? ""
   const password = (formData.get("password") as string) ?? ""
   const role = (formData.get("role") as string) ?? ""
@@ -45,17 +50,23 @@ export async function submitSignUp(
     }
   }
 
-  if (!name || !email || !password) {
+  if (!firstName || !lastName || !email || !password) {
     return {
-      error: "All fields are required",
+      error: "First name, last name, email, and password are required",
       success: false,
       email: "",
       role,
     }
   }
 
+  // Build the full name from individual parts
+  const fullName = [firstName, middleName, lastName].filter(Boolean).join(" ")
+
   const { error: signUpError } = await deps.signUpEmail({
-    name,
+    name: fullName,
+    firstName,
+    middleName,
+    lastName,
     email,
     password,
     role,
@@ -63,7 +74,11 @@ export async function submitSignUp(
 
   if (signUpError) {
     return {
-      error: signUpError.message ?? signUpError.statusText ?? "Sign up failed",
+      error:
+        signUpError.message ??
+        signUpError.error ??
+        signUpError.statusText ??
+        "Sign up failed",
       success: false,
       email: "",
       role,

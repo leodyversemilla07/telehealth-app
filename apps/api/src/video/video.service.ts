@@ -23,6 +23,11 @@ export class VideoService {
     private readonly prisma: PrismaService,
     private readonly configService: ConfigService,
   ) {
+    if (!this.configService) {
+      throw new Error(
+        `VideoService: configService is undefined. PrismaService is ${typeof this.prisma}`,
+      )
+    }
     this.livekitUrl = this.configService.get<string>("LIVEKIT_URL") ?? ""
     this.livekitApiKey = this.configService.get<string>("LIVEKIT_API_KEY") ?? ""
     this.livekitApiSecret =

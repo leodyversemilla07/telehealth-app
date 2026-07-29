@@ -55,7 +55,9 @@ interface PatientProfile {
 export function ProfileContent() {
   const queryClient = useQueryClient()
   const { data: session, refetch } = authClient.useSession()
-  const [name, setName] = useState("")
+  const [firstName, setFirstName] = useState("")
+  const [middleName, setMiddleName] = useState("")
+  const [lastName, setLastName] = useState("")
   const [imageUrl, setImageUrl] = useState("")
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -70,7 +72,9 @@ export function ProfileContent() {
     {},
   )
   const currentValues = {
-    name,
+    firstName,
+    middleName,
+    lastName,
     imageUrl,
     dob,
     sex,
@@ -101,8 +105,16 @@ export function ProfileContent() {
 
   useEffect(() => {
     if (session?.user) {
-      const u = session.user as { name?: string; image?: string }
-      setName(u.name ?? "")
+      const u = session.user as {
+        name?: string
+        firstName?: string
+        middleName?: string
+        lastName?: string
+        image?: string
+      }
+      setFirstName(u.firstName ?? "")
+      setMiddleName(u.middleName ?? "")
+      setLastName(u.lastName ?? "")
       setImageUrl(u.image ?? "")
     }
   }, [session])
@@ -110,9 +122,19 @@ export function ProfileContent() {
   // Store initial values after both profile and session load
   useEffect(() => {
     if (profile !== undefined || session?.user) {
-      const u = session?.user as { name?: string; image?: string } | undefined
+      const u = session?.user as
+        | {
+            name?: string
+            firstName?: string
+            middleName?: string
+            lastName?: string
+            image?: string
+          }
+        | undefined
       setInitialValues({
-        name: u?.name ?? "",
+        firstName: u?.firstName ?? "",
+        middleName: u?.middleName ?? "",
+        lastName: u?.lastName ?? "",
         imageUrl: u?.image ?? "",
         dob: profile?.dob
           ? new Date(profile.dob).toISOString().split("T")[0]
@@ -132,11 +154,21 @@ export function ProfileContent() {
   }, [previewUrl])
 
   const profileMutation = useMutation({
-    mutationFn: (data: { name: string; image?: string }) =>
-      apiClient.patch("/users/me", data),
+    mutationFn: (data: {
+      firstName: string
+      middleName: string
+      lastName: string
+      image?: string
+    }) => apiClient.patch("/users/me", data),
     onSuccess: () => {
       toast.success("Profile updated!")
-      setInitialValues((prev) => ({ ...prev, name, imageUrl }))
+      setInitialValues((prev) => ({
+        ...prev,
+        firstName,
+        middleName,
+        lastName,
+        imageUrl,
+      }))
       refetch()
     },
     onError: (err: { message?: string }) =>
@@ -239,7 +271,7 @@ export function ProfileContent() {
               />
             ) : (
               <span className="text-lg font-bold text-muted-foreground uppercase">
-                {name?.[0] || user?.email?.[0] || "?"}
+                {firstName?.[0] || lastName?.[0] || user?.email?.[0] || "?"}
               </span>
             )}
             <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity">
@@ -287,20 +319,45 @@ export function ProfileContent() {
           ))}
         </div>
 
-        {/* Name */}
-        <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
-          <Input
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Your name"
-          />
+        {/* Name Fields */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="firstName">First Name</Label>
+            <Input
+              id="firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              placeholder="First"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="middleName">Middle Name</Label>
+            <Input
+              id="middleName"
+              value={middleName}
+              onChange={(e) => setMiddleName(e.target.value)}
+              placeholder="Middle (optional)"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              placeholder="Last"
+            />
+          </div>
         </div>
 
         <Button
           onClick={() =>
-            profileMutation.mutate({ name, image: imageUrl || undefined })
+            profileMutation.mutate({
+              firstName,
+              middleName,
+              lastName,
+              image: imageUrl || undefined,
+            })
           }
           disabled={profileMutation.isPending}
         >

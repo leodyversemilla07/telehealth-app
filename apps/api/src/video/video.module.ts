@@ -1,10 +1,11 @@
 import { Module } from "@nestjs/common"
+import { ConfigModule } from "@nestjs/config"
 import { PrismaModule } from "../prisma/prisma.module"
 import { VideoController } from "./video.controller"
 import { VideoService } from "./video.service"
 
 @Module({
-  imports: [PrismaModule],
+  imports: [ConfigModule, PrismaModule],
   controllers: [VideoController],
   providers: [VideoService],
   exports: [VideoService],

@@ -46,6 +46,7 @@
     "@types/react-dom": "^19.2.3",
     "@workspace/typescript-config": "workspace:*",
     "jsdom": "^29.1.1",
+    "sharp": "^0.35.3",
     "typescript": "^6.0.3",
     "vitest": "^4.1.10"
   }

@@ -28,7 +28,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: false,
     minPasswordLength: 8,
     maxPasswordLength: 128,
     sendResetPassword: async (data: {
@@ -131,7 +131,7 @@ export const auth = betterAuth({
     useSecureCookies: process.env.NODE_ENV === "production",
     disableCSRFCheck: false,
     defaultCookieAttributes: {
-      sameSite: process.env.NODE_ENV === "production" ? "lax" : "none",
+      sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       // Only set domain in production with a real domain
       ...(process.env.NODE_ENV === "production" && process.env.COOKIE_DOMAIN
@@ -163,6 +163,18 @@ export const auth = betterAuth({
         required: false,
         defaultValue: "PATIENT",
       },
+      firstName: {
+        type: "string",
+        required: false,
+      },
+      middleName: {
+        type: "string",
+        required: false,
+      },
+      lastName: {
+        type: "string",
+        required: false,
+      },
     },
   },
   hooks: {
@@ -173,10 +185,26 @@ export const auth = betterAuth({
         if (password) {
           const error = validatePasswordComplexity(password)
           if (error) {
-            return new Response(JSON.stringify({ error }), {
+            return new Response(JSON.stringify({ message: error }), {
               status: 400,
               headers: { "Content-Type": "application/json" },
             })
+          }
+        }
+      }
+
+      // Auto-compute name from first/middle/last name fields on sign-up
+      if (ctx.path === "/sign-up/email") {
+        const body = ctx.body as Record<string, unknown> | undefined
+        if (body) {
+          const firstName = (body.firstName as string) ?? ""
+          const middleName = (body.middleName as string) ?? ""
+          const lastName = (body.lastName as string) ?? ""
+          // If name is not explicitly provided, build it from the three parts
+          if (!body.name && (firstName || lastName)) {
+            body.name = [firstName, middleName, lastName]
+              .filter(Boolean)
+              .join(" ")
           }
         }
       }
@@ -202,7 +230,7 @@ export const auth = betterAuth({
           ) {
             return new Response(
               JSON.stringify({
-                error: "This account is not allowed to sign in.",
+                message: "This account is not allowed to sign in.",
               }),
               {
                 status: 403,
@@ -213,7 +241,7 @@ export const auth = betterAuth({
           if (user && isLockedOut(user.lockoutUntil)) {
             return new Response(
               JSON.stringify({
-                error: `Account temporarily locked due to ${LOCKOUT_THRESHOLD} failed login attempts. Try again later.`,
+                message: `Account temporarily locked due to ${LOCKOUT_THRESHOLD} failed login attempts. Try again later.`,
               }),
               {
                 status: 429,

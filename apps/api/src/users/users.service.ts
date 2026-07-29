@@ -87,7 +87,13 @@ export class UsersService {
     id: string,
     requesterId: string,
     requesterRole: Role,
-    data: { name?: string; image?: string; role?: Role },
+    data: {
+      firstName?: string
+      middleName?: string
+      lastName?: string
+      image?: string
+      role?: Role
+    },
   ) {
     if (requesterId !== id && requesterRole !== "ADMIN") {
       throw new ForbiddenException("You can only update your own profile")
@@ -99,9 +105,30 @@ export class UsersService {
 
     await this.findById(id) // ensure exists
 
+    // Auto-compute name from individual parts
+    const hasNameUpdate =
+      data.firstName !== undefined ||
+      data.middleName !== undefined ||
+      data.lastName !== undefined
+    const name = hasNameUpdate
+      ? [
+          data.firstName ?? undefined,
+          data.middleName ?? undefined,
+          data.lastName ?? undefined,
+        ]
+          .filter((n): n is string => !!n)
+          .join(" ")
+      : undefined
+
     const updated = await this.prisma.user.update({
       where: { id },
-      data: { name: data.name, image: data.image },
+      data: {
+        firstName: data.firstName,
+        middleName: data.middleName,
+        lastName: data.lastName,
+        name,
+        image: data.image,
+      },
       select: {
         id: true,
         name: true,
@@ -122,11 +149,11 @@ export class UsersService {
         "Your account avatar image was successfully updated.",
       )
     }
-    if (data.name) {
+    if (hasNameUpdate) {
       await this.alertsService.createAlert(
         id,
         "Profile Info Updated",
-        "Your account display name was successfully updated.",
+        "Your account name was successfully updated.",
       )
     }
 

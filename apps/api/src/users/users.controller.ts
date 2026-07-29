@@ -50,7 +50,7 @@ export class UsersController {
   async getProfile(
     @Session() session: UserSession,
   ): Promise<{ user: PublicUserDto; session: object }> {
-    return session as { user: PublicUserDto; session: object }
+    return session as unknown as { user: PublicUserDto; session: object }
   }
 
   @Patch("me")

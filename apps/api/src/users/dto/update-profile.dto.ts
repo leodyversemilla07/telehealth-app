@@ -4,7 +4,17 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  name?: string
+  firstName?: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  middleName?: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  lastName?: string
 
   @IsOptional()
   @IsUrl()

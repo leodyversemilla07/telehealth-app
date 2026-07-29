@@ -132,15 +132,41 @@ export function SignUpForm({
           </div>
 
           <Field>
-            <FieldLabel htmlFor="name">Name</FieldLabel>
-            <Input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="John Doe"
-              disabled={isPending}
-              required
-            />
+            <FieldLabel>Full Name</FieldLabel>
+            <div className="grid grid-cols-3 gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  type="text"
+                  placeholder="First"
+                  disabled={isPending}
+                  required
+                  className="w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Input
+                  id="middleName"
+                  name="middleName"
+                  type="text"
+                  placeholder="Middle"
+                  disabled={isPending}
+                  className="w-full"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  placeholder="Last"
+                  disabled={isPending}
+                  required
+                  className="w-full"
+                />
+              </div>
+            </div>
           </Field>
 
           <Field>
