@@ -17,8 +17,15 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@workspace/ui/components/empty"
-import { Search } from "lucide-react"
-import { useState } from "react"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@workspace/ui/components/pagination"
+import { Search, Users } from "lucide-react"
+import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { BanDialog } from "@/components/admin/users/ban-dialog"
 import { RoleDialog } from "@/components/admin/users/role-dialog"
@@ -30,9 +37,15 @@ import {
 import { ErrorAlert } from "@/components/error-alert"
 import { apiClient } from "@/lib/api-client"
 
+const ROLES = ["ALL", "PATIENT", "DOCTOR", "ADMIN"] as const
+const PAGE_SIZE_OPTIONS = [10, 25, 50] as const
+
 export default function AdminUsersPage() {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("")
+  const [roleFilter, setRoleFilter] = useState<string>("ALL")
+  const [page, setPage] = useState(0)
+  const [pageSize, setPageSize] = useState<number>(10)
   const [selectedUserForBan, setSelectedUserForBan] = useState<UserDto | null>(
     null,
   )
@@ -49,6 +62,37 @@ export default function AdminUsersPage() {
       apiClient.get<{ items: UserDto[]; total: number }>("/admin/users"),
   })
   const users = data?.items ?? []
+
+  // Client-side filtering by search + role
+  const filteredUsers = useMemo(() => {
+    return users.filter((user) => {
+      const term = searchQuery.toLowerCase()
+      const matchesSearch =
+        user.email.toLowerCase().includes(term) ||
+        user.name?.toLowerCase().includes(term)
+      const matchesRole = roleFilter === "ALL" || user.role === roleFilter
+      return matchesSearch && matchesRole
+    })
+  }, [users, searchQuery, roleFilter])
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize))
+  const safePage = Math.min(page, totalPages - 1)
+  const paginatedUsers = filteredUsers.slice(
+    safePage * pageSize,
+    (safePage + 1) * pageSize,
+  )
+
+  // Reset page when filters change
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query)
+    setPage(0)
+  }
+
+  const handleRoleFilterChange = (role: string) => {
+    setRoleFilter(role)
+    setPage(0)
+  }
 
   // 2. Mutations
   const roleMutation = useMutation({
@@ -109,14 +153,14 @@ export default function AdminUsersPage() {
     },
   })
 
-  // Client-side local filtering
-  const filteredUsers = users.filter((user) => {
-    const term = searchQuery.toLowerCase()
-    return (
-      user.email.toLowerCase().includes(term) ||
-      user.name?.toLowerCase().includes(term)
-    )
-  })
+  // Role filter counts
+  const roleCounts = useMemo(() => {
+    const counts: Record<string, number> = { ALL: users.length }
+    for (const u of users) {
+      counts[u.role] = (counts[u.role] || 0) + 1
+    }
+    return counts
+  }, [users])
 
   function handleOpenBanModal(user: UserDto) {
     setSelectedUserForBan(user)
@@ -166,10 +210,40 @@ export default function AdminUsersPage() {
       {/* Control bar */}
       <UserSearchBar
         searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
+        setSearchQuery={handleSearchChange}
         totalCount={users.length}
         filteredCount={filteredUsers.length}
       />
+
+      {/* Role filter pills */}
+      <div className="flex flex-wrap items-center gap-2">
+        {ROLES.map((role) => (
+          <button
+            key={role}
+            type="button"
+            onClick={() => handleRoleFilterChange(role)}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all border ${
+              roleFilter === role
+                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                : "bg-card text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <Users className="h-3 w-3" />
+            {role === "ALL"
+              ? "All"
+              : role.charAt(0) + role.slice(1).toLowerCase()}
+            <span
+              className={`ml-0.5 inline-flex items-center justify-center rounded-full px-1.5 py-0 text-[10px] font-bold ${
+                roleFilter === role
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-muted-foreground/10 text-muted-foreground"
+              }`}
+            >
+              {roleCounts[role] || 0}
+            </span>
+          </button>
+        ))}
+      </div>
 
       {/* Primary Loading State */}
       {isPending && <UserTableSkeleton />}
@@ -211,15 +285,69 @@ export default function AdminUsersPage() {
 
       {/* User Table Dashboard */}
       {!isPending && !error && filteredUsers.length > 0 && (
-        <UserTable
-          users={filteredUsers}
-          onOpenRoleModal={handleOpenRoleModal}
-          onOpenBanModal={handleOpenBanModal}
-          onUnban={(id) => unbanMutation.mutate(id)}
-          isRolePending={roleMutation.isPending}
-          isBanPending={banMutation.isPending}
-          isUnbanPending={unbanMutation.isPending}
-        />
+        <>
+          <UserTable
+            users={paginatedUsers}
+            onOpenRoleModal={handleOpenRoleModal}
+            onOpenBanModal={handleOpenBanModal}
+            onUnban={(id) => unbanMutation.mutate(id)}
+            isRolePending={roleMutation.isPending}
+            isBanPending={banMutation.isPending}
+            isUnbanPending={unbanMutation.isPending}
+          />
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between bg-card border border-border/40 rounded-xl px-4 py-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>Rows per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value))
+                  setPage(0)
+                }}
+                className="bg-muted/30 border border-border/60 rounded-md px-2 py-1 text-xs font-medium text-foreground"
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              Page {safePage + 1} of {totalPages}
+              <span className="mx-2">·</span>
+              {filteredUsers.length} total
+            </span>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    text=""
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    className={
+                      safePage === 0 ? "pointer-events-none opacity-50" : ""
+                    }
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext
+                    text=""
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages - 1, p + 1))
+                    }
+                    className={
+                      safePage >= totalPages - 1
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </>
       )}
 
       {/* Role Change Confirmation Dialog */}

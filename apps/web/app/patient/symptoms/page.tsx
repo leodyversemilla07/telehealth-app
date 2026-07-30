@@ -33,9 +33,10 @@ import {
   MapPin,
   Stethoscope,
   Users,
+  XCircle,
 } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
 
@@ -80,25 +81,66 @@ function formatPrice(price: number): string {
   }).format(price)
 }
 
+// Simple client-side cache to avoid re-analyzing identical symptoms
+const analysisCache = new Map<string, SymptomResult>()
+
 export default function SymptomCheckerPage() {
   const [symptoms, setSymptoms] = useState("")
   const [result, setResult] = useState<SymptomResult | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
   const analyzeMutation = useMutation({
-    mutationFn: (data: { symptoms: string }) =>
-      apiClient.post<SymptomResult>("/recommendations/symptoms", data),
+    mutationFn: (data: { symptoms: string }) => {
+      // Check cache first
+      const key = data.symptoms.trim().toLowerCase()
+      const cached = analysisCache.get(key)
+      if (cached) {
+        return Promise.resolve(cached)
+      }
+
+      // Create abort controller for this request
+      abortControllerRef.current = new AbortController()
+      const signal = abortControllerRef.current.signal
+
+      return apiClient.post<SymptomResult>("/recommendations/symptoms", data, {
+        signal,
+        timeout: 30_000,
+      })
+    },
     onSuccess: (data) => {
+      // Cache the result
+      const key = symptoms.trim().toLowerCase()
+      analysisCache.set(key, data)
+
       setResult(data)
       toast.success("Symptoms analyzed successfully!")
     },
-    onError: (err: { message?: string }) => {
+    onError: (err: Error) => {
+      if (err.name === "AbortError") {
+        toast.info("Analysis cancelled")
+        return
+      }
       toast.error(err.message || "Failed to analyze symptoms")
     },
   })
 
+  const handleCancel = () => {
+    abortControllerRef.current?.abort()
+    analyzeMutation.reset()
+    abortControllerRef.current = null
+  }
+
   const handleAnalyze = () => {
     if (!symptoms.trim()) {
       toast.error("Please describe your symptoms")
+      return
+    }
+    // Check cache before mutating
+    const key = symptoms.trim().toLowerCase()
+    const cached = analysisCache.get(key)
+    if (cached) {
+      setResult(cached)
+      toast.success("Showing cached results")
       return
     }
     analyzeMutation.mutate({ symptoms: symptoms.trim() })
@@ -147,23 +189,36 @@ export default function SymptomCheckerPage() {
               {symptoms.length}/1000
             </p>
           </div>
-          <Button
-            onClick={handleAnalyze}
-            disabled={analyzeMutation.isPending || !symptoms.trim()}
-            className="w-full sm:w-auto"
-          >
-            {analyzeMutation.isPending ? (
-              <>
-                <Spinner className="mr-2 size-4" />
-                Analyzing...
-              </>
-            ) : (
-              <>
-                <Brain className="mr-2 h-4 w-4" />
-                Analyze Symptoms
-              </>
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleAnalyze}
+              disabled={analyzeMutation.isPending || !symptoms.trim()}
+              className="w-full sm:w-auto"
+            >
+              {analyzeMutation.isPending ? (
+                <>
+                  <Spinner className="mr-2 size-4" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Brain className="mr-2 h-4 w-4" />
+                  Analyze Symptoms
+                </>
+              )}
+            </Button>
+            {analyzeMutation.isPending && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCancel}
+                className="h-10 border-destructive/30 text-destructive hover:bg-destructive/10"
+              >
+                <XCircle className="mr-1.5 h-4 w-4" />
+                Cancel
+              </Button>
             )}
-          </Button>
+          </div>
         </CardContent>
       </Card>
 

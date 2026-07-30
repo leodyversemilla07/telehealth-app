@@ -8,9 +8,13 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger"
+import { Throttle } from "@nestjs/throttler"
 import { Roles } from "@thallesp/nestjs-better-auth"
 import { GetRecommendationDto } from "./dto"
 import { RecommendationsService } from "./recommendations.service"
+
+// Stricter rate limit for AI endpoints (costly per-call)
+const AI_THROTTLE = { default: { ttl: 60_000, limit: 10 } }
 
 @ApiTags("Recommendations")
 @ApiBearerAuth("session-token")
@@ -21,6 +25,7 @@ export class RecommendationsController {
   ) {}
 
   @Post()
+  @Throttle(AI_THROTTLE)
   @Roles(["PATIENT"])
   @ApiOperation({
     summary:
@@ -35,6 +40,7 @@ export class RecommendationsController {
   }
 
   @Post("symptoms")
+  @Throttle(AI_THROTTLE)
   @Roles(["PATIENT"])
   @ApiOperation({
     summary: "AI Symptom Checker - analyze symptoms and get recommendations",

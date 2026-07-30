@@ -19,6 +19,13 @@ import {
   EmptyTitle,
 } from "@workspace/ui/components/empty"
 import { Input } from "@workspace/ui/components/input"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@workspace/ui/components/pagination"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   Table,
@@ -37,10 +44,13 @@ import {
   Users,
   XCircle,
 } from "lucide-react"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
 import { apiClient } from "@/lib/api-client"
+
+const STATUS_FILTERS = ["ALL", "PENDING", "APPROVED"] as const
+const PAGE_SIZE_OPTIONS = [10, 25, 50] as const
 
 interface DoctorProfile {
   id: string
@@ -65,6 +75,9 @@ interface DoctorProfile {
 export default function AdminDoctorsPage() {
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState<string>("ALL")
+  const [page, setPage] = useState(0)
+  const [pageSize, setPageSize] = useState<number>(10)
 
   const { data, isPending, error } = useQuery({
     queryKey: ["admin-doctors"],
@@ -101,18 +114,49 @@ export default function AdminDoctorsPage() {
     },
   })
 
-  const filtered = doctors.filter((doc) => {
-    const term = searchQuery.toLowerCase()
-    return (
-      doc.user.email.toLowerCase().includes(term) ||
-      doc.user.name?.toLowerCase().includes(term) ||
-      doc.specialty?.toLowerCase().includes(term) ||
-      doc.prcLicenseNumber?.toLowerCase().includes(term)
-    )
-  })
+  // Client-side filtering
+  const filtered = useMemo(() => {
+    return doctors.filter((doc) => {
+      const term = searchQuery.toLowerCase()
+      const matchesSearch =
+        doc.user.email.toLowerCase().includes(term) ||
+        doc.user.name?.toLowerCase().includes(term) ||
+        doc.specialty?.toLowerCase().includes(term) ||
+        doc.prcLicenseNumber?.toLowerCase().includes(term)
+      const matchesStatus =
+        statusFilter === "ALL" ||
+        (statusFilter === "PENDING" && !doc.isApproved) ||
+        (statusFilter === "APPROVED" && doc.isApproved)
+      return matchesSearch && matchesStatus
+    })
+  }, [doctors, searchQuery, statusFilter])
+
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize))
+  const safePage = Math.min(page, totalPages - 1)
+  const paginated = filtered.slice(
+    safePage * pageSize,
+    (safePage + 1) * pageSize,
+  )
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+    setPage(0)
+  }
+
+  const handleStatusFilterChange = (status: string) => {
+    setStatusFilter(status)
+    setPage(0)
+  }
 
   const pending = doctors.filter((d) => !d.isApproved).length
   const approved = doctors.filter((d) => d.isApproved).length
+
+  const statusCounts = {
+    ALL: doctors.length,
+    PENDING: pending,
+    APPROVED: approved,
+  }
 
   return (
     <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
@@ -135,7 +179,7 @@ export default function AdminDoctorsPage() {
           <Input
             placeholder="Search by name, email, or specialty..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-9 bg-muted/20"
           />
         </div>
@@ -152,6 +196,36 @@ export default function AdminDoctorsPage() {
             Total: <strong className="text-foreground">{doctors.length}</strong>
           </span>
         </div>
+      </div>
+
+      {/* Status filter pills */}
+      <div className="flex flex-wrap items-center gap-2">
+        {STATUS_FILTERS.map((status) => (
+          <button
+            key={status}
+            type="button"
+            onClick={() => handleStatusFilterChange(status)}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all border ${
+              statusFilter === status
+                ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                : "bg-card text-muted-foreground border-border/60 hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <Users className="h-3 w-3" />
+            {status === "ALL"
+              ? "All"
+              : status.charAt(0) + status.slice(1).toLowerCase()}
+            <span
+              className={`ml-0.5 inline-flex items-center justify-center rounded-full px-1.5 py-0 text-[10px] font-bold ${
+                statusFilter === status
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-muted-foreground/10 text-muted-foreground"
+              }`}
+            >
+              {statusCounts[status as keyof typeof statusCounts]}
+            </span>
+          </button>
+        ))}
       </div>
 
       {isPending && (
@@ -205,113 +279,169 @@ export default function AdminDoctorsPage() {
       )}
 
       {!isPending && !error && filtered.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-bold flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              Doctors
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Showing {filtered.length} of {doctors.length} doctors
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Doctor</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    Specialty
-                  </TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    PRC License
-                  </TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((doc) => (
-                  <TableRow key={doc.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-3">
-                        <Avatar
-                          size="sm"
-                          className="border border-primary/20 shrink-0"
-                        >
-                          <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
-                            {doc.user.name?.[0] || doc.user.email[0]}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="truncate">
-                          <span className="block font-medium text-sm text-foreground truncate max-w-[180px]">
-                            {doc.user.name || "Doctor"}
-                          </span>
-                          <span className="flex items-center gap-1 text-xs text-muted-foreground truncate">
-                            <Mail className="h-3 w-3 shrink-0" />
-                            {doc.user.email}
-                          </span>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                      {doc.specialty}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell text-sm font-mono text-muted-foreground">
-                      {doc.prcLicenseNumber}
-                    </TableCell>
-                    <TableCell>
-                      {doc.isApproved ? (
-                        <Badge
-                          variant="outline"
-                          className="gap-1 text-success border-success/30 bg-success/10 font-medium"
-                        >
-                          <CheckCircle className="h-3 w-3" />
-                          Approved
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="gap-1 text-warning border-warning/30 bg-warning/10 font-medium"
-                        >
-                          <Clock className="h-3 w-3" />
-                          Pending
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {doc.isApproved ? (
-                          <Button
-                            variant="outline"
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                Doctors
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Showing {paginated.length} of {filtered.length} doctors
+                {filtered.length < doctors.length &&
+                  ` (filtered from ${doctors.length})`}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Doctor</TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Specialty
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      PRC License
+                    </TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginated.map((doc) => (
+                    <TableRow key={doc.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-3">
+                          <Avatar
                             size="sm"
-                            className="gap-1 font-medium text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
-                            disabled={rejectMutation.isPending}
-                            onClick={() => rejectMutation.mutate(doc.id)}
+                            className="border border-primary/20 shrink-0"
                           >
-                            <XCircle className="h-4 w-4" />
-                            Revoke
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="text-xs gap-1 h-7 font-medium px-2.5"
-                            disabled={approveMutation.isPending}
-                            onClick={() => approveMutation.mutate(doc.id)}
+                            <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase text-xs">
+                              {doc.user.name?.[0] || doc.user.email[0]}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="truncate">
+                            <span className="block font-medium text-sm text-foreground truncate max-w-[180px]">
+                              {doc.user.name || "Doctor"}
+                            </span>
+                            <span className="flex items-center gap-1 text-xs text-muted-foreground truncate">
+                              <Mail className="h-3 w-3 shrink-0" />
+                              {doc.user.email}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                        {doc.specialty}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell text-sm font-mono text-muted-foreground">
+                        {doc.prcLicenseNumber}
+                      </TableCell>
+                      <TableCell>
+                        {doc.isApproved ? (
+                          <Badge
+                            variant="outline"
+                            className="gap-1 text-success border-success/30 bg-success/10 font-medium"
                           >
                             <CheckCircle className="h-3 w-3" />
-                            Approve
-                          </Button>
+                            Approved
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="gap-1 text-warning border-warning/30 bg-warning/10 font-medium"
+                          >
+                            <Clock className="h-3 w-3" />
+                            Pending
+                          </Badge>
                         )}
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          {doc.isApproved ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-1 font-medium text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
+                              disabled={rejectMutation.isPending}
+                              onClick={() => rejectMutation.mutate(doc.id)}
+                            >
+                              <XCircle className="h-4 w-4" />
+                              Revoke
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="text-xs gap-1 h-7 font-medium px-2.5"
+                              disabled={approveMutation.isPending}
+                              onClick={() => approveMutation.mutate(doc.id)}
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                              Approve
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between bg-card border border-border/40 rounded-xl px-4 py-3">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>Rows per page:</span>
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  setPageSize(Number(e.target.value))
+                  setPage(0)
+                }}
+                className="bg-muted/30 border border-border/60 rounded-md px-2 py-1 text-xs font-medium text-foreground"
+              >
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <option key={size} value={size}>
+                    {size}
+                  </option>
                 ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              </select>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              Page {safePage + 1} of {totalPages}
+              <span className="mx-2">·</span>
+              {filtered.length} total
+            </span>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    text=""
+                    onClick={() => setPage((p) => Math.max(0, p - 1))}
+                    className={
+                      safePage === 0 ? "pointer-events-none opacity-50" : ""
+                    }
+                  />
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationNext
+                    text=""
+                    onClick={() =>
+                      setPage((p) => Math.min(totalPages - 1, p + 1))
+                    }
+                    className={
+                      safePage >= totalPages - 1
+                        ? "pointer-events-none opacity-50"
+                        : ""
+                    }
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </>
       )}
     </div>
   )

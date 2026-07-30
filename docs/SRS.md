@@ -245,7 +245,7 @@ The system supports the following high-level functions:
 - LiveKit for video consultations (self-hosted or cloud).
 - NVIDIA NIM API (Nemotron-3-Super-120B-A12B, fallback: Qwen3.5-122B-A10B) for AI-powered doctor recommendations. OpenAI-compatible endpoint at `integrate.api.nvidia.com/v1`.
 - Local filesystem for file storage (profile photos, attachments).
-- PostgreSQL database availability via Docker (development).
+- PostgreSQL database availability (development).
 - Socket.io for real-time WebSocket notifications.
 
 ---
@@ -827,7 +827,7 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 |---|---|---|
 | Pair Programming Session | Schedule via booking link | ⬜ To be scheduled |
 | Video Recording | Max 15 min — app walkthrough, code overview, challenges | ⬜ To be recorded |
-| Local Development Setup | Docker compose + pnpm dev | ✅ Ready |
+| Local Development Setup | pnpm dev | ✅ Ready |
 | Git Repository | https://github.com/leodyversemilla07/telehealth-app | ✅ Private/accessible |
 
 **Deadline:** 11:59 PM, May 30, 2026  

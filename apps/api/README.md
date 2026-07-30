@@ -20,7 +20,6 @@ NestJS 11 REST API for the telehealth platform. Serves as the backend for `apps/
 ```bash
 # From repo root
 pnpm install
-docker compose up -d postgres
 pnpm db:reset
 pnpm --filter api dev
 ```

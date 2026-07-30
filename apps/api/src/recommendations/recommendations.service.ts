@@ -1,5 +1,6 @@
 import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
+import { stripPII } from "../common/utils/sanitize"
 import { PrismaService } from "../prisma/prisma.service"
 
 const SYSTEM_PROMPT = `You are a medical specialty classifier. Given patient symptoms or healthcare needs, respond ONLY with a JSON array of relevant medical specialties from this list: General Practice, Internal Medicine, Cardiology, Dermatology, Pediatrics, Obstetrics and Gynecology, Ophthalmology, Otolaryngology (ENT), Orthopedics, Neurology, Psychiatry, Pulmonology, Gastroenterology, Urology, Oncology, Radiology, Anesthesiology, Emergency Medicine, Family Medicine. Example response: ["Cardiology", "Internal Medicine"]`
@@ -45,7 +46,8 @@ export class RecommendationsService {
    * 3. Returns both the identified specialties and matching doctors
    */
   async getRecommendation(symptoms: string) {
-    const specialties = await this.mapSymptomsToSpecialties(symptoms)
+    const safeSymptoms = stripPII(symptoms)
+    const specialties = await this.mapSymptomsToSpecialties(safeSymptoms)
 
     const doctors = await this.prisma.doctorProfile.findMany({
       where: {
@@ -70,6 +72,7 @@ export class RecommendationsService {
    * AI Symptom Checker - provides detailed analysis of symptoms.
    */
   async checkSymptoms(symptoms: string) {
+    const safeSymptoms = stripPII(symptoms)
     const apiKey = this.config.get<string>("NIM_API_KEY")
 
     if (!apiKey) {
@@ -81,7 +84,11 @@ export class RecommendationsService {
     // Try primary model, then fallback
     for (const model of [PRIMARY_MODEL, FALLBACK_MODEL]) {
       try {
-        const result = await this.callNimApiSymptoms(apiKey, model, symptoms)
+        const result = await this.callNimApiSymptoms(
+          apiKey,
+          model,
+          safeSymptoms,
+        )
         if (result) {
           // Find matching doctors
           const specialties = Array.isArray(result.specialties)

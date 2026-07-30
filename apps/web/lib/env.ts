@@ -8,7 +8,6 @@
  * API_URL: Server-only (no NEXT_PUBLIC_ prefix).
  *   - Used by next.config.mjs rewrites to proxy /api/* to the NestJS backend
  *   - Not exposed to the browser
- *   - In Docker: http://api:3001 (internal network)
  *   - Local dev: http://localhost:3001
  */
 

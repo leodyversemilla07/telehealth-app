@@ -25,10 +25,7 @@ pnpm install
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
 
-# Start PostgreSQL (see docker-compose.yml)
-docker compose up -d postgres
-
-# Setup database
+# Setup database (requires PostgreSQL running at DATABASE_URL)
 pnpm db:reset
 
 # Start development

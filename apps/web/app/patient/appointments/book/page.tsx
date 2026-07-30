@@ -1,5 +1,6 @@
 "use client"
 
+import { useMutation } from "@tanstack/react-query"
 import type { AvailableSlotDto, DoctorProfileDto } from "@workspace/shared"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
@@ -46,11 +47,13 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
 import { Textarea } from "@workspace/ui/components/textarea"
 import {
+  Brain,
   Calendar,
   ChevronRight,
   Filter,
   Search,
   ShieldCheck,
+  Sparkles,
   Star,
   Stethoscope,
 } from "lucide-react"
@@ -60,6 +63,7 @@ import { toast } from "sonner"
 import { TimeSlotPicker } from "@/components/time-slot-picker"
 import { useAvailableSlots, useBookAppointment } from "@/hooks/use-appointments"
 import { useDoctors } from "@/hooks/use-doctors"
+import { apiClient } from "@/lib/api-client"
 
 const SPECIALTIES = [
   "General Practice",
@@ -111,6 +115,42 @@ export default function BookAppointmentPage() {
     selectedDoctor?.id ?? "",
     bookingDate,
   )
+
+  // Symptom Dialog States
+  const [showSymptomDialog, setShowSymptomDialog] = useState(false)
+  const [symptomText, setSymptomText] = useState("")
+
+  // AI Recommendation Mutation
+  const recommendMutation = useMutation({
+    mutationFn: (symptoms: string) =>
+      apiClient.post<{ specialties: string[]; doctors: DoctorProfileDto[] }>(
+        "/recommendations",
+        { symptoms },
+      ),
+    onSuccess: (data) => {
+      if (data.specialties.length > 0) {
+        setSpecialty(data.specialties[0] ?? "all")
+        toast.success(
+          `AI suggests consulting a ${data.specialties.join(" or ")} specialist`,
+        )
+      } else {
+        toast.info("No specific specialty identified. Showing all doctors.")
+      }
+      setShowSymptomDialog(false)
+      setSymptomText("")
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to analyze symptoms")
+    },
+  })
+
+  const handleSymptomSearch = () => {
+    if (!symptomText.trim()) {
+      toast.error("Please describe your symptoms")
+      return
+    }
+    recommendMutation.mutate(symptomText.trim())
+  }
 
   // 3. Create Appointment Mutation
   const bookMutation = useBookAppointment()
@@ -223,6 +263,21 @@ export default function BookAppointmentPage() {
                   className="pl-9 bg-muted/10 border-border/60"
                 />
               </div>
+            </div>
+
+            {/* AI Recommendation Trigger */}
+            <div className="space-y-1.5 col-span-1 md:col-span-2 lg:col-span-1">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                AI-Powered Search
+              </Label>
+              <Button
+                variant="outline"
+                className="w-full gap-2 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary h-10"
+                onClick={() => setShowSymptomDialog(true)}
+              >
+                <Sparkles className="h-4 w-4" />
+                Find by Symptoms
+              </Button>
             </div>
 
             {/* Specialty select */}
@@ -439,6 +494,72 @@ export default function BookAppointmentPage() {
           </div>
         )}
       </div>
+
+      {/* AI Symptom Recommendation Dialog */}
+      <Dialog
+        open={showSymptomDialog}
+        onOpenChange={(open) => {
+          setShowSymptomDialog(open)
+          if (!open) setSymptomText("")
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Brain className="h-5 w-5 text-primary" />
+              Find a Doctor by Symptoms
+            </DialogTitle>
+            <DialogDescription className="text-xs leading-relaxed">
+              Describe your symptoms and AI will recommend the right specialist
+              for you.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <Textarea
+              className="min-h-28"
+              placeholder="e.g. I have a persistent headache, fever, and sore throat for 3 days..."
+              value={symptomText}
+              onChange={(e) => setSymptomText(e.target.value)}
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {symptomText.length}/500
+            </p>
+          </div>
+
+          <DialogFooter className="border-t border-border/15 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSymptomDialog(false)}
+              className="h-8 text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={recommendMutation.isPending || !symptomText.trim()}
+              onClick={handleSymptomSearch}
+              className="h-8 text-xs font-semibold"
+            >
+              {recommendMutation.isPending ? (
+                <>
+                  <Spinner className="mr-2 size-3.5" />
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                  Find Specialists
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Booking Dialog Modal Form */}
       <Dialog
