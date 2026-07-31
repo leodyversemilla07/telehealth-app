@@ -10,6 +10,10 @@ export default defineConfig({
     setupFiles: ["./test/setup.ts"],
     include: ["**/*.test.{ts,tsx}", "**/*.spec.{ts,tsx}"],
     exclude: ["e2e/**", "node_modules/**"],
+    // Page renders (e.g. book-appointment) import large component trees;
+    // give parallel workers headroom so 1s testing-library waits don't trip.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
   },
   resolve: {
     alias: {

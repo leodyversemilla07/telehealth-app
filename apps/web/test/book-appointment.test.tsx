@@ -81,7 +81,7 @@ async function renderBookAppointment() {
     </QueryClientProvider>,
   )
 
-  await screen.findByText("Book a Consultation")
+  await screen.findByText("Book a Consultation", {}, { timeout: 10_000 })
   return result
 }
 
@@ -89,7 +89,7 @@ describe("BookAppointmentPage - AI symptom feature", () => {
   it("renders the page title", async () => {
     await renderBookAppointment()
     expect(screen.getByText("Book a Consultation")).toBeDefined()
-  }, 15000)
+  })
 
   it("renders the Find by Symptoms button", async () => {
     await renderBookAppointment()

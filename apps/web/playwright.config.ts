@@ -27,6 +27,9 @@ export default defineConfig({
       url: API_URL,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
+      // E2E flows fire many API calls per page load; raise the throttle
+      // window so the global 30 req/60s guard (SRS NFR-SEC-05) doesn't trip.
+      env: { THROTTLE_LIMIT: "500" },
     },
     {
       command: "pnpm --filter web run dev",
