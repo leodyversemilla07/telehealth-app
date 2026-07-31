@@ -34,15 +34,23 @@ export const recordKeys = {
   prescriptions: () => [...recordKeys.all, "prescriptions"] as const,
 }
 
+interface PaginatedResponse<T> {
+  items: T[]
+  total: number
+  limit: number
+  offset: number
+}
+
 // ─── Patient Records ─────────────────────────────────────────
 
 export function usePatientRecords() {
   return useQuery({
     queryKey: recordKeys.lists(),
     queryFn: () =>
-      apiClient.get<ConsultationWithPrescriptionsDto[]>(
+      apiClient.get<PaginatedResponse<ConsultationWithPrescriptionsDto>>(
         "/records/consultations",
       ),
+    select: (data) => data.items,
   })
 }
 
@@ -79,8 +87,9 @@ export function usePatientPrescriptions() {
   return useQuery({
     queryKey: recordKeys.prescriptions(),
     queryFn: () =>
-      apiClient.get<PrescriptionWithConsultationDto[]>(
+      apiClient.get<PaginatedResponse<PrescriptionWithConsultationDto>>(
         "/records/prescriptions",
       ),
+    select: (data) => data.items,
   })
 }
