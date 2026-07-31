@@ -92,7 +92,9 @@ describe("UsersService", () => {
 
   it("updateProfile should reject non-owner non-admin", async () => {
     await expect(
-      service.updateProfile("target", "requester", "PATIENT", { name: "X" }),
+      service.updateProfile("target", "requester", "PATIENT", {
+        firstName: "X",
+      }),
     ).rejects.toThrow(ForbiddenException)
   })
 
@@ -105,7 +107,7 @@ describe("UsersService", () => {
     })
 
     const result = await service.updateProfile("u1", "u1", "PATIENT", {
-      name: "New",
+      firstName: "New",
       image: "https://img",
     })
 

@@ -151,27 +151,30 @@ describe("UsersController", () => {
     await request(app.getHttpServer())
       .patch("/users/me")
       .set("x-role", "PATIENT")
-      .send({ name: "Leo", unsupported: true })
+      .send({ firstName: "Leo", unsupported: true })
       .expect(400)
 
     expect(serviceMock.updateProfile).not.toHaveBeenCalled()
   })
 
   it("should update profile with valid payload", async () => {
-    serviceMock.updateProfile.mockResolvedValue({ id: "user-1", name: "Leo" })
+    serviceMock.updateProfile.mockResolvedValue({
+      id: "user-1",
+      firstName: "Leo",
+    })
 
     await request(app.getHttpServer())
       .patch("/users/me")
       .set("x-role", "PATIENT")
       .set("x-user-id", "user-1")
-      .send({ name: "Leo" })
+      .send({ firstName: "Leo" })
       .expect(200)
 
     expect(serviceMock.updateProfile).toHaveBeenCalledWith(
       "user-1",
       "user-1",
       "PATIENT",
-      { name: "Leo" },
+      { firstName: "Leo" },
     )
   })
 

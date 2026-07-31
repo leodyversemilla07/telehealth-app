@@ -301,7 +301,12 @@ export function ProfileContent() {
               size="icon"
               onClick={() => {
                 setImageUrl(preset.url)
-                profileMutation.mutate({ name: name || "", image: preset.url })
+                profileMutation.mutate({
+                  firstName,
+                  middleName,
+                  lastName,
+                  image: preset.url,
+                })
               }}
               className={`h-10 w-10 rounded-full border-2 overflow-hidden hover:scale-110 transition-transform ${
                 imageUrl === preset.url

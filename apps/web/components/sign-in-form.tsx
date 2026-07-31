@@ -71,11 +71,7 @@ export function SignInForm({
 
       if (res.error) {
         return {
-          error:
-            res.error.message ??
-            res.error.error ??
-            res.error.statusText ??
-            "Sign in failed",
+          error: res.error.message ?? res.error.statusText ?? "Sign in failed",
           twoFactorRequired: false,
         }
       }

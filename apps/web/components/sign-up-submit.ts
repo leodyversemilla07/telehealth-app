@@ -74,11 +74,7 @@ export async function submitSignUp(
 
   if (signUpError) {
     return {
-      error:
-        signUpError.message ??
-        signUpError.error ??
-        signUpError.statusText ??
-        "Sign up failed",
+      error: signUpError.message ?? signUpError.statusText ?? "Sign up failed",
       success: false,
       email: "",
       role,

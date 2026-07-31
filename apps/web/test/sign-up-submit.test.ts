@@ -20,7 +20,8 @@ describe("submitSignUp (F-AUTH-07: privacy consent required)", () => {
   it("blocks sign-up and does not call auth when consent is not given", async () => {
     const result = await submitSignUp(
       makeForm({
-        name: "Jane",
+        firstName: "Jane",
+        lastName: "Doe",
         email: "jane@example.com",
         password: "Password123!",
         role: "PATIENT",
@@ -38,7 +39,8 @@ describe("submitSignUp (F-AUTH-07: privacy consent required)", () => {
   it("signs up and records privacy consent when consent is given", async () => {
     const result = await submitSignUp(
       makeForm({
-        name: "Jane",
+        firstName: "Jane",
+        lastName: "Doe",
         email: "jane@example.com",
         password: "Password123!",
         role: "PATIENT",
@@ -50,7 +52,10 @@ describe("submitSignUp (F-AUTH-07: privacy consent required)", () => {
     expect(result.success).toBe(true)
     expect(baseDeps.signUpEmail).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "Jane",
+        name: "Jane Doe",
+        firstName: "Jane",
+        middleName: "",
+        lastName: "Doe",
         email: "jane@example.com",
         password: "Password123!",
         role: "PATIENT",
@@ -64,7 +69,7 @@ describe("submitSignUp (F-AUTH-07: privacy consent required)", () => {
 
   it("requires all fields", async () => {
     const result = await submitSignUp(
-      makeForm({ name: "", email: "", password: "" }),
+      makeForm({ firstName: "", lastName: "", email: "", password: "" }),
       true,
       baseDeps,
     )
