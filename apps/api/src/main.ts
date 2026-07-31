@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
-import { Logger, ValidationPipe, VersioningType } from "@nestjs/common"
+import { Logger, ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
 import type { Request, Response } from "express"
 import express from "express"
@@ -31,14 +31,6 @@ async function bootstrap() {
 
   // Enforce API route namespacing
   app.setGlobalPrefix("api")
-
-  // API versioning — enables /api/v1/* routes for future breaking changes
-  // Current endpoints remain at /api/* for backwards compatibility
-  app.enableVersioning({
-    type: VersioningType.URI,
-    defaultVersion: "1",
-    prefix: "v",
-  })
 
   // Enable shutdown hooks to prevent database pool leaks on SIGTERM/SIGINT
   app.enableShutdownHooks()

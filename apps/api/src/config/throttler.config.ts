@@ -5,12 +5,13 @@ import { ThrottlerGuard, ThrottlerModuleOptions } from "@nestjs/throttler"
  * Throttler configuration: limit repeated requests to protect the API
  * from brute-force and DoS attacks.
  *
- * Default: 30 requests per 60-second window.
+ * Default (SRS NFR-SEC-05): 30 requests per 60-second window.
+ * Override with THROTTLE_LIMIT (e.g. raised for E2E runs in playwright.config.ts).
  */
 export const throttlerConfig: ThrottlerModuleOptions = [
   {
     ttl: 60_000, // 60-second window
-    limit: 30, // max 30 requests per window
+    limit: Number(process.env.THROTTLE_LIMIT ?? 30), // max requests per window
   },
 ]
 

@@ -22,22 +22,22 @@ if (process.env.NODE_ENV === "production") {
 
 import { PrismaPg } from "@prisma/adapter-pg"
 import { hashPassword } from "better-auth/crypto"
-import pg from "pg"
 import { PrismaClient } from "../src/generated/prisma/client.js"
 
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) throw new Error("DATABASE_URL is not set")
 
+// Pass a config object (not a pg.Pool instance) to PrismaPg. @prisma/adapter-pg
+// bundles its own pg version, so `instanceof pg.Pool` fails and a Pool would be
+// treated as a flat config object, crashing on Node.js 22 (see src/prisma).
 const url = new URL(databaseUrl)
-const pool = new pg.Pool({
+const adapter = new PrismaPg({
   host: url.hostname,
   port: Number(url.port),
   user: decodeURIComponent(url.username),
   password: decodeURIComponent(url.password),
   database: url.pathname.replace(/^\//, ""),
-  max: 5,
 })
-const adapter = new PrismaPg(pool)
 const prisma = new PrismaClient({ adapter })
 
 async function upsertUserWithAccount(
