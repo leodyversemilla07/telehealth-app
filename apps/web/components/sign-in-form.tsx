@@ -14,7 +14,13 @@ import { cn } from "@workspace/ui/lib/utils"
 import { GalleryVerticalEndIcon, Key, Shield, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { useActionState, useRef, useState, useTransition } from "react"
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
@@ -22,6 +28,7 @@ import { authClient } from "@/lib/auth-client"
 type SignInState = {
   error: string | null
   twoFactorRequired: boolean
+  redirectTo: string | null
 }
 
 function SubmitButton({ children }: { children: React.ReactNode }) {
@@ -64,6 +71,7 @@ export function SignInForm({
         return {
           error: "Email and password are required",
           twoFactorRequired: false,
+          redirectTo: null,
         }
       }
 
@@ -73,6 +81,7 @@ export function SignInForm({
         return {
           error: res.error.message ?? res.error.statusText ?? "Sign in failed",
           twoFactorRequired: false,
+          redirectTo: null,
         }
       }
 
@@ -83,7 +92,7 @@ export function SignInForm({
 
       if (data?.twoFactorRedirect) {
         toast.info("Two-Factor Authentication is required for this account.")
-        return { error: null, twoFactorRequired: true }
+        return { error: null, twoFactorRequired: true, redirectTo: null }
       }
 
       const role = data?.user?.role ?? "PATIENT"
@@ -99,12 +108,18 @@ export function SignInForm({
             ? "/doctor/dashboard"
             : "/patient/dashboard")
 
-      toast.success("Successfully logged in!")
-      router.push(dashboard)
-      return { error: null, twoFactorRequired: false }
+      return { error: null, twoFactorRequired: false, redirectTo: dashboard }
     },
-    { error: null, twoFactorRequired: false },
+    { error: null, twoFactorRequired: false, redirectTo: null },
   )
+
+  // Form actions update state after the action settles; navigate from this
+  // client effect rather than performing router side effects inside the action.
+  useEffect(() => {
+    if (!state.redirectTo) return
+    toast.success("Successfully logged in!")
+    router.replace(state.redirectTo)
+  }, [router, state.redirectTo])
 
   async function handleTwoFactorSubmit(e: React.FormEvent) {
     e.preventDefault()

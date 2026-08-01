@@ -86,13 +86,16 @@ export async function proxy(request: NextRequest) {
     return withCsp(NextResponse.next({ request: { headers: requestHeaders } }))
   }
 
-  // Validate the Better Auth session server-side. We call the backend through
-  // the same-origin /api rewrite (works in every environment) and forward the
-  // request cookies so the session cookie is read by Better Auth.
+  // Validate the Better Auth session server-side. Use API_URL when available
+  // instead of request.nextUrl.origin: behind nginx, Next sees the public HTTPS
+  // scheme but its own internal HTTP port (3000), which made it request
+  // https://tele-health.app:3000 and fail TLS validation. Forward the browser
+  // cookie so Better Auth can read the session on the API process.
+  const apiOrigin = process.env.API_URL || request.nextUrl.origin
   let authenticated = false
   try {
     const sessionRes = await fetch(
-      new URL("/api/auth/get-session", request.nextUrl.origin),
+      new URL("/api/auth/get-session", apiOrigin),
       {
         headers: { cookie: request.headers.get("cookie") ?? "" },
       },
