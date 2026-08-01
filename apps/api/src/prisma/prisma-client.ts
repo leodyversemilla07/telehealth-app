@@ -13,12 +13,22 @@ if (!databaseUrl) {
   throw new Error("DATABASE_URL environment variable is required")
 }
 const url = new URL(databaseUrl)
+// RDS requires TLS (pg_hba rejects "no encryption"). Prisma's CLI enables
+// SSL automatically for remote hosts, but the driver adapter must be told
+// explicitly. Enable TLS for any non-localhost host (or ?sslmode=require).
+const sslMode = url.searchParams.get("sslmode")
+const isRemote = !["localhost", "127.0.0.1"].includes(url.hostname)
+const ssl =
+  sslMode === "require" ||
+  sslMode === "prefer" ||
+  (sslMode === null && isRemote)
 const prismaPgAdapter = new PrismaPg({
   host: url.hostname,
   port: Number(url.port),
   user: decodeURIComponent(url.username),
   password: decodeURIComponent(url.password),
   database: url.pathname.replace(/^\//, ""),
+  ...(ssl ? { ssl: { rejectUnauthorized: false } } : {}),
 })
 
 /**

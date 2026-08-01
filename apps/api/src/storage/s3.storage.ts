@@ -28,12 +28,18 @@ export class S3Storage implements StorageProvider {
   private async ensureClient() {
     if (!this._client) {
       const { S3Client } = await getS3()
+      // Prefer explicit env keys (local dev / MinIO), otherwise fall back to
+      // the SDK default credential chain (e.g. EC2 instance profile in AWS).
+      const creds =
+        process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+          ? {
+              accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+              secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            }
+          : undefined
       this._client = new S3Client({
         region: process.env.AWS_REGION ?? "us-east-1",
-        credentials: {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-        },
+        ...(creds ? { credentials: creds } : {}),
       })
     }
     return this._client
