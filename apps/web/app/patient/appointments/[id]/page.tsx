@@ -70,6 +70,14 @@ import { useCheckReview, useCreateReview } from "@/hooks/use-reviews"
 import { useJoinRoom } from "@/hooks/use-video"
 import "@livekit/components-styles"
 
+/** Format a call duration (seconds) as "Xm Ys" (or "Xs" under a minute). */
+function formatCallDuration(totalSeconds: number): string {
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  if (minutes === 0) return `${seconds}s`
+  return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`
+}
+
 // F-CONSULT-03: Show a waiting overlay until the doctor connects.
 function DoctorWaitingOverlay() {
   const remoteParticipants = useRemoteParticipants()
@@ -499,10 +507,18 @@ export default function AppointmentDetailPage() {
               <>
                 <Separator className="bg-border/30" />
                 <div className="space-y-4">
-                  <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
-                    <ClipboardList className="h-3.5 w-3.5" /> Consultation
-                    Record
-                  </span>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1">
+                      <ClipboardList className="h-3.5 w-3.5" /> Consultation
+                      Record
+                    </span>
+                    {appt.callMetadata && appt.callMetadata.duration > 0 && (
+                      <span className="text-xs font-semibold text-muted-foreground bg-muted/30 border border-border/20 rounded-full px-2.5 py-0.5">
+                        Call duration:{" "}
+                        {formatCallDuration(appt.callMetadata.duration)}
+                      </span>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-muted/20 border border-border/20 rounded-xl p-4 space-y-1">

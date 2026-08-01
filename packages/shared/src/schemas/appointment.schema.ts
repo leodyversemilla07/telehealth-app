@@ -23,6 +23,15 @@ export const appointmentSchema = z.object({
   type: visitTypeSchema,
   roomUrl: z.string().nullable().optional(),
   notes: z.string().nullable(),
+  callMetadata: z
+    .object({
+      endedAt: z.string(),
+      duration: z.number(),
+      roomName: z.string(),
+      participants: z.array(z.string()),
+    })
+    .nullable()
+    .optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
   patient: z.object({
