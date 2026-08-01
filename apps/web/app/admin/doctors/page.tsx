@@ -27,6 +27,7 @@ import {
   PaginationPrevious,
 } from "@workspace/ui/components/pagination"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Table,
   TableBody,
@@ -366,8 +367,14 @@ export default function AdminDoctorsPage() {
                               disabled={rejectMutation.isPending}
                               onClick={() => rejectMutation.mutate(doc.id)}
                             >
-                              <XCircle className="h-4 w-4" />
-                              Revoke
+                              {rejectMutation.isPending ? (
+                                <Spinner className="mr-1 h-3.5 w-3.5" />
+                              ) : (
+                                <XCircle className="h-4 w-4" />
+                              )}
+                              {rejectMutation.isPending
+                                ? "Revoking..."
+                                : "Revoke"}
                             </Button>
                           ) : (
                             <Button
@@ -377,8 +384,14 @@ export default function AdminDoctorsPage() {
                               disabled={approveMutation.isPending}
                               onClick={() => approveMutation.mutate(doc.id)}
                             >
-                              <CheckCircle className="h-3 w-3" />
-                              Approve
+                              {approveMutation.isPending ? (
+                                <Spinner className="mr-1 h-3.5 w-3.5" />
+                              ) : (
+                                <CheckCircle className="h-3 w-3" />
+                              )}
+                              {approveMutation.isPending
+                                ? "Approving..."
+                                : "Approve"}
                             </Button>
                           )}
                         </div>

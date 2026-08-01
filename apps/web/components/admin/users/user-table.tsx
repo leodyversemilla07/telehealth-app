@@ -6,6 +6,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Card } from "@workspace/ui/components/card"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { Spinner } from "@workspace/ui/components/spinner"
 import {
   Table,
   TableBody,
@@ -185,8 +186,12 @@ export function UserTable({
                         disabled={isUnbanPending}
                         onClick={() => onUnban(user.id)}
                       >
-                        <UserCheck className="h-3 w-3" />
-                        Unban
+                        {isUnbanPending ? (
+                          <Spinner className="mr-1 h-3 w-3" />
+                        ) : (
+                          <UserCheck className="h-3 w-3" />
+                        )}
+                        {isUnbanPending ? "Unbanning..." : "Unban"}
                       </Button>
                     ) : (
                       <Button

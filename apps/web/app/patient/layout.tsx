@@ -15,8 +15,18 @@ import { SidebarPatient } from "@/components/sidebar-patient"
 const NotificationBell = dynamic(
   () =>
     import("@/components/notification-bell").then((m) => m.NotificationBell),
-  { ssr: false },
+  { ssr: false, loading: () => <BellLoading /> },
 )
+
+/** Size-matched placeholder so the bell slot doesn't jump after load. */
+function BellLoading() {
+  return (
+    <div
+      className="size-9 animate-pulse rounded-full bg-muted"
+      aria-hidden="true"
+    />
+  )
+}
 
 import { authClient } from "@/lib/auth-client"
 
