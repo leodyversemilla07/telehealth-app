@@ -50,6 +50,10 @@ export function SignUpForm({
     null,
   )
 
+  const [verificationState, setVerificationState] = useState<
+    "idle" | "sending" | "sent"
+  >("idle")
+
   const [state, formAction, isPending] = useActionState<SignUpState, FormData>(
     async (_prev, formData) => {
       const result = await submitSignUp(formData, consent, {
@@ -89,6 +93,44 @@ export function SignUpForm({
           {state.role === "DOCTOR"
             ? "After verifying, sign in and complete the doctor application from the doctor registration page."
             : "Click the link in the email to verify your account and sign in."}
+        </p>
+        <Button
+          variant="outline"
+          onClick={async () => {
+            setVerificationState("sending")
+            const { error } = await authClient.sendVerificationEmail({
+              email: state.email,
+              callbackURL: `${window.location.origin}/sign-in`,
+            })
+
+            if (error) {
+              setVerificationState("idle")
+              toast.error(
+                error.message ?? "Could not resend the verification email.",
+              )
+              return
+            }
+
+            setVerificationState("sent")
+            toast.success("Verification email sent. Please check your inbox.")
+          }}
+          disabled={
+            verificationState === "sending" || verificationState === "sent"
+          }
+        >
+          {verificationState === "sending" ? (
+            <>
+              <Spinner data-icon="inline-start" />
+              Sending verification email...
+            </>
+          ) : verificationState === "sent" ? (
+            "Verification email sent"
+          ) : (
+            "Resend verification email"
+          )}
+        </Button>
+        <p className="-mt-3 text-center text-xs text-muted-foreground">
+          Don&apos;t see it? Check your spam or junk folder.
         </p>
         <Button variant="outline" onClick={() => router.push("/sign-in")}>
           Go to Sign In

@@ -61,6 +61,9 @@ export const auth = betterAuth({
     },
   },
   emailVerification: {
+    // Defining sendVerificationEmail is not enough: Better Auth only sends
+    // at registration when this trigger is enabled.
+    sendOnSignUp: true,
     sendVerificationEmail: async (data: {
       user: { email: string }
       url: string
