@@ -94,4 +94,11 @@ export class StorageService {
   async deleteFile(key: string): Promise<void> {
     return this.provider.delete(key)
   }
+
+  /** Read a file's bytes back (null when missing). */
+  async read(
+    key: string,
+  ): Promise<{ data: Buffer; contentType: string } | null> {
+    return this.provider.read(key)
+  }
 }

@@ -2,7 +2,7 @@ import { existsSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
 import { Logger, ValidationPipe } from "@nestjs/common"
 import { NestFactory } from "@nestjs/core"
-import type { Request, Response } from "express"
+import type { NextFunction, Request, Response } from "express"
 import express from "express"
 import helmet from "helmet"
 import { Server as SocketIOServer } from "socket.io"
@@ -13,6 +13,7 @@ import { PhtDateInterceptor } from "./common/interceptors/pht-date.interceptor"
 import { RequestIdInterceptor } from "./common/interceptors/request-id.interceptor"
 import { setupSwagger } from "./config/swagger.config"
 import { SocketService } from "./notifications/socket.service"
+import { StorageService } from "./storage/storage.service"
 
 async function bootstrap() {
   const logger = new Logger("Bootstrap")
@@ -67,6 +68,36 @@ async function bootstrap() {
     mkdirSync(uploadsDir, { recursive: true })
   }
   app.use("/uploads", express.static(uploadsDir))
+
+  // In production, uploaded files live in a PRIVATE S3 bucket. Stream them
+  // through the API at the same /uploads/:key path so stored URLs stay stable
+  // (DB values are unchanged) and objects never get a public URL.
+  // LocalStorage (dev) is handled by express.static above and never reaches here.
+  const storageService = app.get(StorageService)
+  app.use(
+    "/uploads/:key",
+    async (req: Request, res: Response, next: NextFunction) => {
+      const keyParam = req.params.key
+      const key = Array.isArray(keyParam) ? keyParam[0] : keyParam
+      // Keys are server-generated (avatar-<userId>-<timestamp>); block traversal anyway.
+      if (!key || key.includes("..") || key.includes("/")) {
+        res.status(400).end()
+        return
+      }
+      try {
+        const file = await storageService.read(key)
+        if (!file) {
+          next() // not found → standard 404 handling
+          return
+        }
+        res.setHeader("Content-Type", file.contentType)
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable")
+        res.send(file.data)
+      } catch (err) {
+        next(err)
+      }
+    },
+  )
 
   // ── Request ID Interceptor ────────────────────────────────────────────
   // Generates unique request IDs for end-to-end tracing and logging.

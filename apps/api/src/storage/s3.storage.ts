@@ -14,15 +14,9 @@ export class S3Storage implements StorageProvider {
     Awaited<ReturnType<typeof getS3>>["S3Client"]
   > | null = null
   private readonly bucket: string
-  private readonly publicUrlBase: string
 
   constructor() {
     this.bucket = process.env.S3_BUCKET ?? "telehealth-app-uploads"
-
-    // CloudFront or direct S3 URL
-    this.publicUrlBase =
-      process.env.S3_PUBLIC_URL ??
-      `https://${this.bucket}.s3.${process.env.AWS_REGION ?? "us-east-1"}.amazonaws.com`
   }
 
   private async ensureClient() {
@@ -57,7 +51,14 @@ export class S3Storage implements StorageProvider {
         CacheControl: "public, max-age=31536000, immutable",
       }),
     )
-    return `${this.publicUrlBase}/${key}`
+    // Return the same URL scheme as LocalStorage: served through the API at
+    // /uploads/:key. Bucket objects stay PRIVATE (medical data); reads are
+    // streamed server-side with instance-profile credentials.
+    const apiBaseUrl = (
+      process.env.BETTER_AUTH_URL ??
+      `http://localhost:${process.env.PORT ?? 3001}`
+    ).replace(/\/$/, "")
+    return `${apiBaseUrl}/uploads/${key}`
   }
 
   async delete(key: string): Promise<void> {
@@ -84,6 +85,31 @@ export class S3Storage implements StorageProvider {
       return true
     } catch {
       return false
+    }
+  }
+
+  async read(
+    key: string,
+  ): Promise<{ data: Buffer; contentType: string } | null> {
+    const { GetObjectCommand } = await getS3()
+    const client = await this.ensureClient()
+    try {
+      const res = await client.send(
+        new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+      )
+      if (!res.Body) {
+        return null
+      }
+      const bytes = await res.Body.transformToByteArray()
+      return {
+        data: Buffer.from(bytes),
+        contentType: res.ContentType ?? "application/octet-stream",
+      }
+    } catch (err: unknown) {
+      if ((err as { name?: string }).name === "NoSuchKey") {
+        return null
+      }
+      throw err
     }
   }
 }

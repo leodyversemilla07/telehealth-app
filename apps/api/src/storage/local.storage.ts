@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, unlinkSync } from "node:fs"
-import { writeFile } from "node:fs/promises"
+import { readFile, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import type { StorageProvider } from "./storage.interface"
 
@@ -39,5 +39,18 @@ export class LocalStorage implements StorageProvider {
 
   async exists(key: string): Promise<boolean> {
     return existsSync(join(this.baseDir, key))
+  }
+
+  async read(
+    key: string,
+  ): Promise<{ data: Buffer; contentType: string } | null> {
+    const filePath = join(this.baseDir, key)
+    if (!existsSync(filePath)) {
+      return null
+    }
+    return {
+      data: await readFile(filePath),
+      contentType: "application/octet-stream",
+    }
   }
 }
