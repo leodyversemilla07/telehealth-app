@@ -26,6 +26,7 @@ test.describe("Authentication", () => {
       await page.getByPlaceholder("Last").fill("Doe")
       await page.getByLabel(/email/i).fill(`weak-${Date.now()}@example.com`)
       await page.getByLabel(/password/i).fill("weak")
+      await page.getByLabel(/confirm password/i).fill("weak")
       await page.getByRole("checkbox", { name: /privacy policy/i }).check()
       await page.getByRole("button", { name: /create account/i }).click()
 
@@ -42,6 +43,7 @@ test.describe("Authentication", () => {
       await page.getByPlaceholder("Last").fill("User")
       await page.getByLabel(/email/i).fill(email)
       await page.getByLabel(/password/i).fill("TestPass123!")
+      await page.getByLabel(/confirm password/i).fill("TestPass123!")
       await page.getByRole("checkbox", { name: /privacy policy/i }).check()
       await page.getByRole("button", { name: /create account/i }).click()
 
