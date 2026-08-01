@@ -30,7 +30,7 @@ export class EmailService {
   ): Promise<void> {
     await this.sendMail({
       to: email,
-      subject: `[Telehealth Platform] Security Alert: ${escapeHtml(title)}`,
+      subject: `[Telehealth App] Security Alert: ${escapeHtml(title)}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1a1a1a;">Security Alert</h2>
@@ -40,7 +40,7 @@ export class EmailService {
           </p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
           <p style="color: #999; font-size: 11px;">
-            Telehealth Platform - This is an automated security notification.
+            Telehealth App - This is an automated security notification.
           </p>
         </div>
       `,
@@ -56,7 +56,7 @@ export class EmailService {
   ): Promise<void> {
     await this.sendMail({
       to: email,
-      subject: `[Telehealth Platform] Appointment Confirmed`,
+      subject: `[Telehealth App] Appointment Confirmed`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1a1a1a;">Appointment Confirmed</h2>
@@ -71,7 +71,7 @@ export class EmailService {
           </p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
           <p style="color: #999; font-size: 11px;">
-            Telehealth Platform - This is an automated notification.
+            Telehealth App - This is an automated notification.
           </p>
         </div>
       `,
@@ -86,7 +86,7 @@ export class EmailService {
   ): Promise<void> {
     await this.sendMail({
       to: email,
-      subject: `[Telehealth Platform] Upcoming Appointment Reminder`,
+      subject: `[Telehealth App] Upcoming Appointment Reminder`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1a1a1a;">Appointment Reminder</h2>
@@ -98,7 +98,7 @@ export class EmailService {
           </p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
           <p style="color: #999; font-size: 11px;">
-            Telehealth Platform - This is an automated notification.
+            Telehealth App - This is an automated notification.
           </p>
         </div>
       `,
@@ -113,7 +113,7 @@ export class EmailService {
   ): Promise<void> {
     await this.sendMail({
       to: email,
-      subject: `[Telehealth Platform] Appointment Cancelled`,
+      subject: `[Telehealth App] Appointment Cancelled`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1a1a1a;">Appointment Cancelled</h2>
@@ -125,7 +125,7 @@ export class EmailService {
           </p>
           <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
           <p style="color: #999; font-size: 11px;">
-            Telehealth Platform - This is an automated notification.
+            Telehealth App - This is an automated notification.
           </p>
         </div>
       `,

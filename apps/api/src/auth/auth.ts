@@ -19,7 +19,7 @@ const trustedOrigins = (
   .filter(Boolean)
 
 export const auth = betterAuth({
-  appName: "Telehealth Platform",
+  appName: "Telehealth App",
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",
   trustedOrigins,
@@ -38,17 +38,17 @@ export const auth = betterAuth({
     }) => {
       await sendEmail({
         to: data.user.email,
-        subject: "[Telehealth Platform] Reset Your Password",
+        subject: "[Telehealth App] Reset Your Password",
         text: `Hello,
 
-We received a request to reset the password for your Telehealth Platform account.
+We received a request to reset the password for your Telehealth App account.
 
 Open this link to choose a new password:
 ${data.url}
 
 This link expires in 1 hour. If you did not request a password reset, you can ignore this email.
 
-Telehealth Platform`,
+Telehealth App`,
       })
     },
   },
@@ -63,10 +63,10 @@ Telehealth Platform`,
     }) => {
       await sendEmail({
         to: data.user.email,
-        subject: "[Telehealth Platform] Verify Your Email Address",
+        subject: "[Telehealth App] Verify Your Email Address",
         text: `Hello,
 
-Thank you for creating a Telehealth Platform account.
+Thank you for creating a Telehealth App account.
 
 To verify your email address, open this link:
 ${data.url}
@@ -75,7 +75,7 @@ This link expires in 1 hour.
 
 If you did not create this account, you can ignore this email.
 
-Telehealth Platform`,
+Telehealth App`,
       })
     },
   },

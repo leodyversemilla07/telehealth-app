@@ -89,7 +89,7 @@ export async function sendEmail(options: {
     }
 
     const fromAddress =
-      process.env.EMAIL_FROM || "Telehealth Platform <noreply@tele-health.app>"
+      process.env.EMAIL_FROM || "Telehealth App <noreply@tele-health.app>"
 
     await getTransporter().sendMail({
       from: fromAddress,
@@ -114,7 +114,7 @@ export async function sendSecurityAlertEmail(
 ): Promise<void> {
   await sendEmail({
     to: email,
-    subject: `[Telehealth Platform] Security Alert: ${escapeHtml(title)}`,
+    subject: `[Telehealth App] Security Alert: ${escapeHtml(title)}`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #1a1a1a;">Security Alert</h2>
@@ -124,7 +124,7 @@ export async function sendSecurityAlertEmail(
         </p>
         <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
         <p style="color: #999; font-size: 11px;">
-          Telehealth Platform - This is an automated security notification.
+          Telehealth App - This is an automated security notification.
         </p>
       </div>
     `,

@@ -4,7 +4,7 @@
 
 | Field | Details |
 |---|---|
-| **Project Name** | Telehealth Platform |
+| **Project Name** | Telehealth App |
 | **Version** | 1.0 |
 | **Date** | 2026-05-30 |
 | **Status** | Final — Submitted for WC Launchpad Builder Round |
