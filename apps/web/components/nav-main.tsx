@@ -54,13 +54,11 @@ export function NavMain({
                   isActive={isActive}
                   render={
                     <a href={item.url}>
-                      <span className="sr-only">{item.title}</span>
+                      {item.icon}
+                      <span>{item.title}</span>
                     </a>
                   }
-                >
-                  {item.icon}
-                  <span>{item.title}</span>
-                </SidebarMenuButton>
+                />
               </SidebarMenuItem>
             )
           }
@@ -76,13 +74,11 @@ export function NavMain({
                 isActive={isActive}
                 render={
                   <a href={item.url}>
-                    <span className="sr-only">{item.title}</span>
+                    {item.icon}
+                    <span>{item.title}</span>
                   </a>
                 }
-              >
-                {item.icon}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
+              />
               <CollapsibleTrigger
                 render={
                   <SidebarMenuAction className="aria-expanded:rotate-90" />
@@ -101,12 +97,10 @@ export function NavMain({
                           isActive={isSubActive}
                           render={
                             <a href={subItem.url}>
-                              <span className="sr-only">{subItem.title}</span>
+                              <span>{subItem.title}</span>
                             </a>
                           }
-                        >
-                          <span>{subItem.title}</span>
-                        </SidebarMenuSubButton>
+                        />
                       </SidebarMenuSubItem>
                     )
                   })}

@@ -27,13 +27,11 @@ export function NavSecondary({
                 size="sm"
                 render={
                   <a href={item.url}>
-                    <span className="sr-only">{item.title}</span>
+                    {item.icon}
+                    <span>{item.title}</span>
                   </a>
                 }
-              >
-                {item.icon}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
+              />
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

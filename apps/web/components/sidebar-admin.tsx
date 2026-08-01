@@ -76,22 +76,20 @@ export function SidebarAdmin({
               size="lg"
               render={
                 <a href="/admin/dashboard">
-                  <span className="sr-only">Admin dashboard</span>
+                  <Image
+                    src="/logo.png"
+                    alt="Telehealth"
+                    width={32}
+                    height={32}
+                    className="size-8 rounded-lg object-cover"
+                  />
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium">Telehealth</span>
+                    <span className="truncate text-xs">App</span>
+                  </div>
                 </a>
               }
-            >
-              <Image
-                src="/logo.png"
-                alt="Telehealth"
-                width={32}
-                height={32}
-                className="size-8 rounded-lg object-cover"
-              />
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">Telehealth</span>
-                <span className="truncate text-xs">Platform</span>
-              </div>
-            </SidebarMenuButton>
+            />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
