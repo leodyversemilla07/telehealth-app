@@ -299,6 +299,16 @@ describe("VideoService", () => {
           data: expect.objectContaining({ status: "COMPLETED" }),
         }),
       )
+      // Call metadata must go to the dedicated column, never the doctor's
+      // consultation notes field (F-CONSULT-06).
+      const updateCall = prisma.appointment.update.mock.calls.at(-1)?.[0]
+      expect(updateCall?.data?.callMetadata).toEqual(
+        expect.objectContaining({
+          roomName: "appointment-apt-1",
+          participants: ["doctor", "patient"],
+        }),
+      )
+      expect(updateCall?.data?.notes).toBeUndefined()
     })
   })
 })

@@ -320,12 +320,14 @@ export class VideoService {
     )
 
     // Store metadata and mark appointment as COMPLETED (F-CONSULT-06)
-    const metadata = JSON.stringify({
+    // Use the dedicated callMetadata column so machine metadata never
+    // overwrites the doctor's consultation notes field.
+    const callMetadata = {
       endedAt: endedAt.toISOString(),
       duration,
       roomName,
       participants: ["doctor", "patient"],
-    })
+    }
 
     await this.prisma.$transaction(async (tx) => {
       const current = await tx.appointment.findUnique({
@@ -339,7 +341,7 @@ export class VideoService {
         where: { id: appointmentId },
         data: {
           status: "COMPLETED",
-          notes: metadata,
+          callMetadata,
         },
       })
     })

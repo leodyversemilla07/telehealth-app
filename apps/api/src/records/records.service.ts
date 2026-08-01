@@ -59,8 +59,9 @@ export class RecordsService {
       instructions: p.instructions ?? null,
     }))
 
-    // Preserve intake context from the appointment itself.
-    // Avoid using appointment.notes because video call metadata is stored there.
+    // Preserve intake context from the appointment itself (reason/symptoms).
+    // Doctor-facing notes live in the Consultation record, and video call
+    // metadata is stored in the dedicated callMetadata column.
     const intakeNotes = [appointment.reason, appointment.symptoms]
       .filter((value): value is string => !!value)
       .join(" | ")

@@ -225,6 +225,7 @@ model Appointment {
   type       VisitType          @default(VIDEO)
   roomUrl    String?
   notes      String?
+  callMetadata Json?           @map("call_metadata")
   createdAt  DateTime           @default(now())
   updatedAt  DateTime           @updatedAt
 
