@@ -9,6 +9,7 @@
 
 @theme inline {
   --font-heading: var(--font-sans);
+  --font-display: var(--font-display);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -254,6 +255,58 @@
 }
 .stagger-children > *:nth-child(8) {
   transition-delay: 560ms;
+}
+
+/* ── ECG heartbeat line (signature motif) ── */
+@keyframes ecg-draw {
+  from {
+    stroke-dashoffset: 100;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ecg-path {
+  stroke-dasharray: 100;
+  animation: ecg-draw 4s ease-in-out infinite alternate;
+}
+
+/* Gentle float for hero mock cards */
+@keyframes float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float-y 6s ease-in-out infinite;
+}
+
+/* Live-status pulse dot */
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 oklch(0.65 0.15 145 / 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 8px oklch(0.65 0.15 145 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 oklch(0.65 0.15 145 / 0);
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Film-grain texture overlay */
+.bg-grain {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.32'/%3E%3C/svg%3E");
 }
 
 /* Geometric dot-grid background pattern */

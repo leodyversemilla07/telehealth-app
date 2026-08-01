@@ -2,7 +2,7 @@
 
 import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
-import { ArrowUp } from "lucide-react"
+import { ArrowUp, Clock3, Mail, Phone } from "lucide-react"
 import Image from "next/image"
 
 const FOOTER_COLUMNS = [
@@ -84,7 +84,7 @@ export function Footer({
                 className="size-9 rounded-xl object-cover"
                 suppressHydrationWarning
               />
-              <span className="text-xl font-bold tracking-tight text-foreground dark:text-white">
+              <span className="font-display text-2xl font-semibold tracking-tight text-foreground dark:text-white">
                 Telehealth
               </span>
             </a>
@@ -120,6 +120,55 @@ export function Footer({
 
         {/* Divider */}
         <Separator className="my-10 bg-border/60 dark:bg-white/8" />
+
+        {/* Contact strip — the article's "don't forget your contact details" */}
+        <div className="mb-12 grid gap-4 rounded-2xl border border-border/60 bg-background/50 p-5 sm:grid-cols-3 dark:border-white/10 dark:bg-white/[0.03]">
+          <a
+            href="mailto:hello@tele-health.app"
+            className="group flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-muted/70 dark:hover:bg-white/5"
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition group-hover:scale-105">
+              <Mail className="size-4.5" />
+            </span>
+            <span>
+              <span className="block text-xs text-muted-foreground">
+                Email us
+              </span>
+              <span className="block text-sm font-medium text-foreground">
+                hello@tele-health.app
+              </span>
+            </span>
+          </a>
+          <a
+            href="tel:+63288888888"
+            className="group flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-muted/70 dark:hover:bg-white/5"
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-warning/15 text-warning transition group-hover:scale-105">
+              <Phone className="size-4.5" />
+            </span>
+            <span>
+              <span className="block text-xs text-muted-foreground">
+                Call us
+              </span>
+              <span className="block text-sm font-medium text-foreground">
+                +63 2 8888 8888
+              </span>
+            </span>
+          </a>
+          <div className="flex items-center gap-3 rounded-xl px-3 py-2">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-success/15 text-success">
+              <Clock3 className="size-4.5" />
+            </span>
+            <span>
+              <span className="block text-xs text-muted-foreground">
+                Consultations
+              </span>
+              <span className="block text-sm font-medium text-foreground">
+                Online 24/7 — no waiting room
+              </span>
+            </span>
+          </div>
+        </div>
 
         {/* Column grid */}
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">

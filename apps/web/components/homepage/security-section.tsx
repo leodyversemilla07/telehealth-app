@@ -59,20 +59,14 @@ export function SecuritySection() {
         <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
           {/* Left column — intro + features */}
           <div className="reveal-on-scroll">
-            <Badge
-              variant="outline"
-              className="mb-4 rounded-full border-border text-muted-foreground"
-            >
+            <Badge className="rounded-full border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs text-primary">
               Security & Compliance
             </Badge>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Your privacy is
-              <br />
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-                non-negotiable
-              </span>
+            <h2 className="mt-5 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+              Your privacy is{" "}
+              <span className="italic text-primary">non-negotiable</span>
             </h2>
-            <p className="mt-4 text-muted-foreground">
+            <p className="mt-5 text-lg text-muted-foreground">
               We built Telehealth with healthcare-grade security from day one.
               Every feature is designed to protect your sensitive medical data.
             </p>

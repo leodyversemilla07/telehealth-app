@@ -56,8 +56,8 @@ function DoctorCard({
   image?: string | null
 }) {
   return (
-    <div className="group overflow-hidden rounded-2xl border border-border bg-card/50 transition-all duration-300 hover:border-primary/30 hover:bg-card hover:shadow-lg hover:shadow-primary/5 reveal-on-scroll">
-      <div className="aspect-square bg-gradient-to-br from-muted/80 to-muted relative overflow-hidden flex items-center justify-center">
+    <div className="group overflow-hidden rounded-3xl border border-border/70 bg-card/60 transition-all duration-300 hover:border-primary/30 hover:bg-card hover:shadow-xl hover:shadow-primary/5 reveal-on-scroll">
+      <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-muted/80 to-muted">
         {image ? (
           <Image
             src={image}
@@ -67,39 +67,39 @@ function DoctorCard({
             className="object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="relative flex flex-col items-center gap-2 text-muted-foreground/60 select-none">
-            <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 text-2xl font-bold text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15">
+          <div className="relative flex select-none flex-col items-center gap-3 text-muted-foreground/60">
+            <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 font-display text-2xl font-semibold text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15">
               {name.replace("Dr. ", "").charAt(0)}
             </div>
             {/* Decorative rings */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="size-32 rounded-full border border-border/30 group-hover:border-primary/10 transition-all duration-500" />
+              <div className="size-32 rounded-full border border-border/30 transition-all duration-500 group-hover:border-primary/15" />
             </div>
           </div>
         )}
       </div>
-      <div className="p-4">
+      <div className="p-5">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className="font-semibold text-card-foreground truncate">
+            <div className="truncate font-display text-lg font-semibold text-card-foreground">
               {name}
             </div>
-            <div className="text-sm text-muted-foreground truncate">
+            <div className="truncate text-sm text-muted-foreground">
               {specialty}
             </div>
           </div>
           <Badge
             className={`shrink-0 rounded-full text-xs ${
               available
-                ? "bg-success/15 text-success border-success/20"
-                : "bg-muted text-muted-foreground border-border"
+                ? "border-success/20 bg-success/15 text-success"
+                : "border-border bg-muted text-muted-foreground"
             }`}
             variant="outline"
           >
             {available ? "Available" : "Busy"}
           </Badge>
         </div>
-        <div className="mt-3 flex items-center gap-1.5 text-sm">
+        <div className="mt-3.5 flex items-center gap-1.5 text-sm">
           <Star className="size-4 fill-warning text-warning" />
           <span className="font-medium text-card-foreground">{rating}</span>
           <span className="text-muted-foreground">
@@ -128,46 +128,43 @@ export function DoctorsSection() {
       : DOCTORS
 
   return (
-    <section id="doctors" className="relative overflow-hidden py-24 sm:py-32">
-      <div className="absolute inset-0 -z-10 bg-muted/50" />
+    <section
+      id="doctors"
+      className="relative scroll-mt-24 overflow-hidden py-24 sm:py-32"
+    >
+      <div className="absolute inset-0 -z-10 bg-muted/50 dark:bg-muted/20" />
       <div className="absolute inset-0 -z-10 bg-dot-grid-subtle opacity-50 [mask-image:radial-gradient(ellipse_70%_50%_at_50%_50%,black,transparent_70%)]" />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <div className="mb-16 text-center reveal-on-scroll">
-          <Badge
-            variant="outline"
-            className="mb-4 rounded-full border-border text-muted-foreground"
-          >
+          <Badge className="rounded-full border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs text-primary">
             Our doctors
           </Badge>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            Expert doctors with
-            <br />
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-              real-world experience
-            </span>
+          <h2 className="mt-5 font-display text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+            Expert doctors with{" "}
+            <span className="italic text-primary">real-world experience</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
             Board-certified professionals ready to provide quality care from
             anywhere.
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {isDoctorsLoading
             ? Array.from({ length: 4 }).map((_, i) => (
                 <div
                   key={i}
-                  className="overflow-hidden rounded-2xl border border-border bg-card p-4 space-y-4 animate-pulse"
+                  className="animate-pulse space-y-4 overflow-hidden rounded-3xl border border-border/70 bg-card p-4"
                 >
-                  <div className="aspect-square bg-muted rounded-xl" />
+                  <div className="aspect-square rounded-2xl bg-muted" />
                   <div className="space-y-2">
-                    <div className="h-4 w-2/3 bg-muted rounded" />
-                    <div className="h-3 w-1/2 bg-muted rounded" />
+                    <div className="h-4 w-2/3 rounded bg-muted" />
+                    <div className="h-3 w-1/2 rounded bg-muted" />
                   </div>
                   <div className="flex items-center justify-between pt-2">
-                    <div className="h-4 w-1/4 bg-muted rounded" />
-                    <div className="h-4 w-1/3 bg-muted rounded" />
+                    <div className="h-4 w-1/4 rounded bg-muted" />
+                    <div className="h-4 w-1/3 rounded bg-muted" />
                   </div>
                 </div>
               ))

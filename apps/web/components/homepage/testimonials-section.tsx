@@ -106,23 +106,17 @@ function TestimonialCard({
 
 export function TestimonialsSection() {
   return (
-    <section id="testimonials" className="relative py-24 sm:py-32">
+    <section id="testimonials" className="relative scroll-mt-24 py-24 sm:py-32">
       <div className="absolute inset-0 -z-10 bg-dot-grid-subtle [mask-image:radial-gradient(ellipse_70%_50%_at_50%_50%,black,transparent_70%)]" />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <div className="mb-16 text-center reveal-on-scroll">
-          <Badge
-            variant="outline"
-            className="mb-4 rounded-full border-border text-muted-foreground"
-          >
+          <Badge className="rounded-full border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs text-primary">
             Testimonials
           </Badge>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            Trusted by thousands of
-            <br />
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-              patients and doctors
-            </span>
+          <h2 className="mt-5 font-display text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+            Trusted by thousands of{" "}
+            <span className="italic text-primary">patients and doctors</span>
           </h2>
         </div>
 

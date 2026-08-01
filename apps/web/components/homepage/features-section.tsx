@@ -63,10 +63,10 @@ function FeatureCard({
 }) {
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border p-6 transition-all duration-300 reveal-on-scroll ${
+      className={`group relative overflow-hidden rounded-3xl border p-7 transition-all duration-300 reveal-on-scroll ${
         highlight
-          ? "border-primary/20 bg-gradient-to-br from-primary/[0.04] to-primary/[0.01] hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 sm:col-span-2 lg:col-span-2"
-          : "border-border bg-card/50 hover:border-primary/30 hover:bg-card hover:shadow-lg hover:shadow-primary/5"
+          ? "border-primary/25 bg-gradient-to-br from-primary/[0.05] to-primary/[0.01] hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10 sm:col-span-2 lg:col-span-2"
+          : "border-border/70 bg-card/60 hover:border-primary/30 hover:bg-card hover:shadow-lg hover:shadow-primary/5"
       }`}
     >
       {/* Hover accent bar */}
@@ -78,14 +78,13 @@ function FeatureCard({
         }`}
       />
 
-      {/* Decorative glow on highlight card */}
       {highlight && (
-        <div className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-primary/[0.06] blur-3xl" />
+        <div className="pointer-events-none absolute -right-20 -top-20 size-44 rounded-full bg-primary/[0.07] blur-3xl" />
       )}
 
       <div className="relative">
         <div
-          className={`mb-4 flex size-12 items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-105 ${
+          className={`mb-5 flex size-13 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-105 ${
             highlight
               ? "bg-primary/15 group-hover:bg-primary/20"
               : "bg-primary/10 group-hover:bg-primary/15"
@@ -93,10 +92,10 @@ function FeatureCard({
         >
           <Icon className="size-6 text-primary transition-transform duration-300 group-hover:scale-105" />
         </div>
-        <h3 className="mb-2 text-lg font-semibold text-card-foreground">
+        <h3 className="mb-2.5 font-display text-xl font-semibold text-card-foreground">
           {title}
         </h3>
-        <p className="text-sm leading-relaxed text-muted-foreground">
+        <p className="max-w-md text-sm leading-relaxed text-muted-foreground">
           {description}
         </p>
       </div>
@@ -106,32 +105,25 @@ function FeatureCard({
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="relative py-24 sm:py-32">
-      {/* Subtle dot grid backdrop */}
+    <section id="features" className="relative scroll-mt-24 py-24 sm:py-32">
       <div className="absolute inset-0 -z-10 bg-dot-grid-subtle [mask-image:radial-gradient(ellipse_70%_50%_at_50%_50%,black,transparent_70%)]" />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <div className="mb-16 text-center reveal-on-scroll">
-          <Badge
-            variant="outline"
-            className="mb-4 rounded-full border-border text-muted-foreground"
-          >
+          <Badge className="rounded-full border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs text-primary">
             Features
           </Badge>
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
-            Everything you need for
-            <br />
-            <span className="bg-gradient-to-r from-primary via-primary/80 to-primary/60 bg-clip-text text-transparent">
-              connected care
-            </span>
+          <h2 className="mt-5 font-display text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+            Everything you need for{" "}
+            <span className="italic text-primary">connected care</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
             From booking to follow-up, every step is designed to be fast,
             secure, and effortless.
           </p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 stagger-children">
           {FEATURES.map((feature) => (
             <FeatureCard key={feature.title} {...feature} />
           ))}

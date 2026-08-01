@@ -24,7 +24,7 @@ import { ThemeToggle } from "../theme-toggle"
 const NAV_ITEMS = [
   { href: "#features", label: "Features" },
   { href: "#doctors", label: "Doctors" },
-  { href: "#testimonials", label: "Testimonials" },
+  { href: "#faq", label: "FAQ" },
   { href: "#security", label: "Security" },
 ]
 
@@ -47,7 +47,7 @@ function BrandMark() {
         className="size-9 rounded-xl object-cover"
         suppressHydrationWarning
       />
-      <span className="text-lg font-semibold tracking-tight text-foreground">
+      <span className="font-display text-xl font-semibold tracking-tight text-foreground">
         Telehealth
       </span>
     </a>

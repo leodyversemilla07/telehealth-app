@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Geist_Mono, Inter } from "next/font/google"
+import { Fraunces, Geist_Mono, Inter } from "next/font/google"
 
 import "@workspace/ui/globals.css"
 import { Toaster } from "@workspace/ui/components/sonner"
@@ -15,6 +15,13 @@ import { ThemeProvider } from "@/components/theme-provider"
 export const dynamic = "force-dynamic"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
+
+const fontDisplay = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+})
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -54,6 +61,7 @@ export default function RootLayout({
       className={cn(
         "antialiased",
         fontMono.variable,
+        fontDisplay.variable,
         "font-sans",
         inter.variable,
       )}
