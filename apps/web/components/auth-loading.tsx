@@ -110,6 +110,7 @@ export function AuthLoading({ variant }: { variant: AuthVariant }) {
               </div>
               <FieldSkeleton labelWidth="w-10" label="Email" />
               <FieldSkeleton labelWidth="w-20" label="Password" />
+              <FieldSkeleton labelWidth="w-32" label="Confirm password" />
               {/* I want to join as — Patient / Doctor toggle (py-3 => taller) */}
               <div className="space-y-2">
                 <Skeleton className="h-3.5 w-28 rounded" />

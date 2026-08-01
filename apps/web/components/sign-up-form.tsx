@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation"
 import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
+import { PasswordInput } from "@/components/password-input"
 import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
 import { type SignUpState, submitSignUp } from "./sign-up-submit"
@@ -46,9 +47,14 @@ export function SignUpForm({
     "PATIENT",
   )
   const [consent, setConsent] = useState(false)
+  const [passwordValue, setPasswordValue] = useState("")
+  const [confirmValue, setConfirmValue] = useState("")
   const [socialLoading, setSocialLoading] = useState<"apple" | "google" | null>(
     null,
   )
+
+  const passwordsMismatch =
+    confirmValue.length > 0 && confirmValue !== passwordValue
 
   const [verificationState, setVerificationState] = useState<
     "idle" | "sending" | "sent"
@@ -56,6 +62,18 @@ export function SignUpForm({
 
   const [state, formAction, isPending] = useActionState<SignUpState, FormData>(
     async (_prev, formData) => {
+      const password = formData.get("password") as string
+      const confirmPassword = formData.get("confirmPassword") as string
+
+      if (password !== confirmPassword) {
+        return {
+          error: "Passwords do not match. Please re-enter them.",
+          success: false,
+          email: "",
+          role: selectedRole,
+        }
+      }
+
       const result = await submitSignUp(formData, consent, {
         signUpEmail: (input) =>
           authClient.signUp.email(
@@ -225,14 +243,43 @@ export function SignUpForm({
 
           <Field>
             <FieldLabel htmlFor="password">Password</FieldLabel>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               placeholder="••••••••"
+              autoComplete="new-password"
               disabled={isPending}
               required
+              value={passwordValue}
+              onChange={(e) => setPasswordValue(e.target.value)}
             />
+          </Field>
+
+          <Field>
+            <FieldLabel htmlFor="confirmPassword">Confirm Password</FieldLabel>
+            <PasswordInput
+              id="confirmPassword"
+              name="confirmPassword"
+              placeholder="••••••••"
+              autoComplete="new-password"
+              disabled={isPending}
+              required
+              value={confirmValue}
+              onChange={(e) => setConfirmValue(e.target.value)}
+              aria-invalid={passwordsMismatch || undefined}
+              aria-describedby={
+                passwordsMismatch ? "confirmPassword-error" : undefined
+              }
+            />
+            {passwordsMismatch && (
+              <p
+                id="confirmPassword-error"
+                role="alert"
+                className="mt-1 text-xs text-destructive"
+              >
+                Passwords do not match.
+              </p>
+            )}
           </Field>
 
           <Field>

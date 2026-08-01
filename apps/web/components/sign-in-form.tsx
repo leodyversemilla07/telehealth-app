@@ -23,6 +23,7 @@ import {
 } from "react"
 import { useFormStatus } from "react-dom"
 import { toast } from "sonner"
+import { PasswordInput } from "@/components/password-input"
 import { authClient } from "@/lib/auth-client"
 
 type SignInState = {
@@ -304,11 +305,11 @@ export function SignInForm({
                 Forgot your password?
               </Link>
             </div>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               placeholder="••••••••"
+              autoComplete="current-password"
               required
             />
           </Field>
