@@ -82,7 +82,7 @@ export function Header({
       className={cn(
         "fixed top-0 inset-x-0 z-50 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-4 sm:px-8 transition-all duration-300",
         scrolled
-          ? "top-3 rounded-2xl border border-border/50 bg-background/80 px-5 py-3 backdrop-blur-xl sm:px-6 shadow-lg shadow-black/5"
+          ? "top-3 rounded-2xl border border-border/50 bg-background/95 px-5 py-3 backdrop-blur-xl sm:px-6 shadow-lg shadow-black/5"
           : "bg-transparent",
       )}
     >
@@ -94,7 +94,7 @@ export function Header({
         className={cn(
           "hidden rounded-full border px-1.5 py-1 md:flex transition-all duration-300",
           scrolled
-            ? "border-border/60 bg-background/80 backdrop-blur-md"
+            ? "border-border/60 bg-background/90 backdrop-blur-md"
             : "border-border/80 bg-background/50 backdrop-blur-md dark:border-white/10 dark:bg-white/5",
         )}
       >

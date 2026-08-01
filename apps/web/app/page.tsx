@@ -216,6 +216,17 @@ export default function Page() {
       ref={scrollRef}
       className="min-h-svh bg-[oklch(0.984_0.004_95)] text-foreground dark:bg-background"
     >
+      {/* Fixed global nav — must live OUTSIDE the isolated hero section so its
+          z-index applies page-wide (inside a stacking context it would be
+          painted over by later sections while scrolling). */}
+      <Header
+        isAuthenticated={Boolean(session)}
+        onCreateAccount={() => router.push("/sign-up")}
+        onSignIn={() => router.push("/sign-in")}
+        onSignOut={handleSignOut}
+        onDashboard={() => router.push(workspacePath)}
+      />
+
       {/* ── Hero ─────────────────────────────────────────────────────── */}
       <section id="top" className="relative isolate overflow-hidden">
         {/* atmosphere */}
@@ -224,14 +235,6 @@ export default function Page() {
         <div className="absolute -left-40 top-10 -z-10 size-[34rem] rounded-full bg-primary/[0.05] blur-3xl dark:bg-primary/[0.08]" />
         <div className="absolute -right-32 top-48 -z-10 size-[28rem] rounded-full bg-warning/[0.05] blur-3xl" />
         <div className="bg-grain absolute inset-0 -z-10 opacity-[0.05] dark:opacity-[0.03]" />
-
-        <Header
-          isAuthenticated={Boolean(session)}
-          onCreateAccount={() => router.push("/sign-up")}
-          onSignIn={() => router.push("/sign-in")}
-          onSignOut={handleSignOut}
-          onDashboard={() => router.push(workspacePath)}
-        />
 
         <div className="relative mx-auto grid w-full max-w-7xl items-center gap-16 px-5 pb-20 pt-32 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:pb-28 lg:pt-40">
           {/* Left — copy + CTAs */}
