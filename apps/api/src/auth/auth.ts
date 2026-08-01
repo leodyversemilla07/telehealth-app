@@ -39,24 +39,16 @@ export const auth = betterAuth({
       await sendEmail({
         to: data.user.email,
         subject: "[Telehealth Platform] Reset Your Password",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #1a1a1a;">Reset Your Password</h2>
-            <p style="color: #333; line-height: 1.6;">
-              You requested a password reset. Click the link below to set a new password:
-            </p>
-            <a href="${data.url}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0;">
-              Reset Password
-            </a>
-            <p style="color: #666; font-size: 12px; margin-top: 20px;">
-              If you did not request a password reset, you can safely ignore this email. This link expires in 1 hour.
-            </p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="color: #999; font-size: 11px;">
-              Telehealth Platform — This is an automated email.
-            </p>
-          </div>
-        `,
+        text: `Hello,
+
+We received a request to reset the password for your Telehealth Platform account.
+
+Open this link to choose a new password:
+${data.url}
+
+This link expires in 1 hour. If you did not request a password reset, you can ignore this email.
+
+Telehealth Platform`,
       })
     },
   },
@@ -72,24 +64,18 @@ export const auth = betterAuth({
       await sendEmail({
         to: data.user.email,
         subject: "[Telehealth Platform] Verify Your Email Address",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #1a1a1a;">Verify Your Email</h2>
-            <p style="color: #333; line-height: 1.6;">
-              Thank you for signing up! Please click the link below to verify your email address:
-            </p>
-            <a href="${data.url}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: white; text-decoration: none; border-radius: 6px; margin: 16px 0;">
-              Verify Email
-            </a>
-            <p style="color: #666; font-size: 12px; margin-top: 20px;">
-              If you did not create an account, you can safely ignore this email.
-            </p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="color: #999; font-size: 11px;">
-              Telehealth Platform — This is an automated email.
-            </p>
-          </div>
-        `,
+        text: `Hello,
+
+Thank you for creating a Telehealth Platform account.
+
+To verify your email address, open this link:
+${data.url}
+
+This link expires in 1 hour.
+
+If you did not create this account, you can ignore this email.
+
+Telehealth Platform`,
       })
     },
   },

@@ -78,9 +78,16 @@ function getTransporter(): nodemailer.Transporter {
 export async function sendEmail(options: {
   to: string
   subject: string
-  html: string
+  /** Plain-text message. Use for security-sensitive auth emails. */
+  text?: string
+  /** Rich HTML message for transactional notifications. */
+  html?: string
 }): Promise<void> {
   try {
+    if (!options.text && !options.html) {
+      throw new Error("Email requires a plain-text or HTML body")
+    }
+
     const fromAddress =
       process.env.EMAIL_FROM || "Telehealth Platform <noreply@tele-health.app>"
 
@@ -88,6 +95,7 @@ export async function sendEmail(options: {
       from: fromAddress,
       to: options.to,
       subject: options.subject,
+      text: options.text,
       html: options.html,
     })
     logger.log(`Email sent to ${options.to} — ${options.subject}`)
