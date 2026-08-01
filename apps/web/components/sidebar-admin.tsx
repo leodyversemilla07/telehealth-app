@@ -17,6 +17,7 @@ import {
   Users,
 } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -75,7 +76,7 @@ export function SidebarAdmin({
             <SidebarMenuButton
               size="lg"
               render={
-                <a href="/admin/dashboard">
+                <Link href="/admin/dashboard">
                   <Image
                     src="/logo.png"
                     alt="Telehealth"
@@ -87,7 +88,7 @@ export function SidebarAdmin({
                     <span className="truncate font-medium">Telehealth</span>
                     <span className="truncate text-xs">App</span>
                   </div>
-                </a>
+                </Link>
               }
             />
           </SidebarMenuItem>

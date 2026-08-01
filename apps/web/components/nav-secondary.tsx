@@ -5,6 +5,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
+import Link from "next/link"
 import type * as React from "react"
 
 export function NavSecondary({
@@ -26,10 +27,10 @@ export function NavSecondary({
               <SidebarMenuButton
                 size="sm"
                 render={
-                  <a href={item.url}>
+                  <Link href={item.url}>
                     {item.icon}
                     <span>{item.title}</span>
-                  </a>
+                  </Link>
                 }
               />
             </SidebarMenuItem>

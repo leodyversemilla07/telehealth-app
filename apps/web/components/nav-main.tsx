@@ -17,6 +17,7 @@ import {
   SidebarMenuSubItem,
 } from "@workspace/ui/components/sidebar"
 import { ChevronRightIcon } from "lucide-react"
+import Link from "next/link"
 import { usePathname } from "next/navigation"
 
 export function NavMain({
@@ -53,10 +54,10 @@ export function NavMain({
                   tooltip={item.title}
                   isActive={isActive}
                   render={
-                    <a href={item.url}>
+                    <Link href={item.url}>
                       {item.icon}
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   }
                 />
               </SidebarMenuItem>
@@ -73,10 +74,10 @@ export function NavMain({
                 tooltip={item.title}
                 isActive={isActive}
                 render={
-                  <a href={item.url}>
+                  <Link href={item.url}>
                     {item.icon}
                     <span>{item.title}</span>
-                  </a>
+                  </Link>
                 }
               />
               <CollapsibleTrigger
@@ -96,9 +97,9 @@ export function NavMain({
                         <SidebarMenuSubButton
                           isActive={isSubActive}
                           render={
-                            <a href={subItem.url}>
+                            <Link href={subItem.url}>
                               <span>{subItem.title}</span>
-                            </a>
+                            </Link>
                           }
                         />
                       </SidebarMenuSubItem>

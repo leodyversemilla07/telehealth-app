@@ -19,6 +19,7 @@ import {
   Stethoscope,
 } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -87,7 +88,7 @@ export function SidebarPatient({
             <SidebarMenuButton
               size="lg"
               render={
-                <a href="/patient/dashboard">
+                <Link href="/patient/dashboard">
                   <Image
                     src="/logo.png"
                     alt="Telehealth"
@@ -99,7 +100,7 @@ export function SidebarPatient({
                     <span className="truncate font-medium">Telehealth</span>
                     <span className="truncate text-xs">App</span>
                   </div>
-                </a>
+                </Link>
               }
             />
           </SidebarMenuItem>
