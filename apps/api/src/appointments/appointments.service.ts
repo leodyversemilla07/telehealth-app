@@ -25,6 +25,14 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   CANCELLED: [],
 }
 
+/** Statuses treated as "upcoming" vs "past" for list scoping. */
+const ACTIVE_STATUSES: AppointmentStatus[] = [
+  "BOOKED",
+  "CONFIRMED",
+  "IN_PROGRESS",
+]
+const TERMINAL_STATUSES: AppointmentStatus[] = ["COMPLETED", "CANCELLED"]
+
 const DOCTOR_INCLUDE = {
   select: {
     id: true,
@@ -294,15 +302,31 @@ export class AppointmentsService {
 
   /**
    * List appointments for the current user (patient or doctor).
+   * `scope` mirrors the SRS route map: "upcoming" = active appointments,
+   * "history" = terminal appointments (completed/cancelled).
    */
   async findMyAppointments(
     userId: string,
     role: string,
     limit = 50,
     offset = 0,
+    scope: "all" | "upcoming" | "history" = "all",
   ) {
-    const where =
+    const baseWhere =
       role === "DOCTOR" ? { doctor: { userId } } : { patientId: userId }
+
+    const where =
+      scope === "upcoming"
+        ? {
+            ...baseWhere,
+            status: { in: ACTIVE_STATUSES },
+          }
+        : scope === "history"
+          ? {
+              ...baseWhere,
+              status: { in: TERMINAL_STATUSES },
+            }
+          : baseWhere
 
     const [items, total] = await Promise.all([
       this.prisma.appointment.findMany({

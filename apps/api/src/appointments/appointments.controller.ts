@@ -66,6 +66,48 @@ export class AppointmentsController {
     )
   }
 
+  @Get("upcoming")
+  @ApiOperation({
+    summary: "List my upcoming appointments (Patient or Doctor)",
+  })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiQuery({ name: "offset", required: false, type: Number })
+  @ApiOkResponse({ description: "List of upcoming appointments" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  async findUpcoming(
+    @Session() session: UserSession,
+    @Query() query: PaginationDto,
+  ) {
+    return this.appointmentsService.findMyAppointments(
+      session.user.id,
+      session.user.role as string,
+      query.limit,
+      query.offset,
+      "upcoming",
+    )
+  }
+
+  @Get("history")
+  @ApiOperation({
+    summary: "List my past appointments (Patient or Doctor)",
+  })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiQuery({ name: "offset", required: false, type: Number })
+  @ApiOkResponse({ description: "List of past appointments" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  async findHistory(
+    @Session() session: UserSession,
+    @Query() query: PaginationDto,
+  ) {
+    return this.appointmentsService.findMyAppointments(
+      session.user.id,
+      session.user.role as string,
+      query.limit,
+      query.offset,
+      "history",
+    )
+  }
+
   @Get(":id")
   @ApiOperation({ summary: "Get appointment detail" })
   @ApiParam({ name: "id", description: "Appointment ID" })

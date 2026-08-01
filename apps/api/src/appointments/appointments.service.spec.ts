@@ -317,6 +317,90 @@ describe("AppointmentsService", () => {
     })
   })
 
+  // ─── List (findMyAppointments) ───────────────────────────────────────
+
+  describe("findMyAppointments", () => {
+    const apt = {
+      id: "apt-1",
+      status: "BOOKED",
+      startTime: "2026-08-02T00:00:00.000Z",
+    }
+
+    it("should list all appointments with default scope", async () => {
+      prisma.appointment.findMany.mockResolvedValue([apt])
+      prisma.appointment.count.mockResolvedValue(1)
+
+      const result = await service.findMyAppointments(
+        "user-1",
+        "PATIENT",
+        50,
+        0,
+      )
+
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { patientId: "user-1" },
+          take: 50,
+          skip: 0,
+        }),
+      )
+      expect(result).toEqual({ items: [apt], total: 1, limit: 50, offset: 0 })
+    })
+
+    it("should filter active statuses for the upcoming scope", async () => {
+      prisma.appointment.findMany.mockResolvedValue([apt])
+      prisma.appointment.count.mockResolvedValue(1)
+
+      await service.findMyAppointments("user-1", "PATIENT", 50, 0, "upcoming")
+
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            patientId: "user-1",
+            status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
+          },
+        }),
+      )
+    })
+
+    it("should filter terminal statuses for the history scope", async () => {
+      prisma.appointment.findMany.mockResolvedValue([apt])
+      prisma.appointment.count.mockResolvedValue(1)
+
+      await service.findMyAppointments("user-1", "PATIENT", 50, 0, "history")
+
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            patientId: "user-1",
+            status: { in: ["COMPLETED", "CANCELLED"] },
+          },
+        }),
+      )
+    })
+
+    it("should scope by doctor when the caller is a doctor", async () => {
+      prisma.appointment.findMany.mockResolvedValue([])
+      prisma.appointment.count.mockResolvedValue(0)
+
+      await service.findMyAppointments(
+        "doc-user-1",
+        "DOCTOR",
+        50,
+        0,
+        "upcoming",
+      )
+
+      expect(prisma.appointment.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            doctor: expect.objectContaining({ userId: "doc-user-1" }),
+          }),
+        }),
+      )
+    })
+  })
+
   // ─── Cancel ───────────────────────────────────────────────────────────
 
   describe("cancel", () => {

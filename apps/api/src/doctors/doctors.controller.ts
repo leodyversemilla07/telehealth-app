@@ -100,4 +100,16 @@ export class DoctorsController {
   async findOne(@Param("id") id: string) {
     return this.doctorsService.findById(id)
   }
+
+  @Get(":id")
+  @AllowAnonymous()
+  @ApiOperation({
+    summary: "Get a doctor profile by ID (public, SRS route alias)",
+  })
+  @ApiParam({ name: "id", description: "Doctor profile ID" })
+  @ApiOkResponse({ description: "Doctor profile" })
+  @ApiNotFoundResponse({ description: "Not found" })
+  async findOneById(@Param("id") id: string) {
+    return this.doctorsService.findById(id)
+  }
 }
