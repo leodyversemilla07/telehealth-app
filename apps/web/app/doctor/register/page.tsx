@@ -132,6 +132,22 @@ function formAsApplication(form = EMPTY_FORM): DoctorApplication {
   }
 }
 
+function formAsPayload(form = EMPTY_FORM) {
+  return {
+    specialty: form.specialty,
+    prcLicenseNumber: form.prcLicenseNumber,
+    prcLicenseExpiry: form.prcLicenseExpiry,
+    philhealthAccreditation: form.philhealthAccreditation || null,
+    pdeaS2License: form.pdeaS2License || null,
+    pdeaS2Expiry: form.pdeaS2Expiry || null,
+    bio: form.bio || null,
+    clinicAddress: form.clinicAddress || null,
+    // null (not 0) so the API's IsOptional + IsDecimal validation passes;
+    // the API defaults a missing price to 0.
+    pricePerVisit: form.pricePerVisit || null,
+  }
+}
+
 function licenseDaysLeft(expiry: string): number {
   const ms = new Date(expiry).getTime() - Date.now()
   return Math.ceil(ms / (1000 * 60 * 60 * 24))
@@ -198,7 +214,9 @@ export default function DoctorRegisterPage() {
     setLoading(true)
 
     try {
-      await apiClient.post("/doctors/register", form)
+      // Send the null-normalized payload (empty strings would fail the
+      // API's ISO 8601 / decimal validation on optional fields).
+      await apiClient.post("/doctors/register", formAsPayload(form))
       toast.success("Application submitted for review!")
       const submitted = formAsApplication(form)
       setForm(EMPTY_FORM)
