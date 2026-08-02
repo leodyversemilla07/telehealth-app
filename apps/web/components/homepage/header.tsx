@@ -15,10 +15,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@workspace/ui/components/sheet"
-import { cn } from "@workspace/ui/lib/utils"
 import { LayoutDashboard, Menu } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ThemeToggle } from "../theme-toggle"
 
 const NAV_ITEMS = [
@@ -27,6 +26,20 @@ const NAV_ITEMS = [
   { href: "#faq", label: "FAQ" },
   { href: "#security", label: "Security" },
 ]
+
+// Scroll range over which the header morphs from a transparent overlay
+// into the floating glass pill (px of window.scrollY).
+const FADE_START = 8
+const FADE_RANGE = 64
+
+// Max values the interpolated styles reach when fully "scrolled".
+const MAX_TOP = 12 // px
+const MAX_PADDING_Y = 4 // px shrink (16 -> 12)
+const MAX_RADIUS = 16 // px (rounded-2xl)
+const MAX_BG_ALPHA = 0.95
+const MAX_BORDER_ALPHA = 0.6
+const MAX_BLUR = 20 // px
+const MAX_SHADOW = 0.08 // alpha of the soft shadow
 
 type HomepageHeaderProps = {
   isAuthenticated: boolean
@@ -62,14 +75,80 @@ export function Header({
   onDashboard,
 }: HomepageHeaderProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
+  // 0 = transparent overlay at the top, 1 = fully scrolled glass pill.
+  const [progress, setProgress] = useState(0)
+  const easedRef = useRef(0)
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 64)
+    let target = 0
+    let raf = 0
+
+    const tick = () => {
+      const next = easedRef.current + (target - easedRef.current) * 0.14
+      easedRef.current = next
+      setProgress(next)
+      if (Math.abs(target - next) > 0.0005) {
+        raf = requestAnimationFrame(tick)
+      } else {
+        raf = 0
+      }
+    }
+
+    const onScroll = () => {
+      const p = Math.min(
+        Math.max((window.scrollY - FADE_START) / FADE_RANGE, 0),
+        1,
+      )
+      target = p
+      if (!raf) raf = requestAnimationFrame(tick)
+    }
+
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches
+    if (prefersReducedMotion) {
+      // Snap instead of easing for users who opt out of motion.
+      const onScrollReduced = () => {
+        target = Math.min(
+          Math.max((window.scrollY - FADE_START) / FADE_RANGE, 0),
+          1,
+        )
+        easedRef.current = target
+        setProgress(target)
+      }
+      onScrollReduced()
+      window.addEventListener("scroll", onScrollReduced, { passive: true })
+      return () => window.removeEventListener("scroll", onScrollReduced)
+    }
+
     onScroll()
     window.addEventListener("scroll", onScroll, { passive: true })
-    return () => window.removeEventListener("scroll", onScroll)
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      cancelAnimationFrame(raf)
+    }
   }, [])
+
+  const e = progress
+  const headerStyle: React.CSSProperties = {
+    top: `${e * MAX_TOP}px`,
+    paddingTop: `${16 - e * MAX_PADDING_Y}px`,
+    paddingBottom: `${16 - e * MAX_PADDING_Y}px`,
+    borderRadius: `${e * MAX_RADIUS}px`,
+    backgroundColor: `color-mix(in oklab, var(--background) ${e * MAX_BG_ALPHA * 100}%, transparent)`,
+    borderColor: `color-mix(in oklab, var(--border) ${e * MAX_BORDER_ALPHA * 100}%, transparent)`,
+    boxShadow: `0 ${e * 10}px ${e * 28}px -${e * 10}px rgb(0 0 0 / ${e * MAX_SHADOW})`,
+    backdropFilter: `blur(${e * MAX_BLUR}px)`,
+    WebkitBackdropFilter: `blur(${e * MAX_BLUR}px)`,
+  }
+
+  // The desktop nav pill fades from a faint chip into a solid glass chip.
+  const navStyle: React.CSSProperties = {
+    backgroundColor: `color-mix(in oklab, var(--background) ${50 + 40 * e}%, transparent)`,
+    borderColor: `color-mix(in oklab, var(--border) 60%, transparent)`,
+    backdropFilter: `blur(12px)`,
+    WebkitBackdropFilter: `blur(12px)`,
+  }
 
   function handleNavClick(href: string) {
     setMobileOpen(false)
@@ -79,24 +158,16 @@ export function Header({
 
   return (
     <header
-      className={cn(
-        "fixed top-0 inset-x-0 z-50 mx-auto flex w-full max-w-7xl items-center justify-between px-5 py-4 sm:px-8 transition-all duration-300",
-        scrolled
-          ? "top-3 rounded-2xl border border-border/50 bg-background/95 px-5 py-3 backdrop-blur-xl sm:px-6 shadow-lg shadow-black/5"
-          : "bg-transparent",
-      )}
+      className="fixed inset-x-0 top-0 z-50 mx-auto flex w-full max-w-7xl items-center justify-between border px-5 sm:px-8"
+      style={headerStyle}
     >
       <BrandMark />
 
       {/* Desktop nav */}
       <NavigationMenu
         aria-label="Homepage"
-        className={cn(
-          "hidden rounded-full border px-1.5 py-1 md:flex transition-all duration-300",
-          scrolled
-            ? "border-border/60 bg-background/90 backdrop-blur-md"
-            : "border-border/80 bg-background/50 backdrop-blur-md dark:border-white/10 dark:bg-white/5",
-        )}
+        className="hidden rounded-full border px-1.5 py-1 md:flex"
+        style={navStyle}
       >
         <NavigationMenuList className="gap-0">
           {NAV_ITEMS.map((item) => (
