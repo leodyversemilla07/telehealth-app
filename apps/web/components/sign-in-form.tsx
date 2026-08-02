@@ -118,7 +118,7 @@ export function SignInForm({
   // client effect rather than performing router side effects inside the action.
   useEffect(() => {
     if (!state.redirectTo) return
-    toast.success("Successfully logged in!")
+    // The redirect itself is the login-success signal; no toast needed.
     router.replace(state.redirectTo)
   }, [router, state.redirectTo])
 
@@ -149,7 +149,7 @@ export function SignInForm({
           }
         }
 
-        toast.success("Multi-Factor authentication successful!")
+        // Successful 2FA — the redirect to the dashboard signals success.
         const sessionRes = await authClient.getSession()
         const role =
           (sessionRes.data?.user as { role?: string } | undefined)?.role ??
