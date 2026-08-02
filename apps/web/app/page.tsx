@@ -24,15 +24,6 @@ import { useRouter } from "next/navigation"
 import { EcgLine } from "@/components/homepage/ecg-line"
 import { Footer } from "@/components/homepage/footer"
 import { Header } from "@/components/homepage/header"
-import {
-  CtaSectionLoading,
-  DoctorsSectionLoading,
-  FaqSectionLoading,
-  FeaturesSectionLoading,
-  SecuritySectionLoading,
-  SymptomCheckerLoading,
-  TestimonialsSectionLoading,
-} from "@/components/homepage/section-loading"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
 import { authClient } from "@/lib/auth-client"
 
@@ -41,7 +32,7 @@ const FeaturesSection = dynamic(
     import("@/components/homepage/features-section").then(
       (m) => m.FeaturesSection,
     ),
-  { ssr: false, loading: FeaturesSectionLoading },
+  { ssr: false },
 )
 
 const SymptomChecker = dynamic(
@@ -49,7 +40,7 @@ const SymptomChecker = dynamic(
     import("@/components/homepage/symptom-checker").then(
       (m) => m.SymptomChecker,
     ),
-  { ssr: false, loading: SymptomCheckerLoading },
+  { ssr: false },
 )
 
 const DoctorsSection = dynamic(
@@ -57,7 +48,7 @@ const DoctorsSection = dynamic(
     import("@/components/homepage/doctors-section").then(
       (m) => m.DoctorsSection,
     ),
-  { ssr: false, loading: DoctorsSectionLoading },
+  { ssr: false },
 )
 
 const TestimonialsSection = dynamic(
@@ -65,12 +56,12 @@ const TestimonialsSection = dynamic(
     import("@/components/homepage/testimonials-section").then(
       (m) => m.TestimonialsSection,
     ),
-  { ssr: false, loading: TestimonialsSectionLoading },
+  { ssr: false },
 )
 
 const FAQSection = dynamic(
   () => import("@/components/homepage/faq-section").then((m) => m.FAQSection),
-  { ssr: false, loading: FaqSectionLoading },
+  { ssr: false },
 )
 
 const SecuritySection = dynamic(
@@ -78,12 +69,12 @@ const SecuritySection = dynamic(
     import("@/components/homepage/security-section").then(
       (m) => m.SecuritySection,
     ),
-  { ssr: false, loading: SecuritySectionLoading },
+  { ssr: false },
 )
 
 const CTASection = dynamic(
   () => import("@/components/homepage/cta-section").then((m) => m.CTASection),
-  { ssr: false, loading: CtaSectionLoading },
+  { ssr: false },
 )
 
 const TRUST_BADGES = [

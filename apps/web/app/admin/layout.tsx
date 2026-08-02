@@ -16,18 +16,8 @@ import { SidebarAdmin } from "@/components/sidebar-admin"
 const NotificationBell = dynamic(
   () =>
     import("@/components/notification-bell").then((m) => m.NotificationBell),
-  { ssr: false, loading: () => <BellLoading /> },
+  { ssr: false },
 )
-
-/** Size-matched placeholder so the bell slot doesn't jump after load. */
-function BellLoading() {
-  return (
-    <div
-      className="size-9 animate-pulse rounded-full bg-muted"
-      aria-hidden="true"
-    />
-  )
-}
 
 import { authClient } from "@/lib/auth-client"
 
