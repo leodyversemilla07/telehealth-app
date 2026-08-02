@@ -98,9 +98,6 @@ export default function BookAppointmentPage() {
   )
   const [visitReason, setVisitReason] = useState("")
   const [visitSymptoms, setVisitSymptoms] = useState("")
-  const [visitType, setVisitType] = useState<"VIDEO" | "PHONE" | "IN_PERSON">(
-    "VIDEO",
-  )
   const [dpaConsent, setDpaConsent] = useState(false)
 
   // 1. Fetch Doctors Directory (react-query)
@@ -162,7 +159,6 @@ export default function BookAppointmentPage() {
     setSelectedSlot(null)
     setVisitReason("")
     setVisitSymptoms("")
-    setVisitType("VIDEO")
     setDpaConsent(false)
   }
 
@@ -189,7 +185,9 @@ export default function BookAppointmentPage() {
         endTime: selectedSlot.endTime,
         reason: visitReason.trim() || undefined,
         symptoms: visitSymptoms.trim() || undefined,
-        type: visitType,
+        // The app's only consultation mechanism is the secure video room;
+        // phone/in-person types can be re-added once those flows exist.
+        type: "VIDEO",
       },
       {
         onSuccess: () => {
@@ -586,48 +584,6 @@ export default function BookAppointmentPage() {
           </DialogHeader>
 
           <div className="space-y-5 my-4 py-1 text-left">
-            {/* Visit Type selector */}
-            <Field>
-              <FieldLabel
-                htmlFor="visit-type"
-                className="text-xs font-bold uppercase tracking-wider text-muted-foreground"
-              >
-                Consultation Type
-              </FieldLabel>
-              <Select
-                value={visitType}
-                onValueChange={(v) =>
-                  setVisitType(v as "VIDEO" | "PHONE" | "IN_PERSON")
-                }
-              >
-                <SelectTrigger
-                  id="visit-type"
-                  className="bg-muted/10 border-border/60"
-                >
-                  <SelectValue placeholder="Video Consultation">
-                    {visitType === "VIDEO"
-                      ? "Video Consultation (Virtual)"
-                      : visitType === "PHONE"
-                        ? "Phone Consultation (Audio)"
-                        : "In-Person Consultation (Physical Clinic)"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="VIDEO">
-                      Video Consultation (Virtual)
-                    </SelectItem>
-                    <SelectItem value="PHONE">
-                      Phone Consultation (Audio)
-                    </SelectItem>
-                    <SelectItem value="IN_PERSON">
-                      In-Person Consultation (Physical Clinic)
-                    </SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </Field>
-
             {/* Date selector */}
             <div className="space-y-1.5">
               <Label
