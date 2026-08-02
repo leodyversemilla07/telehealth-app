@@ -39,6 +39,46 @@ export class DoctorsService {
     const existingProfile = await this.prisma.doctorProfile.findUnique({
       where: { userId },
     })
+
+    // A rejected doctor may edit and resubmit their application (returns to
+    // pending review). An existing pending/approved profile cannot be
+    // re-registered — that must go through updateProfile (settings).
+    if (
+      existingProfile &&
+      !existingProfile.isApproved &&
+      existingProfile.rejectionReason
+    ) {
+      const resubmitted = await this.prisma.$transaction(async (tx) => {
+        await tx.user.update({
+          where: { id: userId },
+          data: { role: "DOCTOR" },
+        })
+
+        return tx.doctorProfile.update({
+          where: { id: existingProfile.id },
+          data: {
+            specialty: dto.specialty,
+            prcLicenseNumber: dto.prcLicenseNumber,
+            prcLicenseExpiry: new Date(dto.prcLicenseExpiry),
+            philhealthAccreditation: dto.philhealthAccreditation ?? null,
+            pdeaS2License: dto.pdeaS2License ?? null,
+            pdeaS2Expiry: dto.pdeaS2Expiry ? new Date(dto.pdeaS2Expiry) : null,
+            bio: dto.bio ?? null,
+            clinicAddress: dto.clinicAddress ?? null,
+            pricePerVisit: dto.pricePerVisit
+              ? Number.parseFloat(dto.pricePerVisit)
+              : 0,
+            isApproved: false,
+            isVerified: false,
+            verifiedAt: null,
+            rejectionReason: null,
+          },
+        })
+      })
+      this.cache.invalidatePrefix("doctors:approved")
+      return resubmitted
+    }
+
     if (existingProfile) {
       throw new ConflictException(
         "A doctor profile already exists for this user",
@@ -120,7 +160,13 @@ export class DoctorsService {
     const cached = this.cache.get(cacheKey)
     if (cached) return cached as Awaited<ReturnType<typeof this.findApproved>>
 
-    const where: Record<string, unknown> = { isApproved: true }
+    // Base: approved AND license still valid (PRC licenses expire every
+    // 3 years — expired doctors must not be bookable by patients).
+    const expiryFilter = { prcLicenseExpiry: { gt: new Date() } }
+    const where: Record<string, unknown> = {
+      isApproved: true,
+      ...expiryFilter,
+    }
 
     // Filter by specialty (case-insensitive partial match)
     if (filters?.specialty) {
@@ -145,7 +191,14 @@ export class DoctorsService {
         // Combine specialty filter and search with AND — build a fresh
         // base object instead of referencing `where` to avoid circular
         // Prisma filter.
-        where.AND = [{ isApproved: true, specialty: where.specialty }, searchOr]
+        where.AND = [
+          {
+            isApproved: true,
+            specialty: where.specialty,
+            ...expiryFilter,
+          },
+          searchOr,
+        ]
         delete where.specialty
       } else {
         Object.assign(where, searchOr)
@@ -205,7 +258,7 @@ export class DoctorsService {
    */
   async findById(id: string) {
     const profile = await this.prisma.doctorProfile.findFirst({
-      where: { id, isApproved: true },
+      where: { id, isApproved: true, prcLicenseExpiry: { gt: new Date() } },
       include: {
         user: {
           select: PUBLIC_USER_SELECT,
@@ -296,7 +349,9 @@ export class DoctorsService {
   }
 
   /**
-   * Approve a doctor (admin action — PRC verification).
+   * Approve a doctor (admin action). Puts the doctor live for booking.
+   * Approval and credential verification are separate concerns: approve
+   * gates visibility, verify controls the patient-facing "Verified" badge.
    */
   async approve(id: string) {
     const profile = await this.prisma.doctorProfile.findUnique({
@@ -313,9 +368,10 @@ export class DoctorsService {
   }
 
   /**
-   * Reject / unapprove a doctor.
+   * Reject / unapprove a doctor, optionally recording the reason the
+   * application was rejected so the doctor can fix and resubmit.
    */
-  async reject(id: string) {
+  async reject(id: string, reason?: string | null) {
     const profile = await this.prisma.doctorProfile.findUnique({
       where: { id },
     })
@@ -325,7 +381,48 @@ export class DoctorsService {
     this.cache.invalidatePrefix("doctors:approved")
     return this.prisma.doctorProfile.update({
       where: { id },
-      data: { isApproved: false },
+      data: {
+        isApproved: false,
+        rejectionReason: reason ?? null,
+        // A rejection invalidates any prior credential verification.
+        isVerified: false,
+        verifiedAt: null,
+      },
+    })
+  }
+
+  /**
+   * Mark a doctor's credentials as verified (admin checked the PRC license
+   * against the official registry). Controls the patient-facing badge.
+   */
+  async verify(id: string) {
+    const profile = await this.prisma.doctorProfile.findUnique({
+      where: { id },
+    })
+    if (!profile) {
+      throw new NotFoundException(`Doctor profile "${id}" not found`)
+    }
+    this.cache.invalidatePrefix("doctors:approved")
+    return this.prisma.doctorProfile.update({
+      where: { id },
+      data: { isVerified: true, verifiedAt: new Date() },
+    })
+  }
+
+  /**
+   * Remove the credential-verified badge (e.g. verification was revoked).
+   */
+  async unverify(id: string) {
+    const profile = await this.prisma.doctorProfile.findUnique({
+      where: { id },
+    })
+    if (!profile) {
+      throw new NotFoundException(`Doctor profile "${id}" not found`)
+    }
+    this.cache.invalidatePrefix("doctors:approved")
+    return this.prisma.doctorProfile.update({
+      where: { id },
+      data: { isVerified: false, verifiedAt: null },
     })
   }
 }

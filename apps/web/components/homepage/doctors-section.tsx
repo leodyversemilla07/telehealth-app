@@ -1,7 +1,7 @@
 "use client"
 
 import { Badge } from "@workspace/ui/components/badge"
-import { Star } from "lucide-react"
+import { ShieldCheck, Star } from "lucide-react"
 import Image from "next/image"
 import { useDoctors } from "@/hooks/use-doctors"
 
@@ -47,6 +47,7 @@ function DoctorCard({
   reviews,
   available,
   image,
+  isVerified = false,
 }: {
   name: string
   specialty: string
@@ -54,6 +55,7 @@ function DoctorCard({
   reviews: number
   available: boolean
   image?: string | null
+  isVerified?: boolean
 }) {
   return (
     <div className="group overflow-hidden rounded-3xl border border-border/70 bg-card/60 transition-all duration-300 hover:border-primary/30 hover:bg-card hover:shadow-xl hover:shadow-primary/5 reveal-on-scroll">
@@ -84,8 +86,19 @@ function DoctorCard({
             <div className="truncate font-display text-lg font-semibold text-card-foreground">
               {name}
             </div>
-            <div className="truncate text-sm text-muted-foreground">
-              {specialty}
+            <div className="flex items-center gap-1.5">
+              <span className="truncate text-sm text-muted-foreground">
+                {specialty}
+              </span>
+              {isVerified && (
+                <span
+                  className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-primary/25 bg-primary/10 px-1.5 py-px text-[10px] font-semibold text-primary"
+                  title="Credentials verified by our admin team"
+                >
+                  <ShieldCheck className="size-2.5" />
+                  Verified
+                </span>
+              )}
             </div>
           </div>
           <Badge
@@ -124,6 +137,7 @@ export function DoctorsSection() {
           reviews: doc.totalReviews ?? 0,
           available: true,
           image: doc.user.image,
+          isVerified: doc.isVerified,
         }))
       : DOCTORS
 

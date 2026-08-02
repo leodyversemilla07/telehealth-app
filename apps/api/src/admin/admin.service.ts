@@ -69,9 +69,25 @@ export class AdminService {
     return result
   }
 
-  async rejectDoctor(id: string, actorId: string) {
-    const result = await this.doctorsService.reject(id)
-    await this.auditLogs.createLog(actorId, "Rejected doctor", id)
+  async rejectDoctor(id: string, actorId: string, reason?: string | null) {
+    const result = await this.doctorsService.reject(id, reason)
+    await this.auditLogs.createLog(
+      actorId,
+      `Rejected doctor${reason ? `: ${reason}` : ""}`,
+      id,
+    )
+    return result
+  }
+
+  async verifyDoctor(id: string, actorId: string) {
+    const result = await this.doctorsService.verify(id)
+    await this.auditLogs.createLog(actorId, "Verified doctor credentials", id)
+    return result
+  }
+
+  async unverifyDoctor(id: string, actorId: string) {
+    const result = await this.doctorsService.unverify(id)
+    await this.auditLogs.createLog(actorId, "Removed doctor verification", id)
     return result
   }
 

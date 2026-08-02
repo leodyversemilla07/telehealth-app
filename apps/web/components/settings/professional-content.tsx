@@ -17,7 +17,7 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { Save, Stethoscope } from "lucide-react"
+import { Clock, Save, Stethoscope, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
@@ -193,6 +193,41 @@ export function ProfessionalContent() {
             </p>
           </div>
         )}
+
+        {isApproved &&
+          prcLicenseExpiry &&
+          (() => {
+            const daysLeft = Math.ceil(
+              (new Date(prcLicenseExpiry).getTime() - Date.now()) /
+                (1000 * 60 * 60 * 24),
+            )
+            if (daysLeft < 0) {
+              return (
+                <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/20 p-3 rounded-xl">
+                  <XCircle className="size-4 shrink-0" />
+                  <p>
+                    Your PRC license expired {Math.abs(daysLeft)} day
+                    {Math.abs(daysLeft) !== 1 ? "s" : ""} ago. Your profile is
+                    currently hidden from patients until you renew it. Contact
+                    admin with your updated license details.
+                  </p>
+                </div>
+              )
+            }
+            if (daysLeft <= 90) {
+              return (
+                <div className="flex items-center gap-2 text-sm text-warning bg-warning/10 border border-warning/20 p-3 rounded-xl">
+                  <Clock className="size-4 shrink-0" />
+                  <p>
+                    Your PRC license expires in {daysLeft} day
+                    {daysLeft !== 1 ? "s" : ""}. Renew it to keep your profile
+                    visible to patients.
+                  </p>
+                </div>
+              )
+            }
+            return null
+          })()}
 
         {/* Licensing */}
         <div className="space-y-4">

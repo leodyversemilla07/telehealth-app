@@ -25,6 +25,7 @@ import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { PaginationDto } from "../common/dto/pagination.dto"
 import { AdminService } from "./admin.service"
 import { BanUserDto } from "./dto/ban-user.dto"
+import { RejectDoctorDto } from "./dto/reject-doctor.dto"
 import { SetRoleDto } from "./dto/set-role.dto"
 import { UpdateProfileDto } from "./dto/update-profile.dto"
 
@@ -186,13 +187,44 @@ export class AdminController {
 
   @Patch("doctors/:id/reject")
   @Roles(["ADMIN"])
-  @ApiOperation({ summary: "Reject / unapprove a doctor" })
+  @ApiOperation({ summary: "Reject / unapprove a doctor (optional reason)" })
   @ApiParam({ name: "id", description: "Doctor profile ID" })
   @ApiOkResponse({ description: "Doctor rejected" })
   @ApiNotFoundResponse({ description: "Not found" })
   @ApiUnauthorizedResponse({ description: "Not authenticated" })
   @ApiForbiddenResponse({ description: "Forbidden" })
-  async rejectDoctor(@Session() session: UserSession, @Param("id") id: string) {
-    return this.adminService.rejectDoctor(id, session.user.id)
+  async rejectDoctor(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+    @Body() dto: RejectDoctorDto,
+  ) {
+    return this.adminService.rejectDoctor(id, session.user.id, dto.reason)
+  }
+
+  @Patch("doctors/:id/verify")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Mark a doctor's credentials as verified" })
+  @ApiParam({ name: "id", description: "Doctor profile ID" })
+  @ApiOkResponse({ description: "Doctor verified" })
+  @ApiNotFoundResponse({ description: "Not found" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
+  async verifyDoctor(@Session() session: UserSession, @Param("id") id: string) {
+    return this.adminService.verifyDoctor(id, session.user.id)
+  }
+
+  @Patch("doctors/:id/unverify")
+  @Roles(["ADMIN"])
+  @ApiOperation({ summary: "Remove a doctor's verification badge" })
+  @ApiParam({ name: "id", description: "Doctor profile ID" })
+  @ApiOkResponse({ description: "Doctor verification removed" })
+  @ApiNotFoundResponse({ description: "Not found" })
+  @ApiUnauthorizedResponse({ description: "Not authenticated" })
+  @ApiForbiddenResponse({ description: "Forbidden" })
+  async unverifyDoctor(
+    @Session() session: UserSession,
+    @Param("id") id: string,
+  ) {
+    return this.adminService.unverifyDoctor(id, session.user.id)
   }
 }

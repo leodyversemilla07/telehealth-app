@@ -165,6 +165,9 @@ model DoctorProfile {
   clinicAddress        String?
   pricePerVisit        Decimal  @db.Decimal(10, 2)
   isApproved           Boolean  @default(false)
+  isVerified           Boolean  @default(false)
+  verifiedAt           DateTime?
+  rejectionReason      String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 

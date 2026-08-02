@@ -237,4 +237,74 @@ describe("DoctorsService", () => {
       )
     })
   })
+
+  // ─── reject ───────────────────────────────────────────────────────────
+
+  describe("reject", () => {
+    it("should throw NotFoundException if doctor not found", async () => {
+      prisma.doctorProfile.findUnique.mockResolvedValue(null)
+
+      await expect(service.reject("nonexistent")).rejects.toThrow(
+        NotFoundException,
+      )
+    })
+
+    it("should unapprove and clear verification when rejected", async () => {
+      const profile = { id: "doc-1", isApproved: true, isVerified: true }
+      const updated = {
+        id: "doc-1",
+        isApproved: false,
+        isVerified: false,
+        rejectionReason: "PRC number could not be validated",
+      }
+      prisma.doctorProfile.findUnique.mockResolvedValue(profile)
+      prisma.doctorProfile.update.mockResolvedValue(updated)
+
+      const result = await service.reject(
+        "doc-1",
+        "PRC number could not be validated",
+      )
+      expect(result).toEqual(updated)
+      expect(prisma.doctorProfile.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: {
+            isApproved: false,
+            rejectionReason: "PRC number could not be validated",
+            isVerified: false,
+            verifiedAt: null,
+          },
+        }),
+      )
+    })
+  })
+
+  // ─── verify / unverify ───────────────────────────────────────────────
+
+  describe("verify", () => {
+    it("should set isVerified with a verifiedAt timestamp", async () => {
+      prisma.doctorProfile.findUnique.mockResolvedValue({ id: "doc-1" })
+      prisma.doctorProfile.update.mockResolvedValue({ id: "doc-1" })
+
+      await service.verify("doc-1")
+      expect(prisma.doctorProfile.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ isVerified: true }),
+        }),
+      )
+    })
+  })
+
+  describe("unverify", () => {
+    it("should clear isVerified and verifiedAt", async () => {
+      prisma.doctorProfile.findUnique.mockResolvedValue({ id: "doc-1" })
+      prisma.doctorProfile.update.mockResolvedValue({ id: "doc-1" })
+
+      await service.unverify("doc-1")
+      expect(prisma.doctorProfile.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: { isVerified: false, verifiedAt: null },
+        }),
+      )
+    })
+  })
 })

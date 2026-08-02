@@ -76,6 +76,9 @@ const doctorProfileBaseSchema = z.object({
   clinicAddress: z.string().nullable(),
   pricePerVisit: z.number(),
   isApproved: z.boolean(),
+  isVerified: z.boolean().default(false),
+  verifiedAt: z.coerce.date().nullable().optional(),
+  rejectionReason: z.string().nullable().optional(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
 })

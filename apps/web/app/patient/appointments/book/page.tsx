@@ -425,6 +425,12 @@ export default function BookAppointmentPage() {
                         <CardTitle className="text-base font-bold truncate max-w-[140px] sm:max-w-[180px] text-foreground">
                           {doctor.user.name || "Doctor"}
                         </CardTitle>
+                        {doctor.isVerified && (
+                          <span className="inline-flex items-center gap-1 mt-0.5 text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 rounded-full px-2 py-0.5">
+                            <ShieldCheck className="h-3 w-3" />
+                            Verified
+                          </span>
+                        )}
                         <div className="flex items-center gap-2 mt-1">
                           <Badge
                             variant="secondary"

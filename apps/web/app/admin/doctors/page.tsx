@@ -12,6 +12,14 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog"
+import {
   Empty,
   EmptyDescription,
   EmptyHeader,
@@ -36,11 +44,14 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { Textarea } from "@workspace/ui/components/textarea"
 import {
   CheckCircle,
   Clock,
   Mail,
   Search,
+  ShieldCheck,
+  ShieldOff,
   Stethoscope,
   Users,
   XCircle,
@@ -50,7 +61,7 @@ import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
 import { apiClient } from "@/lib/api-client"
 
-const STATUS_FILTERS = ["ALL", "PENDING", "APPROVED"] as const
+const STATUS_FILTERS = ["ALL", "PENDING", "APPROVED", "REJECTED"] as const
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const
 
 interface DoctorProfile {
@@ -64,6 +75,8 @@ interface DoctorProfile {
   clinicAddress: string | null
   pricePerVisit: number | string
   isApproved: boolean
+  isVerified: boolean
+  rejectionReason: string | null
   createdAt: string
   user: {
     id: string
@@ -103,9 +116,11 @@ export default function AdminDoctorsPage() {
   })
 
   const rejectMutation = useMutation({
-    mutationFn: (id: string) =>
-      apiClient.patch<DoctorProfile>(`/admin/doctors/${id}/reject`),
-    onSuccess: (_doc, id) => {
+    mutationFn: (args: { id: string; reason?: string }) =>
+      apiClient.patch<DoctorProfile>(`/admin/doctors/${args.id}/reject`, {
+        reason: args.reason?.trim() ? args.reason.trim() : undefined,
+      }),
+    onSuccess: (_doc, { id }) => {
       const doc = doctors.find((d) => d.id === id)
       toast.success(`${doc?.user.name || doc?.user.email || "Doctor"} rejected`)
       queryClient.invalidateQueries({ queryKey: ["admin-doctors"] })
@@ -114,6 +129,46 @@ export default function AdminDoctorsPage() {
       toast.error(err.message || "Failed to reject doctor")
     },
   })
+
+  const verifyMutation = useMutation({
+    mutationFn: (args: { id: string; verify: boolean }) =>
+      apiClient.patch<DoctorProfile>(
+        `/admin/doctors/${args.id}/${args.verify ? "verify" : "unverify"}`,
+      ),
+    onSuccess: (_doc, { verify }) => {
+      toast.success(
+        verify
+          ? "Credentials marked as verified"
+          : "Verification badge removed",
+      )
+      queryClient.invalidateQueries({ queryKey: ["admin-doctors"] })
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to update verification status")
+    },
+  })
+
+  // Reject-reason dialog state
+  const [rejectTarget, setRejectTarget] = useState<DoctorProfile | null>(null)
+  const [rejectReason, setRejectReason] = useState("")
+  const [rejecting, setRejecting] = useState(false)
+
+  async function confirmReject() {
+    if (!rejectTarget) return
+    setRejecting(true)
+    try {
+      await rejectMutation.mutateAsync({
+        id: rejectTarget.id,
+        reason: rejectReason.trim() || undefined,
+      })
+      setRejectTarget(null)
+      setRejectReason("")
+    } catch {
+      // toast already shown by mutation
+    } finally {
+      setRejecting(false)
+    }
+  }
 
   // Client-side filtering
   const filtered = useMemo(() => {
@@ -126,8 +181,13 @@ export default function AdminDoctorsPage() {
         doc.prcLicenseNumber?.toLowerCase().includes(term)
       const matchesStatus =
         statusFilter === "ALL" ||
-        (statusFilter === "PENDING" && !doc.isApproved) ||
-        (statusFilter === "APPROVED" && doc.isApproved)
+        (statusFilter === "PENDING" &&
+          !doc.isApproved &&
+          !doc.rejectionReason) ||
+        (statusFilter === "APPROVED" && doc.isApproved) ||
+        (statusFilter === "REJECTED" &&
+          !doc.isApproved &&
+          Boolean(doc.rejectionReason))
       return matchesSearch && matchesStatus
     })
   }, [doctors, searchQuery, statusFilter])
@@ -150,13 +210,19 @@ export default function AdminDoctorsPage() {
     setPage(0)
   }
 
-  const pending = doctors.filter((d) => !d.isApproved).length
+  const pending = doctors.filter(
+    (d) => !d.isApproved && !d.rejectionReason,
+  ).length
   const approved = doctors.filter((d) => d.isApproved).length
+  const rejected = doctors.filter(
+    (d) => !d.isApproved && Boolean(d.rejectionReason),
+  ).length
 
   const statusCounts = {
     ALL: doctors.length,
     PENDING: pending,
     APPROVED: approved,
+    REJECTED: rejected,
   }
 
   return (
@@ -192,6 +258,10 @@ export default function AdminDoctorsPage() {
           <span className="flex items-center gap-1">
             <CheckCircle className="h-3 w-3 text-success" />
             Approved: <strong className="text-foreground">{approved}</strong>
+          </span>
+          <span className="flex items-center gap-1">
+            <XCircle className="h-3 w-3 text-destructive" />
+            Rejected: <strong className="text-foreground">{rejected}</strong>
           </span>
           <span>
             Total: <strong className="text-foreground">{doctors.length}</strong>
@@ -340,13 +410,40 @@ export default function AdminDoctorsPage() {
                       </TableCell>
                       <TableCell>
                         {doc.isApproved ? (
-                          <Badge
-                            variant="outline"
-                            className="gap-1 text-success border-success/30 bg-success/10 font-medium"
-                          >
-                            <CheckCircle className="h-3 w-3" />
-                            Approved
-                          </Badge>
+                          <div className="flex flex-col items-start gap-1">
+                            <Badge
+                              variant="outline"
+                              className="gap-1 text-success border-success/30 bg-success/10 font-medium"
+                            >
+                              <CheckCircle className="h-3 w-3" />
+                              Approved
+                            </Badge>
+                            {doc.isVerified && (
+                              <Badge
+                                variant="outline"
+                                className="gap-1 text-primary border-primary/30 bg-primary/10 font-medium"
+                              >
+                                <ShieldCheck className="h-3 w-3" />
+                                Verified
+                              </Badge>
+                            )}
+                          </div>
+                        ) : doc.rejectionReason ? (
+                          <div className="flex flex-col items-start gap-1">
+                            <Badge
+                              variant="outline"
+                              className="gap-1 text-destructive border-destructive/30 bg-destructive/10 font-medium"
+                            >
+                              <XCircle className="h-3 w-3" />
+                              Rejected
+                            </Badge>
+                            <span
+                              className="max-w-[220px] truncate text-xs text-muted-foreground"
+                              title={doc.rejectionReason}
+                            >
+                              {doc.rejectionReason}
+                            </span>
+                          </div>
                         ) : (
                           <Badge
                             variant="outline"
@@ -360,39 +457,84 @@ export default function AdminDoctorsPage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
                           {doc.isApproved ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="gap-1 font-medium text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
-                              disabled={rejectMutation.isPending}
-                              onClick={() => rejectMutation.mutate(doc.id)}
-                            >
-                              {rejectMutation.isPending ? (
-                                <Spinner className="mr-1 h-3.5 w-3.5" />
-                              ) : (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 font-medium text-primary hover:bg-primary/5 hover:text-primary hover:border-primary/30"
+                                title={
+                                  doc.isVerified
+                                    ? "Remove verification badge"
+                                    : "Mark credentials as verified (checked against PRC registry)"
+                                }
+                                disabled={
+                                  verifyMutation.isPending ||
+                                  rejectMutation.isPending
+                                }
+                                onClick={() =>
+                                  verifyMutation.mutate({
+                                    id: doc.id,
+                                    verify: !doc.isVerified,
+                                  })
+                                }
+                              >
+                                {doc.isVerified ? (
+                                  <ShieldOff className="h-4 w-4" />
+                                ) : (
+                                  <ShieldCheck className="h-4 w-4" />
+                                )}
+                                {doc.isVerified ? "Unverify" : "Verify"}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 font-medium text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
+                                disabled={
+                                  rejectMutation.isPending ||
+                                  verifyMutation.isPending
+                                }
+                                onClick={() => {
+                                  setRejectTarget(doc)
+                                  setRejectReason("")
+                                }}
+                              >
                                 <XCircle className="h-4 w-4" />
-                              )}
-                              {rejectMutation.isPending
-                                ? "Revoking..."
-                                : "Revoke"}
-                            </Button>
+                                Revoke
+                              </Button>
+                            </>
                           ) : (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="text-xs gap-1 h-7 font-medium px-2.5"
-                              disabled={approveMutation.isPending}
-                              onClick={() => approveMutation.mutate(doc.id)}
-                            >
-                              {approveMutation.isPending ? (
-                                <Spinner className="mr-1 h-3.5 w-3.5" />
-                              ) : (
-                                <CheckCircle className="h-3 w-3" />
-                              )}
-                              {approveMutation.isPending
-                                ? "Approving..."
-                                : "Approve"}
-                            </Button>
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 font-medium text-destructive hover:bg-destructive/5 hover:text-destructive hover:border-destructive/30"
+                                title="Reject this application"
+                                disabled={rejectMutation.isPending}
+                                onClick={() => {
+                                  setRejectTarget(doc)
+                                  setRejectReason("")
+                                }}
+                              >
+                                <XCircle className="h-4 w-4" />
+                                Reject
+                              </Button>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="text-xs gap-1 h-7 font-medium px-2.5"
+                                disabled={approveMutation.isPending}
+                                onClick={() => approveMutation.mutate(doc.id)}
+                              >
+                                {approveMutation.isPending ? (
+                                  <Spinner className="mr-1 h-3.5 w-3.5" />
+                                ) : (
+                                  <CheckCircle className="h-3 w-3" />
+                                )}
+                                {approveMutation.isPending
+                                  ? "Approving..."
+                                  : "Approve"}
+                              </Button>
+                            </>
                           )}
                         </div>
                       </TableCell>
@@ -456,6 +598,71 @@ export default function AdminDoctorsPage() {
           </div>
         </>
       )}
+
+      {/* Reject dialog (with optional reason) */}
+      <Dialog
+        open={rejectTarget !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRejectTarget(null)
+            setRejectReason("")
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {rejectTarget?.isApproved
+                ? "Revoke doctor approval"
+                : "Reject application"}
+            </DialogTitle>
+            <DialogDescription>
+              {rejectTarget?.isApproved
+                ? "This will hide the doctor from patients immediately. The doctor will be notified of the rejection reason."
+                : "Explain why the application was rejected so the doctor can fix it and resubmit."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Textarea
+              id="rejectReason"
+              className="min-h-[100px]"
+              placeholder={
+                rejectTarget?.isApproved
+                  ? "e.g. PRC license could not be validated against the registry"
+                  : "e.g. PRC license number does not match the official registry. Please double-check and resubmit."
+              }
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              maxLength={500}
+              aria-label="Rejection reason"
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {rejectReason.length}/500
+            </p>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setRejectTarget(null)
+                setRejectReason("")
+              }}
+              disabled={rejecting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={confirmReject}
+              disabled={rejecting}
+            >
+              {rejecting ? "Submitting..." : "Confirm rejection"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

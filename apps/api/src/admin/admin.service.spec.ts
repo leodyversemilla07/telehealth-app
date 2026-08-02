@@ -20,7 +20,7 @@ type MockUsersService = MockService<
   >
 >
 type MockDoctorsService = MockService<
-  Pick<DoctorsService, "findAll" | "approve" | "reject">
+  Pick<DoctorsService, "findAll" | "approve" | "reject" | "verify" | "unverify">
 >
 
 describe("AdminService", () => {
@@ -47,6 +47,8 @@ describe("AdminService", () => {
       findAll: jest.fn(),
       approve: jest.fn(),
       reject: jest.fn(),
+      verify: jest.fn(),
+      unverify: jest.fn(),
     }
 
     const prismaMock = {
@@ -166,6 +168,39 @@ describe("AdminService", () => {
 
       const rejected = await service.rejectDoctor("doc-1", "admin-1")
       expect(rejected).toEqual(result)
+      expect(doctorsService.reject).toHaveBeenCalledWith("doc-1", undefined)
+    })
+
+    it("should pass the rejection reason through", async () => {
+      doctorsService.reject.mockResolvedValue({ id: "doc-1" })
+
+      await service.rejectDoctor("doc-1", "admin-1", "Invalid PRC number")
+      expect(doctorsService.reject).toHaveBeenCalledWith(
+        "doc-1",
+        "Invalid PRC number",
+      )
+    })
+  })
+
+  describe("verifyDoctor", () => {
+    it("should delegate to doctorsService.verify", async () => {
+      const result = { id: "doc-1", isVerified: true }
+      doctorsService.verify.mockResolvedValue(result)
+
+      const verified = await service.verifyDoctor("doc-1", "admin-1")
+      expect(verified).toEqual(result)
+      expect(doctorsService.verify).toHaveBeenCalledWith("doc-1")
+    })
+  })
+
+  describe("unverifyDoctor", () => {
+    it("should delegate to doctorsService.unverify", async () => {
+      const result = { id: "doc-1", isVerified: false }
+      doctorsService.unverify.mockResolvedValue(result)
+
+      const unverified = await service.unverifyDoctor("doc-1", "admin-1")
+      expect(unverified).toEqual(result)
+      expect(doctorsService.unverify).toHaveBeenCalledWith("doc-1")
     })
   })
 
