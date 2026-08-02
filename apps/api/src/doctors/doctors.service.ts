@@ -24,6 +24,21 @@ export class DoctorsService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
+   * Prisma returns Decimal instances for @db.Decimal fields; decimal.js-light
+   * has no toJSON, so they JSON-serialize to `{ s, e, d }` objects. Normalize
+   * to a plain number so clients receive 750 instead of NaN-producing objects.
+   */
+  private serializeDoctor<T extends { pricePerVisit?: unknown }>(
+    doctor: T,
+  ): Omit<T, "pricePerVisit"> & { pricePerVisit: number } {
+    const raw = doctor.pricePerVisit
+    return {
+      ...doctor,
+      pricePerVisit: raw == null ? 0 : Number(String(raw)) || 0,
+    }
+  }
+
+  /**
    * Register a doctor profile for the given user.
    * The user must have role DOCTOR.
    */
@@ -76,7 +91,7 @@ export class DoctorsService {
         })
       })
       this.cache.invalidatePrefix("doctors:approved")
-      return resubmitted
+      return this.serializeDoctor(resubmitted)
     }
 
     if (existingProfile) {
@@ -120,7 +135,7 @@ export class DoctorsService {
       })
     })
 
-    return profile
+    return this.serializeDoctor(profile)
   }
 
   /**
@@ -147,7 +162,12 @@ export class DoctorsService {
       }),
       this.prisma.doctorProfile.count({ where }),
     ])
-    return { items, total, limit, offset }
+    return {
+      items: items.map((doctor) => this.serializeDoctor(doctor)),
+      total,
+      limit,
+      offset,
+    }
   }
 
   /**
@@ -242,12 +262,14 @@ export class DoctorsService {
       ]),
     )
 
-    const result = doctors.map((doctor) => ({
-      ...doctor,
-      averageRating: avgRatingByDoctor.get(doctor.id) || 0,
-      totalReviews: doctor._count.reviews,
-      _count: undefined,
-    }))
+    const result = doctors.map((doctor) =>
+      this.serializeDoctor({
+        ...doctor,
+        averageRating: avgRatingByDoctor.get(doctor.id) || 0,
+        totalReviews: doctor._count.reviews,
+        _count: undefined,
+      }),
+    )
 
     this.cache.set(cacheKey, result)
     return result
@@ -281,12 +303,12 @@ export class DoctorsService {
 
     const avgRating = ratingAggregate?._avg.rating || 0
 
-    return {
+    return this.serializeDoctor({
       ...profile,
       averageRating: Math.round(avgRating * 10) / 10,
       totalReviews: profile._count.reviews,
       _count: undefined,
-    }
+    })
   }
 
   /**
@@ -311,7 +333,7 @@ export class DoctorsService {
         `Doctor profile for user "${userId}" not found`,
       )
     }
-    return profile
+    return this.serializeDoctor(profile)
   }
 
   /**
@@ -332,20 +354,22 @@ export class DoctorsService {
     if (dto.pricePerVisit !== undefined)
       data.pricePerVisit = Number.parseFloat(dto.pricePerVisit)
 
-    return this.prisma.doctorProfile.update({
-      where: { userId },
-      data,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
+    return this.serializeDoctor(
+      await this.prisma.doctorProfile.update({
+        where: { userId },
+        data,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              image: true,
+            },
           },
         },
-      },
-    })
+      }),
+    )
   }
 
   /**
@@ -361,10 +385,12 @@ export class DoctorsService {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
     this.cache.invalidatePrefix("doctors:approved")
-    return this.prisma.doctorProfile.update({
-      where: { id },
-      data: { isApproved: true },
-    })
+    return this.serializeDoctor(
+      await this.prisma.doctorProfile.update({
+        where: { id },
+        data: { isApproved: true },
+      }),
+    )
   }
 
   /**
@@ -379,16 +405,18 @@ export class DoctorsService {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
     this.cache.invalidatePrefix("doctors:approved")
-    return this.prisma.doctorProfile.update({
-      where: { id },
-      data: {
-        isApproved: false,
-        rejectionReason: reason ?? null,
-        // A rejection invalidates any prior credential verification.
-        isVerified: false,
-        verifiedAt: null,
-      },
-    })
+    return this.serializeDoctor(
+      await this.prisma.doctorProfile.update({
+        where: { id },
+        data: {
+          isApproved: false,
+          rejectionReason: reason ?? null,
+          // A rejection invalidates any prior credential verification.
+          isVerified: false,
+          verifiedAt: null,
+        },
+      }),
+    )
   }
 
   /**
@@ -403,10 +431,12 @@ export class DoctorsService {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
     this.cache.invalidatePrefix("doctors:approved")
-    return this.prisma.doctorProfile.update({
-      where: { id },
-      data: { isVerified: true, verifiedAt: new Date() },
-    })
+    return this.serializeDoctor(
+      await this.prisma.doctorProfile.update({
+        where: { id },
+        data: { isVerified: true, verifiedAt: new Date() },
+      }),
+    )
   }
 
   /**
@@ -420,9 +450,11 @@ export class DoctorsService {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
     this.cache.invalidatePrefix("doctors:approved")
-    return this.prisma.doctorProfile.update({
-      where: { id },
-      data: { isVerified: false, verifiedAt: null },
-    })
+    return this.serializeDoctor(
+      await this.prisma.doctorProfile.update({
+        where: { id },
+        data: { isVerified: false, verifiedAt: null },
+      }),
+    )
   }
 }

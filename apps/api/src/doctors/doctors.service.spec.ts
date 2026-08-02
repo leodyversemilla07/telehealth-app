@@ -131,7 +131,12 @@ describe("DoctorsService", () => {
     }
 
     it("should create a pending profile and set the user role to doctor", async () => {
-      const created = { id: "doc-1", userId: "user-1", isApproved: false }
+      const created = {
+        id: "doc-1",
+        userId: "user-1",
+        isApproved: false,
+        pricePerVisit: "500",
+      }
 
       prisma.user.findUnique.mockResolvedValue({ id: "user-1" })
       prisma.doctorProfile.findUnique
@@ -145,7 +150,10 @@ describe("DoctorsService", () => {
       )
       prisma.doctorProfile.create.mockResolvedValue(created)
 
-      await expect(service.register("user-1", dto)).resolves.toEqual(created)
+      await expect(service.register("user-1", dto)).resolves.toEqual({
+        ...created,
+        pricePerVisit: 500,
+      })
       expect(prisma.user.update).toHaveBeenCalledWith({
         where: { id: "user-1" },
         data: { role: "DOCTOR" },
@@ -204,12 +212,17 @@ describe("DoctorsService", () => {
       )
     })
 
-    it("should return doctor profile when found", async () => {
-      const profile = { id: "doc-1", userId: "user-1", specialty: "Cardiology" }
+    it("should return doctor profile when found (Decimal price normalized)", async () => {
+      const profile = {
+        id: "doc-1",
+        userId: "user-1",
+        specialty: "Cardiology",
+        pricePerVisit: "500",
+      }
       prisma.doctorProfile.findUnique.mockResolvedValue(profile)
 
       const result = await service.findByUserId("user-1")
-      expect(result).toEqual(profile)
+      expect(result).toEqual({ ...profile, pricePerVisit: 500 })
     })
   })
 
@@ -226,12 +239,12 @@ describe("DoctorsService", () => {
 
     it("should update isApproved to true", async () => {
       const profile = { id: "doc-1", isApproved: false }
-      const updated = { id: "doc-1", isApproved: true }
+      const updated = { id: "doc-1", isApproved: true, pricePerVisit: "750" }
       prisma.doctorProfile.findUnique.mockResolvedValue(profile)
       prisma.doctorProfile.update.mockResolvedValue(updated)
 
       const result = await service.approve("doc-1")
-      expect(result).toEqual(updated)
+      expect(result).toEqual({ ...updated, pricePerVisit: 750 })
       expect(prisma.doctorProfile.update).toHaveBeenCalledWith(
         expect.objectContaining({ data: { isApproved: true } }),
       )
@@ -256,6 +269,7 @@ describe("DoctorsService", () => {
         isApproved: false,
         isVerified: false,
         rejectionReason: "PRC number could not be validated",
+        pricePerVisit: "750",
       }
       prisma.doctorProfile.findUnique.mockResolvedValue(profile)
       prisma.doctorProfile.update.mockResolvedValue(updated)
@@ -264,7 +278,7 @@ describe("DoctorsService", () => {
         "doc-1",
         "PRC number could not be validated",
       )
-      expect(result).toEqual(updated)
+      expect(result).toEqual({ ...updated, pricePerVisit: 750 })
       expect(prisma.doctorProfile.update).toHaveBeenCalledWith(
         expect.objectContaining({
           data: {
