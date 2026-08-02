@@ -52,3 +52,8 @@ Thumbs.db
 # OS
 .DS_Store
 Desktop.ini
+
+# Playwright artifacts
+apps/web/test-results/
+apps/web/playwright-report/
+apps/web/blob-report/

@@ -25,14 +25,41 @@ test.describe("Authentication", () => {
       await page.getByPlaceholder("First").fill("Jane")
       await page.getByPlaceholder("Last").fill("Doe")
       await page.getByLabel(/email/i).fill(`weak-${Date.now()}@example.com`)
-      await page.getByLabel(/password/i).fill("weak")
-      await page.getByLabel(/confirm password/i).fill("weak")
+      await page.getByLabel("Password", { exact: true }).fill("weak")
+      await page.getByLabel("Confirm Password", { exact: true }).fill("weak")
       await page.getByRole("checkbox", { name: /privacy policy/i }).check()
       await page.getByRole("button", { name: /create account/i }).click()
 
       await expect(page.getByText(/at least 8 characters/i)).toBeVisible({
         timeout: 10_000,
       })
+    })
+
+    test("shows privacy consent alert when checkbox is not ticked", async ({
+      page,
+    }) => {
+      await page.goto("/sign-up")
+      await page.getByPlaceholder("First").fill("No")
+      await page.getByPlaceholder("Last").fill("Consent")
+      await page
+        .getByLabel(/email/i)
+        .fill(`noconsent-${Date.now()}@example.com`)
+      await page.getByLabel("Password", { exact: true }).fill("TestPass123!")
+      await page
+        .getByLabel("Confirm Password", { exact: true })
+        .fill("TestPass123!")
+      // Deliberately do NOT tick the privacy consent checkbox
+      await page.getByRole("button", { name: /create account/i }).click()
+
+      // Alert dialog appears and no account is created
+      await expect(page.getByText(/privacy consent required/i)).toBeVisible()
+      await expect(page).toHaveURL(/\/sign-up$/)
+
+      // "I agree" ticks the checkbox and dismisses the dialog
+      await page.getByRole("button", { name: /^i agree$/i }).click()
+      await expect(
+        page.getByRole("checkbox", { name: /privacy policy/i }),
+      ).toBeChecked()
     })
 
     test("creates account and shows verification message", async ({ page }) => {
@@ -42,8 +69,10 @@ test.describe("Authentication", () => {
       await page.getByPlaceholder("First").fill("Test")
       await page.getByPlaceholder("Last").fill("User")
       await page.getByLabel(/email/i).fill(email)
-      await page.getByLabel(/password/i).fill("TestPass123!")
-      await page.getByLabel(/confirm password/i).fill("TestPass123!")
+      await page.getByLabel("Password", { exact: true }).fill("TestPass123!")
+      await page
+        .getByLabel("Confirm Password", { exact: true })
+        .fill("TestPass123!")
       await page.getByRole("checkbox", { name: /privacy policy/i }).check()
       await page.getByRole("button", { name: /create account/i }).click()
 
@@ -64,7 +93,7 @@ test.describe("Authentication", () => {
     test("shows error for invalid credentials", async ({ page }) => {
       await page.goto("/sign-in")
       await page.getByLabel(/email/i).fill("nonexistent@example.com")
-      await page.getByLabel(/password/i).fill("WrongPass123!")
+      await page.getByLabel("Password", { exact: true }).fill("WrongPass123!")
       await page.getByRole("button", { name: /sign in/i }).click()
 
       await expect(page.getByText(/invalid/i)).toBeVisible({ timeout: 10_000 })

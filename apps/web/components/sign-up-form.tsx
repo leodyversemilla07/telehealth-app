@@ -1,5 +1,16 @@
 "use client"
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogMedia,
+  AlertDialogTitle,
+} from "@workspace/ui/components/alert-dialog"
 import { Button } from "@workspace/ui/components/button"
 import {
   Field,
@@ -47,6 +58,7 @@ export function SignUpForm({
     "PATIENT",
   )
   const [consent, setConsent] = useState(false)
+  const [showConsentAlert, setShowConsentAlert] = useState(false)
   const [passwordValue, setPasswordValue] = useState("")
   const [confirmValue, setConfirmValue] = useState("")
   const [socialLoading, setSocialLoading] = useState<"apple" | "google" | null>(
@@ -86,6 +98,18 @@ export function SignUpForm({
     },
     { error: null, success: false, email: "", role: "PATIENT" },
   )
+
+  /**
+   * Intercept form submission: if the consent checkbox is not ticked, block
+   * the server action and surface a privacy-consent alert dialog instead of
+   * silently failing (F-AUTH-07).
+   */
+  function handleFormSubmit(e: React.FormEvent<HTMLFormElement>) {
+    if (!consent) {
+      e.preventDefault()
+      setShowConsentAlert(true)
+    }
+  }
 
   if (state.success) {
     return (
@@ -170,7 +194,7 @@ export function SignUpForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <form action={formAction}>
+      <form action={formAction} onSubmit={handleFormSubmit}>
         <FieldGroup>
           <div className="flex flex-col items-center gap-2 text-center">
             <Link
@@ -461,6 +485,43 @@ export function SignUpForm({
           </Field>
         </FieldGroup>
       </form>
+
+      {/* Privacy-consent alert: shown when Create Account is clicked without
+          ticking the consent checkbox (F-AUTH-07). The server-side submitSignUp
+          check remains as a fallback. */}
+      <AlertDialog
+        open={showConsentAlert}
+        onOpenChange={(open) => {
+          if (!open) setShowConsentAlert(false)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogMedia>
+              <ShieldAlert />
+            </AlertDialogMedia>
+            <AlertDialogTitle>Privacy consent required</AlertDialogTitle>
+            <AlertDialogDescription>
+              You must agree to our <Link href="/privacy">Privacy Policy</Link>{" "}
+              before creating an account. We process your personal data in
+              accordance with the Data Privacy Act of 2012 (RA 10173). Please
+              review the policy and tick the consent checkbox to continue.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Not now</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                setConsent(true)
+                setShowConsentAlert(false)
+              }}
+            >
+              I agree
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <FieldDescription className="px-6 text-center">
         By clicking continue, you agree to our{" "}
         <Link href="/terms" className="underline underline-offset-4">

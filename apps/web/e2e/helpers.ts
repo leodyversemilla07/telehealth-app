@@ -28,7 +28,9 @@ export async function loginAs(page: Page, role: Role): Promise<void> {
 
   await page.goto("/sign-in")
   await page.getByLabel(/email/i).fill(CREDENTIALS[role].email)
-  await page.getByLabel(/password/i).fill(CREDENTIALS[role].password)
+  await page
+    .getByLabel("Password", { exact: true })
+    .fill(CREDENTIALS[role].password)
   await page.getByRole("button", { name: /sign in/i }).click()
   await expect(page).toHaveURL(redirect, { timeout: 15_000 })
 }
