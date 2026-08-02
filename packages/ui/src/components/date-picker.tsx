@@ -17,6 +17,10 @@ export interface DatePickerProps {
   placeholder?: string
   min?: string // YYYY-MM-DD
   max?: string // YYYY-MM-DD
+  /** Earliest selectable year in the month/year dropdown (default: min's year, else current year - 1) */
+  fromYear?: number
+  /** Latest selectable year in the month/year dropdown (default: max's year, else current year + 20) */
+  toYear?: number
   className?: string
   disabled?: boolean
   id?: string
@@ -28,6 +32,8 @@ export function DatePicker({
   placeholder = "Select date",
   min,
   max,
+  fromYear,
+  toYear,
   className,
   disabled,
   id,
@@ -65,6 +71,13 @@ export function DatePicker({
     onChange?.(formatted)
   }
 
+  // Month/year dropdown range for the calendar caption.
+  const today = new Date()
+  const resolvedFromYear =
+    fromYear ?? (minDate ? minDate.getFullYear() : today.getFullYear() - 1)
+  const resolvedToYear =
+    toYear ?? (maxDate ? maxDate.getFullYear() : today.getFullYear() + 20)
+
   return (
     <Popover>
       <PopoverTrigger
@@ -82,6 +95,9 @@ export function DatePicker({
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
+          captionLayout="dropdown"
+          fromYear={resolvedFromYear}
+          toYear={resolvedToYear}
           selected={dateValue}
           onSelect={handleSelect}
           disabled={(date) => {

@@ -391,6 +391,7 @@ export function ProfileContent() {
               value={dob}
               onChange={(val) => setDob(val)}
               max={new Date().toISOString().split("T")[0]}
+              fromYear={1920}
               placeholder="Select birthday"
             />
           </div>
