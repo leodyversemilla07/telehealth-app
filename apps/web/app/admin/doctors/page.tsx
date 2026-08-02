@@ -30,10 +30,20 @@ import { Input } from "@workspace/ui/components/input"
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
+  PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@workspace/ui/components/pagination"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Spinner } from "@workspace/ui/components/spinner"
 import {
@@ -63,6 +73,26 @@ import { apiClient } from "@/lib/api-client"
 
 const STATUS_FILTERS = ["ALL", "PENDING", "APPROVED", "REJECTED"] as const
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const
+
+type PageItem = number | "start-ellipsis" | "end-ellipsis"
+
+/**
+ * Page list for the shadcn Pagination: first + last page always shown,
+ * current page with one neighbor on each side, ellipsis for gaps.
+ */
+function getPageItems(currentPage: number, totalPages: number): PageItem[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1)
+  }
+  const items: PageItem[] = [1]
+  const start = Math.max(2, currentPage - 1)
+  const end = Math.min(totalPages - 1, currentPage + 1)
+  if (start > 2) items.push("start-ellipsis")
+  for (let p = start; p <= end; p += 1) items.push(p)
+  if (end < totalPages - 1) items.push("end-ellipsis")
+  items.push(totalPages)
+  return items
+}
 
 interface DoctorProfile {
   id: string
@@ -198,6 +228,10 @@ export default function AdminDoctorsPage() {
   const paginated = filtered.slice(
     safePage * pageSize,
     (safePage + 1) * pageSize,
+  )
+  const pageItems = useMemo(
+    () => getPageItems(safePage + 1, totalPages),
+    [safePage, totalPages],
   )
 
   const handleSearchChange = (value: string) => {
@@ -545,31 +579,37 @@ export default function AdminDoctorsPage() {
             </CardContent>
           </Card>
 
-          {/* Pagination */}
-          <div className="flex items-center justify-between bg-card border border-border/40 rounded-xl px-4 py-3">
+          {/* Pagination (shadcn) */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-card border border-border/40 rounded-xl px-4 py-3">
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span>Rows per page:</span>
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  setPageSize(Number(e.target.value))
+              <span className="hidden sm:inline">Rows per page:</span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(value) => {
+                  setPageSize(Number(value))
                   setPage(0)
                 }}
-                className="bg-muted/30 border border-border/60 rounded-md px-2 py-1 text-xs font-medium text-foreground"
               >
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <option key={size} value={size}>
-                    {size}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="rows-per-page" className="h-7 w-20 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent align="start">
+                  <SelectGroup>
+                    {PAGE_SIZE_OPTIONS.map((size) => (
+                      <SelectItem key={size} value={String(size)}>
+                        {size}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
             <span className="text-xs text-muted-foreground">
               Page {safePage + 1} of {totalPages}
-              <span className="mx-2">·</span>
-              {filtered.length} total
+              <span className="mx-2 hidden sm:inline">·</span>
+              <span className="hidden sm:inline">{filtered.length} total</span>
             </span>
-            <Pagination>
+            <Pagination className="mx-0 w-auto">
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
@@ -580,6 +620,22 @@ export default function AdminDoctorsPage() {
                     }
                   />
                 </PaginationItem>
+                {pageItems.map((item) =>
+                  item === "start-ellipsis" || item === "end-ellipsis" ? (
+                    <PaginationItem key={item}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={item}>
+                      <PaginationLink
+                        isActive={item === safePage + 1}
+                        onClick={() => setPage(item - 1)}
+                      >
+                        {item}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ),
+                )}
                 <PaginationItem>
                   <PaginationNext
                     text=""
