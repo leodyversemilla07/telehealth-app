@@ -2,13 +2,11 @@
 
 import type { UserDto } from "@workspace/shared"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
-import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   ArrowRight,
   BadgeCheck,
-  Clock3,
   Mic,
   MicOff,
   PhoneOff,
