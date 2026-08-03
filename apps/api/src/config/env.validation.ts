@@ -17,6 +17,21 @@ export const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
 
+  // ── Raw overrides (read directly via process.env, validated here for
+  //    fail-fast on bad values; the consumers apply their own defaults) ──────
+  THROTTLE_LIMIT: z.coerce
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("optional override; throttler.config.ts defaults to 30"),
+  CANCELLATION_WINDOW_HOURS: z.coerce
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("optional override; appointments.service.ts defaults to 24"),
+
   // ── Better Auth ───────────────────────────────────────────────────────────
   BETTER_AUTH_SECRET: z
     .string({
@@ -24,10 +39,6 @@ export const envSchema = z.object({
     })
     .min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
   BETTER_AUTH_URL: z.string().optional().default("http://localhost:3001"),
-
-  // ── OAuth ─────────────────────────────────────────────────────────────────
-  GITHUB_CLIENT_ID: z.string().optional(),
-  GITHUB_CLIENT_SECRET: z.string().optional(),
 
   // ── CORS ──────────────────────────────────────────────────────────────────
   CORS_ORIGIN: z
@@ -40,7 +51,6 @@ export const envSchema = z.object({
   AWS_ACCESS_KEY_ID: z.string().optional(),
   AWS_SECRET_ACCESS_KEY: z.string().optional(),
   S3_BUCKET: z.string().optional(),
-  S3_PUBLIC_URL: z.string().url().optional(),
 
   // ── Email (Resend SDK — required in production) ──────────────────────────
   RESEND_API_KEY: z
