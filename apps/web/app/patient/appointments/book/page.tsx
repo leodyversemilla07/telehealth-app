@@ -486,7 +486,7 @@ export default function BookAppointmentPage() {
                 <CardFooter className="bg-muted/15 border-t border-border/20 py-3.5 px-6 flex justify-end">
                   <Button
                     size="sm"
-                    className="text-xs font-semibold flex items-center gap-1 hover:gap-1.5 transition-all group/btn"
+                    className="text-xs font-semibold flex items-center gap-1 hover:gap-1.5 transition-all group/btn h-9"
                     onClick={() => handleOpenBooking(doctor)}
                   >
                     Book Consult

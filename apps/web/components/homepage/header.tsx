@@ -270,7 +270,7 @@ export function Header({
           <Button
             variant="outline"
             onClick={onDashboard}
-            className="rounded-full border-border/80 bg-background/50 text-foreground hover:bg-muted dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+            className="h-10 rounded-full border-border/80 bg-background/50 text-foreground hover:bg-muted dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
           >
             Dashboard
           </Button>
@@ -279,13 +279,13 @@ export function Header({
             <Button
               variant="ghost"
               onClick={onSignIn}
-              className="hidden rounded-full text-muted-foreground hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/8 dark:hover:text-white sm:inline-flex"
+              className="hidden h-10 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/8 dark:hover:text-white sm:inline-flex"
             >
               Sign in
             </Button>
             <Button
               onClick={onCreateAccount}
-              className="rounded-full bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-background dark:hover:bg-white/90"
+              className="h-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-background dark:hover:bg-white/90"
             >
               Get started
             </Button>

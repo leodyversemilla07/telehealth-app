@@ -270,9 +270,8 @@ export default function PatientDashboardPage() {
               </div>
               <div className="flex gap-2">
                 <Button
-                  size="sm"
                   variant="outline"
-                  className="text-xs h-8 border-border/60"
+                  className="text-xs border-border/60"
                   onClick={() =>
                     router.push(`/patient/appointments/${nextAppointment.id}`)
                   }
@@ -282,8 +281,7 @@ export default function PatientDashboardPage() {
                 {(nextAppointment.status === "CONFIRMED" ||
                   nextAppointment.status === "IN_PROGRESS") && (
                   <Button
-                    size="sm"
-                    className="text-xs h-8 font-bold"
+                    className="text-xs font-bold"
                     onClick={() =>
                       router.push(`/patient/appointments/${nextAppointment.id}`)
                     }
@@ -354,7 +352,7 @@ export default function PatientDashboardPage() {
             nativeButton={false}
             variant="ghost"
             size="sm"
-            className="text-xs h-7 text-primary hover:bg-muted font-bold"
+            className="text-xs h-9 px-3 text-primary hover:bg-muted font-bold"
             render={<Link href="/patient/records" />}
           >
             View All
@@ -377,9 +375,8 @@ export default function PatientDashboardPage() {
               </EmptyHeader>
               <EmptyContent>
                 <Button
-                  size="sm"
                   nativeButton={false}
-                  className="text-xs h-8 font-semibold"
+                  className="text-xs font-semibold"
                   render={<Link href="/patient/appointments/book" />}
                 >
                   Book Consultation

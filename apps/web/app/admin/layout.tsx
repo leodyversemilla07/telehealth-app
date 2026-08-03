@@ -106,7 +106,7 @@ export default function AdminLayout({
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border/50 px-4 md:px-6">
           <div className="flex items-center gap-2 flex-1">
-            <SidebarTrigger className="-ml-1" />
+            <SidebarTrigger className="-ml-1 size-9" />
             <Separator
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"
