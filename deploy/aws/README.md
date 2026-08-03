@@ -41,12 +41,14 @@ Processes: `pm2` (`api`, `web`) + `pm2 startup` (auto-restart on reboot).
 ## Production TODO (before real users)
 
 - [x] Real domain + **Let's Encrypt** (certbot, single cert: tele-health.app, www, api; auto-renews)
-- [x] Email via **Resend** (SMTP interface, free tier 3,000/mo, 100/day, domain `tele-health.app` verified
-      in Resend: DKIM `resend._domainkey`, MX+SPF on `send.tele-health.app`)
-      `SMTP_ENDPOINT=smtp.resend.com`, `SMTP_PORT=587`, `SMTP_USER=resend`, `SMTP_PASS=<Resend API key>`,
-      `EMAIL_FROM="Telehealth Platform <noreply@tele-health.app>"` (⚠ must be the verified domain —
-      an IP in `from` gets a 550). Key: `re_wURPTJfw_...` (in `apps/api/.env`, NOT in git).
-      Password reset verified end-to-end (`POST /api/auth/request-password-reset` → accepted by Resend).
+- [x] Email via **Resend SDK** (free tier 3,000/mo, 100/day, domain `tele-health.app` verified in
+      Resend: DKIM `resend._domainkey`, MX+SPF on `send.tele-health.app`)
+      `RESEND_API_KEY=<Resend API key>`, `EMAIL_FROM="Telehealth App <noreply@tele-health.app>"`
+      (⚠ `from` must be the verified domain — an IP in `from` gets a 550). Key: `re_wURPTJfw_...`
+      (in `apps/api/.env`, NOT in git). Transport = `resend.emails.send` in
+      `apps/api/src/common/utils/email.ts` (no nodemailer/SMTP; `SMTP_*` vars are legacy, unused).
+      Password reset verified end-to-end via Resend SDK (`POST /api/auth/request-password-reset` →
+      accepted, logged `Email sent to …`).
       `requireEmailVerification` still `false` — flip to `true` when ready for real signups.
 - [x] LiveKit Cloud (Build tier) — `LIVEKIT_URL/API_KEY/API_SECRET` in `apps/api/.env`;
       key is a **service-account key**; tokens signed server-side in `/api/video/join` (1h TTL);
