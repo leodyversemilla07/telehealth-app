@@ -84,6 +84,25 @@ async function bootstrap() {
         res.status(400).end()
         return
       }
+      // Avatar keys are public (served on public doctor cards). Anything else
+      // (e.g. future medical-document uploads) requires a valid authenticated
+      // session before the object is streamed.
+      if (!key.startsWith("avatar-")) {
+        const authHeader = req.headers.authorization
+        const session = authHeader?.startsWith("Bearer ")
+          ? await auth.api.getSession({
+              headers: new Headers({ authorization: authHeader }),
+            })
+          : req.headers.cookie
+            ? await auth.api.getSession({
+                headers: new Headers({ cookie: req.headers.cookie }),
+              })
+            : null
+        if (!session) {
+          res.status(401).end()
+          return
+        }
+      }
       try {
         const file = await storageService.read(key)
         if (!file) {

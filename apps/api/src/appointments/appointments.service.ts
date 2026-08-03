@@ -628,6 +628,8 @@ export class AppointmentsService {
           startTime: start,
           endTime: end,
           status: "BOOKED",
+          // New time → allow a fresh reminder for the rescheduled slot.
+          reminderSentAt: null,
         },
         include: {
           patient: PATIENT_INCLUDE,
@@ -677,6 +679,10 @@ export class AppointmentsService {
       where: {
         status: { in: ["BOOKED", "CONFIRMED"] },
         startTime: { gte: now, lte: tomorrow },
+        // Only appointments that haven't been reminded yet — the cron runs
+        // hourly and without this every appointment inside the 24h window
+        // would be re-notified every hour.
+        reminderSentAt: null,
       },
       include: {
         patient: PATIENT_INCLUDE,
@@ -706,6 +712,14 @@ export class AppointmentsService {
           "Upcoming Appointment Reminder",
           `You have a consultation with ${patientName} scheduled for ${formattedTime}.`,
         )
+
+        // Mark reminded AFTER both in-app notifications succeeded (the primary
+        // channel) — the hourly cron then skips this appointment. Emails are
+        // best-effort and fire below.
+        await this.prisma.appointment.update({
+          where: { id: appt.id },
+          data: { reminderSentAt: now },
+        })
 
         // Email reminders (best-effort)
         const patientEmail = appt.patient.email

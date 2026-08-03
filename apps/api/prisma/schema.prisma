@@ -229,6 +229,7 @@ model Appointment {
   roomUrl    String?
   notes      String?
   callMetadata Json?           @map("call_metadata")
+  reminderSentAt DateTime?    @map("reminder_sent_at")
   createdAt  DateTime           @default(now())
   updatedAt  DateTime           @updatedAt
 
