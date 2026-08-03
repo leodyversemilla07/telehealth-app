@@ -1,0 +1,27 @@
+{
+  "name": "@telehealth/db",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Single source of truth for the Telehealth App database: Prisma schema, migrations and seed.",
+  "scripts": {
+    "generate": "prisma generate",
+    "migrate": "prisma migrate deploy",
+    "migrate:dev": "prisma migrate dev",
+    "studio": "prisma studio",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "better-auth": "^1.6.23",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "prisma": "^7.8.0",
+    "tsx": "^4.19.2",
+    "typescript": "^6.0.3"
+  }
+}

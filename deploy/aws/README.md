@@ -62,6 +62,27 @@ Processes: `pm2` (`api`, `web`) + `pm2 startup` (auto-restart on reboot).
       survive instance rebuilds.
 - [ ] Upgrade to `t3.small` → paid after free-plan credits/6 months (~$33/mo total)
 
+## Deploying code (server)
+
+```bash
+cd /opt/telehealth
+git checkout -- apps/web/next-env.d.ts   # locally-regenerated, blocks pull
+git pull --ff-only
+pnpm install                            # root postinstall regenerates the Prisma client
+set -a; source apps/api/.env; set +a    # prisma CLI needs DATABASE_URL (schema lives in packages/db)
+cd packages/db && pnpm exec prisma generate && pnpm exec prisma migrate deploy
+cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
+```
+
+## Database package (`packages/db`)
+
+- Schema + migrations + seed live in `packages/db/prisma/` (single source of truth).
+- The generated client is emitted into `apps/api/src/generated/prisma` (schema `generator`
+  `output` path), so every existing API import and the server audit scripts keep working.
+- Root scripts: `pnpm migrate`, `pnpm db:reset`, `pnpm db:studio`, `pnpm seed`.
+- Prisma CLI looks for `.env` in `packages/db/` — source `apps/api/.env` (or create a
+  `packages/db/.env`) before running `migrate`/`studio`/`seed`.
+
 ## Cost & backups (set up 2026-08-01)
 
 - Budget `monthly-cost-budget` ($10/mo, 50%/100% alerts) + CloudWatch alarm `billing-10usd`

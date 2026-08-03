@@ -6,7 +6,6 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "postinstall": "node -e \"const fs=require('node:fs');const cp=require('node:child_process');if(fs.existsSync('prisma/schema.prisma')){try{cp.execSync('pnpm exec prisma generate',{stdio:'inherit'})}catch{console.warn('Skipping prisma generate during postinstall')}}\"",
     "build": "nest build && tsc-alias -p tsconfig.build.json",
     "dev": "nest start --watch",
     "start": "node dist/main.js",
@@ -24,6 +23,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@telehealth/db": "workspace:*",
     "@aws-sdk/client-s3": "^3.1086.0",
     "@nestjs/common": "^11.1.28",
     "@nestjs/config": "^4.0.4",

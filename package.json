@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "postinstall": "pnpm --filter @telehealth/db generate",
     "dev": "turbo dev",
     "build": "turbo build",
     "start": "pnpm --filter api start",
@@ -14,11 +15,11 @@
     "test:e2e": "pnpm --filter web test:e2e",
     "format": "biome check --write",
     "format:check": "biome check",
-    "seed": "pnpm --filter api exec tsx prisma/seed.ts",
+    "seed": "pnpm --filter @telehealth/db exec tsx prisma/seed.ts",
     "db:seed": "pnpm seed",
-    "migrate": "pnpm --filter api exec prisma migrate deploy",
-    "db:reset": "pnpm --filter api exec prisma migrate reset --force && pnpm seed",
-    "db:studio": "pnpm --filter api exec prisma studio"
+    "migrate": "pnpm --filter @telehealth/db exec prisma migrate deploy",
+    "db:reset": "pnpm --filter @telehealth/db exec prisma migrate reset --force && pnpm seed",
+    "db:studio": "pnpm --filter @telehealth/db exec prisma studio"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",

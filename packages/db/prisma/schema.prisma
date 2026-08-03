@@ -1,6 +1,9 @@
 generator client {
   provider = "prisma-client"
-  output = "../src/generated/prisma"
+  // Generated client stays inside the API app (all API/script imports and
+  // server audit scripts reference apps/api/src/generated/prisma). Schema +
+  // migrations live in packages/db — the single source of truth.
+  output = "../../../apps/api/src/generated/prisma"
   moduleFormat = "cjs"
 }
 
