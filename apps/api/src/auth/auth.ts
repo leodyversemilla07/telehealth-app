@@ -151,6 +151,10 @@ Telehealth App`,
         type: "string",
         required: false,
         defaultValue: "PATIENT",
+        // Server-only: clients must not be able to set their own role
+        // (would allow self-registration as ADMIN / privilege escalation).
+        // Role is promoted to DOCTOR server-side during doctor registration.
+        input: false,
       },
       firstName: {
         type: "string",
@@ -168,6 +172,18 @@ Telehealth App`,
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      // Defense-in-depth: never trust a client-supplied role on sign-up,
+      // regardless of the additionalFields `input: false` flag above.
+      if (ctx.path === "/sign-up/email") {
+        const role = (ctx.body?.role as string | undefined) ?? "PATIENT"
+        if (role !== "PATIENT" && role !== "DOCTOR") {
+          return new Response(JSON.stringify({ message: "Invalid role" }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          })
+        }
+      }
+
       // Validate password complexity on sign-up and password change
       if (ctx.path === "/sign-up/email" || ctx.path === "/change-password") {
         const password = ctx.body?.password as string | undefined
