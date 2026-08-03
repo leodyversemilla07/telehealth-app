@@ -171,15 +171,15 @@ Telehealth App`,
     /**
      * Session configuration:
      * - Sessions expire after 7 days.
-     * - A new session token is issued on every request (session rotation)
-     *   to mitigate session fixation attacks.
-     * - Fresh tokens are issued if more than 1 day has elapsed since last
-     *   update.
+     * - The session token is rotated every `updateAge` (1 day) to mitigate
+     *   session fixation.
+     * - `freshAge` is intentionally NOT set: it is no longer a documented
+     *   option and its runtime default is exactly `updateAge` (3600*24).
+     *   Any explicit override would diverge from the documented default.
      */
     session: {
       expiresIn: Number(process.env.SESSION_EXPIRY_SECONDS) || 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
-      freshAge: 60 * 5,
     },
     advanced: {
       useSecureCookies: process.env.NODE_ENV === "production",
