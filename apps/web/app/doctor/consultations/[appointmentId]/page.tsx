@@ -69,6 +69,7 @@ import {
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { MedicalDocumentsCard } from "@/components/medical-documents"
 import { StatusBadge } from "@/components/status-badge"
 import {
   useAppointment,
@@ -539,6 +540,14 @@ export default function DoctorConsultationDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Medical Documents shared by the patient (private) */}
+            <MedicalDocumentsCard
+              appointmentId={appointmentId}
+              allowUpload
+              description="Files shared for this consultation — patient uploads and any files
+you attach. Private storage, accessible only to you and your patient."
+            />
 
             {/* Verification compliant note */}
             <Item variant="muted" size="sm">

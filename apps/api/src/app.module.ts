@@ -19,6 +19,7 @@ import {
 } from "./config/throttler.config"
 import { ConsentModule } from "./consent/consent.module"
 import { DoctorsModule } from "./doctors/doctors.module"
+import { DocumentsModule } from "./documents/documents.module"
 import { NotificationsModule } from "./notifications/notifications.module"
 import { PatientsModule } from "./patients/patients.module"
 import { PrismaModule } from "./prisma/prisma.module"
@@ -59,6 +60,7 @@ import { VideoModule } from "./video/video.module"
     AuditLogsModule,
     SecurityAlertsModule,
     DoctorsModule,
+    DocumentsModule,
     AdminModule,
     PatientsModule,
     ConsentModule,

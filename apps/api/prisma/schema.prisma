@@ -236,11 +236,40 @@ model Appointment {
   consultation Consultation?
   chatMessages ChatMessage[]
   reviews      Review[]
+  documents    MedicalDocument[] @relation("AppointmentDocuments")
 
   @@index([patientId])
   @@index([doctorId])
   @@index([startTime])
   @@map("appointments")
+}
+
+enum DocumentType {
+  LAB_RESULT
+  PRESCRIPTION
+  IMAGING
+  OTHER
+}
+
+/// A private medical document (lab result, prescription, imaging, other)
+/// uploaded for a specific appointment. Bytes live in private object storage
+/// and are streamed only through the authenticated API — never a public URL.
+model MedicalDocument {
+  id            String       @id @default(uuid())
+  appointmentId String
+  appointment   Appointment  @relation("AppointmentDocuments", fields: [appointmentId], references: [id], onDelete: Cascade)
+  patientId     String
+  uploadedById  String
+  fileName      String
+  mimeType      String
+  sizeBytes     Int
+  storageKey    String       @unique
+  type          DocumentType @default(OTHER)
+  createdAt     DateTime     @default(now())
+
+  @@index([patientId])
+  @@index([appointmentId])
+  @@map("medical_documents")
 }
 
 model Consultation {

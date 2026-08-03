@@ -58,6 +58,7 @@ import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
+import { MedicalDocumentsCard } from "@/components/medical-documents"
 import { StatusBadge } from "@/components/status-badge"
 import { TimeSlotPicker } from "@/components/time-slot-picker"
 import {
@@ -752,6 +753,11 @@ export default function AppointmentDetailPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Medical Documents (private, shared with assigned doctor) */}
+        <div className="lg:col-span-2">
+          <MedicalDocumentsCard appointmentId={id} allowUpload />
+        </div>
 
         {/* Doctor Summary Sidebar Card */}
         <div className="space-y-6">

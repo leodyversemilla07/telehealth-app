@@ -19,15 +19,18 @@ describe("StorageService", () => {
 
     it("should return false for disallowed types", () => {
       expect(service.validateMimeType("image/gif")).toBe(false)
-      expect(service.validateMimeType("application/pdf")).toBe(false)
       expect(service.validateMimeType("text/html")).toBe(false)
+    })
+
+    it("should allow PDFs (medical documents)", () => {
+      expect(service.validateMimeType("application/pdf")).toBe(true)
     })
   })
 
   describe("validateSize", () => {
     it("should return true for files within limit", () => {
       expect(service.validateSize(1)).toBe(true)
-      expect(service.validateSize(2 * 1024 * 1024)).toBe(true)
+      expect(service.validateSize(10 * 1024 * 1024)).toBe(true)
     })
 
     it("should return false for empty files", () => {
@@ -35,13 +38,13 @@ describe("StorageService", () => {
     })
 
     it("should return false for files exceeding limit", () => {
-      expect(service.validateSize(2 * 1024 * 1024 + 1)).toBe(false)
+      expect(service.validateSize(10 * 1024 * 1024 + 1)).toBe(false)
     })
   })
 
   describe("maxFileSize", () => {
-    it("should return 2MB", () => {
-      expect(service.maxFileSize).toBe(2 * 1024 * 1024)
+    it("should return 10MB", () => {
+      expect(service.maxFileSize).toBe(10 * 1024 * 1024)
     })
   })
 
@@ -51,6 +54,7 @@ describe("StorageService", () => {
         "image/jpeg",
         "image/png",
         "image/webp",
+        "application/pdf",
       ])
     })
   })
@@ -134,7 +138,7 @@ describe("StorageService", () => {
     })
 
     it("should reject files exceeding size limit", async () => {
-      const hugeBuffer = Buffer.alloc(2 * 1024 * 1024 + 1, 0xff)
+      const hugeBuffer = Buffer.alloc(10 * 1024 * 1024 + 1, 0xff)
 
       await expect(
         service.uploadFile("u1", hugeBuffer, "photo.jpg", "image/jpeg"),

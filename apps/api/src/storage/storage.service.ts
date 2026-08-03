@@ -2,15 +2,21 @@ import { extname } from "node:path"
 import { BadRequestException, Injectable } from "@nestjs/common"
 import type { StorageProvider } from "./storage.interface"
 
-const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const
-const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"] as const
-const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
+const ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "application/pdf",
+] as const
+const ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".pdf"] as const
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB (PDFs / lab images)
 
-// Magic bytes for allowed image formats
+// Magic bytes for allowed formats
 const MAGIC_BYTES = {
   "image/jpeg": [0xff, 0xd8, 0xff],
   "image/png": [0x89, 0x50, 0x4e, 0x47],
   "image/webp": [0x52, 0x49, 0x46, 0x46], // RIFF header (bytes 0-3); WebP marker at bytes 8-11: "WEBP"
+  "application/pdf": [0x25, 0x50, 0x44, 0x46], // "%PDF"
 } as const
 
 function sanitizeExtension(filename: string): string {
@@ -63,12 +69,18 @@ export class StorageService {
   /**
    * Upload a file. Generates a unique key based on userId and timestamp.
    * Returns the public URL of the stored file.
+   *
+   * `keyPrefix` controls the object key family: "avatar" keys are public and
+   * streamed without auth; anything else (e.g. "medical" documents) is gated
+   * behind an authenticated session by the /uploads middleware and the
+   * documents API.
    */
   async uploadFile(
     userId: string,
     buffer: Buffer,
     originalName: string,
     mimeType: string,
+    keyPrefix = "avatar",
   ): Promise<string> {
     if (!this.validateMimeType(mimeType)) {
       throw new BadRequestException(
@@ -86,7 +98,7 @@ export class StorageService {
       )
     }
     const extension = sanitizeExtension(originalName)
-    const key = `avatar-${userId}-${Date.now()}${extension}`
+    const key = `${keyPrefix}-${userId}-${Date.now()}${extension}`
     return this.provider.save(key, buffer, mimeType)
   }
 
