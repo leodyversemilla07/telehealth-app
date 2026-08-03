@@ -7,10 +7,10 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
 } from "@workspace/ui/components/navigation-menu"
-import { Separator } from "@workspace/ui/components/separator"
 import {
   Sheet,
   SheetContent,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -208,65 +208,62 @@ export function Header({
             side="right"
             className="w-72 border-border/80 bg-background/95 backdrop-blur-xl text-foreground dark:bg-[oklch(0.12_0.025_220)/0.95] dark:border-white/10 dark:text-white"
           >
-            <SheetHeader>
-              <SheetTitle className="sr-only">Navigation</SheetTitle>
+            <SheetHeader className="sr-only">
+              <SheetTitle>Navigation</SheetTitle>
             </SheetHeader>
-            <div className="flex flex-col h-full">
-              <nav className="mt-4 flex flex-col gap-0.5">
-                {NAV_ITEMS.map((item) => (
-                  <Button
-                    variant="ghost"
-                    key={item.href}
-                    type="button"
-                    onClick={() => handleNavClick(item.href)}
-                    className="h-auto justify-start rounded-lg px-4 py-2.5 text-left text-sm text-muted-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
-                  >
-                    {item.label}
-                  </Button>
-                ))}
-              </nav>
-              <div className="mt-auto flex flex-col gap-2 pt-6">
-                <Separator className="bg-border/80 dark:bg-white/10" />
-                {isAuthenticated ? (
+            <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 pt-12 pb-2">
+              {NAV_ITEMS.map((item) => (
+                <Button
+                  variant="ghost"
+                  key={item.href}
+                  type="button"
+                  onClick={() => handleNavClick(item.href)}
+                  className="h-11 w-full justify-start rounded-xl px-4 text-left text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  {item.label}
+                </Button>
+              ))}
+            </nav>
+            <SheetFooter className="border-t border-border/80 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] dark:border-white/10">
+              {isAuthenticated ? (
+                <Button
+                  variant="ghost"
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false)
+                    onDashboard()
+                  }}
+                  className="h-11 w-full justify-start rounded-xl px-4 text-left text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white"
+                >
+                  <LayoutDashboard className="size-4 mr-2" />
+                  Dashboard
+                </Button>
+              ) : (
+                <>
                   <Button
                     variant="ghost"
                     type="button"
                     onClick={() => {
                       setMobileOpen(false)
-                      onDashboard()
+                      onSignIn()
                     }}
-                    className="h-auto justify-start rounded-lg px-4 py-2.5 text-left text-sm text-muted-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+                    className="h-11 w-full justify-start rounded-xl px-4 text-left text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white"
                   >
-                    <LayoutDashboard className="size-4 mr-2" />
-                    Dashboard
+                    Sign in
                   </Button>
-                ) : (
-                  <>
-                    <Button
-                      variant="ghost"
-                      type="button"
-                      onClick={() => {
-                        setMobileOpen(false)
-                        onSignIn()
-                      }}
-                      className="h-auto justify-start rounded-lg px-4 py-2.5 text-left text-sm text-muted-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
-                    >
-                      Sign in
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        setMobileOpen(false)
-                        onCreateAccount()
-                      }}
-                      className="h-auto justify-start rounded-lg bg-primary px-4 py-2.5 text-left text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                    >
-                      Get started
-                    </Button>
-                  </>
-                )}
-              </div>
-            </div>
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false)
+                      onCreateAccount()
+                    }}
+                    className="h-11 w-full justify-start rounded-xl bg-primary px-4 text-left text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                  >
+                    Get started
+                  </Button>
+                </>
+              )}
+            </SheetFooter>
           </SheetContent>
         </Sheet>
 
@@ -274,7 +271,7 @@ export function Header({
           <Button
             variant="outline"
             onClick={onDashboard}
-            className="h-10 rounded-full border-border/80 bg-background/50 text-foreground hover:bg-muted dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+            className="hidden h-10 rounded-full border-border/80 bg-background/50 text-foreground hover:bg-muted sm:inline-flex dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
           >
             Dashboard
           </Button>
@@ -289,7 +286,7 @@ export function Header({
             </Button>
             <Button
               onClick={onCreateAccount}
-              className="h-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-background dark:hover:bg-white/90"
+              className="hidden h-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-background dark:hover:bg-white/90 sm:inline-flex"
             >
               Get started
             </Button>
