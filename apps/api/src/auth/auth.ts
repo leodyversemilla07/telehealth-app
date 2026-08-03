@@ -150,6 +150,10 @@ Telehealth App`,
    * Rate-limiting for auth endpoints (better-auth built-in).
    */
   rateLimit: {
+    // enabled:true is explicit and deterministic — it must not depend on
+    // better-auth's module-scope NODE_ENV snapshot (which is frozen at import
+    // order).
+    enabled: true,
     window: 60, // 60-second window
     max: 20, // max 20 auth requests per window
     // Single fork process (pm2) → in-memory counters are shared and accurate.
