@@ -338,8 +338,11 @@ export class AvailabilityService {
 
         if (!isBooked) {
           slots.push({
-            startTime: `${date}T${slotStartPHT}:00`,
-            endTime: `${date}T${slotEndPHT}:00`,
+            // Return UTC instants (Z) — the booking API parses these with
+            // new Date() in the server's UTC timezone, so a naive PHT string
+            // here would shift 8h and fail availability validation.
+            startTime: slotStartUTC.toISOString(),
+            endTime: slotEndUTC.toISOString(),
             scheduleId: schedule.id,
             available: true,
           })

@@ -150,8 +150,8 @@ describe("AvailabilityService", () => {
     expect(slots).toHaveLength(1)
     expect(slots[0]).toEqual(
       expect.objectContaining({
-        startTime: `${date}T09:00:00`,
-        endTime: `${date}T09:30:00`,
+        startTime: new Date(`${date}T01:00:00.000Z`).toISOString(),
+        endTime: new Date(`${date}T01:30:00.000Z`).toISOString(),
         scheduleId: "sched-1",
       }),
     )
