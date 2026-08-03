@@ -83,6 +83,18 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
 - Prisma CLI looks for `.env` in `packages/db/` — source `apps/api/.env` (or create a
   `packages/db/.env`) before running `migrate`/`studio`/`seed`.
 
+## Auth package (`packages/auth`)
+
+- Better Auth server config via `createAuth(deps)` factory — deps (prisma,
+  email transport) are injected by the API (`apps/api/src/auth/auth.ts`).
+- Client: `createTelehealthAuthClient(baseURL)` consumed by the web app
+  (`apps/web/lib/auth-client.ts`, subpath `@telehealth/auth/client`).
+- Password/lockout utilities live in `packages/auth` (`/password` subpath).
+- The package is compiled to CJS (`dist/`); turbo builds it before api/web.
+- ENV TIMING: the host must load `.env` before importing better-auth —
+  `apps/api/src/main.ts` imports `dotenv/config` as its first line. Keep it
+  that way when touching auth imports.
+
 ## Cost & backups (set up 2026-08-01)
 
 - Budget `monthly-cost-budget` ($10/mo, 50%/100% alerts) + CloudWatch alarm `billing-10usd`
