@@ -1,3 +1,8 @@
+// Load env FIRST: better-auth's module graph computes NODE_ENV and reads the
+// auth secret at module scope. Unless .env is loaded before it is imported,
+// isProduction is frozen false (rate limiting disabled) and BETTER_AUTH_SECRET
+// is a fresh random value per process (all sessions invalidate on restart).
+import "dotenv/config"
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { createAuthMiddleware, getSessionFromCtx } from "better-auth/api"
