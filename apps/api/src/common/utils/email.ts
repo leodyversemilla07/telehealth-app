@@ -1,69 +1,23 @@
 import { Logger } from "@nestjs/common"
-import * as nodemailer from "nodemailer"
+import { type CreateEmailOptions, Resend } from "resend"
 
 const logger = new Logger("Email")
 
-let transporter: nodemailer.Transporter | null = null
+let resendClient: Resend | null = null
 
 /**
- * Email provider configuration.
- * Supports:
- * - AWS SES (production) - Uses SMTP interface
- * - Gmail (development fallback)
+ * Email provider: Resend SDK (production).
+ *
+ * Resend is our single email provider, so we use its official Node.js SDK
+ * (resend.emails.send) rather than an SMTP shim. The API key is read from
+ * RESEND_API_KEY at call time — env loads happen before this module is used
+ * (main.ts loads dotenv first).
  */
-function getTransporter(): nodemailer.Transporter {
-  if (!transporter) {
-    const provider = process.env.EMAIL_PROVIDER || "ses"
-
-    if (provider === "ses" && process.env.SMTP_ENDPOINT) {
-      // AWS SES SMTP interface
-      transporter = nodemailer.createTransport({
-        host: process.env.SMTP_ENDPOINT,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: false, // STARTTLS
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      })
-      logger.log("Email transporter: AWS SES")
-    } else if (provider === "gmail") {
-      // Gmail SMTP (development only)
-      transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: process.env.SMTP_PASS,
-        },
-      })
-      logger.log("Email transporter: Gmail SMTP")
-    } else {
-      // Fallback to Ethereal for development only
-      if (process.env.NODE_ENV === "production") {
-        logger.error(
-          "No email provider configured in production. Emails will not be sent.",
-        )
-        // Return a no-op transporter that silently drops emails
-        transporter = {
-          sendMail: async () => {
-            logger.error("Email not sent — no provider configured")
-          },
-        } as unknown as nodemailer.Transporter
-      } else {
-        logger.warn("No email provider configured. Using Ethereal (test only)")
-        transporter = nodemailer.createTransport({
-          host: "smtp.ethereal.email",
-          port: 587,
-          secure: false,
-          auth: {
-            user: "test@ethereal.email",
-            pass: "test",
-          },
-        })
-      }
-    }
+function getResendClient(): Resend {
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY)
   }
-  return transporter
+  return resendClient
 }
 
 export async function sendEmail(options: {
@@ -84,17 +38,27 @@ export async function sendEmail(options: {
     if (!options.text && !options.html) {
       throw new Error("Email requires a plain-text or HTML body")
     }
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not configured")
+    }
 
     const fromAddress =
       process.env.EMAIL_FROM || "Telehealth App <noreply@tele-health.app>"
 
-    await getTransporter().sendMail({
+    // Official Resend docs pattern. sendEmail guarantees text or html is
+    // present, so the cast to CreateEmailOptions is safe — that union
+    // demands at least one of react/html/text OR `template`, which TS can't
+    // infer from the conditional spread.
+    const { error } = await getResendClient().emails.send({
       from: fromAddress,
       to: options.to,
       subject: options.subject,
-      text: options.text,
-      html: options.html,
-    })
+      ...(options.text ? { text: options.text } : {}),
+      ...(options.html ? { html: options.html } : {}),
+    } as CreateEmailOptions)
+    if (error) {
+      throw error
+    }
     logger.log(`Email sent to ${options.to} — ${options.subject}`)
   } catch (error: unknown) {
     logger.error(
