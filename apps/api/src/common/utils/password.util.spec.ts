@@ -3,7 +3,7 @@ import {
   isLockedOut,
   LOCKOUT_DURATION_MINUTES,
   validatePasswordComplexity,
-} from "./password.util"
+} from "@telehealth/auth/password"
 
 describe("validatePasswordComplexity", () => {
   it("should reject passwords shorter than 8 characters", () => {

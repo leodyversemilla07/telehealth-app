@@ -1,11 +1,7 @@
-import { twoFactorClient } from "better-auth/client/plugins"
-import { createAuthClient } from "better-auth/react"
+import { createTelehealthAuthClient } from "@telehealth/auth/client"
 import { env } from "@/lib/env"
 
-export const authClient = createAuthClient({
-  baseURL: env.NEXT_PUBLIC_API_URL,
-  plugins: [twoFactorClient()],
-})
+export const authClient = createTelehealthAuthClient(env.NEXT_PUBLIC_API_URL)
 
 /**
  * Sign in with a social OAuth provider.

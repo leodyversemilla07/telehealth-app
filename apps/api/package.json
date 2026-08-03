@@ -23,6 +23,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@telehealth/auth": "workspace:*",
     "@telehealth/db": "workspace:*",
     "@aws-sdk/client-s3": "^3.1086.0",
     "@nestjs/common": "^11.1.28",
