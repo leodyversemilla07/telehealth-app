@@ -36,6 +36,7 @@ const FADE_RANGE = 64
 const MAX_TOP = 12 // px
 const MAX_PADDING_Y = 4 // px shrink (16 -> 12)
 const MAX_RADIUS = 16 // px (rounded-2xl)
+const MAX_SIDE_GAP = 12 // px per side: the pill floats in from the screen edges
 const MAX_BG_ALPHA = 0.95
 const MAX_BORDER_ALPHA = 0.6
 const MAX_BLUR = 20 // px
@@ -132,6 +133,9 @@ export function Header({
   const e = progress
   const headerStyle: React.CSSProperties = {
     top: `${e * MAX_TOP}px`,
+    // Full-width while transparent at the top; on scroll the pill narrows
+    // so its edges stay clear of the screen sides on mobile.
+    width: `calc(100% - ${e * MAX_SIDE_GAP * 2}px)`,
     paddingTop: `${16 - e * MAX_PADDING_Y}px`,
     paddingBottom: `${16 - e * MAX_PADDING_Y}px`,
     borderRadius: `${e * MAX_RADIUS}px`,
