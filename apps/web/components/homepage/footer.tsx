@@ -262,19 +262,19 @@ export function Footer({
           <div className="flex items-center gap-4">
             <a
               href="/privacy"
-              className="text-xs text-muted-foreground/50 transition hover:text-foreground dark:text-white/30 dark:hover:text-white"
+              className="inline-block py-1 text-xs text-muted-foreground/50 transition hover:text-foreground dark:text-white/30 dark:hover:text-white"
             >
               Privacy
             </a>
             <a
               href="/terms"
-              className="text-xs text-muted-foreground/50 transition hover:text-foreground dark:text-white/30 dark:hover:text-white"
+              className="inline-block py-1 text-xs text-muted-foreground/50 transition hover:text-foreground dark:text-white/30 dark:hover:text-white"
             >
               Terms
             </a>
             <a
               href="/cookies"
-              className="text-xs text-muted-foreground/50 transition hover:text-foreground dark:text-white/30 dark:hover:text-white"
+              className="inline-block py-1 text-xs text-muted-foreground/50 transition hover:text-foreground dark:text-white/30 dark:hover:text-white"
             >
               Cookies
             </a>
@@ -285,9 +285,8 @@ export function Footer({
         <div className="mt-6 flex justify-center sm:hidden">
           <Button
             variant="ghost"
-            size="sm"
             onClick={scrollToTop}
-            className="rounded-full text-xs text-muted-foreground hover:text-foreground"
+            className="h-9 rounded-full text-xs text-muted-foreground hover:text-foreground"
           >
             <ArrowUp className="mr-1.5 size-3" />
             Back to top

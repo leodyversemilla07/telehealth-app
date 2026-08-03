@@ -92,7 +92,7 @@ function DoctorCard({
               </span>
               {isVerified && (
                 <span
-                  className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-primary/25 bg-primary/10 px-1.5 py-px text-[10px] font-semibold text-primary"
+                  className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-primary/25 bg-primary/10 px-1.5 py-px text-[11px] font-semibold text-primary"
                   title="Credentials verified by our admin team"
                 >
                   <ShieldCheck className="size-2.5" />

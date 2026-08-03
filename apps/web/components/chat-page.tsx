@@ -295,7 +295,7 @@ export function ChatPage({
               <Button
                 variant={showContacts ? "secondary" : "ghost"}
                 size="sm"
-                className="h-7 text-xs flex-1"
+                className="h-9 text-xs flex-1"
                 onClick={() => setShowContacts(false)}
               >
                 <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
@@ -304,7 +304,7 @@ export function ChatPage({
               <Button
                 variant={showContacts ? "ghost" : "secondary"}
                 size="sm"
-                className="h-7 text-xs flex-1"
+                className="h-9 text-xs flex-1"
                 onClick={() => setShowContacts(true)}
               >
                 <UserPlus className="h-3.5 w-3.5 mr-1.5" />

@@ -420,11 +420,11 @@ export default function BookAppointmentPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="truncate">
-                        <CardTitle className="text-base font-bold truncate max-w-[140px] sm:max-w-[180px] text-foreground">
+                        <CardTitle className="text-base font-bold truncate max-w-[180px] sm:max-w-[220px] text-foreground">
                           {doctor.user.name || "Doctor"}
                         </CardTitle>
                         {doctor.isVerified && (
-                          <span className="inline-flex items-center gap-1 mt-0.5 text-[11px] font-semibold text-primary bg-primary/10 border border-primary/20 rounded-full px-2 py-0.5">
+                          <span className="inline-flex items-center gap-1 mt-0.5 text-xs font-semibold text-primary bg-primary/10 border border-primary/20 rounded-full px-2 py-0.5">
                             <ShieldCheck className="h-3 w-3" />
                             Verified
                           </span>
@@ -472,7 +472,7 @@ export default function BookAppointmentPage() {
                         <div className="flex justify-between gap-1 items-start text-muted-foreground">
                           <span>Location:</span>
                           <span
-                            className="text-foreground text-right truncate max-w-32.5"
+                            className="text-foreground text-right line-clamp-2 max-w-40"
                             title={doctor.clinicAddress}
                           >
                             {doctor.clinicAddress}

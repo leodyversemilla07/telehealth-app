@@ -126,7 +126,7 @@ export default function PatientDashboardPage() {
           <Button
             nativeButton={false}
             render={<Link href="/patient/appointments/book" />}
-            className="sm:w-fit font-semibold shadow-xs"
+            className="h-9 sm:w-fit font-semibold shadow-xs"
           >
             <CalendarPlus className="mr-2 h-4 w-4" />
             Book Appointment
@@ -271,7 +271,7 @@ export default function PatientDashboardPage() {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  className="text-xs border-border/60"
+                  className="text-xs h-9 border-border/60"
                   onClick={() =>
                     router.push(`/patient/appointments/${nextAppointment.id}`)
                   }
@@ -281,7 +281,7 @@ export default function PatientDashboardPage() {
                 {(nextAppointment.status === "CONFIRMED" ||
                   nextAppointment.status === "IN_PROGRESS") && (
                   <Button
-                    className="text-xs font-bold"
+                    className="text-xs h-9 font-bold"
                     onClick={() =>
                       router.push(`/patient/appointments/${nextAppointment.id}`)
                     }
@@ -376,7 +376,7 @@ export default function PatientDashboardPage() {
               <EmptyContent>
                 <Button
                   nativeButton={false}
-                  className="text-xs font-semibold"
+                  className="text-xs h-9 font-semibold"
                   render={<Link href="/patient/appointments/book" />}
                 >
                   Book Consultation
