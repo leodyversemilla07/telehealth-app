@@ -56,6 +56,7 @@ import {
   useCancelAppointment,
   useMyAppointments,
 } from "@/hooks/use-appointments"
+import { toDate } from "@/lib/dates"
 
 export default function PatientAppointmentsPage() {
   const router = useRouter()
@@ -141,7 +142,7 @@ export default function PatientAppointmentsPage() {
   )
 
   function renderAppointmentCard(appt: (typeof appointments)[number]) {
-    const dateStr = new Date(appt.startTime).toLocaleDateString(undefined, {
+    const dateStr = toDate(appt, "startTime").toLocaleDateString(undefined, {
       weekday: "short",
       year: "numeric",
       month: "short",
@@ -149,7 +150,7 @@ export default function PatientAppointmentsPage() {
       timeZone: "Asia/Manila",
     })
 
-    const timeStr = new Date(appt.startTime).toLocaleTimeString(undefined, {
+    const timeStr = toDate(appt, "startTime").toLocaleTimeString(undefined, {
       hour: "2-digit",
       minute: "2-digit",
       hour12: true,

@@ -29,6 +29,7 @@ import {
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { apiClient } from "@/lib/api-client"
+import { toDate } from "@/lib/dates"
 
 interface MedicalHistory {
   allergies?: string[]
@@ -361,7 +362,7 @@ export default function PatientDetailPage() {
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <Clock className="h-3.5 w-3.5" />
-                      {new Date(appt.startTime).toLocaleString(undefined, {
+                      {toDate(appt, "startTime").toLocaleString(undefined, {
                         month: "short",
                         day: "numeric",
                         year: "numeric",

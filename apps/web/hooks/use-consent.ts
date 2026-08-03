@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiClient } from "@/lib/api-client"
+import { toDate } from "@/lib/dates"
 
 export interface ConsentLog {
   id: string
@@ -78,7 +79,7 @@ export function useConsentStatus() {
       .filter((log) => log.consentType === type.id)
       .sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          toDate(b, "createdAt").getTime() - toDate(a, "createdAt").getTime(),
       )[0]
     status[type.id] = latest?.granted ?? false
   }

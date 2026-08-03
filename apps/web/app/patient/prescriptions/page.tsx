@@ -31,6 +31,7 @@ import {
 import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
 import { usePatientPrescriptions } from "@/hooks/use-records"
+import { toDate } from "@/lib/dates"
 
 export default function PatientPrescriptionsPage() {
   // 1. Fetch patient prescriptions (Consumes hydrated server cache instantly)
@@ -103,7 +104,7 @@ export default function PatientPrescriptionsPage() {
       {!isPending && !error && prescriptions.length > 0 && (
         <div className="grid grid-cols-1 gap-6">
           {prescriptions.map((rx) => {
-            const issuedDate = new Date(rx.createdAt).toLocaleDateString(
+            const issuedDate = toDate(rx, "createdAt").toLocaleDateString(
               undefined,
               {
                 year: "numeric",

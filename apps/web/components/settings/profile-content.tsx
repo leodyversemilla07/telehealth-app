@@ -22,6 +22,7 @@ import { toast } from "sonner"
 import { useFormDirty, useUnsavedChanges } from "@/hooks/use-unsaved-changes"
 import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
+import { toDate } from "@/lib/dates"
 
 const AVATAR_PRESETS = [
   {
@@ -93,8 +94,10 @@ export function ProfileContent() {
   useEffect(() => {
     if (profile) {
       if (profile.dob) {
-        const d = new Date(profile.dob)
-        setDob(d.toISOString().split("T")[0] ?? "")
+        const d = toDate(profile, "dob")
+        if (!Number.isNaN(d.getTime())) {
+          setDob(d.toISOString().split("T")[0] ?? "")
+        }
       }
       setSex(profile.sex ?? "")
       setPhone(profile.phone ?? "")
@@ -137,7 +140,12 @@ export function ProfileContent() {
         lastName: u?.lastName ?? "",
         imageUrl: u?.image ?? "",
         dob: profile?.dob
-          ? new Date(profile.dob).toISOString().split("T")[0]
+          ? (() => {
+              const d = toDate(profile, "dob")
+              return Number.isNaN(d.getTime())
+                ? ""
+                : d.toISOString().split("T")[0]
+            })()
           : "",
         sex: profile?.sex ?? "",
         phone: profile?.phone ?? "",

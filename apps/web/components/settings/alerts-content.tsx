@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { apiClient } from "@/lib/api-client"
+import { toDate } from "@/lib/dates"
 
 export function AlertsContent() {
   const { data: alerts = [], isPending } = useQuery({
@@ -47,7 +48,7 @@ export function AlertsContent() {
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">{alert.title}</p>
                 <span className="text-xs text-muted-foreground">
-                  {new Date(alert.createdAt).toLocaleDateString()}
+                  {toDate(alert, "createdAt").toLocaleDateString()}
                 </span>
               </div>
               <p className="text-xs text-muted-foreground mt-1">

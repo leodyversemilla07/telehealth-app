@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useMyAppointments } from "@/hooks/use-appointments"
+import { toDate } from "@/lib/dates"
 
 export default function DoctorDashboardPage() {
   const { data, isPending } = useMyAppointments()
@@ -48,7 +49,7 @@ export default function DoctorDashboardPage() {
     .filter((a) => a.status === "CONFIRMED" || a.status === "BOOKED")
     .sort(
       (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+        toDate(a, "startTime").getTime() - toDate(b, "startTime").getTime(),
     )[0]
 
   if (isPending) {
@@ -214,7 +215,7 @@ export default function DoctorDashboardPage() {
                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {new Date(nextAppointment.startTime).toLocaleDateString(
+                      {toDate(nextAppointment, "startTime").toLocaleDateString(
                         undefined,
                         {
                           weekday: "short",
@@ -226,7 +227,7 @@ export default function DoctorDashboardPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {new Date(nextAppointment.startTime).toLocaleTimeString(
+                      {toDate(nextAppointment, "startTime").toLocaleTimeString(
                         undefined,
                         {
                           hour: "2-digit",

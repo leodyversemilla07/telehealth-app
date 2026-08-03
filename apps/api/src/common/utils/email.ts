@@ -3,15 +3,6 @@ import * as nodemailer from "nodemailer"
 
 const logger = new Logger("Email")
 
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;")
-}
-
 let transporter: nodemailer.Transporter | null = null
 
 /**
@@ -82,6 +73,12 @@ export async function sendEmail(options: {
   text?: string
   /** Rich HTML message for transactional notifications. */
   html?: string
+  /**
+   * When true, a delivery failure rethrows after logging instead of being
+   * silently swallowed. Use for security-critical flows (e.g. password
+   * reset) where the caller must not claim success if the email failed.
+   */
+  critical?: boolean
 }): Promise<void> {
   try {
     if (!options.text && !options.html) {
@@ -103,7 +100,11 @@ export async function sendEmail(options: {
     logger.error(
       `Failed to send email to ${options.to}: ${error instanceof Error ? error.message : String(error)}`,
     )
-    // Don't throw - allow auth flow to continue even if email fails
+    // Re-surface failures for critical flows so the caller can respond with
+    // an explicit error instead of silently pretending the email was sent.
+    if (options.critical) {
+      throw error
+    }
   }
 }
 
@@ -114,19 +115,14 @@ export async function sendSecurityAlertEmail(
 ): Promise<void> {
   await sendEmail({
     to: email,
-    subject: `[Telehealth App] Security Alert: ${escapeHtml(title)}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #1a1a1a;">Security Alert</h2>
-        <p style="color: #333; line-height: 1.6;">${escapeHtml(message)}</p>
-        <p style="color: #666; font-size: 12px; margin-top: 20px;">
-          If you did not perform this action, please contact support immediately.
-        </p>
-        <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-        <p style="color: #999; font-size: 11px;">
-          Telehealth App - This is an automated security notification.
-        </p>
-      </div>
-    `,
+    subject: `[Telehealth App] Security Alert: ${title}`,
+    // Plain text — security-sensitive emails must not rely on rich HTML.
+    text: `${title}
+
+${message}
+
+If you did not perform this action, please contact support immediately.
+
+— Telehealth App`,
   })
 }

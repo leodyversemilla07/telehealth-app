@@ -20,6 +20,7 @@ import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Calendar, ClipboardList, Clock, HeartPulse, User } from "lucide-react"
 import { ErrorAlert } from "@/components/error-alert"
 import { useMyAppointments } from "@/hooks/use-appointments"
+import { toDate } from "@/lib/dates"
 
 export default function DoctorRecordsPage() {
   const { data, isPending, error } = useMyAppointments()
@@ -78,7 +79,7 @@ export default function DoctorRecordsPage() {
       {!isPending && !error && completed.length > 0 && (
         <div className="grid grid-cols-1 gap-4">
           {completed.map((appt) => {
-            const visitDate = new Date(appt.startTime).toLocaleDateString(
+            const visitDate = toDate(appt, "startTime").toLocaleDateString(
               undefined,
               {
                 year: "numeric",
@@ -130,7 +131,7 @@ export default function DoctorRecordsPage() {
                           <Clock className="h-3 w-3" /> Scheduled Time
                         </span>
                         <p className="text-foreground font-medium text-sm">
-                          {new Date(appt.startTime).toLocaleTimeString(
+                          {toDate(appt, "startTime").toLocaleTimeString(
                             undefined,
                             {
                               hour: "2-digit",
@@ -140,7 +141,7 @@ export default function DoctorRecordsPage() {
                             },
                           )}{" "}
                           &mdash;{" "}
-                          {new Date(appt.endTime).toLocaleTimeString(
+                          {toDate(appt, "endTime").toLocaleTimeString(
                             undefined,
                             {
                               hour: "2-digit",

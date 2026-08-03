@@ -24,6 +24,7 @@ import { useParams, useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
 import { usePatientPrescriptions } from "@/hooks/use-records"
+import { toDate } from "@/lib/dates"
 
 export default function PrescriptionDetailPage() {
   const params = useParams()
@@ -71,7 +72,7 @@ export default function PrescriptionDetailPage() {
     )
   }
 
-  const issuedDate = new Date(prescription.createdAt).toLocaleDateString(
+  const issuedDate = toDate(prescription, "createdAt").toLocaleDateString(
     undefined,
     {
       year: "numeric",

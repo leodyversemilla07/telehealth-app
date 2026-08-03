@@ -58,6 +58,7 @@ import {
   useMyAppointments,
   useUpdateAppointmentStatus,
 } from "@/hooks/use-appointments"
+import { toDate } from "@/lib/dates"
 
 export default function DoctorConsultationsPage() {
   const router = useRouter()
@@ -258,7 +259,7 @@ export default function DoctorConsultationsPage() {
       return orderA - orderB
     }
 
-    return new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    return toDate(a, "startTime").getTime() - toDate(b, "startTime").getTime()
   })
 
   return (

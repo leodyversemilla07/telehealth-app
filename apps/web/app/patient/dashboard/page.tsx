@@ -36,6 +36,7 @@ import { useRouter } from "next/navigation"
 import { useMyAppointments } from "@/hooks/use-appointments"
 import { usePatientPrescriptions, usePatientRecords } from "@/hooks/use-records"
 import { apiClient } from "@/lib/api-client"
+import { toDate } from "@/lib/dates"
 
 export default function PatientDashboardPage() {
   const router = useRouter()
@@ -242,7 +243,7 @@ export default function PatientDashboardPage() {
                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      {new Date(nextAppointment.startTime).toLocaleDateString(
+                      {toDate(nextAppointment, "startTime").toLocaleDateString(
                         undefined,
                         {
                           weekday: "short",
@@ -254,7 +255,7 @@ export default function PatientDashboardPage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {new Date(nextAppointment.startTime).toLocaleTimeString(
+                      {toDate(nextAppointment, "startTime").toLocaleTimeString(
                         undefined,
                         {
                           hour: "2-digit",

@@ -6,6 +6,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
+import { toDate } from "@/lib/dates"
 
 export function SessionsContent() {
   const queryClient = useQueryClient()
@@ -62,7 +63,7 @@ export function SessionsContent() {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {s.ipAddress ?? "Unknown IP"} ·{" "}
-                  {new Date(s.createdAt).toLocaleDateString()}
+                  {toDate(s, "createdAt").toLocaleDateString()}
                 </p>
               </div>
               {s.isCurrent ? (

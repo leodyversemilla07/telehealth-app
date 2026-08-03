@@ -17,7 +17,9 @@ export class EmailService {
   async sendMail(options: {
     to: string
     subject: string
-    html: string
+    /** Plain body. `html` transactional emails may also be passed. */
+    text?: string
+    html?: string
   }): Promise<void> {
     await sendEmail(options)
     this.logger.log(`Email sent to ${options.to}`)
@@ -28,22 +30,11 @@ export class EmailService {
     title: string,
     message: string,
   ): Promise<void> {
+    // Plain text — security-sensitive alerts must not rely on rich HTML.
     await this.sendMail({
       to: email,
-      subject: `[Telehealth App] Security Alert: ${escapeHtml(title)}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #1a1a1a;">Security Alert</h2>
-          <p style="color: #333; line-height: 1.6;">${escapeHtml(message)}</p>
-          <p style="color: #666; font-size: 12px; margin-top: 20px;">
-            If you did not perform this action, please contact support immediately.
-          </p>
-          <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-          <p style="color: #999; font-size: 11px;">
-            Telehealth App - This is an automated security notification.
-          </p>
-        </div>
-      `,
+      subject: `[Telehealth App] Security Alert: ${title}`,
+      text: `${title}\n\n${message}\n\nIf you did not perform this action, please contact support immediately.\n\n— Telehealth App`,
     })
   }
 

@@ -1,6 +1,7 @@
 "use client"
 
 import dynamic from "next/dynamic"
+import { toDate } from "@/lib/dates"
 
 const LiveKitRoom = dynamic(
   () => import("@livekit/components-react").then((mod) => mod.LiveKitRoom),
@@ -371,7 +372,7 @@ export default function DoctorConsultationDetailPage() {
     )
   }
 
-  const dateStr = new Date(appt.startTime).toLocaleDateString(undefined, {
+  const dateStr = toDate(appt, "startTime").toLocaleDateString(undefined, {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -379,14 +380,14 @@ export default function DoctorConsultationDetailPage() {
     timeZone: "Asia/Manila",
   })
 
-  const timeStr = new Date(appt.startTime).toLocaleTimeString(undefined, {
+  const timeStr = toDate(appt, "startTime").toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
     timeZone: "Asia/Manila",
   })
 
-  const endTimeStr = new Date(appt.endTime).toLocaleTimeString(undefined, {
+  const endTimeStr = toDate(appt, "endTime").toLocaleTimeString(undefined, {
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
@@ -731,12 +732,12 @@ export default function DoctorConsultationDetailPage() {
                         </h3>
                         <p>
                           <span className="font-semibold">Date:</span>{" "}
-                          {new Date(appt.startTime).toLocaleDateString()}
+                          {toDate(appt, "startTime").toLocaleDateString()}
                         </p>
                         <p>
                           <span className="font-semibold">Time:</span>{" "}
-                          {new Date(appt.startTime).toLocaleTimeString()} —{" "}
-                          {new Date(appt.endTime).toLocaleTimeString()}
+                          {toDate(appt, "startTime").toLocaleTimeString()} —{" "}
+                          {toDate(appt, "endTime").toLocaleTimeString()}
                         </p>
                         <p>
                           <span className="font-semibold">Type:</span>{" "}

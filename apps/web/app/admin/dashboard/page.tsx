@@ -32,6 +32,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { apiClient } from "@/lib/api-client"
+import { toDate } from "@/lib/dates"
 
 interface DashboardStats {
   totalUsers: number
@@ -301,7 +302,7 @@ export default function AdminDashboardPage() {
                         {appt.doctor?.user?.name || "Doctor"}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {new Date(appt.startTime).toLocaleDateString(
+                        {toDate(appt, "startTime").toLocaleDateString(
                           undefined,
                           {
                             month: "short",

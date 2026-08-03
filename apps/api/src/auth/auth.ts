@@ -36,6 +36,8 @@ export const auth = betterAuth({
       url: string
       token: string
     }) => {
+      // critical: true — if the reset email fails to send we must NOT tell the
+      // user it went through. The thrown error surfaces as an explicit failure.
       await sendEmail({
         to: data.user.email,
         subject: "[Telehealth App] Reset Your Password",
@@ -49,6 +51,7 @@ ${data.url}
 This link expires in 1 hour. If you did not request a password reset, you can ignore this email.
 
 Telehealth App`,
+        critical: true,
       })
     },
   },

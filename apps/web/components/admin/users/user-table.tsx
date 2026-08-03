@@ -25,6 +25,7 @@ import {
   UserCheck,
   UserX,
 } from "lucide-react"
+import { toDate } from "@/lib/dates"
 
 interface UserTableProps {
   users: UserDto[]
@@ -144,7 +145,7 @@ export function UserTable({
                   )}
                 </TableCell>
                 <TableCell className="hidden sm:table-cell text-xs text-muted-foreground">
-                  {new Date(user.createdAt).toLocaleDateString(undefined, {
+                  {toDate(user, "createdAt").toLocaleDateString(undefined, {
                     year: "numeric",
                     month: "short",
                     day: "numeric",

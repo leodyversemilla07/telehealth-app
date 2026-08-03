@@ -25,6 +25,7 @@ import {
   useUnreadCount,
 } from "@/hooks/use-notifications"
 import { usePushNotifications } from "@/hooks/use-push-notifications"
+import { toDate } from "@/lib/dates"
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
@@ -158,7 +159,7 @@ export function NotificationBell() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground/70 mt-1">
-                    {new Date(notification.createdAt).toLocaleString()}
+                    {toDate(notification, "createdAt").toLocaleString()}
                   </p>
                 </div>
                 {!notification.isRead && (

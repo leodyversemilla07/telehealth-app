@@ -36,6 +36,7 @@ import {
 } from "@/hooks/use-chat"
 import { useChatSocket } from "@/hooks/use-chat-socket"
 import { apiClient } from "@/lib/api-client"
+import { toDate } from "@/lib/dates"
 
 interface UserProfile {
   id: string
@@ -261,7 +262,7 @@ export function ChatPage({
               isMine ? "text-primary-foreground/60" : "text-muted-foreground/70"
             }`}
           >
-            {new Date(msg.createdAt).toLocaleTimeString([], {
+            {toDate(msg, "createdAt").toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",
               timeZone: "Asia/Manila",
