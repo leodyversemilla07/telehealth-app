@@ -184,7 +184,11 @@ export function Header({
       </NavigationMenu>
 
       <div className="flex items-center gap-2">
-        <ThemeToggle variant="ghost" size="icon" className="rounded-full" />
+        <ThemeToggle
+          variant="ghost"
+          size="icon"
+          className="size-9 rounded-full"
+        />
 
         {/* Mobile menu trigger */}
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -193,7 +197,7 @@ export function Header({
               <Button
                 variant="ghost"
                 size="icon"
-                className="md:hidden text-muted-foreground hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
+                className="size-9 md:hidden text-muted-foreground hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
                 aria-label="Open navigation menu"
               />
             }

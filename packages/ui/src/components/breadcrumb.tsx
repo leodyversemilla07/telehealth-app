@@ -47,7 +47,10 @@ function BreadcrumbLink({
     defaultTagName: "a",
     props: mergeProps<"a">(
       {
-        className: cn("transition-colors hover:text-foreground", className),
+        className: cn(
+          "inline-flex items-center py-1 transition-colors hover:text-foreground",
+          className,
+        ),
       },
       props,
     ),
@@ -63,7 +66,10 @@ function BreadcrumbPage({ className, ...props }: React.ComponentProps<"span">) {
     <span
       data-slot="breadcrumb-page"
       aria-current="page"
-      className={cn("font-normal text-foreground", className)}
+      className={cn(
+        "inline-flex items-center py-1 font-normal text-foreground",
+        className,
+      )}
       {...props}
     />
   )
