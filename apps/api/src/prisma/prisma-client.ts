@@ -2,32 +2,25 @@ import "dotenv/config"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "../generated/prisma/client.js"
 
-// Pass a config object (not a Pool instance) to PrismaPg to avoid a
-// version-mismatch bug: @prisma/adapter-pg bundles its own pg version,
-// so `instanceof pg.Pool` fails and the adapter treats the Pool as a
-// flat config object, passing the pool's `.options` (an Object) as the
-// PostgreSQL `options` startup parameter, which crashes on Node.js 22
-// (Buffer.byteLength strict validation).
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) {
   throw new Error("DATABASE_URL environment variable is required")
 }
-const url = new URL(databaseUrl)
 // RDS requires TLS (pg_hba rejects "no encryption"). Prisma's CLI enables
 // SSL automatically for remote hosts, but the driver adapter must be told
 // explicitly. Enable TLS for any non-localhost host (or ?sslmode=require).
+const url = new URL(databaseUrl)
 const sslMode = url.searchParams.get("sslmode")
 const isRemote = !["localhost", "127.0.0.1"].includes(url.hostname)
 const ssl =
   sslMode === "require" ||
   sslMode === "prefer" ||
   (sslMode === null && isRemote)
+// Pass a config object (connectionString) rather than a pg.Pool instance to
+// avoid a version-mismatch bug: @prisma/adapter-pg bundles its own pg version,
+// so `instanceof pg.Pool` fails and a Pool is treated as a flat config object.
 const prismaPgAdapter = new PrismaPg({
-  host: url.hostname,
-  port: Number(url.port),
-  user: decodeURIComponent(url.username),
-  password: decodeURIComponent(url.password),
-  database: url.pathname.replace(/^\//, ""),
+  connectionString: databaseUrl,
   ...(ssl ? { ssl: { rejectUnauthorized: false } } : {}),
 })
 

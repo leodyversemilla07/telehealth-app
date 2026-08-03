@@ -27,18 +27,12 @@ import { PrismaClient } from "../../../apps/api/src/generated/prisma/client.js"
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) throw new Error("DATABASE_URL is not set")
 
-// Pass a config object (not a pg.Pool instance) to PrismaPg. @prisma/adapter-pg
-// bundles its own pg version, so `instanceof pg.Pool` fails and a Pool would be
-// treated as a flat config object, crashing on Node.js 22 (see src/prisma).
-const url = new URL(databaseUrl)
-const adapter = new PrismaPg({
-  host: url.hostname,
-  port: Number(url.port),
-  user: decodeURIComponent(url.username),
-  password: decodeURIComponent(url.password),
-  database: url.pathname.replace(/^\//, ""),
+// Pass a config object (connectionString) rather than a pg.Pool instance —
+// @prisma/adapter-pg bundles its own pg version, so a Pool would be treated
+// as a flat config object, crashing on Node.js 22.
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: databaseUrl }),
 })
-const prisma = new PrismaClient({ adapter })
 
 async function upsertUserWithAccount(
   email: string,
