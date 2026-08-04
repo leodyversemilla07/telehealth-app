@@ -88,7 +88,7 @@ export function createAuth(deps: AuthDependencies): Auth {
     }),
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: false,
+      requireEmailVerification: true,
       minPasswordLength: 8,
       maxPasswordLength: 128,
       sendResetPassword: async (data: {

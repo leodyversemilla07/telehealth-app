@@ -40,6 +40,21 @@ export const envSchema = z.object({
     .min(32, "BETTER_AUTH_SECRET must be at least 32 characters"),
   BETTER_AUTH_URL: z.string().optional().default("http://localhost:3001"),
 
+  // ── Session cookie domain (production, cross-subdomain) ───────────────────
+  COOKIE_DOMAIN: z
+    .string()
+    .optional()
+    .describe("session cookie domain in production (e.g. .tele-health.app)"),
+
+  // ── Social / OAuth login (optional; each provider only enabled when both
+  //    credentials are present — see coherence check in validate()) ──────────
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_REDIRECT_URI: z.string().url().optional(),
+  APPLE_CLIENT_ID: z.string().optional(),
+  APPLE_CLIENT_SECRET: z.string().optional(),
+  APPLE_REDIRECT_URI: z.string().url().optional(),
+
   // ── CORS ──────────────────────────────────────────────────────────────────
   CORS_ORIGIN: z
     .string()
@@ -122,6 +137,32 @@ export function validate(config: Record<string, unknown>) {
         `Missing required environment variables in production: ${missing.join(", ")}`,
       )
     }
+  }
+
+  // OAuth coherence: a partially-configured provider is silently ignored by
+  // the auth config (both keys must be present), so fail fast on a bad setup
+  // rather than shipping a provider that never activates.
+  const brokenOAuth: string[] = []
+  if (!!env.GOOGLE_CLIENT_ID !== !!env.GOOGLE_CLIENT_SECRET) {
+    brokenOAuth.push("GOOGLE_CLIENT_ID/SECRET must be set together")
+  }
+  if (!!env.APPLE_CLIENT_ID !== !!env.APPLE_CLIENT_SECRET) {
+    brokenOAuth.push("APPLE_CLIENT_ID/SECRET must be set together")
+  }
+  if (
+    env.GOOGLE_REDIRECT_URI &&
+    (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET)
+  ) {
+    brokenOAuth.push("GOOGLE_REDIRECT_URI set without full Google credentials")
+  }
+  if (
+    env.APPLE_REDIRECT_URI &&
+    (!env.APPLE_CLIENT_ID || !env.APPLE_CLIENT_SECRET)
+  ) {
+    brokenOAuth.push("APPLE_REDIRECT_URI set without full Apple credentials")
+  }
+  if (brokenOAuth.length > 0) {
+    throw new Error(`Invalid OAuth configuration: ${brokenOAuth.join("; ")}`)
   }
 
   return env

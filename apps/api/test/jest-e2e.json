@@ -15,6 +15,8 @@
     "^isomorphic-dompurify$": "<rootDir>/mocks/isomorphic-dompurify.ts",
     "^@/prisma/prisma\\.service$": "<rootDir>/mocks/prisma.service.ts",
     "^@/notifications/notifications\\.service$": "<rootDir>/mocks/notifications.service.ts",
-    ".*generated/prisma/client\\.js$": "<rootDir>/mocks/prisma-client.ts"
-  }
+    ".*generated/prisma/client\\.js$": "<rootDir>/mocks/prisma-client.ts",
+    "^better-auth/node$": "<rootDir>/mocks/better-auth-node.ts"
+  },
+  "resolver": "<rootDir>/resolver.cjs"
 }

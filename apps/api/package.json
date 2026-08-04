@@ -107,8 +107,10 @@
       "^@/prisma/prisma\\.service$": "<rootDir>/../test/mocks/prisma.service.ts",
       "^@/notifications/notifications\\.service$": "<rootDir>/../test/mocks/notifications.service.ts",
       "^@workspace/shared$": "<rootDir>/../test/mocks/workspace-shared.ts",
-      "^@/(.*)$": "<rootDir>/$1"
+      "^@/(.*)$": "<rootDir>/$1",
+      "^better-auth/node$": "<rootDir>/../test/mocks/better-auth-node.ts"
     },
+    "resolver": "<rootDir>/../test/resolver.cjs",
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
