@@ -145,7 +145,7 @@ export function NotificationBell() {
                 }`}
                 onClick={() => {
                   if (!notification.isRead) {
-                    markReadMutation.mutate(notification.id)
+                    markReadMutation.mutate({ id: notification.id })
                   }
                 }}
               >

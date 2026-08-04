@@ -18,6 +18,8 @@ import { DoctorsRouter } from "../doctors/doctors.router"
 import { DoctorsService } from "../doctors/doctors.service"
 import { DocumentsRouter } from "../documents/documents.router"
 import { DocumentsService } from "../documents/documents.service"
+import { NotificationsRouter } from "../notifications/notifications.router"
+import { NotificationsService } from "../notifications/notifications.service"
 import { PatientsRouter } from "../patients/patients.router"
 import { PatientsService } from "../patients/patients.service"
 import { RecordsRouter } from "../records/records.router"
@@ -82,6 +84,7 @@ describe("tRPC AppRouter wiring", () => {
         AvailabilityRouter,
         RecordsRouter,
         DocumentsRouter,
+        NotificationsRouter,
         PatientsRouter,
         {
           provide: DoctorsService,
@@ -112,6 +115,7 @@ describe("tRPC AppRouter wiring", () => {
           },
         },
         { provide: DocumentsService, useValue: {} },
+        { provide: NotificationsService, useValue: {} },
         {
           provide: PatientsService,
           useValue: {
@@ -145,20 +149,21 @@ describe("tRPC AppRouter wiring", () => {
     return Object.keys(record[routerName]).sort()
   }
 
-  it("registers all six feature routers", () => {
+  it("registers all seven feature routers", () => {
     expect(routerNames()).toEqual(
       [
         "appointments",
         "availability",
         "doctors",
         "documents",
+        "notifications",
         "patients",
         "records",
       ].sort(),
     )
   })
 
-  it("registers the full procedure set per router (30 total)", () => {
+  it("registers the full procedure set per router (36 total)", () => {
     expect(procedureNames("doctors")).toEqual(
       ["byId", "list", "myProfile", "register", "updateMyProfile"].sort(),
     )
@@ -198,6 +203,16 @@ describe("tRPC AppRouter wiring", () => {
     )
     expect(procedureNames("documents")).toEqual(["byAppointment"])
     expect(procedureNames("patients")).toEqual(["me", "updateMe"].sort())
+    expect(procedureNames("notifications")).toEqual(
+      [
+        "list",
+        "markAllRead",
+        "markAsRead",
+        "preferences",
+        "unreadCount",
+        "updatePreferences",
+      ].sort(),
+    )
   })
 
   it("marks the right procedures as mutations vs queries", () => {

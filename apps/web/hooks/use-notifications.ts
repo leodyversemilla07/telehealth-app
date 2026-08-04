@@ -3,8 +3,8 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useCallback, useEffect, useRef } from "react"
 import { type Socket, io as socketIO } from "socket.io-client"
-import { apiClient } from "@/lib/api-client"
 import { createLogger } from "@/lib/logger"
+import { useTRPC } from "@/lib/trpc/client"
 
 const log = createLogger("NotificationSocket")
 
@@ -19,39 +19,19 @@ export interface Notification {
   createdAt: string
 }
 
-export interface NotificationListResponse {
-  items: Notification[]
-  total: number
-  limit: number
-  offset: number
-}
-
-export interface UnreadCountResponse {
-  count: number
-}
-
-// ─── Query Keys ─────────────────────────────────────────────────────────────
-
-export const notificationKeys = {
-  all: ["notifications"] as const,
-  lists: () => [...notificationKeys.all, "list"] as const,
-  unreadCount: () => [...notificationKeys.all, "unread-count"] as const,
-}
-
 // ─── Queries ────────────────────────────────────────────────────────────────
 
 export function useNotifications() {
+  const trpc = useTRPC()
   return useQuery({
-    queryKey: notificationKeys.lists(),
-    queryFn: () => apiClient.get<NotificationListResponse>("/notifications"),
+    ...trpc.notifications.list.queryOptions({}),
   })
 }
 
 export function useUnreadCount() {
+  const trpc = useTRPC()
   return useQuery({
-    queryKey: notificationKeys.unreadCount(),
-    queryFn: () =>
-      apiClient.get<UnreadCountResponse>("/notifications/unread-count"),
+    ...trpc.notifications.unreadCount.queryOptions(),
     refetchInterval: 30_000, // poll every 30s as fallback
     refetchIntervalInBackground: false, // stop polling when tab is hidden
   })
@@ -60,30 +40,34 @@ export function useUnreadCount() {
 // ─── Mutations ──────────────────────────────────────────────────────────────
 
 export function useMarkAsRead() {
+  const trpc = useTRPC()
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: string) =>
-      apiClient.patch<Notification>(`/notifications/${id}/read`),
+    ...trpc.notifications.markAsRead.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
       queryClient.invalidateQueries({
-        queryKey: notificationKeys.unreadCount(),
+        queryKey: trpc.notifications.list.queryKey({}),
+      })
+      queryClient.invalidateQueries({
+        queryKey: trpc.notifications.unreadCount.queryKey(),
       })
     },
   })
 }
 
 export function useMarkAllAsRead() {
+  const trpc = useTRPC()
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: () =>
-      apiClient.patch<Notification>("/notifications/mark-all-read"),
+    ...trpc.notifications.markAllRead.mutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
       queryClient.invalidateQueries({
-        queryKey: notificationKeys.unreadCount(),
+        queryKey: trpc.notifications.list.queryKey({}),
+      })
+      queryClient.invalidateQueries({
+        queryKey: trpc.notifications.unreadCount.queryKey(),
       })
     },
   })
@@ -100,12 +84,17 @@ function getSocketUrl(): string {
 
 export function useNotificationSocket(enabled = true) {
   const queryClient = useQueryClient()
+  const trpc = useTRPC()
   const socketRef = useRef<Socket | null>(null)
 
   const invalidateAll = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: notificationKeys.lists() })
-    queryClient.invalidateQueries({ queryKey: notificationKeys.unreadCount() })
-  }, [queryClient])
+    queryClient.invalidateQueries({
+      queryKey: trpc.notifications.list.queryKey({}),
+    })
+    queryClient.invalidateQueries({
+      queryKey: trpc.notifications.unreadCount.queryKey(),
+    })
+  }, [queryClient, trpc])
 
   useEffect(() => {
     if (!enabled) return

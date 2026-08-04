@@ -18,12 +18,14 @@ import { paginationInput } from "../../records/../trpc/contracts.util";
 import { setAvailabilityInput, createTimeOffInput, timeOffIdInput, availableSlotsInput } from "../../availability/availability.contracts";
 import { doctorIdInput, searchDoctorsInput, registerDoctorInput, updateDoctorProfileInput } from "../../doctors/doctors.contracts";
 import { documentsByAppointmentInput } from "../../documents/documents.contracts";
+import { notificationListInput, notificationPreferencesInput, notificationIdInput } from "../../notifications/notifications.contracts";
 import { updatePatientProfileInput } from "../../patients/patients.contracts";
 import { createConsultationInput, byAppointmentInput, patientIdInput } from "../../records/records.contracts";
 import type { AppointmentsRouter } from "../../appointments/appointments.router";
 import type { AvailabilityRouter } from "../../availability/availability.router";
 import type { DoctorsRouter } from "../../doctors/doctors.router";
 import type { DocumentsRouter } from "../../documents/documents.router";
+import type { NotificationsRouter } from "../../notifications/notifications.router";
 import type { PatientsRouter } from "../../patients/patients.router";
 import type { RecordsRouter } from "../../records/records.router";
 
@@ -97,6 +99,23 @@ const appRouter = t.router({
     byAppointment: publicProcedure
       .input(documentsByAppointmentInput)
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DocumentsRouter["byAppointment"]>>)
+    }),
+  notifications: t.router({
+    list: publicProcedure
+      .input(notificationListInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<NotificationsRouter["list"]>>),
+    unreadCount: publicProcedure
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<NotificationsRouter["unreadCount"]>>),
+    preferences: publicProcedure
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<NotificationsRouter["preferences"]>>),
+    updatePreferences: publicProcedure
+      .input(notificationPreferencesInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<NotificationsRouter["updatePreferences"]>>),
+    markAllRead: publicProcedure
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<NotificationsRouter["markAllRead"]>>),
+    markAsRead: publicProcedure
+      .input(notificationIdInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<NotificationsRouter["markAsRead"]>>)
     }),
   patients: t.router({
     me: publicProcedure
