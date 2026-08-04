@@ -23,6 +23,10 @@ out/
 dist/
 build/
 generated/
+# nestjs-trpc output is COMMITTED (type contract for the web client) —
+# the bare `generated/` rule above only protects Prisma's generated client.
+!apps/api/src/trpc/generated/
+!apps/api/src/trpc/generated/**
 
 # Debug
 npm-debug.log*

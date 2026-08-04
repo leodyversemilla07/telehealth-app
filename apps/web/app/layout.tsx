@@ -5,8 +5,8 @@ import "@workspace/ui/globals.css"
 import { Toaster } from "@workspace/ui/components/sonner"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
-import { QueryProvider } from "@/components/query-provider"
 import { ThemeProvider } from "@/components/theme-provider"
+import { TRPCReactProvider } from "@/lib/trpc/client"
 
 // Force dynamic rendering so the per-request CSP nonce (generated in
 // apps/web/proxy.ts) is injected into Next.js's framework/inline scripts.
@@ -68,10 +68,10 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <QueryProvider>
+          <TRPCReactProvider>
             <TooltipProvider>{children}</TooltipProvider>
             <Toaster />
-          </QueryProvider>
+          </TRPCReactProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -1,9 +1,10 @@
 "use client"
 
+import { useQuery } from "@tanstack/react-query"
 import { Badge } from "@workspace/ui/components/badge"
 import { ShieldCheck, Star } from "lucide-react"
 import Image from "next/image"
-import { useDoctors } from "@/hooks/use-doctors"
+import { useTRPC } from "@/lib/trpc/client"
 
 const DOCTORS = [
   {
@@ -125,7 +126,11 @@ function DoctorCard({
 }
 
 export function DoctorsSection() {
-  const { data: dynamicDoctors, isPending: isDoctorsLoading } = useDoctors()
+  const trpc = useTRPC()
+  const { data: dynamicDoctors, isPending: isDoctorsLoading } = useQuery(
+    // Public, no auth — served through the tRPC pipeline + PHT middleware.
+    trpc.doctors.list.queryOptions({}),
+  )
 
   const doctors = isDoctorsLoading
     ? null

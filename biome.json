@@ -51,7 +51,10 @@
     "defaultBranch": "main"
   },
   "files": {
-    "includes": ["**/*.{js,ts,jsx,tsx,mjs,cjs,json,css,md}"],
+    "includes": [
+      "**/*.{js,ts,jsx,tsx,mjs,cjs,json,css,md}",
+      "!apps/api/src/trpc/generated"
+    ],
     "ignoreUnknown": true
   },
   "overrides": [

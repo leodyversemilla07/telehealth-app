@@ -15,6 +15,14 @@ function makeQueryClient() {
           if (error instanceof ApiError && error.statusCode < 500) {
             return false // Skip retrying on 4xx BadRequest, Unauthorized, etc.
           }
+          // tRPC errors carry the HTTP status in `data.httpStatus`.
+          const httpStatus =
+            typeof error === "object" && error !== null
+              ? (error as { data?: { httpStatus?: number } }).data?.httpStatus
+              : undefined
+          if (httpStatus !== undefined && httpStatus < 500) {
+            return false
+          }
           return failureCount < 2 // Max 2 retries for transient server errors (5xx)
         },
       },

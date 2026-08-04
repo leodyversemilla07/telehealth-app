@@ -3,6 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
+import type { Prisma } from "@telehealth/db"
 import { MemoryCache } from "../common/cache/memory-cache"
 import { PrismaService } from "../prisma/prisma.service"
 import type {
@@ -14,8 +15,25 @@ import type {
 const PUBLIC_USER_SELECT = {
   id: true,
   name: true,
+  email: true,
   image: true,
 } as const
+
+/**
+ * Public doctor card returned by findApproved: the approved profile plus
+ * rating aggregates, with pricePerVisit normalized to a plain number.
+ * `_count` is consumed by the aggregator and dropped from the payload.
+ */
+export type ApprovedDoctor = Omit<
+  Prisma.DoctorProfileGetPayload<{
+    include: { user: { select: typeof PUBLIC_USER_SELECT } }
+  }>,
+  "pricePerVisit"
+> & {
+  pricePerVisit: number
+  averageRating: number
+  totalReviews: number
+}
 
 @Injectable()
 export class DoctorsService {
@@ -174,11 +192,11 @@ export class DoctorsService {
    * Get approved doctors (visible to patients for booking).
    * Supports optional filtering by specialty, search (name/specialty), and sorting.
    */
-  async findApproved(filters?: SearchDoctorsDto) {
+  async findApproved(filters?: SearchDoctorsDto): Promise<ApprovedDoctor[]> {
     // Cache key based on filters (cache for 2 minutes)
     const cacheKey = `doctors:approved:${JSON.stringify(filters || {})}`
     const cached = this.cache.get(cacheKey)
-    if (cached) return cached as Awaited<ReturnType<typeof this.findApproved>>
+    if (cached) return cached as ApprovedDoctor[]
 
     // Base: approved AND license still valid (PRC licenses expire every
     // 3 years — expired doctors must not be bookable by patients).

@@ -30,6 +30,7 @@ import { RetentionModule } from "./retention/retention.module"
 import { ReviewsModule } from "./reviews/reviews.module"
 import { SecurityAlertsModule } from "./security-alerts/security-alerts.module"
 import { StorageModule } from "./storage/storage.module"
+import { TrpcModule } from "./trpc/trpc.module"
 import { UsersModule } from "./users/users.module"
 import { VideoModule } from "./video/video.module"
 
@@ -74,6 +75,7 @@ import { VideoModule } from "./video/video.module"
     ChatModule,
     ReviewsModule,
     RetentionModule,
+    TrpcModule,
   ],
   controllers: [AppController],
   providers: [AppService, throttlerGuardProvider],
