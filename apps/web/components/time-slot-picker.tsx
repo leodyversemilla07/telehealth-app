@@ -64,7 +64,6 @@ export function TimeSlotPicker({
       {slots.map((slot) => {
         const isSelected = selectedSlot?.startTime === slot.startTime
         const start = formatSlotTime(slot.startTime)
-        const _end = formatSlotTime(slot.endTime)
 
         return (
           <Button

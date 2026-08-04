@@ -15,12 +15,16 @@
       "@/*": ["./src/*"]
     },
     "incremental": true,
-    "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
     "strictBindCallApply": true,
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist", "src/**/*.spec.ts", "**/__mocks__/**"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/trpc/generated",
+    "src/**/*.spec.ts",
+    "**/__mocks__/**"
+  ]
 }

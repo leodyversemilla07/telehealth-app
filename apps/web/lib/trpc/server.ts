@@ -1,5 +1,5 @@
 import "server-only"
-import { createTRPCClient, httpBatchLink, type TRPCClient } from "@trpc/client"
+import { createTRPCClient, httpBatchLink } from "@trpc/client"
 import {
   createTRPCOptionsProxy,
   type TRPCOptionsProxy,
@@ -38,21 +38,5 @@ export function getServerTrpc(): TRPCOptionsProxy<AppRouter> {
   return createTRPCOptionsProxy<AppRouter>({
     client,
     queryClient: getServerQueryClient,
-  })
-}
-
-// Re-export for callers that need the raw client (e.g. mutations without
-// react-query).
-export function getServerTrpcClient(): TRPCClient<AppRouter> {
-  return createTRPCClient<AppRouter>({
-    links: [
-      httpBatchLink({
-        url: `${API_BASE_URL}/api/trpc`,
-        headers: async () => {
-          const cookie = (await cookies()).toString()
-          return cookie ? { cookie } : {}
-        },
-      }),
-    ],
   })
 }
