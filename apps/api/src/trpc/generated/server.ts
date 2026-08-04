@@ -13,12 +13,17 @@ import { z } from "zod";
 
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
-import { createAppointmentInput, paginationInput, appointmentIdInput, updateAppointmentStatusInput, rescheduleAppointmentInput } from "../../appointments/appointments.contracts";
+import { createAppointmentInput, appointmentIdInput, updateAppointmentStatusInput, rescheduleAppointmentInput } from "../../appointments/appointments.contracts";
+import { paginationInput } from "../../records/../trpc/contracts.util";
 import { setAvailabilityInput, createTimeOffInput, timeOffIdInput, availableSlotsInput } from "../../availability/availability.contracts";
 import { doctorIdInput, searchDoctorsInput, registerDoctorInput, updateDoctorProfileInput } from "../../doctors/doctors.contracts";
+import { documentsByAppointmentInput } from "../../documents/documents.contracts";
+import { createConsultationInput, byAppointmentInput, patientIdInput } from "../../records/records.contracts";
 import type { AppointmentsRouter } from "../../appointments/appointments.router";
 import type { AvailabilityRouter } from "../../availability/availability.router";
 import type { DoctorsRouter } from "../../doctors/doctors.router";
+import type { DocumentsRouter } from "../../documents/documents.router";
+import type { RecordsRouter } from "../../records/records.router";
 
 const appRouter = t.router({
   appointments: t.router({
@@ -85,6 +90,31 @@ const appRouter = t.router({
     updateMyProfile: publicProcedure
       .input(updateDoctorProfileInput)
       .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DoctorsRouter["updateMyProfile"]>>)
+    }),
+  documents: t.router({
+    byAppointment: publicProcedure
+      .input(documentsByAppointmentInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<DocumentsRouter["byAppointment"]>>)
+    }),
+  records: t.router({
+    create: publicProcedure
+      .input(createConsultationInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<RecordsRouter["create"]>>),
+    byAppointment: publicProcedure
+      .input(byAppointmentInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<RecordsRouter["byAppointment"]>>),
+    myRecords: publicProcedure
+      .input(paginationInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<RecordsRouter["myRecords"]>>),
+    myPrescriptions: publicProcedure
+      .input(paginationInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<RecordsRouter["myPrescriptions"]>>),
+    doctorPatients: publicProcedure
+      .input(paginationInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<RecordsRouter["doctorPatients"]>>),
+    doctorPatientRecords: publicProcedure
+      .input(patientIdInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<RecordsRouter["doctorPatientRecords"]>>)
     })
 });
 

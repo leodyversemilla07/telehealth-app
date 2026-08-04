@@ -1,6 +1,9 @@
 import { AppointmentStatus, VisitType } from "@telehealth/db"
 import { z } from "zod"
-import { isIsoDate } from "../trpc/contracts.util"
+import { isIsoDate, paginationInput } from "./../trpc/contracts.util"
+
+export type { PaginationInput } from "../trpc/contracts.util"
+export { paginationInput }
 
 /**
  * Zod contracts for the appointments router — the tRPC equivalent of the
@@ -10,11 +13,6 @@ import { isIsoDate } from "../trpc/contracts.util"
 
 export const appointmentIdInput = z.object({
   id: z.string().min(1),
-})
-
-export const paginationInput = z.object({
-  limit: z.number().int().min(1).max(100).optional(),
-  offset: z.number().int().min(0).optional(),
 })
 
 const isoDateTime = z.string().refine(isIsoDate, {
@@ -49,4 +47,3 @@ export type UpdateAppointmentStatusInput = z.infer<
 export type RescheduleAppointmentInput = z.infer<
   typeof rescheduleAppointmentInput
 >
-export type PaginationInput = z.infer<typeof paginationInput>

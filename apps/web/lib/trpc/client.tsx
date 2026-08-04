@@ -20,8 +20,11 @@ import { getQueryClient } from "@/lib/get-query-client"
  * cookie automatically (same-origin, credentials default).
  */
 
-const { TRPCProvider: ContextProvider, useTRPC: useTRPCContext } =
-  createTRPCContext<AppRouter>()
+const {
+  TRPCProvider: ContextProvider,
+  useTRPC: useTRPCContext,
+  useTRPCClient,
+} = createTRPCContext<AppRouter>()
 
 const TRPCProvider: FC<{
   children: ReactNode
@@ -31,6 +34,8 @@ const TRPCProvider: FC<{
 }> = ContextProvider
 
 export const useTRPC: () => TRPCOptionsProxy<AppRouter> = useTRPCContext
+
+export { useTRPCClient }
 
 export function TRPCReactProvider({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient()

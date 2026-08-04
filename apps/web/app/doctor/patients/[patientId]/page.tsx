@@ -1,6 +1,5 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -28,56 +27,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { apiClient } from "@/lib/api-client"
+import { useDoctorPatientRecords } from "@/hooks/use-records"
 import { toDate } from "@/lib/dates"
-
-interface MedicalHistory {
-  allergies?: string[]
-  conditions?: string[]
-  medications?: string[]
-}
-
-interface PatientRecord {
-  patient: {
-    id: string
-    name: string | null
-    email: string
-    patientProfile: {
-      dob: string | null
-      sex: string | null
-      phone: string | null
-      address: string | null
-      philhealthNumber: string | null
-      weight: number | null
-      height: number | null
-      medicalHistory: MedicalHistory | null
-    } | null
-  }
-  appointments: Array<{
-    id: string
-    startTime: string
-    endTime: string
-    status: string
-    reason: string | null
-    symptoms: string | null
-    type: string
-    consultation: {
-      id: string
-      diagnosis: string | null
-      doctorNotes: string | null
-      plan: string | null
-      patientNotes: string | null
-      prescriptions: Array<{
-        id: string
-        medicationName: string
-        dosage: string
-        frequency: string
-        duration: string
-        instructions: string | null
-      }>
-    } | null
-  }>
-}
 
 const STATUS_COLORS: Record<string, string> = {
   CONFIRMED: "text-success bg-success/10 border-success/30",
@@ -90,11 +41,7 @@ export default function PatientDetailPage() {
   const params = useParams()
   const patientId = params.patientId as string
 
-  const { data: patientRecords, isPending } = useQuery<PatientRecord>({
-    queryKey: ["doctor-patient-records", patientId],
-    queryFn: () =>
-      apiClient.get<PatientRecord>(`/records/doctor/patient/${patientId}`),
-  })
+  const { data: patientRecords, isPending } = useDoctorPatientRecords(patientId)
 
   if (isPending) {
     return (

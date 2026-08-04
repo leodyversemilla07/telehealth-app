@@ -1,5 +1,6 @@
 "use client"
 
+import { TRPCClientError } from "@trpc/client"
 import { Button, buttonVariants } from "@workspace/ui/components/button"
 import {
   Card,
@@ -38,8 +39,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { ApiError, apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
+import { useTRPCClient } from "@/lib/trpc/client"
 
 const SPECIALTIES = [
   "General Practitioner",
@@ -155,6 +156,7 @@ function licenseDaysLeft(expiry: string): number {
 
 export default function DoctorRegisterPage() {
   const router = useRouter()
+  const trpcClient = useTRPCClient()
   const [state, setState] = useState<ApplicationState>({ status: "loading" })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -166,18 +168,17 @@ export default function DoctorRegisterPage() {
 
     async function loadApplication() {
       try {
-        const profile =
-          await apiClient.get<DoctorApplication>("/doctors/profile")
+        const profile = await trpcClient.doctors.myProfile.query()
         if (cancelled) return
         setState({ status: "review", application: profile })
       } catch (err: unknown) {
         if (cancelled) return
         if (
-          err instanceof ApiError &&
+          err instanceof TRPCClientError &&
           // 404: no profile yet. 403: the session role is still PATIENT, so
-          // the role-guarded profile endpoint refuses — treat as no
+          // the role-guarded myProfile procedure refuses — treat as no
           // application (a non-DOCTOR role cannot have a doctor profile).
-          (err.statusCode === 404 || err.statusCode === 403)
+          (err.data?.httpStatus === 404 || err.data?.httpStatus === 403)
         ) {
           // No application yet — show the registration form.
           setState({ status: "none" })
@@ -196,7 +197,7 @@ export default function DoctorRegisterPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [trpcClient])
 
   function startEditing(application: DoctorApplication) {
     setForm(applicationToForm(application))
@@ -216,7 +217,7 @@ export default function DoctorRegisterPage() {
     try {
       // Send the null-normalized payload (empty strings would fail the
       // API's ISO 8601 / decimal validation on optional fields).
-      await apiClient.post("/doctors/register", formAsPayload(form))
+      await trpcClient.doctors.register.mutate(formAsPayload(form))
       toast.success("Application submitted for review!")
       const submitted = formAsApplication(form)
       setForm(EMPTY_FORM)

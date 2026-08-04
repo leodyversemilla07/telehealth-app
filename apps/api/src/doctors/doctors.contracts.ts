@@ -27,22 +27,24 @@ export const registerDoctorInput = z.object({
   prcLicenseExpiry: z.string().refine(isIsoDate, {
     message: "prcLicenseExpiry must be a valid ISO 8601 date",
   }),
-  philhealthAccreditation: z.string().optional(),
-  pdeaS2License: z.string().optional(),
+  philhealthAccreditation: z.string().nullable().optional(),
+  pdeaS2License: z.string().nullable().optional(),
   pdeaS2Expiry: z
     .string()
     .refine(isIsoDate, {
       message: "pdeaS2Expiry must be a valid ISO 8601 date",
     })
+    .nullable()
     .optional(),
-  bio: z.string().max(500).optional(),
-  clinicAddress: z.string().optional(),
+  bio: z.string().max(500).nullable().optional(),
+  clinicAddress: z.string().nullable().optional(),
   pricePerVisit: z
     .string()
     .regex(pricePerVisitPattern, {
       message:
         "pricePerVisit must be a valid number with up to 2 decimal places",
     })
+    .nullable()
     .optional(),
 })
 

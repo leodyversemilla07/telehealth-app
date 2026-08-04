@@ -1,6 +1,5 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -30,22 +29,12 @@ import {
 import { FileText, Search, User, Users } from "lucide-react"
 import Link from "next/link"
 import { useState } from "react"
-import { apiClient } from "@/lib/api-client"
-
-interface Patient {
-  id: string
-  name: string | null
-  email: string
-  appointmentCount: number
-}
+import { useDoctorPatients } from "@/hooks/use-records"
 
 export default function DoctorPatientsPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
-  const { data: patients = [], isPending } = useQuery<Patient[]>({
-    queryKey: ["doctor-patients"],
-    queryFn: () => apiClient.get<Patient[]>("/records/doctor/patients"),
-  })
+  const { data: patients = [], isPending } = useDoctorPatients()
 
   const filtered = patients.filter((p) => {
     const term = searchQuery.toLowerCase()

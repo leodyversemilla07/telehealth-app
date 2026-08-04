@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { apiClient } from "@/lib/api-client"
+import { useTRPC } from "@/lib/trpc/client"
 
 export type MedicalDocumentType =
   | "LAB_RESULT"
@@ -30,21 +31,10 @@ export const documentKeys = {
 
 /** Documents uploaded for a specific appointment (patient or doctor view). */
 export function useAppointmentDocuments(appointmentId: string) {
+  const trpc = useTRPC()
   return useQuery({
-    queryKey: documentKeys.appointment(appointmentId),
-    queryFn: () =>
-      apiClient.get<MedicalDocumentDto[]>(
-        `/documents/appointment/${appointmentId}`,
-      ),
+    ...trpc.documents.byAppointment.queryOptions({ appointmentId }),
     enabled: !!appointmentId,
-  })
-}
-
-/** The signed-in patient's full document history. */
-export function useMyDocuments() {
-  return useQuery({
-    queryKey: documentKeys.mine(),
-    queryFn: () => apiClient.get<MedicalDocumentDto[]>("/documents/patient/me"),
   })
 }
 
@@ -54,6 +44,10 @@ interface UploadDocumentInput {
   file: File
 }
 
+/**
+ * Upload stays on REST (multipart form-data — tRPC does not handle file
+ * uploads; see DocumentsController).
+ */
 export function useUploadDocument() {
   const qc = useQueryClient()
   return useMutation({

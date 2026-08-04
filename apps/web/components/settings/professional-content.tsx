@@ -21,21 +21,7 @@ import { Clock, Save, Stethoscope, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { apiClient } from "@/lib/api-client"
-
-interface DoctorProfile {
-  id: string
-  specialty: string
-  prcLicenseNumber: string
-  prcLicenseExpiry: string
-  philhealthAccreditation: string | null
-  pdeaS2License: string | null
-  pdeaS2Expiry: string | null
-  bio: string | null
-  clinicAddress: string | null
-  pricePerVisit: number | string
-  isApproved: boolean
-}
+import { useTRPC } from "@/lib/trpc/client"
 
 const SPECIALTIES = [
   "General Practitioner",
@@ -63,6 +49,7 @@ const SPECIALTIES = [
 ]
 
 export function ProfessionalContent() {
+  const trpc = useTRPC()
   const queryClient = useQueryClient()
 
   const [specialty, setSpecialty] = useState("")
@@ -77,13 +64,14 @@ export function ProfessionalContent() {
   const [isApproved, setIsApproved] = useState(false)
 
   const { data: profile, error: profileError } = useQuery({
-    queryKey: ["doctor-profile"],
-    queryFn: () => apiClient.get<DoctorProfile>("/doctors/profile"),
+    ...trpc.doctors.myProfile.queryOptions(),
+    retry: false,
   })
 
   const needsRegistration =
     profileError &&
-    ((profileError as { statusCode?: number }).statusCode === 404 ||
+    ((profileError as { data?: { httpStatus?: number } }).data?.httpStatus ===
+      404 ||
       (profileError as { message?: string }).message?.includes("not found"))
 
   useEffect(() => {
@@ -113,18 +101,15 @@ export function ProfessionalContent() {
   }, [profile])
 
   const mutation = useMutation({
-    mutationFn: (data: {
-      specialty?: string
-      bio?: string
-      clinicAddress?: string
-      pricePerVisit?: string
-    }) => apiClient.patch("/doctors/profile", data),
+    ...trpc.doctors.updateMyProfile.mutationOptions(),
     onSuccess: () => {
       toast.success("Professional info saved!")
-      queryClient.invalidateQueries({ queryKey: ["doctor-profile"] })
+      queryClient.invalidateQueries({
+        queryKey: trpc.doctors.myProfile.queryKey(),
+      })
     },
-    onError: (err: { message?: string }) =>
-      toast.error(err.message || "Failed to save"),
+    onError: (err) =>
+      toast.error(err instanceof Error ? err.message : "Failed to save"),
   })
 
   function handleSubmit() {

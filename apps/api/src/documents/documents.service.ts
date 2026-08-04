@@ -9,6 +9,26 @@ import { PrismaService } from "../prisma/prisma.service"
 import { StorageService } from "../storage/storage.service"
 import type { DocumentType, UploadDocumentDto } from "./dto/upload-document.dto"
 
+/**
+ * Multer's uploaded-file shape, referenced structurally rather than via the
+ * global `Express.Multer.File` augmentation. The web client program imports
+ * this service module transitively through the generated tRPC router, and does
+ * not load `@types/multer`; a structural type keeps the signature usable there
+ * without dragging a new dependency into the web app.
+ */
+export interface UploadedFile {
+  fieldname: string
+  originalname: string
+  encoding: string
+  mimetype: string
+  size: number
+  destination?: string
+  filename?: string
+  path?: string
+  buffer: Buffer
+  stream?: NodeJS.ReadableStream
+}
+
 export type UserRole = "PATIENT" | "DOCTOR" | "ADMIN"
 
 /** Private docs are uploaded with the `medical` key family and streamed
@@ -61,7 +81,7 @@ export class DocumentsService {
     userId: string,
     role: UserRole,
     dto: UploadDocumentDto,
-    file: Express.Multer.File,
+    file: UploadedFile,
   ) {
     if (!file) {
       throw new BadRequestException("No file provided")

@@ -1,13 +1,13 @@
 import { Module } from "@nestjs/common"
 import { AuditLogsModule } from "../audit-logs/audit-logs.module"
 import { PrismaModule } from "../prisma/prisma.module"
-import { RecordsController } from "./records.controller"
+import { TrpcModule } from "../trpc/trpc.module"
+import { RecordsRouter } from "./records.router"
 import { RecordsService } from "./records.service"
 
 @Module({
-  imports: [PrismaModule, AuditLogsModule],
-  controllers: [RecordsController],
-  providers: [RecordsService],
+  imports: [PrismaModule, AuditLogsModule, TrpcModule],
+  providers: [RecordsService, RecordsRouter],
   exports: [RecordsService],
 })
 export class RecordsModule {}
