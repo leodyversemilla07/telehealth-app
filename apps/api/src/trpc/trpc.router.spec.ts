@@ -24,6 +24,8 @@ import { PatientsRouter } from "../patients/patients.router"
 import { PatientsService } from "../patients/patients.service"
 import { RecordsRouter } from "../records/records.router"
 import { RecordsService } from "../records/records.service"
+import { ReviewsRouter } from "../reviews/reviews.router"
+import { ReviewsService } from "../reviews/reviews.service"
 import type { BaseTrpcContext } from "./context.types"
 import { TrpcModule } from "./trpc.module"
 
@@ -86,6 +88,7 @@ describe("tRPC AppRouter wiring", () => {
         DocumentsRouter,
         NotificationsRouter,
         PatientsRouter,
+        ReviewsRouter,
         {
           provide: DoctorsService,
           useValue: {
@@ -116,6 +119,7 @@ describe("tRPC AppRouter wiring", () => {
         },
         { provide: DocumentsService, useValue: {} },
         { provide: NotificationsService, useValue: {} },
+        { provide: ReviewsService, useValue: {} },
         {
           provide: PatientsService,
           useValue: {
@@ -149,7 +153,7 @@ describe("tRPC AppRouter wiring", () => {
     return Object.keys(record[routerName]).sort()
   }
 
-  it("registers all seven feature routers", () => {
+  it("registers all eight feature routers", () => {
     expect(routerNames()).toEqual(
       [
         "appointments",
@@ -159,11 +163,12 @@ describe("tRPC AppRouter wiring", () => {
         "notifications",
         "patients",
         "records",
+        "reviews",
       ].sort(),
     )
   })
 
-  it("registers the full procedure set per router (36 total)", () => {
+  it("registers the full procedure set per router (40 total)", () => {
     expect(procedureNames("doctors")).toEqual(
       ["byId", "list", "myProfile", "register", "updateMyProfile"].sort(),
     )
@@ -212,6 +217,9 @@ describe("tRPC AppRouter wiring", () => {
         "unreadCount",
         "updatePreferences",
       ].sort(),
+    )
+    expect(procedureNames("reviews")).toEqual(
+      ["byDoctor", "create", "hasReviewed", "myReviews"].sort(),
     )
   })
 

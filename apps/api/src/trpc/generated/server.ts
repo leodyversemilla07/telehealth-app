@@ -21,6 +21,7 @@ import { documentsByAppointmentInput } from "../../documents/documents.contracts
 import { notificationListInput, notificationPreferencesInput, notificationIdInput } from "../../notifications/notifications.contracts";
 import { updatePatientProfileInput } from "../../patients/patients.contracts";
 import { createConsultationInput, byAppointmentInput, patientIdInput } from "../../records/records.contracts";
+import { createReviewInput, reviewsByDoctorInput, reviewCheckInput } from "../../reviews/reviews.contracts";
 import type { AppointmentsRouter } from "../../appointments/appointments.router";
 import type { AvailabilityRouter } from "../../availability/availability.router";
 import type { DoctorsRouter } from "../../doctors/doctors.router";
@@ -28,6 +29,7 @@ import type { DocumentsRouter } from "../../documents/documents.router";
 import type { NotificationsRouter } from "../../notifications/notifications.router";
 import type { PatientsRouter } from "../../patients/patients.router";
 import type { RecordsRouter } from "../../records/records.router";
+import type { ReviewsRouter } from "../../reviews/reviews.router";
 
 const appRouter = t.router({
   appointments: t.router({
@@ -143,6 +145,19 @@ const appRouter = t.router({
     doctorPatientRecords: publicProcedure
       .input(patientIdInput)
       .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<RecordsRouter["doctorPatientRecords"]>>)
+    }),
+  reviews: t.router({
+    create: publicProcedure
+      .input(createReviewInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ReviewsRouter["create"]>>),
+    byDoctor: publicProcedure
+      .input(reviewsByDoctorInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ReviewsRouter["byDoctor"]>>),
+    myReviews: publicProcedure
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ReviewsRouter["myReviews"]>>),
+    hasReviewed: publicProcedure
+      .input(reviewCheckInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<ReviewsRouter["hasReviewed"]>>)
     })
 });
 

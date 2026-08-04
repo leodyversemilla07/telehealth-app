@@ -1,57 +1,32 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { apiClient } from "@/lib/api-client"
+import { useTRPC } from "@/lib/trpc/client"
 
-export interface Review {
-  id: string
-  patientId: string
-  doctorId: string
-  appointmentId: string
-  rating: number
-  comment: string | null
-  createdAt: string
-  patient: {
-    id: string
-    name: string | null
-    image: string | null
-  }
-}
-
-const reviewKeys = {
-  all: ["reviews"] as const,
-  patient: () => [...reviewKeys.all, "patient"] as const,
-  check: (appointmentId: string) =>
-    [...reviewKeys.all, "check", appointmentId] as const,
-}
-
+/** Check whether the current patient already reviewed an appointment. */
 export function useCheckReview(appointmentId: string) {
+  const trpc = useTRPC()
   return useQuery({
-    queryKey: reviewKeys.check(appointmentId),
-    queryFn: () =>
-      apiClient.get<{ hasReviewed: boolean; review: Review | null }>(
-        `/reviews/check/${appointmentId}`,
-      ),
+    ...trpc.reviews.hasReviewed.queryOptions({ appointmentId }),
     enabled: !!appointmentId,
   })
 }
 
 export function useCreateReview() {
+  const trpc = useTRPC()
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: {
-      appointmentId: string
-      rating: number
-      comment?: string
-    }) =>
-      apiClient.post<Review>(`/reviews/${data.appointmentId}`, {
-        rating: data.rating,
-        comment: data.comment,
-      }),
-    onSuccess: (_data) => {
-      queryClient.invalidateQueries({ queryKey: reviewKeys.patient() })
-      queryClient.invalidateQueries({ queryKey: reviewKeys.all })
+    ...trpc.reviews.create.mutationOptions(),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.reviews.myReviews.queryKey(),
+      })
+      queryClient.invalidateQueries({
+        queryKey: trpc.reviews.hasReviewed.queryKey({
+          appointmentId: variables.appointmentId,
+        }),
+      })
     },
   })
 }
