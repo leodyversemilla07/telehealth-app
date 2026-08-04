@@ -90,22 +90,25 @@ export default function PatientAppointmentsPage() {
     updateOptimistic(id)
     toast.loading("Cancelling appointment...", { id: "cancel-appt" })
 
-    cancelMutation.mutate(id, {
-      onSuccess: () => {
-        toast.success("Appointment successfully cancelled", {
-          id: "cancel-appt",
-        })
+    cancelMutation.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          toast.success("Appointment successfully cancelled", {
+            id: "cancel-appt",
+          })
+        },
+        onError: (err) => {
+          // Refetch to revert optimistic state
+          queryClient.invalidateQueries({
+            queryKey: appointmentKeys.lists(),
+          })
+          toast.error(err.message || "Failed to cancel appointment", {
+            id: "cancel-appt",
+          })
+        },
       },
-      onError: (err: Error) => {
-        // Refetch to revert optimistic state
-        queryClient.invalidateQueries({
-          queryKey: appointmentKeys.lists(),
-        })
-        toast.error(err.message || "Failed to cancel appointment", {
-          id: "cancel-appt",
-        })
-      },
-    })
+    )
   }
 
   // Get status badge colors

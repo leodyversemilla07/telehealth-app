@@ -21,6 +21,34 @@ vi.mock("next/navigation", () => ({
   Link: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
 
+vi.mock("@/lib/trpc/client", () => ({
+  useTRPC: () => ({
+    doctors: {
+      list: {
+        queryOptions: () => ({
+          queryKey: ["doctors", "list"],
+          queryFn: async () => MOCK_DOCTORS,
+        }),
+      },
+    },
+    availability: {
+      getAvailableSlots: {
+        queryOptions: () => ({
+          queryKey: ["availability", "slots"],
+          queryFn: async () => [],
+        }),
+      },
+    },
+    appointments: {
+      create: {
+        mutationOptions: () => ({
+          mutationFn: async () => ({ id: "appt-1" }),
+        }),
+      },
+    },
+  }),
+}))
+
 const MOCK_DOCTORS = [
   {
     id: "d1",

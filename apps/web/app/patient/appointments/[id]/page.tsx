@@ -197,7 +197,7 @@ export default function AppointmentDetailPage() {
             )
           }
         },
-        onError: (err: Error) => {
+        onError: (err) => {
           toast.dismiss("video-join")
           toast.error(
             err.message ||
@@ -213,18 +213,21 @@ export default function AppointmentDetailPage() {
     setShowCancelDialog(false)
     toast.loading("Processing cancellation...", { id: "cancel-appt" })
 
-    cancelMutation.mutate(id, {
-      onSuccess: () => {
-        toast.success("Appointment successfully cancelled", {
-          id: "cancel-appt",
-        })
+    cancelMutation.mutate(
+      { id },
+      {
+        onSuccess: () => {
+          toast.success("Appointment successfully cancelled", {
+            id: "cancel-appt",
+          })
+        },
+        onError: (err) => {
+          toast.error(err.message || "Failed to cancel appointment", {
+            id: "cancel-appt",
+          })
+        },
       },
-      onError: (err: Error) => {
-        toast.error(err.message || "Failed to cancel appointment", {
-          id: "cancel-appt",
-        })
-      },
-    })
+    )
   }
 
   // Handle Submit Review
@@ -282,7 +285,7 @@ export default function AppointmentDetailPage() {
           setRescheduleSlot(null)
           refetch()
         },
-        onError: (err: Error) => {
+        onError: (err) => {
           toast.error(err.message || "Failed to reschedule", {
             id: "reschedule-appt",
           })

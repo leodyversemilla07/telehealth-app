@@ -2,6 +2,19 @@
 
 import { useMutation } from "@tanstack/react-query"
 import type { AvailableSlotDto, DoctorProfileDto } from "@workspace/shared"
+
+/**
+ * The subset of a doctor record the booking modal needs. The tRPC doctor list
+ * item (PHT-formatted dates etc.) satisfies this shape without dragging the
+ * full DoctorProfileDto (which has a different prcLicenseExpiry type) into
+ * the booking state.
+ */
+type DoctorForBooking = {
+  id: string
+  specialty: string
+  user: { name: string | null }
+}
+
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -87,7 +100,7 @@ export default function BookAppointmentPage() {
   const [sort, setSort] = useState<"name" | "price">("name")
 
   // Booking Modal States
-  const [selectedDoctor, setSelectedDoctor] = useState<DoctorProfileDto | null>(
+  const [selectedDoctor, setSelectedDoctor] = useState<DoctorForBooking | null>(
     null,
   )
   const [bookingDate, setBookingDate] = useState<string>(
@@ -136,7 +149,7 @@ export default function BookAppointmentPage() {
       setShowSymptomDialog(false)
       setSymptomText("")
     },
-    onError: (err: Error) => {
+    onError: (err) => {
       toast.error(err.message || "Failed to analyze symptoms")
     },
   })
@@ -153,7 +166,7 @@ export default function BookAppointmentPage() {
   const bookMutation = useBookAppointment()
 
   // Handle Booking Trigger
-  const handleOpenBooking = (doctor: DoctorProfileDto) => {
+  const handleOpenBooking = (doctor: DoctorForBooking) => {
     setSelectedDoctor(doctor)
     setBookingDate(new Date().toISOString().split("T")[0] ?? "")
     setSelectedSlot(null)
@@ -195,7 +208,7 @@ export default function BookAppointmentPage() {
           setSelectedDoctor(null)
           router.push("/patient/appointments")
         },
-        onError: (err: Error) => {
+        onError: (err) => {
           toast.error(
             err.message || "Failed to book appointment. Slot may be taken.",
           )

@@ -38,6 +38,7 @@ const DOCTOR_INCLUDE = {
     id: true,
     specialty: true,
     pricePerVisit: true,
+    clinicAddress: true,
     user: { select: { id: true, name: true, email: true, image: true } },
   },
 }

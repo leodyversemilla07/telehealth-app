@@ -1,23 +1,8 @@
 "use client"
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import type {
-  AppointmentDto,
-  AppointmentStatus,
-  AvailableSlotDto,
-  CreateAppointmentDto,
-  RescheduleAppointmentDto,
-} from "@workspace/shared"
-import { apiClient } from "@/lib/api-client"
-
-// ─── Types ────────────────────────────────────────────────────
-
-export interface PaginatedResponse<T> {
-  items: T[]
-  total: number
-  limit: number
-  offset: number
-}
+import type { AppointmentDto } from "@workspace/shared"
+import { useTRPC } from "@/lib/trpc/client"
 
 // ─── Query Keys ──────────────────────────────────────────────
 
@@ -32,38 +17,35 @@ export const appointmentKeys = {
 // ─── Appointments ────────────────────────────────────────────
 
 export function useMyAppointments(limit?: number, offset?: number) {
+  const trpc = useTRPC()
   return useQuery({
-    queryKey: [...appointmentKeys.lists(), { limit, offset }],
-    queryFn: () =>
-      apiClient.get<PaginatedResponse<AppointmentDto>>("/appointments", {
-        params: { limit, offset },
-      }),
+    ...trpc.appointments.findMine.queryOptions({ limit, offset }),
     select: (data) => ({
       ...data,
-      appointments: data.items,
+      // The tRPC output is the raw Prisma shape; the pages consume the
+      // shared AppointmentDto contract (what the REST client typed too).
+      appointments: data.items as unknown as AppointmentDto[],
     }),
   })
 }
 
 export function useAppointment(id: string) {
+  const trpc = useTRPC()
   return useQuery({
-    queryKey: appointmentKeys.detail(id),
-    queryFn: () => apiClient.get<AppointmentDto>(`/appointments/${id}`),
+    ...trpc.appointments.findOne.queryOptions({ id }),
     enabled: !!id,
     staleTime: 0,
     refetchOnMount: true,
+    select: (data) => data as unknown as AppointmentDto,
   })
 }
 
 export function useBookAppointment() {
+  const trpc = useTRPC()
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (dto: CreateAppointmentDto) =>
-      apiClient.post<AppointmentDto, CreateAppointmentDto>(
-        "/appointments",
-        dto,
-      ),
+    ...trpc.appointments.create.mutationOptions(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: appointmentKeys.lists() })
     },
@@ -71,14 +53,11 @@ export function useBookAppointment() {
 }
 
 export function useUpdateAppointmentStatus() {
+  const trpc = useTRPC()
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, status }: { id: string; status: AppointmentStatus }) =>
-      apiClient.patch<AppointmentDto, { status: AppointmentStatus }>(
-        `/appointments/${id}/status`,
-        { status },
-      ),
+    ...trpc.appointments.updateStatus.mutationOptions(),
     onSuccess: (_data, { id }) => {
       queryClient.invalidateQueries({ queryKey: appointmentKeys.lists() })
       queryClient.invalidateQueries({ queryKey: appointmentKeys.detail(id) })
@@ -87,27 +66,11 @@ export function useUpdateAppointmentStatus() {
 }
 
 export function useCancelAppointment() {
+  const trpc = useTRPC()
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (id: string) =>
-      apiClient.patch<AppointmentDto>(`/appointments/${id}/cancel`),
-    onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: appointmentKeys.lists() })
-      queryClient.invalidateQueries({ queryKey: appointmentKeys.detail(id) })
-    },
-  })
-}
-
-export function useRescheduleAppointment() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ id, ...dto }: RescheduleAppointmentDto & { id: string }) =>
-      apiClient.patch<AppointmentDto, RescheduleAppointmentDto>(
-        `/appointments/${id}/reschedule`,
-        dto,
-      ),
+    ...trpc.appointments.cancel.mutationOptions(),
     onSuccess: (_data, { id }) => {
       queryClient.invalidateQueries({ queryKey: appointmentKeys.lists() })
       queryClient.invalidateQueries({ queryKey: appointmentKeys.detail(id) })
@@ -115,15 +78,25 @@ export function useRescheduleAppointment() {
   })
 }
 
-// ─── Availability ────────────────────────────────────────────
+export function useRescheduleAppointment() {
+  const trpc = useTRPC()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    ...trpc.appointments.reschedule.mutationOptions(),
+    onSuccess: (_data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: appointmentKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: appointmentKeys.detail(id) })
+    },
+  })
+}
+
+// ─── Availability (slots — served via the availability router) ────────
 
 export function useAvailableSlots(doctorId: string, date: string) {
+  const trpc = useTRPC()
   return useQuery({
-    queryKey: appointmentKeys.slots(doctorId, date),
-    queryFn: () =>
-      apiClient.get<AvailableSlotDto[]>(`/availability/${doctorId}/slots`, {
-        params: { date },
-      }),
+    ...trpc.availability.getAvailableSlots.queryOptions({ doctorId, date }),
     enabled: !!doctorId && !!date,
   })
 }

@@ -13,10 +13,63 @@ import { z } from "zod";
 
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
-import { searchDoctorsInput, doctorIdInput, registerDoctorInput, updateDoctorProfileInput } from "../../doctors/doctors.contracts";
+import { createAppointmentInput, paginationInput, appointmentIdInput, updateAppointmentStatusInput, rescheduleAppointmentInput } from "../../appointments/appointments.contracts";
+import { setAvailabilityInput, createTimeOffInput, timeOffIdInput, availableSlotsInput } from "../../availability/availability.contracts";
+import { doctorIdInput, searchDoctorsInput, registerDoctorInput, updateDoctorProfileInput } from "../../doctors/doctors.contracts";
+import type { AppointmentsRouter } from "../../appointments/appointments.router";
+import type { AvailabilityRouter } from "../../availability/availability.router";
 import type { DoctorsRouter } from "../../doctors/doctors.router";
 
 const appRouter = t.router({
+  appointments: t.router({
+    create: publicProcedure
+      .input(createAppointmentInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AppointmentsRouter["create"]>>),
+    findMine: publicProcedure
+      .input(paginationInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AppointmentsRouter["findMine"]>>),
+    findUpcoming: publicProcedure
+      .input(paginationInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AppointmentsRouter["findUpcoming"]>>),
+    findHistory: publicProcedure
+      .input(paginationInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AppointmentsRouter["findHistory"]>>),
+    findOne: publicProcedure
+      .input(appointmentIdInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AppointmentsRouter["findOne"]>>),
+    updateStatus: publicProcedure
+      .input(updateAppointmentStatusInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AppointmentsRouter["updateStatus"]>>),
+    cancel: publicProcedure
+      .input(appointmentIdInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AppointmentsRouter["cancel"]>>),
+    reschedule: publicProcedure
+      .input(rescheduleAppointmentInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AppointmentsRouter["reschedule"]>>),
+    sendReminders: publicProcedure
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AppointmentsRouter["sendReminders"]>>)
+    }),
+  availability: t.router({
+    setAvailability: publicProcedure
+      .input(setAvailabilityInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AvailabilityRouter["setAvailability"]>>),
+    getMyAvailability: publicProcedure
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AvailabilityRouter["getMyAvailability"]>>),
+    addTimeOff: publicProcedure
+      .input(createTimeOffInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AvailabilityRouter["addTimeOff"]>>),
+    getTimeOff: publicProcedure
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AvailabilityRouter["getTimeOff"]>>),
+    deleteTimeOff: publicProcedure
+      .input(timeOffIdInput)
+      .mutation(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AvailabilityRouter["deleteTimeOff"]>>),
+    getAvailableSlots: publicProcedure
+      .input(availableSlotsInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AvailabilityRouter["getAvailableSlots"]>>),
+    getSchedule: publicProcedure
+      .input(doctorIdInput)
+      .query(async () => "PLACEHOLDER_DO_NOT_REMOVE" as unknown as Awaited<ReturnType<AvailabilityRouter["getSchedule"]>>)
+    }),
   doctors: t.router({
     list: publicProcedure
       .input(searchDoctorsInput)

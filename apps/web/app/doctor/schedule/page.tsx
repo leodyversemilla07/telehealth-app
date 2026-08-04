@@ -227,7 +227,7 @@ export default function DoctorSchedulePage() {
         })
         refetchSchedule()
       },
-      onError: (err: Error) => {
+      onError: (err) => {
         toast.error(err.message || "Failed to update availability schedule.", {
           id: "save-sched",
         })
@@ -266,7 +266,7 @@ export default function DoctorSchedulePage() {
           setToReason("")
           refetchTimeOff()
         },
-        onError: (err: Error) => {
+        onError: (err) => {
           toast.error(err.message || "Failed to register time off.", {
             id: "add-to",
           })
@@ -282,17 +282,20 @@ export default function DoctorSchedulePage() {
     setDeleteTimeOffId(null)
     toast.loading("Removing time block...", { id: "del-to" })
 
-    deleteTimeOffMutation.mutate(deleteTimeOffId, {
-      onSuccess: () => {
-        toast.success("Time block removed successfully!", { id: "del-to" })
-        refetchTimeOff()
+    deleteTimeOffMutation.mutate(
+      { id: deleteTimeOffId },
+      {
+        onSuccess: () => {
+          toast.success("Time block removed successfully!", { id: "del-to" })
+          refetchTimeOff()
+        },
+        onError: (err) => {
+          toast.error(err.message || "Failed to remove time block.", {
+            id: "del-to",
+          })
+        },
       },
-      onError: (err: Error) => {
-        toast.error(err.message || "Failed to remove time block.", {
-          id: "del-to",
-        })
-      },
-    })
+    )
   }
 
   if (scheduleLoading) {

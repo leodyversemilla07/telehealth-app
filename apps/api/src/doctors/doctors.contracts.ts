@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { isIsoDate } from "../trpc/contracts.util"
 
 /**
  * Zod contracts for the doctors router — the tRPC equivalent of the
@@ -7,9 +8,6 @@ import { z } from "zod"
  */
 
 const pricePerVisitPattern = /^\d+(\.\d{1,2})?$/
-
-export const isIsoDate = (value: string): boolean =>
-  !Number.isNaN(Date.parse(value))
 
 export const doctorIdInput = z.object({
   id: z.string().min(1),

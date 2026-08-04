@@ -88,19 +88,22 @@ export default function DoctorConsultationsPage() {
     setCancelDialogOpen(false)
     toast.loading("Cancelling consultation...", { id: "cancel-appt" })
 
-    cancelMutation.mutate(appointmentToCancel.id, {
-      onSuccess: () => {
-        toast.success("Consultation successfully cancelled", {
-          id: "cancel-appt",
-        })
-        setAppointmentToCancel(null)
+    cancelMutation.mutate(
+      { id: appointmentToCancel.id },
+      {
+        onSuccess: () => {
+          toast.success("Consultation successfully cancelled", {
+            id: "cancel-appt",
+          })
+          setAppointmentToCancel(null)
+        },
+        onError: (err) => {
+          toast.error(err.message || "Failed to cancel consultation", {
+            id: "cancel-appt",
+          })
+        },
       },
-      onError: (err: Error) => {
-        toast.error(err.message || "Failed to cancel consultation", {
-          id: "cancel-appt",
-        })
-      },
-    })
+    )
   }
 
   const handleConfirm = (id: string) => {
@@ -114,7 +117,7 @@ export default function DoctorConsultationsPage() {
             id: "confirm-appt",
           })
         },
-        onError: (err: Error) => {
+        onError: (err) => {
           toast.error(err.message || "Failed to confirm appointment", {
             id: "confirm-appt",
           })
@@ -133,7 +136,7 @@ export default function DoctorConsultationsPage() {
           toast.success("Consultation started!", { id: "start-appt" })
           router.push(`/doctor/consultations/${id}`)
         },
-        onError: (err: Error) => {
+        onError: (err) => {
           toast.error(err.message || "Failed to start consultation", {
             id: "start-appt",
           })
