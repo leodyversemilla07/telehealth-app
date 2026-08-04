@@ -9,8 +9,11 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Save } from "lucide-react"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
-import { apiClient } from "@/lib/api-client"
+import { useTRPC } from "@/lib/trpc/client"
 
+// JsonValue `medicalHistory` (recursive type) blows up deep inference, so the
+// tRPC result is shaped into this shallow DTO the form reads (see also
+// hooks/use-records select-casts).
 interface PatientProfile {
   weight: number | null
   height: number | null
@@ -19,6 +22,7 @@ interface PatientProfile {
 
 export function HealthContent() {
   const queryClient = useQueryClient()
+  const trpc = useTRPC()
 
   const [weight, setWeight] = useState("")
   const [height, setHeight] = useState("")
@@ -26,10 +30,10 @@ export function HealthContent() {
   const [conditions, setConditions] = useState("")
   const [medications, setMedications] = useState("")
 
-  const { data: profile } = useQuery({
-    queryKey: ["patient-profile"],
-    queryFn: () => apiClient.get<PatientProfile>("/patients/me"),
+  const { data: profileRaw } = useQuery({
+    ...trpc.patients.me.queryOptions(),
   })
+  const profile = profileRaw as unknown as PatientProfile | undefined
 
   useEffect(() => {
     if (profile) {
@@ -49,21 +53,20 @@ export function HealthContent() {
   }, [profile])
 
   const mutation = useMutation({
-    mutationFn: (data: {
-      weight?: number
-      height?: number
-      medicalHistory?: Record<string, unknown>
-    }) => apiClient.patch("/patients/me", data),
+    ...trpc.patients.updateMe.mutationOptions(),
     onSuccess: () => {
       toast.success("Health info saved!")
-      queryClient.invalidateQueries({ queryKey: ["patient-profile"] })
+      queryClient.invalidateQueries({ queryKey: trpc.patients.me.queryKey() })
     },
-    onError: (err: { message?: string }) =>
-      toast.error(err.message || "Failed"),
+    onError: (err) => toast.error(err.message || "Failed"),
   })
 
   function handleSubmit() {
-    const data: Record<string, unknown> = {}
+    const data: {
+      weight?: number
+      height?: number
+      medicalHistory?: Record<string, unknown>
+    } = {}
 
     if (weight) {
       const parsed = Number.parseFloat(weight)

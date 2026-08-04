@@ -18,6 +18,8 @@ import { DoctorsRouter } from "../doctors/doctors.router"
 import { DoctorsService } from "../doctors/doctors.service"
 import { DocumentsRouter } from "../documents/documents.router"
 import { DocumentsService } from "../documents/documents.service"
+import { PatientsRouter } from "../patients/patients.router"
+import { PatientsService } from "../patients/patients.service"
 import { RecordsRouter } from "../records/records.router"
 import { RecordsService } from "../records/records.service"
 import type { BaseTrpcContext } from "./context.types"
@@ -80,6 +82,7 @@ describe("tRPC AppRouter wiring", () => {
         AvailabilityRouter,
         RecordsRouter,
         DocumentsRouter,
+        PatientsRouter,
         {
           provide: DoctorsService,
           useValue: {
@@ -109,6 +112,13 @@ describe("tRPC AppRouter wiring", () => {
           },
         },
         { provide: DocumentsService, useValue: {} },
+        {
+          provide: PatientsService,
+          useValue: {
+            findByUserId: jest.fn(),
+            updateProfile: jest.fn(),
+          },
+        },
       ],
     }).compile()
 
@@ -135,19 +145,20 @@ describe("tRPC AppRouter wiring", () => {
     return Object.keys(record[routerName]).sort()
   }
 
-  it("registers all five feature routers", () => {
+  it("registers all six feature routers", () => {
     expect(routerNames()).toEqual(
       [
         "appointments",
         "availability",
         "doctors",
         "documents",
+        "patients",
         "records",
       ].sort(),
     )
   })
 
-  it("registers the full procedure set per router (28 total)", () => {
+  it("registers the full procedure set per router (30 total)", () => {
     expect(procedureNames("doctors")).toEqual(
       ["byId", "list", "myProfile", "register", "updateMyProfile"].sort(),
     )
@@ -186,6 +197,7 @@ describe("tRPC AppRouter wiring", () => {
       ].sort(),
     )
     expect(procedureNames("documents")).toEqual(["byAppointment"])
+    expect(procedureNames("patients")).toEqual(["me", "updateMe"].sort())
   })
 
   it("marks the right procedures as mutations vs queries", () => {

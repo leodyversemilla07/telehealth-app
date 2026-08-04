@@ -35,18 +35,16 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useMyAppointments } from "@/hooks/use-appointments"
 import { usePatientPrescriptions, usePatientRecords } from "@/hooks/use-records"
-import { apiClient } from "@/lib/api-client"
 import { toDate } from "@/lib/dates"
+import { useTRPC } from "@/lib/trpc/client"
 
 export default function PatientDashboardPage() {
   const router = useRouter()
+  const trpc = useTRPC()
 
-  const { data: profile, isPending: profileLoading } = useQuery<{
-    user: { name: string | null }
-  }>({
-    queryKey: ["patient-profile"],
-    queryFn: () => apiClient.get("/patients/me"),
-  })
+  const { data: profile, isPending: profileLoading } = useQuery(
+    trpc.patients.me.queryOptions(),
+  )
 
   const { data: appointmentsData, isPending: apptsLoading } =
     useMyAppointments()

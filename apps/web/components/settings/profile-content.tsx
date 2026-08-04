@@ -23,6 +23,7 @@ import { useFormDirty, useUnsavedChanges } from "@/hooks/use-unsaved-changes"
 import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
 import { toDate } from "@/lib/dates"
+import { useTRPC } from "@/lib/trpc/client"
 
 const AVATAR_PRESETS = [
   {
@@ -45,16 +46,9 @@ const AVATAR_PRESETS = [
   },
 ]
 
-interface PatientProfile {
-  dob: string | null
-  sex: string | null
-  phone: string | null
-  address: string | null
-  philhealthNumber: string | null
-}
-
 export function ProfileContent() {
   const queryClient = useQueryClient()
+  const trpc = useTRPC()
   const { data: session, refetch } = authClient.useSession()
   const [firstName, setFirstName] = useState("")
   const [middleName, setMiddleName] = useState("")
@@ -87,8 +81,14 @@ export function ProfileContent() {
   useUnsavedChanges(isDirty)
 
   const { data: profile } = useQuery({
-    queryKey: ["patient-profile"],
-    queryFn: () => apiClient.get<PatientProfile>("/patients/me"),
+    ...trpc.patients.me.queryOptions(),
+    select: (data) => ({
+      dob: data.dob,
+      sex: data.sex,
+      phone: data.phone,
+      address: data.address,
+      philhealthNumber: data.philhealthNumber,
+    }),
   })
 
   useEffect(() => {
@@ -202,13 +202,7 @@ export function ProfileContent() {
   })
 
   const patientMutation = useMutation({
-    mutationFn: (data: {
-      dob?: string
-      sex?: string
-      phone?: string
-      address?: string
-      philhealthNumber?: string
-    }) => apiClient.patch("/patients/me", data),
+    ...trpc.patients.updateMe.mutationOptions(),
     onSuccess: () => {
       toast.success("Personal details saved!")
       setInitialValues((prev) => ({
@@ -219,10 +213,9 @@ export function ProfileContent() {
         address,
         philhealthNumber,
       }))
-      queryClient.invalidateQueries({ queryKey: ["patient-profile"] })
+      queryClient.invalidateQueries({ queryKey: trpc.patients.me.queryKey() })
     },
-    onError: (err: { message?: string }) =>
-      toast.error(err.message || "Failed"),
+    onError: (err) => toast.error(err.message || "Failed"),
   })
 
   function handleUpload(file: File) {
