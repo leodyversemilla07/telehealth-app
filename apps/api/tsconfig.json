@@ -12,8 +12,7 @@
     "tsBuildInfoFile": "./dist/.tsbuildinfo",
     "rootDir": "./src",
     "paths": {
-      "@/*": ["./src/*"],
-      "@generated/*": ["./src/generated/*", "./dist/generated/*"]
+      "@/*": ["./src/*"]
     },
     "incremental": true,
     "strictNullChecks": true,

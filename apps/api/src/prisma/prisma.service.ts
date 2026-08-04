@@ -3,7 +3,7 @@ import {
   type OnModuleDestroy,
   type OnModuleInit,
 } from "@nestjs/common"
-import { prisma } from "./prisma-client"
+import { prisma } from "@telehealth/db"
 
 /**
  * NestJS wrapper around the shared PrismaClient singleton.

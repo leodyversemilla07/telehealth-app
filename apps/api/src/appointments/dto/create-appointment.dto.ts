@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger"
+import { VisitType } from "@telehealth/db"
 import {
   IsDateString,
   IsEnum,
@@ -6,7 +7,6 @@ import {
   IsString,
   MaxLength,
 } from "class-validator"
-import { VisitType } from "../../generated/prisma/client.js"
 
 export class CreateAppointmentDto {
   @ApiProperty({ description: "The unique ID of the doctor profile" })

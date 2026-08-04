@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
+import { AppointmentStatus } from "@telehealth/db"
 import { IsEnum } from "class-validator"
-import { AppointmentStatus } from "../../generated/prisma/client.js"
 
 export class UpdateAppointmentStatusDto {
   @ApiProperty({

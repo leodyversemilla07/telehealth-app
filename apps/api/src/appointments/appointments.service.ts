@@ -8,11 +8,11 @@ import {
   UnprocessableEntityException,
 } from "@nestjs/common"
 import { Cron, CronExpression } from "@nestjs/schedule"
+import type { AppointmentStatus } from "@telehealth/db"
 import { formatPHTFull } from "@workspace/shared"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
 import { ERROR_CODES } from "../common/errors/error-codes"
 import { EmailService } from "../common/services/email.service"
-import type { AppointmentStatus } from "../generated/prisma/client.js"
 import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
 import type { CreateAppointmentDto, RescheduleAppointmentDto } from "./dto"

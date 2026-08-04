@@ -79,11 +79,16 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
 ## Database package (`packages/db`)
 
 - Schema + migrations + seed live in `packages/db/prisma/` (single source of truth).
-- The generated client is emitted into `apps/api/src/generated/prisma` (schema `generator`
-  `output` path), so every existing API import and the server audit scripts keep working.
+- **Docs-standard monorepo layout**: the generated client lives in
+  `packages/db/generated/prisma` and is re-exported through the package
+  boundary. Apps import `import { prisma } from "@telehealth/db"` — the API
+  no longer imports the raw generated path. The package builds to `dist/`
+  (Compiled Packages strategy; the API builds with tsc, not a bundler).
+  Turbo `build.dependsOn: ["^build"]` compiles `@telehealth/db` before api.
 - Root scripts: `pnpm migrate`, `pnpm db:reset`, `pnpm db:studio`, `pnpm seed`.
 - Prisma CLI looks for `.env` in `packages/db/` — source `apps/api/.env` (or create a
   `packages/db/.env`) before running `migrate`/`studio`/`seed`.
+- On the server, remove the now-unused legacy client (`rm -rf apps/api/src/generated`)
 
 ## Auth package (`packages/auth`)
 

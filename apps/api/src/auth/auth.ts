@@ -6,8 +6,8 @@
 // first line) — better-auth's module graph snapshots NODE_ENV and the auth
 // secret at import time.
 import { createAuth } from "@telehealth/auth"
+import { prisma } from "@telehealth/db"
 import { sendEmail, sendSecurityAlertEmail } from "../common/utils/email"
-import { prisma } from "../prisma/prisma-client"
 
 export const auth = createAuth({
   prisma,

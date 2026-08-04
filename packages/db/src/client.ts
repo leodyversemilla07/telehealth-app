@@ -25,7 +25,7 @@ const prismaPgAdapter = new PrismaPg({
 })
 
 /**
- * Single shared PrismaClient instance.
+ * Single shared PrismaClient instance (docs-standard singleton export).
  * Prisma docs: "Create one instance of PrismaClient and re-use it across
  * your application." Each instance creates its own connection pool, so
  * multiple instances can exhaust the database connection limit.

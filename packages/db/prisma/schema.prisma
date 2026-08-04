@@ -1,9 +1,10 @@
 generator client {
   provider = "prisma-client"
-  // Generated client stays inside the API app (all API/script imports and
-  // server audit scripts reference apps/api/src/generated/prisma). Schema +
-  // migrations live in packages/db — the single source of truth.
-  output = "../../../apps/api/src/generated/prisma"
+  // Docs-standard monorepo layout (prisma.io/docs/guides/deployment/turborepo):
+  // the generated client lives INSIDE the database package and is re-exported
+  // through the package boundary (@telehealth/db). Apps import
+  // `import { prisma } from "@telehealth/db"` — never the generated path.
+  output = "../generated/prisma"
   moduleFormat = "cjs"
 }
 

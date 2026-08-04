@@ -22,7 +22,7 @@ if (process.env.NODE_ENV === "production") {
 
 import { PrismaPg } from "@prisma/adapter-pg"
 import { hashPassword } from "better-auth/crypto"
-import { PrismaClient } from "../../../apps/api/src/generated/prisma/client.js"
+import { PrismaClient } from "../generated/prisma/client.js"
 
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) throw new Error("DATABASE_URL is not set")
