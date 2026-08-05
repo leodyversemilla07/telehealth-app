@@ -1,8 +1,10 @@
-// Load .env before ANY other module: AppModule (via @thallesp/nestjs-better-auth)
-// pulls better-auth's module graph in first, which caches NODE_ENV at module
-// scope — if .env isn't loaded yet, isProduction is frozen false and the auth
-// rate limiter silently stays disabled.
-import "dotenv/config"
+// Load the workspace-root .env before ANY other module: AppModule (via
+// @thallesp/nestjs-better-auth) pulls better-auth's module graph in first,
+// which caches NODE_ENV at module scope — if env isn't loaded yet, isProduction
+// is frozen false and the auth rate limiter silently stays disabled. The load
+// entry walks up to the repo root and merges .env + .env.local into process.env
+// at import time, so it must be the first import in this file.
+import "@telehealth/env/load"
 import { existsSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
 import { Logger, ValidationPipe } from "@nestjs/common"

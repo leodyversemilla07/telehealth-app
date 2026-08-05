@@ -1,0 +1,30 @@
+{
+  "name": "@telehealth/env",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Single source for environment variables: loads the workspace-root .env (+ .env.local override) into process.env before any consumer reads it.",
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "default": "./dist/src/index.js"
+    },
+    "./load": {
+      "types": "./dist/src/load.d.ts",
+      "default": "./dist/src/load.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@workspace/typescript-config": "workspace:*",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.10"
+  }
+}

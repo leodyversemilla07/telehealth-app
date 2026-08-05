@@ -11,7 +11,7 @@ let resendClient: Resend | null = null
  * Resend is our single email provider, so we use its official Node.js SDK
  * (resend.emails.send) rather than an SMTP shim. The API key is read from
  * RESEND_API_KEY at call time — env loads happen before this module is used
- * (main.ts loads dotenv first).
+ * (apps/api/src/main.ts loads the root .env first).
  */
 function getResendClient(): Resend {
   if (!resendClient) {

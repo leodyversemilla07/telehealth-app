@@ -24,8 +24,8 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "better-auth": "^1.6.25",
-    "dotenv": "^16.4.5"
+    "@telehealth/env": "workspace:*",
+    "better-auth": "^1.6.25"
   },
   "devDependencies": {
     "@workspace/typescript-config": "workspace:*",

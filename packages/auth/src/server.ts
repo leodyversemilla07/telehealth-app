@@ -1,3 +1,4 @@
+import "@telehealth/env/load"
 import { type Auth, betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { createAuthMiddleware, getSessionFromCtx } from "better-auth/api"
@@ -65,10 +66,11 @@ export interface AuthDependencies {
  * Build the Better Auth server instance.
  *
  * ENV TIMING: better-auth's module graph snapshots NODE_ENV and the auth
- * secret at import time, so the HOST app must load its .env (dotenv) BEFORE
- * anything transitively imports better-auth — see apps/api/src/main.ts which
- * does `import "dotenv/config"` as its first line. This factory reads
- * process.env at CALL time only, so it never depends on module load order.
+ * secret at import time, so the workspace .env must be loaded BEFORE anything
+ * transitively imports better-auth. apps/api/src/main.ts does this with
+ * `import "@telehealth/env/load"` as its first line; we redundantly load it
+ * here too so the factory works even if a future host forgets. This factory
+ * reads process.env at CALL time only, so it never depends on module load order.
  */
 export function createAuth(deps: AuthDependencies): Auth {
   const trustedOrigins = (

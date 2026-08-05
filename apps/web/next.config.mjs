@@ -1,6 +1,12 @@
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import withBundleAnalyzer from "@next/bundle-analyzer"
+import { loadRootEnv } from "@telehealth/env"
+
+// Load the workspace-root .env so API_URL and the NEXT_PUBLIC_* vars (which
+// are inlined at build time) come from the single root .env — no per-app env
+// files. Must run before Next reads process.env for rewrites or inlining.
+loadRootEnv()
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

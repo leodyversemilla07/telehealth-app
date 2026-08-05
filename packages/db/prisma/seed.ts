@@ -9,9 +9,7 @@
  * Usage: node --import tsx prisma/seed.ts
  */
 
-import { config } from "dotenv"
-
-config({ path: [".env", "../../apps/api/.env", "../../.env"] })
+import "@telehealth/env/load"
 
 if (process.env.NODE_ENV === "production") {
   console.error(

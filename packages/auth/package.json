@@ -28,6 +28,7 @@
     "dist"
   ],
   "dependencies": {
+    "@telehealth/env": "workspace:*",
     "better-auth": "^1.6.25"
   },
   "devDependencies": {

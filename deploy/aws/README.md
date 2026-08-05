@@ -45,17 +45,17 @@ Processes: `pm2` (`api`, `web`) + `pm2 startup` (auto-restart on reboot).
       Resend: DKIM `resend._domainkey`, MX+SPF on `send.tele-health.app`)
       `RESEND_API_KEY=<Resend API key>`, `EMAIL_FROM="Telehealth App <noreply@tele-health.app>"`
       (⚠ `from` must be the verified domain — an IP in `from` gets a 550). Key: `re_wURPTJfw_...`
-      (in `apps/api/.env`, NOT in git). Transport = `resend.emails.send` in
+      (in the repo-root `.env`, NOT in git). Transport = `resend.emails.send` in
       `apps/api/src/common/utils/email.ts` (no nodemailer/SMTP; `SMTP_*` vars are legacy, unused).
       Password reset verified end-to-end via Resend SDK (`POST /api/auth/request-password-reset` →
       accepted, logged `Email sent to …`).
       `requireEmailVerification` still `false` — flip to `true` when ready for real signups.
-- [x] LiveKit Cloud (Build tier) — `LIVEKIT_URL/API_KEY/API_SECRET` in `apps/api/.env`;
+- [x] LiveKit Cloud (Build tier) — `LIVEKIT_URL/API_KEY/API_SECRET` in the repo-root `.env`;
       key is a **service-account key**; tokens signed server-side in `/api/video/join` (1h TTL);
       web gets URL+token from the join response (no rebuild). Credits: 5,000 WebRTC min/mo free,
       overage ~$0.0004/min. Free Cloud key: `API3zvVMVc2DtrW…` (project `telehealth-app-ju7ll1wy`).
 - [x] S3 uploads enabled (PRIVATE objects, streamed through the API):
-      `S3_BUCKET=telehealth-uploads-341738837383` in `apps/api/.env`; objects are written
+      `S3_BUCKET=telehealth-uploads-341738837383` in the repo-root `.env`; objects are written
       with instance-profile creds and served via `GET /uploads/:key` (main.ts streams the
       GetObject body server-side). Stored URLs are unified to `${BETTER_AUTH_URL}/uploads/<key>`
       (commit `38ec18b`) so DB values work for local or S3 providers. Verified: upload →
@@ -70,8 +70,8 @@ Processes: `pm2` (`api`, `web`) + `pm2 startup` (auto-restart on reboot).
 cd /opt/telehealth
 git checkout -- apps/web/next-env.d.ts   # locally-regenerated, blocks pull
 git pull --ff-only
-pnpm install                            # root postinstall regenerates the Prisma client
-set -a; source apps/api/.env; set +a    # prisma CLI needs DATABASE_URL (schema lives in packages/db)
+pnpm install                            # root postinstall builds @telehealth/env + regenerates Prisma
+set -a; source .env; set +a             # prisma CLI needs DATABASE_URL (schema lives in packages/db)
 cd packages/db && pnpm exec prisma generate && pnpm exec prisma migrate deploy
 cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
 ```
@@ -86,8 +86,9 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
   (Compiled Packages strategy; the API builds with tsc, not a bundler).
   Turbo `build.dependsOn: ["^build"]` compiles `@telehealth/db` before api.
 - Root scripts: `pnpm migrate`, `pnpm db:reset`, `pnpm db:studio`, `pnpm seed`.
-- Prisma CLI looks for `.env` in `packages/db/` — source `apps/api/.env` (or create a
-  `packages/db/.env`) before running `migrate`/`studio`/`seed`.
+- Environment lives in the repo-root `.env` (loaded by `@telehealth/env/load`), so Prisma CLI
+  resolves `DATABASE_URL` from there — no `packages/db/.env` or per-app `.env` needed; `source .env`
+  at the root before running `migrate`/`studio`/`seed` if the shell needs it.
 - On the server, remove the now-unused legacy client (`rm -rf apps/api/src/generated`)
 
 ## Auth package (`packages/auth`)
