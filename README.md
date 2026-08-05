@@ -21,9 +21,9 @@
 # Install dependencies
 pnpm install
 
-# Create env files from the templates (DATABASE_URL, secrets, etc.)
-cp apps/api/.env.example apps/api/.env
-cp apps/web/.env.example apps/web/.env
+# Create the env file from the template at the repo root (DATABASE_URL,
+# secrets, etc.). Copy it to .env and fill in real values.
+cp .env.example .env
 
 # Setup database (requires PostgreSQL running at DATABASE_URL)
 pnpm db:reset
