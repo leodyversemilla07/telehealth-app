@@ -37,12 +37,20 @@ function extractOrigin(rawUrl: string): string | null {
   }
 }
 
-function buildCsp(nonce: string, isDev: boolean): string {
-  // If LIVEKIT_URL is configured, explicitly allow its origin for WebSocket
-  // connections (the LiveKit client SDK connects directly to that server).
-  // Without this, only 'self' WebSocket connections (Socket.io via rewrites)
-  // would be allowed, and the video call would fail in the browser.
+function buildCsp(nonce: string, isDev: boolean, pageOrigin: string): string {
+  // Wildcard-free connect-src — every destination is listed explicitly:
+  //  - 'self'       same-origin API via the /api rewrites
+  //  - wsOrigin     Socket.io rides the same-origin rewrites; browsers don't
+  //                 reliably treat same-host ws/wss as covered by 'self', so
+  //                 list the page origin's ws/wss form explicitly
+  //  - apiOrigin    only when NEXT_PUBLIC_API_URL is set (cross-origin API)
+  //  - livekit      the LiveKit server the client SDK connects to directly
+  //  - dev-only     Turbopack HMR + dev tooling; wildcards never ship to prod
   const livekitOrigin = extractOrigin(process.env.LIVEKIT_URL ?? "")
+  const apiOrigin = extractOrigin(process.env.NEXT_PUBLIC_API_URL ?? "")
+  const wsOrigin = pageOrigin
+    .replace(/^https:/, "wss:")
+    .replace(/^http:/, "ws:")
 
   return [
     "default-src 'self'",
@@ -51,7 +59,7 @@ function buildCsp(nonce: string, isDev: boolean): string {
     // inject inline styles/style attributes that can't carry the nonce.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https://api.dicebear.com",
-    `connect-src 'self'${livekitOrigin ? ` ${livekitOrigin}` : ""} wss: ws:`,
+    `connect-src 'self' ${wsOrigin}${apiOrigin ? ` ${apiOrigin}` : ""}${livekitOrigin ? ` ${livekitOrigin}` : ""}${isDev ? " ws: wss:" : ""}`,
     "font-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
@@ -66,7 +74,7 @@ function buildCsp(nonce: string, isDev: boolean): string {
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64")
   const isDev = process.env.NODE_ENV === "development"
-  const csp = buildCsp(nonce, isDev)
+  const csp = buildCsp(nonce, isDev, request.nextUrl.origin)
 
   // Forward the CSP on the *request* headers so Next.js reads the nonce during
   // rendering and auto-applies it to its framework/inline scripts.

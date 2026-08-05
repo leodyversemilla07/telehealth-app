@@ -44,6 +44,15 @@ async function bootstrap() {
   app.enableShutdownHooks()
 
   // Security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options, etc.)
+  // The LiveKit client SDK connects straight to the LiveKit server, so its
+  // explicit origin must appear in connect-src — no wildcard schemes.
+  const livekitCspOrigin = (() => {
+    try {
+      return new URL(process.env.LIVEKIT_URL ?? "").origin
+    } catch {
+      return null
+    }
+  })()
   app.use(
     helmet({
       hsts: {
@@ -57,7 +66,10 @@ async function bootstrap() {
           scriptSrc: ["'self'"],
           styleSrc: ["'self'", "'unsafe-inline'"],
           imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'", "wss:", "https:"],
+          connectSrc: [
+            "'self'",
+            ...(livekitCspOrigin ? [livekitCspOrigin] : []),
+          ],
           fontSrc: ["'self'"],
           objectSrc: ["'none'"],
           frameSrc: ["'self'"],

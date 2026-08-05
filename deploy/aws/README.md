@@ -8,7 +8,7 @@ Infrastructure provisioned via AWS CLI (see `provision.sh` steps in this repo's 
 | RDS | `telehealth-db` — PostgreSQL 16.14, `db.t3.micro` |
 | S3 | `telehealth-uploads-341738837383` (ready; local disk used until presigned URLs are implemented) |
 | IAM | `telehealth-ec2-role` / `telehealth-ec2-profile` (S3 access via instance profile) |
-| Key pair | `telehealth-prod` → `~/.ssh/telehealth-prod.pem` |
+| Access | **SSM Session Manager** (port 22 inbound **closed**; key `~/.ssh/telehealth-prod.pem` kept for out-of-band emergency only) |
 | Secrets | `~/telehealth-aws.env` (local only, NOT committed) |
 
 ## Topology
@@ -21,6 +21,35 @@ Browser ── HTTPS :443 (nginx, Let's Encrypt)
 ```
 
 Processes: `pm2` (`api`, `web`) + `pm2 startup` (auto-restart on reboot).
+
+## Shell access (SSM, no SSH)
+
+Port 22 inbound is revoked from `telehealth-web-sg` (2026-08-05); the SSM agent runs
+via snap (`amazon-ssm-agent`, `AmazonSSMManagedInstanceCore` attached to
+`telehealth-ec2-role`). Open a shell or run one-off commands without any inbound port:
+
+```bash
+# Interactive shell
+aws ssm start-session --target i-0b020f89853c8d2f8
+
+# One-off command
+aws ssm send-command --instance-ids i-0b020f89853c8d2f8 \
+  --document-name AWS-RunShellScript \
+  --parameters 'commands=["whoami; uptime"]' \
+  --output text
+
+# SCP-style file copy (optional)
+aws ssm send-command --instance-ids i-0b020f89853c8d2f8 \
+  --document-name AWS-RunShellScript \
+  --parameters 'commands=["sudo cat /var/log/telehealth-userdata.log"]'
+```
+
+To restore SSH in an emergency (key-only, key `telehealth-prod`):
+
+```bash
+aws ec2 authorize-security-group-ingress --group-id sg-0b7473a31d6033df6 \
+  --protocol tcp --port 22 --cidr <your-ip>/32
+```
 
 ## ⚠️ Critical config gotchas (learned the hard way)
 

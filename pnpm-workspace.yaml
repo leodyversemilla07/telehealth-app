@@ -1,6 +1,27 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Security-pinned transitive deps (pnpm >=10 settings live here, not in
+# package.json):
+#  - ws: engine.io 6.6.8 caps it at the vulnerable ~8.20.1, and pnpm's
+#    `update` refuses to bump the transitive engine.io to the version that
+#    admits ws ~8.21.0, so we pin the patched ws directly.
+#  - jsdom>undici: jsdom (via vitest, misdeclared as a prod dep by
+#    better-auth / isomorphic-dompurify) pins undici 7.27.2; the advisory
+#    fixes land in 7.29.0, which is inside jsdom's ^7.25.0 range. The scoped
+#    override forces the in-range patched version (8.x would break jsdom:
+#    it needs the removed undici/lib/handler/wrap-handler.js).
+#  - fast-uri: ajv@8.18.0 (NestJS CLI tooling) pins 3.1.2, which is below
+#    the advisory fix (>=3.1.4); 3.1.5 is the patched 3.x (4.x is a forced
+#    major we don't need).
+#  - socket.io-parser: socket.io@4.8.3 pins 4.2.6, below the memory-
+#    exhaustion fix (>=4.2.7); 4.2.7 is in-range and patched.
+overrides:
+  ws: 8.21.2
+  jsdom>undici: 7.29.0
+  fast-uri: 3.1.5
+  socket.io-parser: 4.2.7
 allowBuilds:
   '@nestjs/core': true
   '@prisma/engines': true
