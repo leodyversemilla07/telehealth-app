@@ -22,15 +22,15 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.8.0",
-    "@prisma/client": "^7.8.0",
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
     "@telehealth/env": "workspace:*",
     "better-auth": "^1.6.25"
   },
   "devDependencies": {
     "@workspace/typescript-config": "workspace:*",
-    "prisma": "^7.8.0",
-    "tsx": "^4.19.2",
+    "prisma": "^7.9.1",
+    "tsx": "^4.23.5",
     "typescript": "^6.0.3"
   }
 }
