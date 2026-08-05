@@ -31,11 +31,23 @@ export default function DoctorLayout({
 
   useEffect(() => {
     if (isPending || !session) return
-    const role = (session.user as { role?: string } | undefined)?.role
+    const u = session.user as {
+      role?: string
+      twoFactorEnabled?: boolean
+    }
+    const role = u.role
     if (role === "PATIENT" && pathname !== "/doctor/register") {
       router.replace("/patient/dashboard")
     } else if (role === "ADMIN") {
       router.replace("/admin/dashboard")
+    } else if (
+      role === "DOCTOR" &&
+      !u.twoFactorEnabled &&
+      pathname !== "/doctor/settings/two-factor" &&
+      pathname !== "/doctor/register"
+    ) {
+      // 2FA is enforced for doctors (server also blocks privileged tRPC).
+      router.replace("/doctor/settings/two-factor")
     }
   }, [session, isPending, pathname, router])
 

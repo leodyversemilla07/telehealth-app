@@ -8,7 +8,7 @@ import {
 } from "@workspace/ui/components/sidebar"
 import { ShieldAlert } from "lucide-react"
 import dynamic from "next/dynamic"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { DynamicBreadcrumbs } from "@/components/dynamic-breadcrumbs"
 import { SidebarAdmin } from "@/components/sidebar-admin"
@@ -27,6 +27,7 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { data: session, isPending } = authClient.useSession()
 
   const user = session?.user as
@@ -35,6 +36,7 @@ export default function AdminLayout({
         email: string
         role?: string | null
         image?: string | null
+        twoFactorEnabled?: boolean
       }
     | undefined
 
@@ -45,9 +47,16 @@ export default function AdminLayout({
         router.replace("/patient/dashboard")
       } else if (user?.role === "DOCTOR") {
         router.replace("/doctor/dashboard")
+      } else if (
+        user?.role === "ADMIN" &&
+        !user.twoFactorEnabled &&
+        pathname !== "/admin/settings/two-factor"
+      ) {
+        // 2FA is enforced for admins (server also blocks privileged tRPC).
+        router.replace("/admin/settings/two-factor")
       }
     }
-  }, [session, isPending, user?.role, router])
+  }, [session, isPending, user?.role, user?.twoFactorEnabled, pathname, router])
 
   // Show loading spinner while session is being determined
   if (isPending) {

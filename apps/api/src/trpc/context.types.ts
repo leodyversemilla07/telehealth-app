@@ -10,6 +10,7 @@ export type TrpcUser = {
   email: string
   role?: string
   image?: string | null
+  twoFactorEnabled?: boolean
 }
 
 export type TrpcSession = {
