@@ -4,9 +4,9 @@ Infrastructure provisioned via AWS CLI (see `provision.sh` steps in this repo's 
 
 | Resource | Value |
 |---|---|
-| EC2 | `t3.small` @ `100.56.114.215` (Ubuntu 24.04, 30GB gp3) |
+| EC2 | `t3.small` @ `<elastic-ip>` (Ubuntu 24.04, 30GB gp3) |
 | RDS | `telehealth-db` — PostgreSQL 16.14, `db.t3.micro` |
-| S3 | `telehealth-uploads-341738837383` (ready; local disk used until presigned URLs are implemented) |
+| S3 | `telehealth-uploads-<ACCOUNT>` (ready; local disk used until presigned URLs are implemented) |
 | IAM | `telehealth-ec2-role` / `telehealth-ec2-profile` (S3 access via instance profile) |
 | Access | **SSM Session Manager** (port 22 inbound **closed**; key `~/.ssh/telehealth-prod.pem` kept for out-of-band emergency only) |
 | Secrets | `~/telehealth-aws.env` (local only, NOT committed) |
@@ -73,7 +73,8 @@ aws ec2 authorize-security-group-ingress --group-id sg-0b7473a31d6033df6 \
 - [x] Email via **Resend SDK** (free tier 3,000/mo, 100/day, domain `tele-health.app` verified in
       Resend: DKIM `resend._domainkey`, MX+SPF on `send.tele-health.app`)
       `RESEND_API_KEY=<Resend API key>`, `EMAIL_FROM="Telehealth App <noreply@tele-health.app>"`
-      (⚠ `from` must be the verified domain — an IP in `from` gets a 550). Key: `re_wURPTJfw_...`
+      (⚠ `from` must be the verified domain — an IP in `from` gets a 550).
+      (Key lives in the repo-root `.env`, NOT in git.) Transport = `resend.emails.send` in
       (in the repo-root `.env`, NOT in git). Transport = `resend.emails.send` in
       `apps/api/src/common/utils/email.ts` (no nodemailer/SMTP; `SMTP_*` vars are legacy, unused).
       Password reset verified end-to-end via Resend SDK (`POST /api/auth/request-password-reset` →
@@ -83,9 +84,9 @@ aws ec2 authorize-security-group-ingress --group-id sg-0b7473a31d6033df6 \
 - [x] LiveKit Cloud (Build tier) — `LIVEKIT_URL/API_KEY/API_SECRET` in the repo-root `.env`;
       key is a **service-account key**; tokens signed server-side in `/api/video/join` (1h TTL);
       web gets URL+token from the join response (no rebuild). Credits: 5,000 WebRTC min/mo free,
-      overage ~$0.0004/min. Free Cloud key: `API3zvVMVc2DtrW…` (project `telehealth-app-ju7ll1wy`).
+      overage ~$0.0004/min. Credentials in the repo-root `.env` (project `telehealth-app-ju7ll1wy`).
 - [x] S3 uploads enabled (PRIVATE objects, streamed through the API):
-      `S3_BUCKET=telehealth-uploads-341738837383` in the repo-root `.env`; objects are written
+      `S3_BUCKET=telehealth-uploads-<ACCOUNT>` in the repo-root `.env`; objects are written
       with instance-profile creds and served via `GET /uploads/:key` (main.ts streams the
       GetObject body server-side). Stored URLs are unified to `${BETTER_AUTH_URL}/uploads/<key>`
       (commit `38ec18b`) so DB values work for local or S3 providers. Verified: upload →
@@ -145,10 +146,10 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
   confirmed email subscription to actually notify — subscribe via console or ask the dev).
 - AMI `telehealth-base-<date>` (no-reboot) + RDS manual snapshot `telehealth-db-<date>` —
   create fresh ones before major deploys; delete stale ones (≈$2/mo storage).
-- 4 orphaned EIPs were released (2026-08-01); only `100.56.114.215` remains (in use).
+- 4 orphaned EIPs were released (2026-08-01); only the in-use EIP above remains.
   Production DB is empty (smoke-test users deleted) — ready for real signups.
 
 ## Alert email (TODO)
 
-Ask the user for their email and subscribe it to `arn:aws:sns:us-east-1:341738837383:telehealth-billing-alerts`
+Ask the user for their email and subscribe it to `arn:aws:sns:us-east-1:<ACCOUNT>:telehealth-billing-alerts`
 (via `aws sns subscribe`), then confirm the subscription link they receive.
