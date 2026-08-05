@@ -78,7 +78,8 @@ aws ec2 authorize-security-group-ingress --group-id sg-0b7473a31d6033df6 \
       `apps/api/src/common/utils/email.ts` (no nodemailer/SMTP; `SMTP_*` vars are legacy, unused).
       Password reset verified end-to-end via Resend SDK (`POST /api/auth/request-password-reset` →
       accepted, logged `Email sent to …`).
-      `requireEmailVerification` still `false` — flip to `true` when ready for real signups.
+      `requireEmailVerification: true` is **live** in `packages/auth/src/server.ts` — new signups must
+      verify their email before they can sign in (verification email via Resend).
 - [x] LiveKit Cloud (Build tier) — `LIVEKIT_URL/API_KEY/API_SECRET` in the repo-root `.env`;
       key is a **service-account key**; tokens signed server-side in `/api/video/join` (1h TTL);
       web gets URL+token from the join response (no rebuild). Credits: 5,000 WebRTC min/mo free,
@@ -127,6 +128,11 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
 - Client: `createTelehealthAuthClient(baseURL)` consumed by the web app
   (`apps/web/lib/auth-client.ts`, subpath `@telehealth/auth/client`).
 - Password/lockout utilities live in `packages/auth` (`/password` subpath).
+- **Client IP for audit/alert attribution**: `trustedClientIp()` reads only the
+  LAST `x-forwarded-for` hop (or `x-real-ip` / `cf-connecting-ip`) — the values
+  set by the upstream proxy. The client-supplied first hop is ignored, so a
+  spoofed `X-Forwarded-For: <fake>` cannot forge audit/alert IPs. (Login
+  lockout is keyed per-user, not per-IP.)
 - The package is compiled to CJS (`dist/`); turbo builds it before api/web.
 - ENV TIMING: the host must load `.env` before importing better-auth —
   `apps/api/src/main.ts` imports `dotenv/config` as its first line. Keep it

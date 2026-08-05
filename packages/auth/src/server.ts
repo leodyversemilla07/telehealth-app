@@ -11,6 +11,26 @@ import {
 } from "./password.js"
 
 /**
+ * Best-effort trusted client IP for audit/alert attribution.
+ *
+ * Behind nginx the ONLY trustworthy hop is the one the proxy appends: the
+ * LAST value of `x-forwarded-for` (or `x-real-ip` / `cf-connecting-ip`, which
+ * the proxy/CDN sets to the real client). The FIRST `x-forwarded-for` value is
+ * client-supplied and trivially spoofable, so it is never used here.
+ */
+function trustedClientIp(request?: Request | undefined): string | null {
+  const headers = request?.headers
+  const cf = headers?.get("cf-connecting-ip")
+  if (cf) return cf
+  const xff = headers?.get("x-forwarded-for")
+  if (xff) {
+    const last = xff.split(",").pop()?.trim()
+    if (last) return last
+  }
+  return headers?.get("x-real-ip") ?? null
+}
+
+/**
  * Minimal structural type for the subset of Prisma the auth hooks touch.
  * Keeps this package decoupled from the generated client (which lives in the
  * API app); the API's generated PrismaClient is structurally compatible.
@@ -376,10 +396,7 @@ Telehealth App`,
                 title: "Security Update",
                 message:
                   "Your account password was successfully updated. All other sessions were signed out.",
-                ipAddress:
-                  ctx.request?.headers.get("x-forwarded-for") ||
-                  ctx.request?.headers.get("cf-connecting-ip") ||
-                  null,
+                ipAddress: trustedClientIp(ctx.request),
                 userAgent: ctx.request?.headers.get("user-agent") || null,
               },
             })
@@ -396,11 +413,7 @@ Telehealth App`,
         if (ctx.path === "/sign-in/email") {
           const userEmail = ctx.body?.email as string | undefined
           const isSuccess = !(ctx.context.returned instanceof Error)
-          const ipAddress =
-            ctx.request?.headers.get("x-forwarded-for") ||
-            ctx.request?.headers.get("cf-connecting-ip") ||
-            null
-
+          const ipAddress = trustedClientIp(ctx.request)
           if (userEmail) {
             const user = await deps.prisma.user.findUnique({
               where: { email: userEmail },
@@ -470,10 +483,7 @@ Telehealth App`,
               user: { id: string; email: string }
             } | null) ?? (await getSessionFromCtx(ctx))
           if (session) {
-            const ipAddress =
-              ctx.request?.headers.get("x-forwarded-for") ||
-              ctx.request?.headers.get("cf-connecting-ip") ||
-              null
+            const ipAddress = trustedClientIp(ctx.request)
             await deps.prisma.auditLog.create({
               data: {
                 action: "User Logout",
