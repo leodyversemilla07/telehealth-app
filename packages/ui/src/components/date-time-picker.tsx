@@ -108,7 +108,7 @@ export function DateTimePicker({
             }
             return false
           }}
-          initialFocus
+          autoFocus
         />
         {/* Time picker row */}
         <div className="border-t border-border/30 p-3 flex items-center gap-2">

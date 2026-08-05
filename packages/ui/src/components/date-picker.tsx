@@ -96,8 +96,8 @@ export function DatePicker({
         <Calendar
           mode="single"
           captionLayout="dropdown"
-          fromYear={resolvedFromYear}
-          toYear={resolvedToYear}
+          startMonth={new Date(resolvedFromYear, 0)}
+          endMonth={new Date(resolvedToYear, 11)}
           selected={dateValue}
           onSelect={handleSelect}
           disabled={(date) => {
@@ -105,7 +105,7 @@ export function DatePicker({
             if (maxDate && date > maxDate) return true
             return false
           }}
-          initialFocus
+          autoFocus
         />
       </PopoverContent>
     </Popover>
