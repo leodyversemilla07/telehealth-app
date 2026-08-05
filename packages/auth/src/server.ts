@@ -30,6 +30,11 @@ export interface AuthPrisma {
       data: { failedLoginAttempts?: number; lockoutUntil?: Date | null }
     }) => Promise<unknown>
   }
+  session: {
+    deleteMany: (args: {
+      where: { userId: string; NOT?: { id: string } }
+    }) => Promise<unknown>
+  }
   securityAlert: {
     // create args are DB-specific generated types this package can't name;
     // keep the param loose (callers pass the exact data shape) while the
@@ -317,27 +322,29 @@ Telehealth App`,
             const user = await deps.prisma.user.findUnique({
               where: { email: userEmail },
             })
+            // Account-enumeration mitigation: banned and locked-out accounts
+            // return the SAME generic 401 as bad credentials, so a probing
+            // client cannot distinguish "wrong password" from "exists but
+            // banned/locked". Rich detail stays in server-side audit logs.
+            // (A before-hook short-circuit skips the after hooks entirely,
+            // so these responses never miscount the failed-attempt lockout.)
             if (
               user?.banned &&
               (!user.banExpires || user.banExpires > new Date())
             ) {
               return new Response(
-                JSON.stringify({
-                  message: "This account is not allowed to sign in.",
-                }),
+                JSON.stringify({ message: "Invalid email or password" }),
                 {
-                  status: 403,
+                  status: 401,
                   headers: { "Content-Type": "application/json" },
                 },
               )
             }
             if (user && isLockedOut(user.lockoutUntil)) {
               return new Response(
-                JSON.stringify({
-                  message: `Account temporarily locked due to ${LOCKOUT_THRESHOLD} failed login attempts. Try again later.`,
-                }),
+                JSON.stringify({ message: "Invalid email or password" }),
                 {
-                  status: 429,
+                  status: 401,
                   headers: { "Content-Type": "application/json" },
                 },
               )
@@ -354,11 +361,21 @@ Telehealth App`,
         ) {
           const session = await getSessionFromCtx(ctx)
           if (session) {
+            // Revoke all OTHER sessions so a compromised device can't keep a
+            // live session after a password change. The current device stays
+            // signed in. (Better Auth does not revoke sessions on its own.)
+            await deps.prisma.session.deleteMany({
+              where: {
+                userId: session.user.id,
+                NOT: { id: session.session.id },
+              },
+            })
             await deps.prisma.securityAlert.create({
               data: {
                 userId: session.user.id,
                 title: "Security Update",
-                message: "Your account password was successfully updated.",
+                message:
+                  "Your account password was successfully updated. All other sessions were signed out.",
                 ipAddress:
                   ctx.request?.headers.get("x-forwarded-for") ||
                   ctx.request?.headers.get("cf-connecting-ip") ||
@@ -369,7 +386,7 @@ Telehealth App`,
             await deps.sendSecurityAlertEmail(
               session.user.email,
               "Password Changed",
-              "Your account password was successfully updated. If this wasn't you, please contact support immediately.",
+              "Your account password was successfully updated and all other sessions were signed out. If this wasn't you, please contact support immediately.",
             )
           }
         }

@@ -78,6 +78,19 @@ describe("StorageService", () => {
       expect(service.validateMagicBytes(buffer, "image/webp")).toBe(true)
     })
 
+    it("should reject a non-WebP RIFF container (WAV/AVI)", () => {
+      // "RIFF" prefix but no "WEBP" marker at bytes 8-11 ("WAVE" here)
+      const buffer = Buffer.from([
+        0x52, 0x49, 0x46, 0x46, 0x00, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+      ])
+      expect(service.validateMagicBytes(buffer, "image/webp")).toBe(false)
+    })
+
+    it("should reject a WebP buffer shorter than the RIFF+WEBP header", () => {
+      const buffer = Buffer.from([0x52, 0x49, 0x46, 0x46])
+      expect(service.validateMagicBytes(buffer, "image/webp")).toBe(false)
+    })
+
     it("should return false for mismatched magic bytes", () => {
       const buffer = Buffer.from([0x00, 0x00, 0x00, 0x00])
       expect(service.validateMagicBytes(buffer, "image/jpeg")).toBe(false)

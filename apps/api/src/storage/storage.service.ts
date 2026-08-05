@@ -52,6 +52,22 @@ export class StorageService {
 
   /** Validate file content matches claimed MIME type via magic bytes. */
   validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
+    if (mimeType === "image/webp") {
+      // WebP is a RIFF container ("RIFF" at bytes 0-3) with a "WEBP" marker
+      // at bytes 8-11. Checking only the RIFF prefix would let a non-WebP
+      // RIFF file (WAV, AVI, etc.) pass as WebP.
+      return (
+        buffer.length >= 12 &&
+        buffer[0] === 0x52 &&
+        buffer[1] === 0x49 &&
+        buffer[2] === 0x46 &&
+        buffer[3] === 0x46 &&
+        buffer[8] === 0x57 &&
+        buffer[9] === 0x45 &&
+        buffer[10] === 0x42 &&
+        buffer[11] === 0x50
+      )
+    }
     const expected = MAGIC_BYTES[mimeType as keyof typeof MAGIC_BYTES]
     if (!expected) return false
     if (buffer.length < expected.length) return false
