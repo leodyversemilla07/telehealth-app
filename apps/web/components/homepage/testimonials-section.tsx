@@ -106,7 +106,10 @@ function TestimonialCard({
 
 export function TestimonialsSection() {
   return (
-    <section id="testimonials" className="relative scroll-mt-24 py-24 sm:py-32">
+    <section
+      id="testimonials"
+      className="relative overflow-hidden scroll-mt-24 py-24 sm:py-32"
+    >
       <div className="absolute inset-0 -z-10 bg-dot-grid-subtle [mask-image:radial-gradient(ellipse_70%_50%_at_50%_50%,black,transparent_70%)]" />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">

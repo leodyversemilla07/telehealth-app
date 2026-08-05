@@ -162,6 +162,16 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Prevent slight horizontal panning on mobile: iOS Safari allows
+       horizontal scroll when decorative edge-touching content exists.
+       overflow-x: clip avoids creating a scroll container (sticky-safe);
+       hidden is the fallback for older browsers. */
+    overflow-x: hidden;
+  }
+  @supports (overflow-x: clip) {
+    body {
+      overflow-x: clip;
+    }
   }
 }
 
