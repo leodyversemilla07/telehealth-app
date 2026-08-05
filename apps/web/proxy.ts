@@ -37,21 +37,21 @@ function extractOrigin(rawUrl: string): string | null {
   }
 }
 
-function buildCsp(nonce: string, isDev: boolean, pageOrigin: string): string {
+function buildCsp(
+  nonce: string,
+  isDev: boolean,
+  wsOrigin: string,
+  apiOrigin: string | null,
+  livekitOrigin: string | null,
+): string {
   // Wildcard-free connect-src — every destination is listed explicitly:
   //  - 'self'       same-origin API via the /api rewrites
   //  - wsOrigin     Socket.io rides the same-origin rewrites; browsers don't
   //                 reliably treat same-host ws/wss as covered by 'self', so
-  //                 list the page origin's ws/wss form explicitly
+  //                 the page's ws/wss form is listed explicitly
   //  - apiOrigin    only when NEXT_PUBLIC_API_URL is set (cross-origin API)
   //  - livekit      the LiveKit server the client SDK connects to directly
   //  - dev-only     Turbopack HMR + dev tooling; wildcards never ship to prod
-  const livekitOrigin = extractOrigin(process.env.LIVEKIT_URL ?? "")
-  const apiOrigin = extractOrigin(process.env.NEXT_PUBLIC_API_URL ?? "")
-  const wsOrigin = pageOrigin
-    .replace(/^https:/, "wss:")
-    .replace(/^http:/, "ws:")
-
   return [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""}`,
@@ -74,7 +74,20 @@ function buildCsp(nonce: string, isDev: boolean, pageOrigin: string): string {
 export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64")
   const isDev = process.env.NODE_ENV === "development"
-  const csp = buildCsp(nonce, isDev, request.nextUrl.origin)
+  const livekitOrigin = extractOrigin(process.env.LIVEKIT_URL ?? "")
+  const cspApiOrigin = extractOrigin(process.env.NEXT_PUBLIC_API_URL ?? "")
+  // Behind nginx, request.nextUrl.origin is the *internal* bind address
+  // (https://localhost:3000), not the public origin — so derive the ws/wss
+  // form from the Host header + forwarded proto instead. nginx sets both
+  // (proxy_set_header Host $host / X-Forwarded-Proto https); a spoofed Host
+  // only affects the spoofing client's own response's CSP.
+  const forwardedProto = request.headers.get("x-forwarded-proto")
+  const proto = forwardedProto
+    ? (forwardedProto.split(",")[0] ?? "").trim()
+    : (request.nextUrl?.protocol ?? "https:").replace(":", "")
+  const host = request.headers.get("host") ?? request.nextUrl?.host ?? ""
+  const wsOrigin = `${proto === "http" ? "ws" : "wss"}://${host}`
+  const csp = buildCsp(nonce, isDev, wsOrigin, cspApiOrigin, livekitOrigin)
 
   // Forward the CSP on the *request* headers so Next.js reads the nonce during
   // rendering and auto-applies it to its framework/inline scripts.
