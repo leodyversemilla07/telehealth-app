@@ -20,7 +20,7 @@ if (process.env.NODE_ENV === "production") {
 
 import { randomUUID } from "node:crypto"
 import { PrismaPg } from "@prisma/adapter-pg"
-import { hashPassword } from "better-auth/crypto"
+import { hashPassword, symmetricEncrypt } from "better-auth/crypto"
 import { PrismaClient } from "../generated/prisma/client.js"
 
 /**
@@ -79,25 +79,40 @@ async function upsertUserWithAccount(
   }
 
   if (twoFactorSecret) {
+    // better-auth stores the TOTP secret (and backup codes) AES-encrypted
+    // with the auth secret (symmetricEncrypt → rawEncrypt on a plain-string
+    // secret). Replicate that here so the login challenge can decrypt it
+    // (see dist/plugins/two-factor/index.mjs — verify-totp does
+    // symmetricDecrypt before createOTP).
+    const authSecret = process.env.BETTER_AUTH_SECRET
+    if (!authSecret) {
+      throw new Error(
+        "BETTER_AUTH_SECRET is required to seed 2FA-enabled accounts",
+      )
+    }
     const backupCodes = JSON.stringify(["ABCD-EFGH", "IJKL-MNOP", "QRST-UVWX"])
+    const encryptedSecret = await symmetricEncrypt({
+      key: authSecret,
+      data: twoFactorSecret,
+    })
+    const encryptedBackupCodes = await symmetricEncrypt({
+      key: authSecret,
+      data: backupCodes,
+    })
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        twoFactorEnabled: true,
-        twoFactorSecret,
-        twoFactorBackupCodes: backupCodes,
-      },
+      data: { twoFactorEnabled: true },
     })
     await prisma.twoFactor.upsert({
       where: { userId: user.id },
       create: {
         id: randomUUID(),
         userId: user.id,
-        secret: twoFactorSecret,
-        backupCodes,
+        secret: encryptedSecret,
+        backupCodes: encryptedBackupCodes,
         verified: true,
       },
-      update: { secret: twoFactorSecret, verified: true },
+      update: { secret: encryptedSecret, verified: true },
     })
   }
 
