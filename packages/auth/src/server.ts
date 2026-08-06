@@ -232,30 +232,37 @@ Telehealth App`,
     },
     /**
      * Rate-limiting for auth endpoints (better-auth built-in).
+     * Enabled only in production: better-auth's fixed special rules (3
+     * sign-ins per 10s) trip constantly during E2E runs and local dev
+     * bursts. The Nest throttler still guards the rest of the API either
+     * way.
      */
-    rateLimit: {
-      // enabled:true is explicit and deterministic — it must not depend on
-      // better-auth's module-scope NODE_ENV snapshot (which is frozen at
-      // import order).
-      enabled: true,
-      window: 60, // 60-second window
-      max: 20, // max 20 auth requests per window
-      // Single fork process (pm2) → in-memory counters are shared and
-      // accurate. Enabling explicit memory storage makes the per-IP auth
-      // rules actually engage (previously the DB-backed default silently
-      // no-oped without the rateLimit table, leaving only the account
-      // lockout as brute-force guard).
-      storage: "memory",
-      customRules: {
-        // get-session runs on EVERY guarded page load — both the Next.js
-        // server-side proxy and the browser client call it. Throttling it
-        // would spuriously sign users out. Brute-force / bot protection
-        // stays on the auth mutations via the built-in special rules +
-        // account lockout.
-        "/get-session": false,
-        "/get-session-info": false,
-      },
-    },
+    rateLimit:
+      process.env.NODE_ENV === "production"
+        ? {
+            // enabled:true is explicit and deterministic — it must not depend on
+            // better-auth's module-scope NODE_ENV snapshot (which is frozen at
+            // import order).
+            enabled: true,
+            window: 60, // 60-second window
+            max: 20, // max 20 auth requests per window
+            // Single fork process (pm2) → in-memory counters are shared and
+            // accurate. Enabling explicit memory storage makes the per-IP auth
+            // rules actually engage (previously the DB-backed default silently
+            // no-oped without the rateLimit table, leaving only the account
+            // lockout as brute-force guard).
+            storage: "memory",
+            customRules: {
+              // get-session runs on EVERY guarded page load — both the Next.js
+              // server-side proxy and the browser client call it. Throttling it
+              // would spuriously sign users out. Brute-force / bot protection
+              // stays on the auth mutations via the built-in special rules +
+              // account lockout.
+              "/get-session": false,
+              "/get-session-info": false,
+            },
+          }
+        : { enabled: false },
     user: {
       additionalFields: {
         role: {
