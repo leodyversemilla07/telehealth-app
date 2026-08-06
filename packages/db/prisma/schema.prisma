@@ -71,6 +71,7 @@ model User {
   twoFactorEnabled     Boolean  @default(false)
   twoFactorSecret      String?
   twoFactorBackupCodes String?
+  twoFactor            twoFactor?
 
   sessions        Session[]
   accounts        Account[]
@@ -85,6 +86,20 @@ model User {
   sentMessages     ChatMessage[] @relation("ChatSender")
   receivedMessages ChatMessage[] @relation("ChatReceiver")
   reviews          Review[]      @relation("PatientReviews")
+}
+
+// Better Auth twoFactor plugin storage (backup codes + temp secrets).
+// Required by the twoFactor() plugin — its absence 500s 2FA enable in prod.
+model twoFactor {
+  id          String   @id
+  secret      String
+  backupCodes String
+  userId      String   @unique
+  createdAt   DateTime
+  updatedAt   DateTime
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Session {
