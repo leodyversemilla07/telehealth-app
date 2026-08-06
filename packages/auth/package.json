@@ -29,7 +29,7 @@
   ],
   "dependencies": {
     "@telehealth/env": "workspace:*",
-    "better-auth": "^1.6.25"
+    "better-auth": "^1.6.26"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

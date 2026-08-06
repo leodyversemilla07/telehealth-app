@@ -29,7 +29,7 @@
     "@workspace/shared": "workspace:*",
     "@workspace/ui": "workspace:*",
     "api": "workspace:*",
-    "better-auth": "^1.6.25",
+    "better-auth": "^1.6.26",
     "livekit-client": "^2.21.0",
     "lucide-react": "^1.28.0",
     "next": "16.3.0",
