@@ -81,7 +81,26 @@ export async function loginAs(page: Page, role: Role): Promise<void> {
     // 2FA is enforced for doctors/admins — complete the TOTP challenge
     // using the seed's known secret (packages/db/prisma/seed.ts).
     const codeInput = page.getByLabel("Security Verification Code")
-    await expect(codeInput).toBeVisible({ timeout: 15_000 })
+    try {
+      await expect(codeInput).toBeVisible({ timeout: 15_000 })
+    } catch (e) {
+      // Diagnostic: capture where the login actually landed so CI failures
+      // distinguish a rejected sign-in vs. a missing 2FA challenge vs. a
+      // redirect-to-setup (twoFactorEnabled=false).
+      let screenshot = ""
+      try {
+        const p = `test-results/e2e-diagnostic-${role}.png`
+        await page.screenshot({ path: p })
+        screenshot = `\nScreenshot: ${p}`
+      } catch {
+        /* ignore */
+      }
+      const body = (await page.locator("body").innerText()).slice(0, 600)
+      throw new Error(
+        `2FA challenge UI did not appear for role=${role}.\nURL: ${page.url()}` +
+          `\nBODY:\n${body}${screenshot}\nOriginal: ${String(e)}`,
+      )
+    }
     await codeInput.fill(totp(E2E_TWO_FACTOR_SECRET))
     await page.getByRole("button", { name: /verify code/i }).click()
   }

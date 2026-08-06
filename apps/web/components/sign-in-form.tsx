@@ -141,6 +141,14 @@ export function SignInForm({
     router.replace(state.redirectTo)
   }, [router, state.redirectTo])
 
+  // Reflect the action's 2FA claim in the UI. With useActionState the
+  // "twoFactorRequired" flag lands in `state` but was never applied to the
+  // rendered view, so the TOTP step never appeared and 2FA-enforced
+  // doctor/admin accounts could not complete sign-in.
+  useEffect(() => {
+    if (state.twoFactorRequired) setShowTwoFactor(true)
+  }, [state.twoFactorRequired])
+
   async function handleTwoFactorSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!twoFactorCode.trim()) return
