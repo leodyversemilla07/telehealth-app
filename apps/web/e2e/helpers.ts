@@ -22,29 +22,16 @@ export type Role = keyof typeof CREDENTIALS
 // Mirrors packages/db/prisma/seed.ts — the seeded DOCTOR/ADMIN 2FA secret.
 export const E2E_TWO_FACTOR_SECRET = "JBSWY3DPEHPK3PXP"
 
-const BASE32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567"
-
-function base32Decode(input: string): Buffer {
-  const cleaned = input.replace(/=+$/u, "").toUpperCase()
-  let bits = 0
-  let value = 0
-  const bytes: number[] = []
-  for (const char of cleaned) {
-    const idx = BASE32.indexOf(char)
-    if (idx === -1) throw new Error(`Invalid base32 character: ${char}`)
-    value = (value << 5) | idx
-    bits += 5
-    if (bits >= 8) {
-      bytes.push((value >>> (bits - 8)) & 0xff)
-      bits -= 8
-    }
-  }
-  return Buffer.from(bytes)
-}
-
-/** RFC 6238 TOTP (SHA-1, 30s step, 6 digits) for a base32 secret. */
+/**
+ * RFC 6238-style TOTP (SHA-1, 30s step, 6 digits) matching better-auth.
+ *
+ * better-auth keys the HMAC with the raw UTF-8 bytes of the stored secret
+ * string (see @better-auth/utils hmac.mjs — TextEncoder().encode(key)); the
+ * base32 form appears only in the otpauth:// QR URI. So we must NOT base32-
+ * decode before signing.
+ */
 export function totp(secret: string): string {
-  const key = base32Decode(secret)
+  const key = Buffer.from(secret, "utf8")
   const epochSeconds = Math.floor(Date.now() / 1000)
   // Compute ahead of a window boundary so the server-side verification
   // (1-2s later) doesn't trip on a stale code.
