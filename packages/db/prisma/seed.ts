@@ -18,9 +18,20 @@ if (process.env.NODE_ENV === "production") {
   process.exit(1)
 }
 
+import { randomUUID } from "node:crypto"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { hashPassword } from "better-auth/crypto"
 import { PrismaClient } from "../generated/prisma/client.js"
+
+/**
+ * Known TOTP base32 secret for the seeded DOCTOR/ADMIN accounts.
+ *
+ * 2FA is enforced for privileged roles (roles.middleware.ts blocks tRPC and
+ * the web layouts redirect to setup when twoFactorEnabled is false). Seeding
+ * a fixed secret lets the Playwright E2E suite complete the TOTP challenge
+ * (see apps/web/e2e/helpers.ts — E2E_TWO_FACTOR_SECRET).
+ */
+const E2E_TWO_FACTOR_SECRET = "JBSWY3DPEHPK3PXP"
 
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) throw new Error("DATABASE_URL is not set")
@@ -37,6 +48,7 @@ async function upsertUserWithAccount(
   name: string,
   role: "ADMIN" | "DOCTOR" | "PATIENT",
   password: string,
+  twoFactorSecret?: string,
 ) {
   const user = await prisma.user.upsert({
     where: { email },
@@ -66,6 +78,29 @@ async function upsertUserWithAccount(
     })
   }
 
+  if (twoFactorSecret) {
+    const backupCodes = JSON.stringify(["ABCD-EFGH", "IJKL-MNOP", "QRST-UVWX"])
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        twoFactorEnabled: true,
+        twoFactorSecret,
+        twoFactorBackupCodes: backupCodes,
+      },
+    })
+    await prisma.twoFactor.upsert({
+      where: { userId: user.id },
+      create: {
+        id: randomUUID(),
+        userId: user.id,
+        secret: twoFactorSecret,
+        backupCodes,
+        verified: true,
+      },
+      update: { secret: twoFactorSecret, verified: true },
+    })
+  }
+
   return user
 }
 
@@ -78,8 +113,9 @@ async function seed() {
     "Admin User",
     "ADMIN",
     "Admin123!",
+    E2E_TWO_FACTOR_SECRET,
   )
-  console.log(` Admin: ${admin.email} / Admin123!`)
+  console.log(` Admin: ${admin.email} / Admin123! (2FA enabled)`)
 
   // Doctor
   const doctor = await upsertUserWithAccount(
@@ -87,6 +123,7 @@ async function seed() {
     "Dr. Maria Santos",
     "DOCTOR",
     "Doctor123!",
+    E2E_TWO_FACTOR_SECRET,
   )
 
   // Doctor profile
@@ -201,8 +238,8 @@ async function seed() {
 
   console.log("")
   console.log("Seed complete. Credentials:")
-  console.log("   admin@example.com  / Admin123!")
-  console.log("   doctor@example.com / Doctor123!")
+  console.log("   admin@example.com  / Admin123!  (2FA: JBSWY3DPEHPK3PXP)")
+  console.log("   doctor@example.com / Doctor123!  (2FA: JBSWY3DPEHPK3PXP)")
   console.log("   alice@example.com  / Patient123!")
   console.log("   bob@example.com    / Patient123!")
 }

@@ -1,0 +1,73 @@
+name: e2e
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * *" # nightly 06:00 UTC (~14:00 PHT)
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: telehealth
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      # Hermetic CI database (service container above). NODE_ENV is left
+      # unset/development so the seed guard doesn't trip.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/telehealth
+      BETTER_AUTH_SECRET: e2e-only-better-auth-secret-0123456789abcdef
+      # Real Resend key (GH secret) so the critical password-reset email
+      # (appointment-lifecycle spec) actually succeeds.
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/setup@v2
+        with:
+          version: 11.4.0
+          runtime: node@22
+          install: false
+          cache: true
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        # nest start --watch / next dev resolve workspace deps from dist
+        # (@telehealth/db, env, shared, auth). ^build handles the chain.
+        run: pnpm --filter api build
+
+      - name: Apply migrations
+        run: pnpm --filter @telehealth/db exec prisma migrate deploy
+
+      - name: Seed database
+        run: pnpm --filter @telehealth/db exec tsx prisma/seed.ts
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        run: pnpm --filter web exec playwright install --with-deps chromium
+
+      - name: Run E2E suite
+        run: pnpm --filter web test:e2e
