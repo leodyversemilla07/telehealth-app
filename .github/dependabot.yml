@@ -1,0 +1,34 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Manila
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    groups:
+      production-minor-patch:
+        dependency-type: production
+        update-types: ["minor", "patch"]
+      development-minor-patch:
+        dependency-type: development
+        update-types: ["minor", "patch"]
+    ignore:
+      # Deliberate holds (see dependency analysis): do not propose these at all.
+      - dependency-name: typescript
+      - dependency-name: "@types/node"
+      # Majors arrive as one reviewable PR per bump — never grouped/auto.
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    groups:
+      actions-minor-patch:
+        update-types: ["minor", "patch"]

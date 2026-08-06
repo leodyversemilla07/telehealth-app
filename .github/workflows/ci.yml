@@ -1,0 +1,74 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm + Node
+        uses: pnpm/setup@v2
+        with:
+          version: 11.4.0
+          runtime: node@22
+          install: false
+          cache: true
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Toolchain sanity
+        run: pnpm --version && node --version
+
+      - name: Cache Turborepo cache
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: .turbo-${{ runner.os }}-${{ hashFiles('turbo.json', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            .turbo-${{ runner.os }}-
+
+      - name: Install dependencies (frozen)
+        run: pnpm install --frozen-lockfile
+
+      # Guard #1 against the repo's historical landmine: workspace/lockfile
+      # drift (pnpm-workspace.yaml / package.json / pnpm-lock.yaml silently
+      # reverting to HEAD locally). A frozen install + clean diff proves the
+      # three manifest files agree on a fresh checkout.
+      - name: Detect lockfile / workspace drift
+        run: git diff --exit-code -- pnpm-lock.yaml pnpm-workspace.yaml package.json
+
+      # Production-only vulnerability scan. Tolerant on purpose: the npm
+      # audit endpoint npm deprecated is intermittently unavailable (410),
+      # so every-PR hard-failing here would block non-code pushes. Dependabot
+      # security alerts are the real blocking signal.
+      - name: Audit (production, tolerant)
+        continue-on-error: true
+        run: pnpm audit --prod --audit-level high
+
+      - name: Format check
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

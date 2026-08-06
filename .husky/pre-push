@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+
+echo "Checking formatting (Biome) ..."
+pnpm format:check
+echo "Checking types ..."
+pnpm typecheck
+echo "Pre-push checks passed"

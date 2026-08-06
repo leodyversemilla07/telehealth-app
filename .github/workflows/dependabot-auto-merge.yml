@@ -1,0 +1,43 @@
+name: Dependabot auto-merge
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    # Only ever touch PRs the bot itself opened.
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - name: Fetch Dependabot metadata
+        id: meta
+        uses: dependabot/fetch-metadata@v3
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+
+      # npm: auto-merge minor+patch (majors are ignored in dependabot.yml, so
+      # they never produce a PR). CI runs on the PR; the required "ci" status
+      # check on main gates the merge — auto-merge only fires when green.
+      - name: Enable auto-merge (npm minor/patch)
+        if: >-
+          steps.meta.outputs.package-ecosystem == 'npm' &&
+          (steps.meta.outputs.update-type == 'version-update:semver-minor' ||
+           steps.meta.outputs.update-type == 'version-update:semver-patch')
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # github-actions: patch-only. CI passing doesn't validate an action
+      # change, so minor/major action bumps stay human-reviewed.
+      - name: Enable auto-merge (actions patch only)
+        if: >-
+          steps.meta.outputs.package-ecosystem == 'github-actions' &&
+          steps.meta.outputs.update-type == 'version-update:semver-patch'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
