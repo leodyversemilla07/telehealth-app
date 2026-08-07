@@ -24,7 +24,7 @@ jobs:
         uses: pnpm/setup@v2
         with:
           version: 11.4.0
-          runtime: node@22
+          runtime: node@24
           install: false
           cache: true
           cache-dependency-path: pnpm-lock.yaml
