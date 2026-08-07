@@ -70,5 +70,9 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Coverage gate (API)
+        working-directory: apps/api
+        run: pnpm run test:cov --silent
+
       - name: Build
         run: pnpm build
