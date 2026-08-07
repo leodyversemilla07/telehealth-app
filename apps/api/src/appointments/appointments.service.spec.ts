@@ -1,7 +1,9 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   NotFoundException,
+  UnprocessableEntityException,
 } from "@nestjs/common"
 import { Test, TestingModule } from "@nestjs/testing"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
@@ -53,6 +55,9 @@ type MockModel = {
 describe("AppointmentsService", () => {
   let service: AppointmentsService
   let prisma: MockModel
+  let notifications: { createNotification: jest.Mock }
+  let auditLogs: { createLog: jest.Mock }
+  let email: { sendAppointmentReminder: jest.Mock; sendMail: jest.Mock }
 
   /** Build a mock PrismaService with jest.fn() on every model. */
   function buildMock(): MockModel {
@@ -133,6 +138,14 @@ describe("AppointmentsService", () => {
 
     service = module.get<AppointmentsService>(AppointmentsService)
     prisma = module.get<PrismaService>(PrismaService) as unknown as MockModel
+    notifications = module.get(NotificationsService) as {
+      createNotification: jest.Mock
+    }
+    auditLogs = module.get(AuditLogsService) as { createLog: jest.Mock }
+    email = module.get(EmailService) as {
+      sendAppointmentReminder: jest.Mock
+      sendMail: jest.Mock
+    }
   })
 
   // ─── Create (Book) Appointment ────────────────────────────────────────
@@ -404,12 +417,477 @@ describe("AppointmentsService", () => {
   // ─── Cancel ───────────────────────────────────────────────────────────
 
   describe("cancel", () => {
+    const originalWindow = process.env.CANCELLATION_WINDOW_HOURS
+
+    afterEach(() => {
+      if (originalWindow === undefined) {
+        delete process.env.CANCELLATION_WINDOW_HOURS
+      } else {
+        process.env.CANCELLATION_WINDOW_HOURS = originalWindow
+      }
+      jest.clearAllMocks()
+    })
+
+    const apt = (overrides: Partial<Record<string, unknown>> = {}) => ({
+      id: "apt-1",
+      doctorId: "doc-1",
+      patientId: "user-1",
+      status: "BOOKED",
+      startTime: new Date(Date.now() + 72 * 3600_000),
+      patient: { id: "user-1", name: "Patient" },
+      doctor: { id: "doc-1", user: { id: "doc-user-1", name: "Doctor" } },
+      ...overrides,
+    })
+
     it("should throw NotFoundException if appointment does not exist", async () => {
       prisma.appointment.findUnique.mockResolvedValue(null)
 
       await expect(
         service.cancel("nonexistent-apt", "user-1", "PATIENT"),
       ).rejects.toThrow(NotFoundException)
+    })
+
+    it("should throw ConflictException when appointment is completed", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(
+        apt({ status: "COMPLETED" }),
+      )
+      await expect(
+        service.cancel("apt-1", "user-1", "PATIENT"),
+      ).rejects.toThrow(ConflictException)
+    })
+
+    it("should throw ConflictException when appointment is already cancelled", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(
+        apt({ status: "CANCELLED" }),
+      )
+      await expect(
+        service.cancel("apt-1", "user-1", "PATIENT"),
+      ).rejects.toThrow(ConflictException)
+    })
+
+    it("should throw UnprocessableEntity within the patient cancellation window", async () => {
+      process.env.CANCELLATION_WINDOW_HOURS = "1"
+      prisma.appointment.findUnique.mockResolvedValue(
+        apt({ startTime: new Date(Date.now() + 30 * 60_000) }),
+      )
+
+      await expect(
+        service.cancel("apt-1", "user-1", "PATIENT"),
+      ).rejects.toThrow(UnprocessableEntityException)
+    })
+
+    it("should allow cancellation outside the patient window (long lead time)", async () => {
+      process.env.CANCELLATION_WINDOW_HOURS = "1"
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.appointment.update.mockResolvedValue(apt({ status: "CANCELLED" }))
+
+      const result = await service.cancel("apt-1", "user-1", "PATIENT")
+      expect(result.status).toBe("CANCELLED")
+      expect(prisma.appointment.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { status: "CANCELLED" } }),
+      )
+    })
+
+    it("should allow cancellation when appointment already started", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(
+        apt({ startTime: new Date(Date.now() - 60_000) }),
+      )
+      prisma.appointment.update.mockResolvedValue(apt({ status: "CANCELLED" }))
+
+      const result = await service.cancel("apt-1", "user-1", "PATIENT")
+      expect(result.status).toBe("CANCELLED")
+    })
+
+    it("should throw ForbiddenException when doctor is not the assigned doctor", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(
+        apt({ doctorId: "doc-other" }),
+      )
+      prisma.doctorProfile.findUnique.mockResolvedValue({
+        id: "doc-1",
+        userId: "user-1",
+      })
+
+      await expect(
+        service.cancel("apt-1", "doc-user-1", "DOCTOR"),
+      ).rejects.toThrow(ForbiddenException)
+    })
+
+    it("should allow doctor to cancel and notify the patient", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(
+        apt({ doctorId: "doc-1" }),
+      )
+      prisma.doctorProfile.findUnique.mockResolvedValue({
+        id: "doc-1",
+        userId: "doc-user-1",
+      })
+      prisma.appointment.update.mockResolvedValue(apt({ status: "CANCELLED" }))
+
+      const result = await service.cancel("apt-1", "doc-user-1", "DOCTOR")
+      expect(result.status).toBe("CANCELLED")
+      // doctor cancelled (userId !== patientId) → notify patient
+      expect(prisma.appointment.update).toHaveBeenCalled()
+    })
+
+    it("should allow admin to cancel regardless of ownership", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.appointment.update.mockResolvedValue(apt({ status: "CANCELLED" }))
+
+      const result = await service.cancel("apt-1", "admin-1", "ADMIN")
+      expect(result.status).toBe("CANCELLED")
+    })
+
+    it("should let the patient cancel and notify the doctor", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.appointment.update.mockResolvedValue(apt({ status: "CANCELLED" }))
+
+      await service.cancel("apt-1", "user-1", "PATIENT")
+      // patient cancels → doctor gets the notification
+      expect(notifications.createNotification).toHaveBeenCalled()
+    })
+
+    it("should not fail the mutation if the audit log errors", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.appointment.update.mockResolvedValue(apt({ status: "CANCELLED" }))
+      ;(auditLogs.createLog as jest.Mock).mockRejectedValue(new Error("boom"))
+
+      const result = await service.cancel("apt-1", "user-1", "PATIENT")
+      expect(result.status).toBe("CANCELLED")
+    })
+  })
+
+  // ─── Update status (state machine) ────────────────────────────────────
+
+  describe("updateStatus", () => {
+    afterEach(() => jest.clearAllMocks())
+
+    const base = {
+      id: "apt-1",
+      doctorId: "doc-1",
+      patientId: "user-1",
+      startTime: new Date("2026-08-02T00:30:00.000Z"),
+      patient: { id: "user-1", name: "Patient" },
+      doctor: { id: "doc-1", user: { id: "doc-user-1", name: "Doctor" } },
+    }
+
+    const updated = (status: string) => ({
+      ...base,
+      status,
+      patient: { id: "user-1", name: "Patient" },
+      doctor: { id: "doc-1", user: { id: "doc-user-1", name: "Doctor" } },
+    })
+
+    it("should throw NotFoundException if appointment does not exist", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(null)
+      await expect(
+        service.updateStatus("apt-1", "CONFIRMED", "user-1", "PATIENT"),
+      ).rejects.toThrow(NotFoundException)
+    })
+
+    it("should throw ForbiddenException for an invalid state transition", async () => {
+      prisma.appointment.findUnique.mockResolvedValue({
+        ...base,
+        status: "BOOKED",
+      })
+      await expect(
+        service.updateStatus("apt-1", "COMPLETED", "user-1", "PATIENT"),
+      ).rejects.toThrow(ForbiddenException)
+    })
+
+    it("should throw ForbiddenException when a doctor is not the assigned doctor", async () => {
+      prisma.appointment.findUnique.mockResolvedValue({
+        ...base,
+        status: "BOOKED",
+        doctorId: "other",
+      })
+      prisma.doctorProfile.findUnique.mockResolvedValue({
+        id: "doc-1",
+        userId: "doc-user-1",
+      })
+      await expect(
+        service.updateStatus("apt-1", "CONFIRMED", "doc-user-1", "DOCTOR"),
+      ).rejects.toThrow(ForbiddenException)
+    })
+
+    it("should throw ForbiddenException when the doctor profile is missing", async () => {
+      prisma.appointment.findUnique.mockResolvedValue({
+        ...base,
+        status: "BOOKED",
+      })
+      prisma.doctorProfile.findUnique.mockResolvedValue(null)
+      await expect(
+        service.updateStatus("apt-1", "CONFIRMED", "doc-user-1", "DOCTOR"),
+      ).rejects.toThrow(ForbiddenException)
+    })
+
+    it("should confirm a BOOKED appointment and notify the patient", async () => {
+      prisma.appointment.findUnique.mockResolvedValue({
+        ...base,
+        status: "BOOKED",
+      })
+      prisma.appointment.update.mockResolvedValue(updated("CONFIRMED"))
+
+      const result = await service.updateStatus(
+        "apt-1",
+        "CONFIRMED",
+        "user-1",
+        "PATIENT",
+      )
+      expect(result.status).toBe("CONFIRMED")
+      expect(notifications.createNotification).toHaveBeenCalled()
+    })
+
+    it("should mark an IN_PROGRESS appointment and notify", async () => {
+      prisma.appointment.findUnique.mockResolvedValue({
+        ...base,
+        status: "CONFIRMED",
+      })
+      prisma.appointment.update.mockResolvedValue(updated("IN_PROGRESS"))
+
+      const result = await service.updateStatus(
+        "apt-1",
+        "IN_PROGRESS",
+        "user-1",
+        "PATIENT",
+      )
+      expect(result.status).toBe("IN_PROGRESS")
+    })
+
+    it("should complete an appointment and notify", async () => {
+      prisma.appointment.findUnique.mockResolvedValue({
+        ...base,
+        status: "IN_PROGRESS",
+      })
+      prisma.appointment.update.mockResolvedValue(updated("COMPLETED"))
+
+      const result = await service.updateStatus(
+        "apt-1",
+        "COMPLETED",
+        "user-1",
+        "PATIENT",
+      )
+      expect(result.status).toBe("COMPLETED")
+      expect(notifications.createNotification).toHaveBeenCalled()
+    })
+
+    it("should ignore a failed audit log but still return the update", async () => {
+      prisma.appointment.findUnique.mockResolvedValue({
+        ...base,
+        status: "BOOKED",
+      })
+      prisma.appointment.update.mockResolvedValue(updated("CONFIRMED"))
+      ;(auditLogs.createLog as jest.Mock).mockRejectedValue(new Error("boom"))
+
+      const result = await service.updateStatus(
+        "apt-1",
+        "CONFIRMED",
+        "user-1",
+        "PATIENT",
+      )
+      expect(result.status).toBe("CONFIRMED")
+    })
+  })
+
+  // ─── Reschedule ───────────────────────────────────────────────────────
+
+  describe("reschedule", () => {
+    afterEach(() => jest.clearAllMocks())
+
+    const apt = (overrides: Record<string, unknown> = {}) => ({
+      id: "apt-1",
+      doctorId: "doc-1",
+      patientId: "user-1",
+      scheduleId: "sched-1",
+      status: "BOOKED",
+      startTime: new Date("2026-08-08T02:00:00.000Z"),
+      patient: { id: "user-1", name: "Patient" },
+      doctor: { id: "doc-1", user: { id: "doc-user-1", name: "Doctor" } },
+      ...overrides,
+    })
+
+    const dto = {
+      startTime: "2026-08-08T03:00:00.000Z",
+      endTime: "2026-08-08T03:30:00.000Z",
+    }
+
+    const satSchema = {
+      id: "sched-1",
+      doctorId: "doc-1",
+      slotDuration: 30,
+      saturday: '["09:00-17:00"]',
+    }
+
+    it("should throw NotFoundException if appointment does not exist", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(null)
+      await expect(service.reschedule("apt-1", dto, "user-1")).rejects.toThrow(
+        NotFoundException,
+      )
+    })
+
+    it("should throw ForbiddenException if not the patient owner", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(
+        apt({ patientId: "someone-else" }),
+      )
+      await expect(service.reschedule("apt-1", dto, "user-1")).rejects.toThrow(
+        ForbiddenException,
+      )
+    })
+
+    it("should throw NotFoundException if schedule is missing", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.availabilitySchedule.findUnique.mockResolvedValue(null)
+      await expect(service.reschedule("apt-1", dto, "user-1")).rejects.toThrow(
+        NotFoundException,
+      )
+    })
+
+    it("should throw NotFoundException if schedule belongs to a different doctor", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.availabilitySchedule.findUnique.mockResolvedValue({
+        ...satSchema,
+        doctorId: "other",
+      })
+      await expect(service.reschedule("apt-1", dto, "user-1")).rejects.toThrow(
+        NotFoundException,
+      )
+    })
+
+    it("should throw BadRequest for a time outside the schedule", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.availabilitySchedule.findUnique.mockResolvedValue({
+        ...satSchema,
+        sunday: '["09:00-17:00"]',
+        saturday: undefined,
+      })
+      await expect(service.reschedule("apt-1", dto, "user-1")).rejects.toThrow(
+        BadRequestException,
+      )
+    })
+
+    it("should throw ConflictException on overlapping time-off", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.availabilitySchedule.findUnique.mockResolvedValue(satSchema)
+      prisma.timeOff.findFirst.mockResolvedValue({ id: "to-1" })
+      await expect(service.reschedule("apt-1", dto, "user-1")).rejects.toThrow(
+        ConflictException,
+      )
+    })
+
+    it("should throw ConflictException if current status is terminal", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(
+        apt({ status: "COMPLETED" }),
+      )
+      prisma.availabilitySchedule.findUnique.mockResolvedValue(satSchema)
+      prisma.timeOff.findFirst.mockResolvedValue(null)
+      await expect(service.reschedule("apt-1", dto, "user-1")).rejects.toThrow(
+        ConflictException,
+      )
+    })
+
+    it("should throw ConflictException when the new slot is already taken", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.availabilitySchedule.findUnique.mockResolvedValue(satSchema)
+      prisma.timeOff.findFirst.mockResolvedValue(null)
+      prisma.appointment.findFirst.mockResolvedValue({ id: "conflict-apt" })
+      await expect(service.reschedule("apt-1", dto, "user-1")).rejects.toThrow(
+        ConflictException,
+      )
+    })
+
+    it("should reschedule successfully and clear the reminder flag", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(apt())
+      prisma.availabilitySchedule.findUnique.mockResolvedValue(satSchema)
+      prisma.timeOff.findFirst.mockResolvedValue(null)
+      prisma.appointment.findFirst.mockResolvedValue(null)
+      const rescheduled = apt({ startTime: new Date(dto.startTime) })
+      prisma.appointment.update.mockResolvedValue(rescheduled)
+
+      const result = await service.reschedule("apt-1", dto, "user-1")
+      expect(prisma.appointment.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            status: "BOOKED",
+            reminderSentAt: null,
+          }),
+        }),
+      )
+      expect(result).toEqual(rescheduled)
+    })
+  })
+
+  // ─── Reminder cron ────────────────────────────────────────────────────
+
+  describe("sendUpcomingReminders", () => {
+    afterEach(() => jest.clearAllMocks())
+
+    const appt = (overrides: Record<string, unknown> = {}) => ({
+      id: "apt-1",
+      patientId: "user-1",
+      doctorId: "doc-1",
+      startTime: new Date("2026-08-02T06:00:00.000Z"),
+      patient: { id: "user-1", name: "Patient", email: "patient@x.com" },
+      doctor: {
+        id: "doc-1",
+        user: { id: "doc-user-1", name: "Doctor", email: "doc@x.com" },
+      },
+      ...overrides,
+    })
+
+    it("should return zero when there are no upcoming appointments", async () => {
+      prisma.appointment.findMany.mockResolvedValue([])
+      const result = await service.sendUpcomingReminders()
+      expect(result).toEqual({ sent: 0, total: 0 })
+    })
+
+    it("should remind patient + doctor and email both", async () => {
+      prisma.appointment.findMany.mockResolvedValue([appt()])
+      prisma.appointment.update.mockResolvedValue(appt())
+
+      const result = await service.sendUpcomingReminders()
+      expect(result).toEqual({ sent: 1, total: 1 })
+      // in-app notifications for patient + doctor
+      expect(notifications.createNotification).toHaveBeenCalledTimes(2)
+      // emails to patient + doctor
+      expect(email.sendAppointmentReminder).toHaveBeenCalledTimes(2)
+      expect(prisma.appointment.update).toHaveBeenCalledWith(
+        expect.objectContaining({ data: { reminderSentAt: expect.any(Date) } }),
+      )
+    })
+
+    it("should skip a missing patient email but still email the doctor and count it", async () => {
+      prisma.appointment.findMany.mockResolvedValue([
+        appt({ patient: { id: "user-1", name: "P" } }),
+      ])
+      prisma.appointment.update.mockResolvedValue(appt())
+
+      const result = await service.sendUpcomingReminders()
+      expect(result.sent).toBe(1)
+      expect(email.sendAppointmentReminder).toHaveBeenCalledTimes(1)
+    })
+
+    it("should not fail the cron when an email send rejects", async () => {
+      prisma.appointment.findMany.mockResolvedValue([appt()])
+      prisma.appointment.update.mockResolvedValue(appt())
+      ;(email.sendAppointmentReminder as jest.Mock)
+        .mockRejectedValueOnce(new Error("smtp down"))
+        .mockRejectedValueOnce(new Error("smtp down"))
+
+      const result = await service.sendUpcomingReminders()
+      expect(result.sent).toBe(1)
+      expect(prisma.appointment.update).toHaveBeenCalled()
+    })
+
+    it("should continue past an appointment whose reminders fail", async () => {
+      const bad = appt({ id: "bad" })
+      const ok = appt({ id: "ok" })
+      prisma.appointment.findMany.mockResolvedValue([bad, ok])
+      ;(notifications.createNotification as jest.Mock).mockRejectedValueOnce(
+        new Error("push fail"),
+      )
+      prisma.appointment.update.mockResolvedValue(ok)
+
+      const result = await service.sendUpcomingReminders()
+      expect(result.sent).toBe(1)
+      expect(result.total).toBe(2)
     })
   })
 })
