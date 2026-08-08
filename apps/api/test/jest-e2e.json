@@ -16,7 +16,9 @@
     "^@/prisma/prisma\\.service$": "<rootDir>/mocks/prisma.service.ts",
     "^@/notifications/notifications\\.service$": "<rootDir>/mocks/notifications.service.ts",
     ".*generated/prisma/client\\.js$": "<rootDir>/mocks/prisma-client.ts",
-    "^better-auth/node$": "<rootDir>/mocks/better-auth-node.ts"
+    "^better-auth/node$": "<rootDir>/mocks/better-auth-node.ts",
+    "^@telehealth/auth$": "<rootDir>/mocks/telehealth-auth.ts",
+    "^@telehealth/db$": "<rootDir>/mocks/telehealth-db.ts"
   },
   "resolver": "<rootDir>/resolver.cjs"
 }

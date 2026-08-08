@@ -58,6 +58,7 @@ export class PrismaService {
   user = {
     findUnique: jest.fn(),
     findMany: jest.fn(),
+    count: jest.fn(),
     update: jest.fn(),
     create: jest.fn(),
     delete: jest.fn(),

@@ -74,5 +74,11 @@ jobs:
         working-directory: apps/api
         run: pnpm run test:cov --silent
 
+      # Full-AppModule HTTP e2e (CRM-style supertest suites booting the real
+      # module graph over the mocked PrismaClient).
+      - name: API e2e (HTTP, full AppModule)
+        working-directory: apps/api
+        run: pnpm run test:e2e --silent
+
       - name: Build
         run: pnpm build

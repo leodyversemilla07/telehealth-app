@@ -58,6 +58,8 @@ export type Mockify<T> = {
 
 // Mock PrismaClient constructor — just returns an empty object with jest fns
 export class PrismaClient {
+  $queryRaw = jest.fn()
+  $executeRaw = jest.fn()
   appointment = {
     create: jest.fn(),
     findMany: jest.fn(),
@@ -99,6 +101,11 @@ export class PrismaClient {
     findUnique: jest.fn(),
     create: jest.fn(),
     count: jest.fn(),
+  }
+  notificationPreference = {
+    upsert: jest.fn(),
+    findUnique: jest.fn(),
+    update: jest.fn(),
   }
   timeOff = {
     findFirst: jest.fn(),
