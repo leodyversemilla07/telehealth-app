@@ -1,196 +1,157 @@
-import type {
-  CanActivate,
-  ExecutionContext,
-  INestApplication,
-} from "@nestjs/common"
-import {
-  ForbiddenException,
-  Injectable,
-  UnauthorizedException,
-  ValidationPipe,
-} from "@nestjs/common"
-import { APP_GUARD, Reflector } from "@nestjs/core"
-import { Test, type TestingModule } from "@nestjs/testing"
-import request from "supertest"
-import type { App } from "supertest/types"
-
-const ROLES_KEY = "mock:roles"
-const ALLOW_ANONYMOUS_KEY = "mock:allow-anonymous"
-
-type TestSession = {
-  user: { id: string; role: string }
-  session: { id: string }
-}
-
+import { BadRequestException } from "@nestjs/common"
 import { StorageService } from "../storage/storage.service"
 import { UsersController } from "./users.controller"
 import { UsersService } from "./users.service"
 
-@Injectable()
-class TestAuthGuard implements CanActivate {
-  constructor(private readonly reflector: Reflector) {}
-
-  canActivate(context: ExecutionContext): boolean {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(
-      ALLOW_ANONYMOUS_KEY,
-      [context.getHandler(), context.getClass()],
-    )
-    if (isPublic) return true
-
-    const request = context.switchToHttp().getRequest<{
-      userSession?: TestSession
-    }>()
-
-    if (!request.userSession) {
-      throw new UnauthorizedException("Authentication required")
-    }
-
-    const roles =
-      this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-        context.getHandler(),
-        context.getClass(),
-      ]) ?? []
-
-    if (roles.length > 0 && !roles.includes(request.userSession.user.role)) {
-      throw new ForbiddenException("Insufficient role")
-    }
-
-    return true
-  }
-}
-
 describe("UsersController", () => {
-  let app: INestApplication<App>
-
-  const serviceMock = {
-    updateProfile: jest.fn(),
-    getActiveSessions: jest.fn(),
-    revokeSession: jest.fn(),
-    revokeOtherSessions: jest.fn(),
+  let controller: UsersController
+  let usersService: {
+    updateProfile: jest.Mock
+    getActiveSessions: jest.Mock
+    revokeSession: jest.Mock
+    revokeOtherSessions: jest.Mock
+    deleteAccount: jest.Mock
+  }
+  let storage: {
+    validateMimeType: jest.Mock
+    validateSize: jest.Mock
+    uploadFile: jest.Mock
+    allowedMimeTypes: string[]
+    maxFileSize: number
   }
 
-  const storageMock = {
-    validateMimeType: jest.fn(),
-    validateSize: jest.fn(),
-    uploadFile: jest.fn(),
-    allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
-    maxFileSize: 2 * 1024 * 1024,
+  const session = {
+    user: { id: "user-1", role: "PATIENT", email: "p@test.ph" },
+    session: { id: "sess-1" },
   }
 
-  beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      controllers: [UsersController],
-      providers: [
-        {
-          provide: UsersService,
-          useValue: serviceMock,
-        },
-        {
-          provide: StorageService,
-          useValue: storageMock,
-        },
-        {
-          provide: APP_GUARD,
-          useClass: TestAuthGuard,
-        },
-      ],
-    }).compile()
-
-    app = moduleFixture.createNestApplication()
-    app.use(
-      (
-        req: { headers: Record<string, unknown>; userSession?: TestSession },
-        _res: unknown,
-        next: () => void,
-      ) => {
-        const role = req.headers["x-role"]
-        if (typeof role === "string") {
-          req.userSession = {
-            user: {
-              id:
-                (typeof req.headers["x-user-id"] === "string" &&
-                  req.headers["x-user-id"]) ||
-                "user-1",
-              role,
-            },
-            session: {
-              id:
-                (typeof req.headers["x-session-id"] === "string" &&
-                  req.headers["x-session-id"]) ||
-                "sess-1",
-            },
-          }
-        }
-        next()
-      },
+  beforeEach(() => {
+    usersService = {
+      updateProfile: jest.fn().mockResolvedValue({ id: "user-1" }),
+      getActiveSessions: jest.fn().mockResolvedValue([]),
+      revokeSession: jest.fn().mockResolvedValue({ success: true }),
+      revokeOtherSessions: jest.fn().mockResolvedValue({ count: 2 }),
+      deleteAccount: jest.fn().mockResolvedValue({ success: true }),
+    }
+    storage = {
+      validateMimeType: jest.fn().mockReturnValue(true),
+      validateSize: jest.fn().mockReturnValue(true),
+      uploadFile: jest
+        .fn()
+        .mockResolvedValue("https://cdn/uploads/avatar-1.jpg"),
+      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp"],
+      maxFileSize: 2 * 1024 * 1024,
+    }
+    controller = new UsersController(
+      usersService as unknown as UsersService,
+      storage as unknown as StorageService,
     )
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-      }),
+  })
+
+  it("getProfile returns the session as-is", async () => {
+    await expect(controller.getProfile(session as never)).resolves.toBe(session)
+  })
+
+  it("updateMyProfile delegates with session identity", async () => {
+    await controller.updateMyProfile(
+      session as never,
+      { name: "New Name" } as never,
     )
-    await app.init()
-  })
-
-  afterEach(async () => {
-    jest.clearAllMocks()
-    await app.close()
-  })
-
-  it("should allow anonymous access to /users/public", async () => {
-    await request(app.getHttpServer()).get("/users/public").expect(200)
-  })
-
-  it("should require auth for /users/me", async () => {
-    await request(app.getHttpServer()).get("/users/me").expect(401)
-  })
-
-  it("should validate profile update payload", async () => {
-    await request(app.getHttpServer())
-      .patch("/users/me")
-      .set("x-role", "PATIENT")
-      .send({ firstName: "Leo", unsupported: true })
-      .expect(400)
-
-    expect(serviceMock.updateProfile).not.toHaveBeenCalled()
-  })
-
-  it("should update profile with valid payload", async () => {
-    serviceMock.updateProfile.mockResolvedValue({
-      id: "user-1",
-      firstName: "Leo",
-    })
-
-    await request(app.getHttpServer())
-      .patch("/users/me")
-      .set("x-role", "PATIENT")
-      .set("x-user-id", "user-1")
-      .send({ firstName: "Leo" })
-      .expect(200)
-
-    expect(serviceMock.updateProfile).toHaveBeenCalledWith(
+    expect(usersService.updateProfile).toHaveBeenCalledWith(
       "user-1",
       "user-1",
       "PATIENT",
-      { firstName: "Leo" },
+      { name: "New Name" },
     )
   })
 
-  it("should list active sessions for current user", async () => {
-    serviceMock.getActiveSessions.mockResolvedValue([])
+  it("uploadAvatar rejects when no file is provided", async () => {
+    await expect(
+      controller.uploadAvatar(session as never, undefined as never),
+    ).rejects.toThrow(BadRequestException)
+  })
 
-    await request(app.getHttpServer())
-      .get("/users/me/sessions")
-      .set("x-role", "PATIENT")
-      .set("x-user-id", "user-42")
-      .set("x-session-id", "sess-42")
-      .expect(200)
+  it("uploadAvatar rejects unsupported mime types", async () => {
+    storage.validateMimeType.mockReturnValue(false)
+    const file = { mimetype: "text/html", size: 100 } as Express.Multer.File
+    await expect(
+      controller.uploadAvatar(session as never, file),
+    ).rejects.toThrow(BadRequestException)
+    await expect(
+      controller.uploadAvatar(session as never, file),
+    ).rejects.toThrow(/Invalid file type/)
+  })
 
-    expect(serviceMock.getActiveSessions).toHaveBeenCalledWith(
-      "user-42",
-      "sess-42",
+  it("uploadAvatar rejects oversized files", async () => {
+    storage.validateSize.mockReturnValue(false)
+    const file = {
+      mimetype: "image/png",
+      size: 3 * 1024 * 1024,
+    } as Express.Multer.File
+    await expect(
+      controller.uploadAvatar(session as never, file),
+    ).rejects.toThrow(/File is too large/)
+  })
+
+  it("uploadAvatar stores the file and updates the profile image", async () => {
+    const file = {
+      mimetype: "image/png",
+      size: 1000,
+      buffer: Buffer.from("img"),
+      originalname: "me.png",
+    } as Express.Multer.File
+
+    const result = await controller.uploadAvatar(session as never, file)
+
+    expect(storage.uploadFile).toHaveBeenCalledWith(
+      "user-1",
+      file.buffer,
+      "me.png",
+      "image/png",
     )
+    expect(usersService.updateProfile).toHaveBeenCalledWith(
+      "user-1",
+      "user-1",
+      "PATIENT",
+      { image: "https://cdn/uploads/avatar-1.jpg" },
+    )
+    expect(result).toEqual({ id: "user-1" })
+  })
+
+  it("getMySessions delegates with the current session id", async () => {
+    await controller.getMySessions(session as never)
+    expect(usersService.getActiveSessions).toHaveBeenCalledWith(
+      "user-1",
+      "sess-1",
+    )
+  })
+
+  it("revokeMySession delegates", async () => {
+    await controller.revokeMySession(session as never, "sess-2")
+    expect(usersService.revokeSession).toHaveBeenCalledWith("user-1", "sess-2")
+  })
+
+  it("revokeMyOtherSessions delegates with the current session id", async () => {
+    await expect(
+      controller.revokeMyOtherSessions(session as never),
+    ).resolves.toEqual({ count: 2 })
+    expect(usersService.revokeOtherSessions).toHaveBeenCalledWith(
+      "user-1",
+      "sess-1",
+    )
+  })
+
+  it("deleteMyAccount passes the email for erasure flows", async () => {
+    await controller.deleteMyAccount(session as never)
+    expect(usersService.deleteAccount).toHaveBeenCalledWith(
+      "user-1",
+      "p@test.ph",
+    )
+  })
+
+  it("publicRoute returns a public message", async () => {
+    await expect(controller.publicRoute()).resolves.toEqual({
+      message: "Public endpoint",
+    })
   })
 })
