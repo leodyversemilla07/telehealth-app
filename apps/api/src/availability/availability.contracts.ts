@@ -1,24 +1,17 @@
 import { z } from "zod"
 import { isIsoDate } from "../trpc/contracts.util"
+import { isValidDayWindowJson } from "./day-window.util"
 
 /**
  * Zod contracts for the availability router — the tRPC equivalent of the
  * class-validator DTOs (SetAvailabilityDto / CreateTimeOffDto).
  */
 
-const isValidJson = (value: string): boolean => {
-  try {
-    JSON.parse(value)
-    return true
-  } catch {
-    return false
-  }
-}
-
 const daySchedule = z
   .string()
-  .refine(isValidJson, {
-    message: "must be a JSON array of time ranges",
+  .refine(isValidDayWindowJson, {
+    message:
+      "must be a JSON array of HH:MM-HH:MM windows (end after start, within 00:00-24:00)",
   })
   .optional()
 

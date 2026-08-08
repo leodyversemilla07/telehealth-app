@@ -1,32 +1,59 @@
-import { IsInt, IsJSON, IsOptional, Max, Min } from "class-validator"
+import {
+  IsInt,
+  IsOptional,
+  Max,
+  Min,
+  Validate,
+  ValidatorConstraint,
+  type ValidatorConstraintInterface,
+} from "class-validator"
+import { isValidDayWindowJson } from "../day-window.util"
+
+/**
+ * Class-validator counterpart of the zod `daySchedule` refine on the tRPC
+ * contract. The appointments service JSON.parses day schedules at booking
+ * time and treats a non-array as "no windows" — so anything that isn't a
+ * JSON array of HH:MM-HH:MM windows must fail here at write time, never
+ * silently brick the doctor's schedule.
+ */
+@ValidatorConstraint({ name: "isDayWindowJson", async: false })
+export class IsDayWindowJson implements ValidatorConstraintInterface {
+  validate(value: unknown): boolean {
+    return isValidDayWindowJson(value)
+  }
+
+  defaultMessage(): string {
+    return "must be a JSON array of HH:MM-HH:MM windows (end after start, within 00:00-24:00)"
+  }
+}
 
 export class SetAvailabilityDto {
   @IsOptional()
-  @IsJSON()
+  @Validate(IsDayWindowJson)
   monday?: string
 
   @IsOptional()
-  @IsJSON()
+  @Validate(IsDayWindowJson)
   tuesday?: string
 
   @IsOptional()
-  @IsJSON()
+  @Validate(IsDayWindowJson)
   wednesday?: string
 
   @IsOptional()
-  @IsJSON()
+  @Validate(IsDayWindowJson)
   thursday?: string
 
   @IsOptional()
-  @IsJSON()
+  @Validate(IsDayWindowJson)
   friday?: string
 
   @IsOptional()
-  @IsJSON()
+  @Validate(IsDayWindowJson)
   saturday?: string
 
   @IsOptional()
-  @IsJSON()
+  @Validate(IsDayWindowJson)
   sunday?: string
 
   @IsOptional()

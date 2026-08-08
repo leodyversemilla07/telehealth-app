@@ -216,6 +216,9 @@ describe("API (e2e) — full AppModule, real Postgres", () => {
               status: string
             }) => Promise<unknown>
           }
+          availability: {
+            setAvailability: (input: object) => Promise<unknown>
+          }
         }
       }
     }
@@ -267,6 +270,23 @@ describe("API (e2e) — full AppModule, real Postgres", () => {
           0,
         ) +
         jitterMin * 60_000
+      return {
+        startTime: new Date(startMs).toISOString(),
+        endTime: new Date(startMs + 60 * 60_000).toISOString(),
+      }
+    }
+
+    /** Slot that ends exactly at PHT midnight: UTC 15:00 -> PHT 23:00-24:00. */
+    function slotMidnight(daysAhead: number) {
+      const now = new Date()
+      const startMs = Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + daysAhead,
+        15,
+        0,
+        0,
+      )
       return {
         startTime: new Date(startMs).toISOString(),
         endTime: new Date(startMs + 60 * 60_000).toISOString(),
@@ -374,6 +394,53 @@ describe("API (e2e) — full AppModule, real Postgres", () => {
       ).rejects.toMatchObject({
         code: "BAD_REQUEST",
         message: expect.stringContaining("at least 24 hours"),
+      })
+    })
+
+    it("books a slot ending exactly at PHT midnight (24:00 wrap fix)", async () => {
+      const caller = routerHost.appRouter.createCaller(patientCtx())
+      const appt = await caller.appointments.create({
+        doctorId: doctorProfileId,
+        scheduleId,
+        ...slotMidnight(3), // PHT 23:00-24:00
+      })
+
+      expect(appt.status).toBe("BOOKED")
+      const row = await prisma.appointment.findUniqueOrThrow({
+        where: { id: appt.id },
+      })
+      expect(row.status).toBe("BOOKED")
+    })
+
+    it("rejects a malformed schedule window at write time (valid JSON, not an array)", async () => {
+      const caller = routerHost.appRouter.createCaller(doctorCtx())
+      await expect(
+        caller.availability.setAvailability({ monday: '"09:00-17:00"' }),
+      ).rejects.toMatchObject({
+        code: "BAD_REQUEST",
+        message: expect.stringContaining("HH:MM"),
+      })
+    })
+
+    it("rejects an out-of-range window inside an otherwise valid array", async () => {
+      const caller = routerHost.appRouter.createCaller(doctorCtx())
+      await expect(
+        caller.availability.setAvailability({
+          monday: '["09:00-17:00","99:00-100:00"]',
+        }),
+      ).rejects.toMatchObject({ code: "BAD_REQUEST" })
+    })
+
+    it("accepts a well-formed schedule update", async () => {
+      const caller = routerHost.appRouter.createCaller(doctorCtx())
+      await expect(
+        caller.availability.setAvailability({
+          monday: '["09:00-17:00"]',
+          slotDuration: 30,
+        }),
+      ).resolves.toMatchObject({
+        doctorId: doctorProfileId,
+        slotDuration: 30,
       })
     })
 

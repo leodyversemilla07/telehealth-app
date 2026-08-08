@@ -163,7 +163,14 @@ export class AppointmentsService {
 
     const phtStartMinutes =
       phtStart.getUTCHours() * 60 + phtStart.getUTCMinutes()
-    const phtEndMinutes = phtEnd.getUTCHours() * 60 + phtEnd.getUTCMinutes()
+    const rawPhtEndMinutes = phtEnd.getUTCHours() * 60 + phtEnd.getUTCMinutes()
+    // A slot ending exactly at midnight PHT ("24:00") computes to 00:00 the
+    // next UTC day; normalize it back onto the same day so window/duration
+    // math sees a full 24h clock instead of a negative (or near-zero) span.
+    const phtEndMinutes =
+      rawPhtEndMinutes < phtStartMinutes
+        ? rawPhtEndMinutes + 24 * 60
+        : rawPhtEndMinutes
     const duration = phtEndMinutes - phtStartMinutes
 
     if (duration <= 0) return false
