@@ -1,0 +1,18 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": "db\\.e2e-spec\\.ts$",
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/../src/$1",
+    "^@thallesp/nestjs-better-auth$": "<rootDir>/mocks/nestjs-better-auth.ts",
+    "^@workspace/shared$": "<rootDir>/mocks/workspace-shared.ts",
+    "^isomorphic-dompurify$": "<rootDir>/mocks/isomorphic-dompurify.ts",
+    "^better-auth/node$": "<rootDir>/mocks/better-auth-node.ts",
+    "^@telehealth/auth$": "<rootDir>/mocks/telehealth-auth.ts"
+  },
+  "resolver": "<rootDir>/resolver.cjs"
+}

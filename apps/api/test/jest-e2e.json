@@ -20,5 +20,6 @@
     "^@telehealth/auth$": "<rootDir>/mocks/telehealth-auth.ts",
     "^@telehealth/db$": "<rootDir>/mocks/telehealth-db.ts"
   },
-  "resolver": "<rootDir>/resolver.cjs"
+  "resolver": "<rootDir>/resolver.cjs",
+  "testPathIgnorePatterns": ["db\\.e2e-spec\\.ts$"]
 }

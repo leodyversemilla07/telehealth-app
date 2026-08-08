@@ -1,0 +1,29 @@
+# Local dev/test databases (mirrors crm/docker-compose.yml).
+#
+#   docker compose up -d
+#   DATABASE_URL=postgresql://postgres:postgres@localhost:5433/telehealth?schema=public \
+#     pnpm --filter @telehealth/db exec prisma migrate deploy
+#   cd apps/api && pnpm run test:e2e:db
+#
+# The app itself runs against the managed RDS instance in production — this
+# compose file exists only for tests and local development.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: telehealth-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: telehealth
+    ports:
+      - "5433:5432"
+    volumes:
+      - telehealth-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d telehealth"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  telehealth-postgres-data:

@@ -16,6 +16,22 @@ permissions:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    # Real Postgres for the full-stack e2e step (db.e2e-spec.ts) — the API
+    # suite boots the full AppModule against real Prisma queries.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: telehealth
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U postgres -d telehealth"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -79,6 +95,16 @@ jobs:
       - name: API e2e (HTTP, full AppModule)
         working-directory: apps/api
         run: pnpm run test:e2e --silent
+
+      # Full-stack e2e against the REAL Postgres service: migrate the schema
+      # then boot the app and drive REST/service paths with live queries.
+      - name: API e2e (real Postgres)
+        working-directory: apps/api
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/telehealth?schema=public
+        run: |
+          pnpm --filter @telehealth/db exec prisma migrate deploy
+          pnpm run test:e2e:db --silent
 
       - name: Build
         run: pnpm build
