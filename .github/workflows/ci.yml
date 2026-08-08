@@ -20,7 +20,7 @@ jobs:
     # suite boots the full AppModule against real Prisma queries.
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:16.14-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -102,6 +102,7 @@ jobs:
         working-directory: apps/api
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/telehealth?schema=public
+          TELEHEALTH_E2E_DB_URL: postgresql://postgres:postgres@localhost:5432/telehealth?schema=public
         run: |
           pnpm --filter @telehealth/db exec prisma migrate deploy
           pnpm run test:e2e:db --silent

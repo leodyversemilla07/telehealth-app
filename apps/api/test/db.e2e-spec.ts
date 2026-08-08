@@ -1,10 +1,9 @@
 import { afterAll, beforeAll, describe, expect, it } from "@jest/globals"
 import { type INestApplication, ValidationPipe } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
-import { prisma } from "@telehealth/db"
+import type { PrismaClient } from "@telehealth/db"
 import request from "supertest"
 import type { App } from "supertest/types"
-import { NotificationsService } from "../src/notifications/notifications.service"
 import { mockGetSession } from "./mocks/telehealth-auth"
 
 /**
@@ -14,27 +13,28 @@ import { mockGetSession } from "./mocks/telehealth-auth"
  * the guard so the app's own services/REST surface run against the database
  * for real.
  *
- * Env fallbacks MUST run before AppModule is imported (the db package
- * constructs its PrismaClient at import time).
+ * DATABASE_URL is forced here (never borrowed from the workspace .env, which
+ * points at the dev database): CI sets TELEHEALTH_E2E_DB_URL to its postgres
+ * service URL; locally the docker-compose postgres on :5433 is used.
+ * These env lines MUST run before the first import of @telehealth/db, so the
+ * prisma singleton is built with the typed URLs (dynamic imports below).
  */
-const fallback = (key: string, value: string) => {
-  if (!process.env[key]) {
-    process.env[key] = value
-  }
-}
-
-fallback(
-  "DATABASE_URL",
-  "postgresql://postgres:postgres@localhost:5433/telehealth?schema=public",
-)
-fallback("BETTER_AUTH_SECRET", "test-secret-0123456789abcdef0123456789abcdef")
-fallback("BETTER_AUTH_URL", "http://localhost:3001")
-fallback("API_URL", "http://localhost:3001")
+process.env.TELEHEALTH_E2E_DB_URL ??=
+  "postgresql://postgres:postgres@localhost:5433/telehealth?schema=public"
+process.env.DATABASE_URL = process.env.TELEHEALTH_E2E_DB_URL
+process.env.BETTER_AUTH_SECRET ??=
+  "test-secret-0123456789abcdef0123456789abcdef"
+process.env.BETTER_AUTH_URL ??= "http://localhost:3001"
+process.env.API_URL ??= "http://localhost:3001"
 
 describe("API (e2e) — full AppModule, real Postgres", () => {
   let app: INestApplication<App>
+  let prisma: PrismaClient
 
   beforeAll(async () => {
+    const { prisma: db } = await import("@telehealth/db")
+    prisma = db
+
     // Fresh rows for this run; truncate what the previous run left behind.
     await prisma.notification.deleteMany()
     await prisma.user.deleteMany()
@@ -130,6 +130,9 @@ describe("API (e2e) — full AppModule, real Postgres", () => {
   })
 
   it("drives real notifications through the app's service", async () => {
+    const { NotificationsService } = await import(
+      "../src/notifications/notifications.service"
+    )
     const svc = app.get(NotificationsService)
     const patient = await prisma.user.findUniqueOrThrow({
       where: { email: "patient@e2e.ph" },
