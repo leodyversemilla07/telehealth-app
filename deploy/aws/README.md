@@ -142,8 +142,9 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
 ## Cost & backups (set up 2026-08-01)
 
 - Budget `monthly-cost-budget` ($10/mo, 50%/100% alerts) + CloudWatch alarm `billing-10usd`
-  → SNS topic `telehealth-billing-alerts` (arn saved in `~/telehealth-aws.env`; needs a
-  confirmed email subscription to actually notify — subscribe via console or ask the dev).
+  → SNS topic `telehealth-billing-alerts` was removed 2026-08-08 (email subscription
+  never confirmed; skip per project decision). Alerts are checked ad hoc via the
+  Budgets console instead.
 - AMI `telehealth-base-<date>` (no-reboot) + RDS manual snapshot `telehealth-db-<date>` —
   create fresh ones before major deploys; delete stale ones (≈$2/mo storage).
 - 4 orphaned EIPs were released (2026-08-01); only the in-use EIP above remains.
