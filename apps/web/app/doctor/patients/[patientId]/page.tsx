@@ -27,6 +27,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
+import { ErrorAlert } from "@/components/error-alert"
 import { useDoctorPatientRecords } from "@/hooks/use-records"
 import { toDate } from "@/lib/dates"
 
@@ -41,7 +42,31 @@ export default function PatientDetailPage() {
   const params = useParams()
   const patientId = params.patientId as string
 
-  const { data: patientRecords, isPending } = useDoctorPatientRecords(patientId)
+  const {
+    data: patientRecords,
+    isPending,
+    error,
+    refetch,
+  } = useDoctorPatientRecords(patientId)
+
+  // Fetch failure (backend down, auth hiccup) is NOT "patient not found" —
+  // surface the real error with a retry instead.
+  if (error) {
+    return (
+      <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
+        <ErrorAlert
+          title="Failed to load patient records"
+          description={
+            error instanceof Error
+              ? error.message
+              : "The telehealth service is unreachable right now. Please try again."
+          }
+          actionLabel="Try again"
+          onAction={() => void refetch()}
+        />
+      </div>
+    )
+  }
 
   if (isPending) {
     return (

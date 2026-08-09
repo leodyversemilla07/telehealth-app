@@ -23,11 +23,12 @@ import {
   Video,
 } from "lucide-react"
 import Link from "next/link"
+import { ErrorAlert } from "@/components/error-alert"
 import { useMyAppointments } from "@/hooks/use-appointments"
 import { toDate } from "@/lib/dates"
 
 export default function DoctorDashboardPage() {
-  const { data, isPending } = useMyAppointments()
+  const { data, isPending, error, refetch } = useMyAppointments()
   const appointments = data?.appointments ?? []
 
   const totalAppts = appointments.length
@@ -78,6 +79,20 @@ export default function DoctorDashboardPage() {
 
   return (
     <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+      {/* Data-fetch error — never present as zeroed stats */}
+      {error && !data && (
+        <ErrorAlert
+          title="Failed to load your dashboard"
+          description={
+            error instanceof Error
+              ? error.message
+              : "The telehealth service is unreachable right now. Please try again."
+          }
+          actionLabel="Try again"
+          onAction={() => void refetch()}
+        />
+      )}
+
       {/* Header */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

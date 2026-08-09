@@ -33,6 +33,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { ErrorAlert } from "@/components/error-alert"
 import { useMyAppointments } from "@/hooks/use-appointments"
 import { usePatientPrescriptions, usePatientRecords } from "@/hooks/use-records"
 import { toDate } from "@/lib/dates"
@@ -42,19 +43,52 @@ export default function PatientDashboardPage() {
   const router = useRouter()
   const trpc = useTRPC()
 
-  const { data: profile, isPending: profileLoading } = useQuery({
+  const {
+    data: profile,
+    isPending: profileLoading,
+    error: profileError,
+    refetch: refetchProfile,
+  } = useQuery({
     ...trpc.patients.me.queryOptions(),
     // Keep the last snapshot on screen during refetches — never blank back
     // into the skeleton once data has loaded.
     placeholderData: keepPreviousData,
   })
 
-  const { data: appointmentsData, isPending: apptsLoading } =
-    useMyAppointments()
+  const {
+    data: appointmentsData,
+    isPending: apptsLoading,
+    error: apptsError,
+    refetch: refetchAppts,
+  } = useMyAppointments()
   const appointments = appointmentsData?.appointments ?? []
-  const { data: records = [], isPending: recordsLoading } = usePatientRecords()
-  const { data: prescriptions = [], isPending: rxLoading } =
-    usePatientPrescriptions()
+  const {
+    data: records = [],
+    isPending: recordsLoading,
+    error: recordsError,
+    refetch: refetchRecords,
+  } = usePatientRecords()
+  const {
+    data: prescriptions = [],
+    isPending: rxLoading,
+    error: rxError,
+    refetch: refetchRx,
+  } = usePatientPrescriptions()
+
+  // A failed fetch with nothing cached must not read as "all zero". Show an
+  // inline banner (with retry) instead of silently rendering empty stats.
+  const dataError =
+    (!profile && profileError ? profileError : null) ??
+    (!appointmentsData && apptsError ? apptsError : null) ??
+    (records.length === 0 && recordsError ? recordsError : null) ??
+    (prescriptions.length === 0 && rxError ? rxError : null)
+
+  const retryAll = () => {
+    void refetchProfile()
+    void refetchAppts()
+    void refetchRecords()
+    void refetchRx()
+  }
 
   const isLoading =
     (profileLoading && !profile) ||
@@ -117,6 +151,20 @@ export default function PatientDashboardPage() {
 
   return (
     <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+      {/* Data-fetch error (e.g. backend down) — not an empty dashboard */}
+      {dataError && (
+        <ErrorAlert
+          title="Failed to load your dashboard"
+          description={
+            dataError instanceof Error
+              ? dataError.message
+              : "The telehealth service is unreachable right now. Please try again."
+          }
+          actionLabel="Try again"
+          onAction={retryAll}
+        />
+      )}
+
       {/* Welcome Header */}
       <Card>
         <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
