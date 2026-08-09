@@ -1,6 +1,11 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import type { AppointmentDto } from "@workspace/shared"
 import { useTRPC } from "@/lib/trpc/client"
 
@@ -20,6 +25,9 @@ export function useMyAppointments(limit?: number, offset?: number) {
   const trpc = useTRPC()
   return useQuery({
     ...trpc.appointments.findMine.queryOptions({ limit, offset }),
+    // Keep the last snapshot on screen during refetches/invalidation so the
+    // page never blanks back into a skeleton once data has loaded.
+    placeholderData: keepPreviousData,
     select: (data) => ({
       ...data,
       // The tRPC output is the raw Prisma shape; the pages consume the

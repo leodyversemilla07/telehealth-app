@@ -1,6 +1,11 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { useTRPC } from "@/lib/trpc/client"
 
 // ─── Query Keys ──────────────────────────────────────────────
@@ -18,6 +23,7 @@ export function usePatientRecords() {
   const trpc = useTRPC()
   return useQuery({
     ...trpc.records.myRecords.queryOptions({}),
+    placeholderData: keepPreviousData,
     select: (data) => data.items,
   })
 }
@@ -26,6 +32,7 @@ export function usePatientPrescriptions() {
   const trpc = useTRPC()
   return useQuery({
     ...trpc.records.myPrescriptions.queryOptions({}),
+    placeholderData: keepPreviousData,
     select: (data) => data.items,
   })
 }

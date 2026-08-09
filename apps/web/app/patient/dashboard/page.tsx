@@ -1,6 +1,6 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { formatPHTFull } from "@workspace/shared"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
@@ -42,9 +42,12 @@ export default function PatientDashboardPage() {
   const router = useRouter()
   const trpc = useTRPC()
 
-  const { data: profile, isPending: profileLoading } = useQuery(
-    trpc.patients.me.queryOptions(),
-  )
+  const { data: profile, isPending: profileLoading } = useQuery({
+    ...trpc.patients.me.queryOptions(),
+    // Keep the last snapshot on screen during refetches — never blank back
+    // into the skeleton once data has loaded.
+    placeholderData: keepPreviousData,
+  })
 
   const { data: appointmentsData, isPending: apptsLoading } =
     useMyAppointments()
@@ -54,7 +57,10 @@ export default function PatientDashboardPage() {
     usePatientPrescriptions()
 
   const isLoading =
-    profileLoading || apptsLoading || recordsLoading || rxLoading
+    (profileLoading && !profile) ||
+    (apptsLoading && appointments.length === 0) ||
+    (recordsLoading && records.length === 0) ||
+    (rxLoading && prescriptions.length === 0)
 
   if (isLoading) {
     return (

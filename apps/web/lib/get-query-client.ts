@@ -10,6 +10,12 @@ function makeQueryClient() {
         staleTime: 60 * 1000, // Data is fresh for 1 minute
         gcTime: 10 * 60 * 1000, // Garbage collect unused data after 10 minutes
 
+        // Switching browser tabs/apps must not yank the UI into a loading
+        // state: focus refetches are invisible anyway (data is kept on
+        // screen by placeholderData), and pages refresh on mount via
+        // staleTime. Keeps the app quiet on tab switches (SRS perf).
+        refetchOnWindowFocus: false,
+
         // Exclude client-side 4xx errors from triggering redundant retries
         retry: (failureCount, error) => {
           if (error instanceof ApiError && error.statusCode < 500) {
