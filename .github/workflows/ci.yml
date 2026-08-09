@@ -90,6 +90,12 @@ jobs:
         working-directory: apps/api
         run: pnpm run test:cov --silent
 
+      # Web unit coverage gate — vitest + v8 thresholds in vitest.config.ts
+      # (anti-regression; raise toward API parity as page tests land).
+      - name: Coverage gate (Web)
+        working-directory: apps/web
+        run: pnpm run test:cov --silent
+
       # Full-AppModule HTTP e2e (CRM-style supertest suites booting the real
       # module graph over the mocked PrismaClient).
       - name: API e2e (HTTP, full AppModule)
