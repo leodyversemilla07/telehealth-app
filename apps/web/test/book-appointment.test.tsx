@@ -6,6 +6,10 @@ import { describe, expect, it, vi } from "vitest"
 import BookAppointmentPage from "@/app/patient/appointments/book/page"
 
 const mockGet = vi.fn()
+const slotsHolder = vi.hoisted(() => ({
+  slots: [] as Array<Record<string, unknown>>,
+}))
+const navHolder = vi.hoisted(() => ({ push: vi.fn() }))
 vi.mock("@/lib/api-client", () => ({
   apiClient: {
     get: (...args: unknown[]) => mockGet(...args),
@@ -18,7 +22,7 @@ vi.mock("sonner", () => ({
 }))
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push: navHolder.push }),
   Link: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
 
@@ -36,7 +40,7 @@ vi.mock("@/lib/trpc/client", () => ({
       getAvailableSlots: {
         queryOptions: () => ({
           queryKey: ["availability", "slots"],
-          queryFn: async () => [],
+          queryFn: async () => slotsHolder.slots,
         }),
       },
     },
@@ -169,8 +173,70 @@ describe("BookAppointmentPage - AI symptom feature", () => {
 
   it("renders the search input", async () => {
     await renderBookAppointment()
-    expect(
-      screen.getByPlaceholderText(/e\.g\. Dr\. Maria Santos/i),
-    ).toBeDefined()
+    expect(screen.getByPlaceholderText(/e.g. Dr. Maria Santos/i)).toBeDefined()
+  })
+})
+
+describe("BookAppointmentPage - booking flow", () => {
+  // One PHT-midday slot so the picker stays deterministic in any CI timezone.
+  const SLOT = {
+    id: "s1",
+    scheduleId: "sch-1",
+    doctorId: "d1",
+    startTime: "2026-08-20T04:00:00.000Z",
+    endTime: "2026-08-20T05:00:00.000Z",
+  }
+
+  async function openBookingDialog() {
+    const result = await renderBookAppointment()
+    await userEvent
+      .setup()
+      .click((await screen.findAllByText("Book Consult"))[0]!)
+    await screen.findByText("Schedule Appointment")
+    return result
+  }
+
+  it("keeps Confirm Booking disabled until a slot and consent are chosen", async () => {
+    slotsHolder.slots = [SLOT]
+    await renderBookAppointment()
+    await userEvent
+      .setup()
+      .click((await screen.findAllByText("Book Consult"))[0]!)
+    await screen.findByText("Schedule Appointment")
+
+    const notReady = screen.getByText("Confirm Booking").closest("button")
+    expect(notReady?.hasAttribute("disabled")).toBe(true)
+
+    // select the PHT-midday slot
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "12:00 PM" }))
+    // still disabled without DPA consent
+    const noConsent = screen.getByText("Confirm Booking").closest("button")
+    expect(noConsent?.hasAttribute("disabled")).toBe(true)
+  })
+
+  it("books the appointment and navigates to the appointments list", async () => {
+    const toast = (await import("sonner")).toast as unknown as {
+      success: (msg: string) => void
+    }
+    slotsHolder.slots = [SLOT]
+    await openBookingDialog()
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: "12:00 PM" }))
+    await userEvent.setup().click(screen.getByRole("switch"))
+
+    const confirm = screen.getByText("Confirm Booking").closest("button")
+    expect(confirm?.hasAttribute("disabled")).toBe(false)
+    await userEvent.setup().click(confirm!)
+
+    await waitFor(() =>
+      expect(toast.success).toHaveBeenCalledWith(
+        "Appointment successfully booked in PHT time!",
+      ),
+    )
+    expect(navHolder.push).toHaveBeenCalledWith("/patient/appointments")
   })
 })

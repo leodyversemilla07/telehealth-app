@@ -1,7 +1,7 @@
 import { isServer, QueryClient } from "@tanstack/react-query"
 import { ApiError } from "@/lib/api-client"
 
-function makeQueryClient() {
+export function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {

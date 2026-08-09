@@ -7,11 +7,14 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = {
   error: 3,
 }
 
-const MIN_LEVEL: LogLevel =
-  process.env.NODE_ENV === "production" ? "warn" : "debug"
+function minLevel(): LogLevel {
+  // Read per-call so tests (and hot reloads) can flip NODE_ENV without a
+  // fresh module evaluation. Injected as a constant at build time in prod.
+  return process.env.NODE_ENV === "production" ? "warn" : "debug"
+}
 
 function shouldLog(level: LogLevel): boolean {
-  return LEVEL_PRIORITY[level] >= LEVEL_PRIORITY[MIN_LEVEL]
+  return LEVEL_PRIORITY[level] >= LEVEL_PRIORITY[minLevel()]
 }
 
 function formatMessage(level: LogLevel, tag: string, message: string): string {

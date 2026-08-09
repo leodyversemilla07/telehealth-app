@@ -1,6 +1,8 @@
 name: e2e
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: "0 6 * * *" # nightly 06:00 UTC (~14:00 PHT)
