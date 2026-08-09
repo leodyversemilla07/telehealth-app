@@ -78,6 +78,14 @@ aws ec2 authorize-security-group-ingress --group-id sg-0b7473a31d6033df6 \
    split traffic across several public IPs, so bursts from one workstation can
    legitimately not trip it.
 
+5. **Email is Resend-only; no SMTP vars** — `apps/api/src/common/utils/email.ts`
+   uses the Resend SDK exclusively, and `EMAIL_PROVIDER`/`SMTP_*` are read
+   nowhere. On 2026-08-09 the dead `EMAIL_PROVIDER`, `SMTP_ENDPOINT`,
+   `SMTP_PASS`, `SMTP_PORT`, `SMTP_USER` entries were removed from the prod
+   `.env` (credential surface reduction; no restart needed — unused). The
+   `.env` key-set otherwise matches `.env.example` (AWS access keys absent by
+   design — S3 via instance profile).
+
 ## Production TODO (before real users)
 
 - [x] Real domain + **Let's Encrypt** (certbot, single cert: tele-health.app, www, api; auto-renews)
