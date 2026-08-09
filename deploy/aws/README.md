@@ -67,6 +67,17 @@ aws ec2 authorize-security-group-ingress --group-id sg-0b7473a31d6033df6 \
    back to the SDK default credential chain when `AWS_ACCESS_KEY_ID` is unset,
    so no keys live on the server.
 
+4. **tRPC rate limiting is per proxy-trusted IP** — `ThrottleMiddleware` keys
+   each window on the LAST `x-forwarded-for` hop (what nginx appends), falling
+   back to `cf-connecting-ip` / `x-real-ip` / socket address. Before this,
+   every client behind nginx shared one `127.0.0.1` bucket of 30/min for the
+   whole site. Now 30 req/min per real client per procedure (override with
+   `THROTTLE_LIMIT`); expired windows are pruned every 30s. Diagnosing a burst
+   of `429`s: verify with `curl -H 'x-forwarded-for: 1.2.3.4'` against
+   `http://localhost:3001` — the 31st request must 429. Note your own NAT may
+   split traffic across several public IPs, so bursts from one workstation can
+   legitimately not trip it.
+
 ## Production TODO (before real users)
 
 - [x] Real domain + **Let's Encrypt** (certbot, single cert: tele-health.app, www, api; auto-renews)
