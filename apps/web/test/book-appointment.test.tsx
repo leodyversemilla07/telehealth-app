@@ -1,8 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import type { ReactNode } from "react"
 import { describe, expect, it, vi } from "vitest"
+import BookAppointmentPage from "@/app/patient/appointments/book/page"
 
 const mockGet = vi.fn()
 vi.mock("@/lib/api-client", () => ({
@@ -90,10 +91,6 @@ const MOCK_DOCTORS = [
 ]
 
 async function renderBookAppointment() {
-  const BookAppointmentPage = (
-    await import("@/app/patient/appointments/book/page")
-  ).default
-
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -127,35 +124,42 @@ describe("BookAppointmentPage - AI symptom feature", () => {
   it("opens the symptom dialog when clicking Find by Symptoms", async () => {
     await renderBookAppointment()
     await userEvent.setup().click(screen.getByText("Find by Symptoms"))
-    expect(screen.getByText("Find a Doctor by Symptoms")).toBeDefined()
+    expect(await screen.findByText("Find a Doctor by Symptoms")).toBeDefined()
   })
 
   it("shows the symptom textarea in the dialog", async () => {
     await renderBookAppointment()
     await userEvent.setup().click(screen.getByText("Find by Symptoms"))
     expect(
-      screen.getByPlaceholderText(/e\.g\. I have a persistent headache/i),
+      await screen.findByPlaceholderText(
+        /e\.g\. I have a persistent headache/i,
+      ),
     ).toBeDefined()
   })
 
   it("shows Find Specialists button in the dialog", async () => {
     await renderBookAppointment()
     await userEvent.setup().click(screen.getByText("Find by Symptoms"))
-    expect(screen.getByText("Find Specialists")).toBeDefined()
+    expect(await screen.findByText("Find Specialists")).toBeDefined()
   })
 
   it("Find Specialists button is disabled when textarea is empty", async () => {
     await renderBookAppointment()
     await userEvent.setup().click(screen.getByText("Find by Symptoms"))
-    const button = screen.getByText("Find Specialists").closest("button")
+    const button = (await screen.findByText("Find Specialists")).closest(
+      "button",
+    )
     expect(button?.hasAttribute("disabled")).toBe(true)
   })
 
   it("closes dialog when clicking Cancel", async () => {
     await renderBookAppointment()
     await userEvent.setup().click(screen.getByText("Find by Symptoms"))
+    await screen.findByText("Find a Doctor by Symptoms")
     await userEvent.setup().click(screen.getByText("Cancel"))
-    expect(screen.queryByText("Find a Doctor by Symptoms")).toBeNull()
+    await waitFor(() =>
+      expect(screen.queryByText("Find a Doctor by Symptoms")).toBeNull(),
+    )
   })
 
   it("renders the specialty filter dropdown", async () => {
