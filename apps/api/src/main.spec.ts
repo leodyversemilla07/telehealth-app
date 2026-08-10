@@ -214,7 +214,7 @@ describe("main bootstrap", () => {
     expect(mockApp.setGlobalPrefix).toHaveBeenCalledWith("api")
     expect(mockApp.enableShutdownHooks).toHaveBeenCalled()
     expect(mockApp.useGlobalFilters).toHaveBeenCalledTimes(1)
-    expect(mockApp.useGlobalInterceptors).toHaveBeenCalledTimes(2)
+    expect(mockApp.useGlobalInterceptors).toHaveBeenCalledTimes(3)
     expect(mockApp.useGlobalPipes).toHaveBeenCalledTimes(1)
   })
 

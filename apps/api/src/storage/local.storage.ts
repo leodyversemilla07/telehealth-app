@@ -1,7 +1,18 @@
 import { existsSync, mkdirSync, unlinkSync } from "node:fs"
 import { readFile, writeFile } from "node:fs/promises"
-import { join } from "node:path"
+import { extname, join } from "node:path"
 import type { StorageProvider } from "./storage.interface"
+
+// Mirrors express.static's mime lookup for the allowed upload types so dev
+// avatars/docs keep a correct Content-Type when streamed via the auth-gated
+// /uploads middleware (instead of a generic octet-stream).
+const EXT_MIME: Record<string, string> = {
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
+  ".webp": "image/webp",
+  ".pdf": "application/pdf",
+}
 
 /**
  * Local filesystem storage provider.
@@ -50,7 +61,8 @@ export class LocalStorage implements StorageProvider {
     }
     return {
       data: await readFile(filePath),
-      contentType: "application/octet-stream",
+      contentType:
+        EXT_MIME[extname(key).toLowerCase()] ?? "application/octet-stream",
     }
   }
 }

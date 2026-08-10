@@ -66,7 +66,7 @@ describe("LocalStorage", () => {
     const result = await storage.read("avatar-u-1.jpg")
     expect(result).toEqual({
       data: Buffer.from("file-content"),
-      contentType: "application/octet-stream",
+      contentType: "image/jpeg",
     })
   })
 

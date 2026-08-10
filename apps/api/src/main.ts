@@ -8,7 +8,7 @@ import "@telehealth/env/load"
 import { existsSync, mkdirSync } from "node:fs"
 import { join } from "node:path"
 import { Logger, ValidationPipe } from "@nestjs/common"
-import { NestFactory } from "@nestjs/core"
+import { NestFactory, Reflector } from "@nestjs/core"
 import type { NextFunction, Request, Response } from "express"
 import express from "express"
 import helmet from "helmet"
@@ -18,6 +18,7 @@ import { auth } from "./auth/auth"
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter"
 import { PhtDateInterceptor } from "./common/interceptors/pht-date.interceptor"
 import { RequestIdInterceptor } from "./common/interceptors/request-id.interceptor"
+import { Require2FaInterceptor } from "./common/interceptors/require-2fa.interceptor"
 import { setupSwagger } from "./config/swagger.config"
 import { SocketService } from "./notifications/socket.service"
 import { StorageService } from "./storage/storage.service"
@@ -86,12 +87,16 @@ async function bootstrap() {
   if (!existsSync(uploadsDir)) {
     mkdirSync(uploadsDir, { recursive: true })
   }
-  app.use("/uploads", express.static(uploadsDir))
 
   // In production, uploaded files live in a PRIVATE S3 bucket. Stream them
   // through the API at the same /uploads/:key path so stored URLs stay stable
   // (DB values are unchanged) and objects never get a public URL.
-  // LocalStorage (dev) is handled by express.static above and never reaches here.
+  //
+  // ORDER MATTERS: this middleware runs BEFORE express.static so the auth gate
+  // applies to every non-avatar key in ALL storage modes. A public static
+  // mount first would serve on-disk medical files (LocalStorage/dev) with no
+  // authentication — the LocalStorage read below handles avatars fine, and
+  // express.static remains mounted as a 404 fallback for legacy flat files.
   const storageService = app.get(StorageService)
   app.use(
     "/uploads/:key",
@@ -104,8 +109,8 @@ async function bootstrap() {
         return
       }
       // Avatar keys are public (served on public doctor cards). Anything else
-      // (e.g. future medical-document uploads) requires a valid authenticated
-      // session before the object is streamed.
+      // (e.g. medical documents) requires a valid authenticated session
+      // before the object is streamed.
       if (!key.startsWith("avatar-")) {
         const authHeader = req.headers.authorization
         const session = authHeader?.startsWith("Bearer ")
@@ -136,10 +141,18 @@ async function bootstrap() {
       }
     },
   )
+  // Last-resort dev fallback for files that predate the key scheme (flat
+  // files under /uploads never hit by the :key route).
+  app.use("/uploads", express.static(uploadsDir))
 
   // ── Request ID Interceptor ────────────────────────────────────────────
   // Generates unique request IDs for end-to-end tracing and logging.
   app.useGlobalInterceptors(new RequestIdInterceptor())
+
+  // ── REST 2FA Interceptor ─────────────────────────────────────────────
+  // Mirrors the tRPC RolesMiddleware rule: privileged roles (DOCTOR/ADMIN)
+  // must have 2FA enabled before hitting admin/privileged-only REST routes.
+  app.useGlobalInterceptors(new Require2FaInterceptor(app.get(Reflector)))
 
   // ── PHT Date Interceptor ─────────────────────────────────────────────
   // SRS §5.1 & Appendix D: "All times displayed in Philippine Standard Time (UTC+8)"
