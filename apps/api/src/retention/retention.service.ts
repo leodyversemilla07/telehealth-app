@@ -41,11 +41,53 @@ export class RetentionService {
       select: { id: true, userId: true, prcLicenseExpiry: true },
     })
 
+    let deactivated = 0
+    let cancelledAppointments = 0
+    let patientNotices = 0
     for (const doctor of expiredDoctors) {
+      // Deactivate profile; a doctor whose PRC license lapsed must not be
+      // bookable or continue taking new consultations.
       await this.prisma.doctorProfile.update({
         where: { id: doctor.id },
         data: { isApproved: false },
       })
+      deactivated++
+
+      // Cancel the doctor's future bookings so patients aren't left with a
+      // consultation against a deactivated doctor — and tell those patients
+      // why their appointment no longer stands.
+      const upcoming = await this.prisma.appointment.findMany({
+        where: {
+          doctorId: doctor.id,
+          status: { in: ["BOOKED", "CONFIRMED"] },
+          startTime: { gt: now },
+        },
+        select: {
+          id: true,
+          patientId: true,
+          doctor: { select: { user: { select: { name: true } } } },
+        },
+      })
+      if (upcoming.length > 0) {
+        const cancelled = await this.prisma.appointment.updateMany({
+          where: { id: { in: upcoming.map((a) => a.id) } },
+          data: { status: "CANCELLED" },
+        })
+        cancelledAppointments += cancelled.count
+      }
+      const doctorName = upcoming[0]?.doctor.user.name ?? "your doctor"
+      for (const appt of upcoming) {
+        await this.prisma.notification.create({
+          data: {
+            userId: appt.patientId,
+            type: "APPOINTMENT_CANCELLED",
+            title: "Appointment Cancelled — Doctor License Expired",
+            body: `Your appointment with Dr. ${doctorName} was cancelled because the doctor's license expired on ${doctor.prcLicenseExpiry.toLocaleDateString()}.`,
+          },
+        })
+        patientNotices++
+      }
+
       await this.prisma.notification.create({
         data: {
           userId: doctor.userId,
@@ -64,7 +106,24 @@ export class RetentionService {
       select: { id: true, userId: true, prcLicenseExpiry: true },
     })
 
+    // Dedup: only warn once per ~6-month window. The cron runs daily and
+    // without this every expiring doctor would get a duplicate "expiring
+    // soon" notification every single day until renewal.
+    const warningWindowStart = new Date(
+      now.getTime() - 5 * 30 * 24 * 60 * 60 * 1000,
+    )
+    let warned = 0
     for (const doctor of expiringSoon) {
+      const alreadyWarned = await this.prisma.notification.findFirst({
+        where: {
+          userId: doctor.userId,
+          title: "PRC License Expiring Soon",
+          createdAt: { gte: warningWindowStart },
+        },
+        select: { id: true },
+      })
+      if (alreadyWarned) continue
+
       await this.prisma.notification.create({
         data: {
           userId: doctor.userId,
@@ -73,22 +132,21 @@ export class RetentionService {
           body: `Your PRC license will expire on ${doctor.prcLicenseExpiry.toLocaleDateString()}. Please renew before the expiration date to avoid deactivation.`,
         },
       })
+      warned++
     }
 
-    const expiredCount = expiredDoctors.length
-    const expiringCount = expiringSoon.length
-    if (expiredCount > 0 || expiringCount > 0) {
+    if (deactivated > 0 || warned > 0) {
       await this.prisma.auditLog.create({
         data: {
           action: "LICENSE_VERIFICATION",
           actorId: "system",
           actorEmail: "system@telehealth",
-          reason: `NFR-COMP-05: Deactivated ${expiredCount} expired, warned ${expiringCount} expiring doctors`,
+          reason: `NFR-COMP-05: Deactivated ${deactivated} expired (cancelled ${cancelledAppointments} future appointments, notified ${patientNotices} patients), warned ${warned} expiring doctors`,
         },
       })
     }
 
-    return `License verification: deactivated ${expiredCount} expired, notified ${expiringCount} expiring doctors`
+    return `License verification: deactivated ${deactivated} expired, warned ${warned} expiring doctors`
   }
 
   private async purgeVerifications(): Promise<string> {

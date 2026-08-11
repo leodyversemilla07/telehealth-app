@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
 import { UsersService } from "./users.service"
@@ -55,6 +56,7 @@ describe("UsersService", () => {
     const prismaMock = buildPrismaMock()
     const auditMock: MockAuditLogs = { createLog: jest.fn() }
     const alertsMock: MockAlerts = { createAlert: jest.fn() }
+    const socketMock = { disconnectUser: jest.fn() }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -70,6 +72,10 @@ describe("UsersService", () => {
         {
           provide: SecurityAlertsService,
           useValue: alertsMock as unknown as SecurityAlertsService,
+        },
+        {
+          provide: SocketService,
+          useValue: socketMock as unknown as SocketService,
         },
       ],
     }).compile()

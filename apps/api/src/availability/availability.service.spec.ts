@@ -156,4 +156,83 @@ describe("AvailabilityService", () => {
       }),
     )
   })
+
+  it("getAvailableSlots hides only the slots covered by a partial time-off", async () => {
+    const date = "2026-06-15"
+    const dayKey =
+      [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+      ][new Date(`${date}T12:00:00.000+08:00`).getDay()] ?? "monday"
+
+    const schedule: Record<string, unknown> = {
+      id: "sched-1",
+      slotDuration: 30,
+      appointments: [],
+      // Time-off 10:00–11:00 PHT (02:00–03:00 UTC) on the same day
+      timeOffs: [
+        {
+          startDate: new Date(`${date}T02:00:00.000Z`),
+          endDate: new Date(`${date}T03:00:00.000Z`),
+        },
+      ],
+    }
+    schedule[dayKey] = '["09:00-11:00"]'
+
+    prisma.availabilitySchedule.findUnique.mockResolvedValue(schedule)
+
+    const slots = await service.getAvailableSlots("doc-1", date)
+
+    // 09:00–10:00 PHT remains bookable; 10:00–11:00 is hidden by the off
+    expect(slots).toHaveLength(2)
+    expect(slots.map((s) => s.startTime)).toEqual([
+      new Date(`${date}T01:00:00.000Z`).toISOString(),
+      new Date(`${date}T01:30:00.000Z`).toISOString(),
+    ])
+  })
+
+  it("getAvailableSlots blocks slots overlapped by an appointment straddling the PHT midnight boundary", async () => {
+    const date = "2026-06-15"
+    const dayKey =
+      [
+        "sunday",
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+      ][new Date(`${date}T12:00:00.000+08:00`).getDay()] ?? "monday"
+
+    const schedule: Record<string, unknown> = {
+      id: "sched-1",
+      slotDuration: 30,
+      appointments: [
+        {
+          // 00:30–01:30 PHT Jun 15 = 16:30–17:30 UTC Jun 14 (previous day)
+          startTime: new Date(`2026-06-14T16:30:00.000Z`),
+          endTime: new Date(`2026-06-14T17:30:00.000Z`),
+        },
+      ],
+      timeOffs: [],
+    }
+    schedule[dayKey] = '["00:00-02:00"]'
+
+    prisma.availabilitySchedule.findUnique.mockResolvedValue(schedule)
+
+    const slots = await service.getAvailableSlots("doc-1", date)
+
+    // Only the non-overlapped 00:00–00:30 and 01:30–02:00 slots remain
+    // (00:00 PHT Jun 15 = 16:00 UTC Jun 14)
+    expect(slots).toHaveLength(2)
+    expect(slots.map((s) => s.startTime)).toEqual([
+      new Date(`2026-06-14T16:00:00.000Z`).toISOString(),
+      new Date(`2026-06-14T17:30:00.000Z`).toISOString(),
+    ])
+  })
 })

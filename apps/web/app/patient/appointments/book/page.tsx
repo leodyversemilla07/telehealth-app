@@ -429,7 +429,7 @@ export default function BookAppointmentPage() {
                         className="border border-primary/20 shrink-0"
                       >
                         <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase">
-                          {doctor.user.name?.[0] || doctor.user.email[0]}
+                          {doctor.user.name?.[0] || "D"}
                         </AvatarFallback>
                       </Avatar>
                       <div className="truncate">

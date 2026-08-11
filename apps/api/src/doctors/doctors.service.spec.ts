@@ -103,6 +103,20 @@ describe("DoctorsService", () => {
       })
     })
 
+    it("never requests the doctor's email on the public listing", async () => {
+      prisma.doctorProfile.findMany.mockResolvedValue([])
+      prisma.review.groupBy.mockResolvedValue([])
+
+      await service.findApproved()
+
+      const callArgs = prisma.doctorProfile.findMany.mock.calls[0][0]
+      const userSelect = (
+        callArgs as { include: { user: { select: Record<string, unknown> } } }
+      ).include.user.select
+      expect(userSelect).not.toHaveProperty("email")
+      expect(userSelect).toHaveProperty("name")
+    })
+
     it("should filter by specialty when provided", async () => {
       prisma.doctorProfile.findMany.mockResolvedValue([])
 

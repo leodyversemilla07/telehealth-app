@@ -19,8 +19,10 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter"
 import { PhtDateInterceptor } from "./common/interceptors/pht-date.interceptor"
 import { RequestIdInterceptor } from "./common/interceptors/request-id.interceptor"
 import { Require2FaInterceptor } from "./common/interceptors/require-2fa.interceptor"
+import { authorizeUploadsKey } from "./common/middleware/uploads-gate"
 import { setupSwagger } from "./config/swagger.config"
 import { SocketService } from "./notifications/socket.service"
+import { PrismaService } from "./prisma/prisma.service"
 import { StorageService } from "./storage/storage.service"
 
 async function bootstrap() {
@@ -98,6 +100,7 @@ async function bootstrap() {
   // authentication — the LocalStorage read below handles avatars fine, and
   // express.static remains mounted as a 404 fallback for legacy flat files.
   const storageService = app.get(StorageService)
+  const prismaService = app.get(PrismaService)
   app.use(
     "/uploads/:key",
     async (req: Request, res: Response, next: NextFunction) => {
@@ -109,8 +112,11 @@ async function bootstrap() {
         return
       }
       // Avatar keys are public (served on public doctor cards). Anything else
-      // (e.g. medical documents) requires a valid authenticated session
-      // before the object is streamed.
+      // requires a valid authenticated session AND ownership of the document:
+      // the patient of the appointment, the assigned doctor, or an admin.
+      // (Keys are unguessable, but a leaked URL must not grant any signed-in
+      // user read access — mirror DocumentsService.assertAppointmentAccess.)
+      let sessionUser: { id: string; role?: string | null } | undefined
       if (!key.startsWith("avatar-")) {
         const authHeader = req.headers.authorization
         const session = authHeader?.startsWith("Bearer ")
@@ -122,8 +128,23 @@ async function bootstrap() {
                 headers: new Headers({ cookie: req.headers.cookie }),
               })
             : null
-        if (!session) {
+        if (!session?.user) {
           res.status(401).end()
+          return
+        }
+        sessionUser = session.user
+
+        const decision = await authorizeUploadsKey(
+          prismaService,
+          sessionUser,
+          key,
+        )
+        if (!decision.allow) {
+          if (decision.reason === "not-found") {
+            next() // unknown key → standard 404 handling
+            return
+          }
+          res.status(403).end()
           return
         }
       }

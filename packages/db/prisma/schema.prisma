@@ -263,6 +263,9 @@ model Appointment {
   @@index([patientId])
   @@index([doctorId])
   @@index([startTime])
+  // Composite for the hot availability + reminder paths:
+  // (doctorId, status) filters, startTime ranges the day
+  @@index([doctorId, status, startTime])
   @@map("appointments")
 }
 
@@ -432,6 +435,8 @@ model ChatMessage {
 
   @@index([senderId])
   @@index([receiverId])
+  // Composite for conversation listing: pair membership filters, then order
+  @@index([senderId, receiverId])
   @@index([appointmentId])
   @@index([createdAt])
   @@map("chat_messages")

@@ -22,6 +22,7 @@ const mockHttpServer = { __mockServer: true }
 const mockGetSession = jest.fn()
 const mockStorageRead = jest.fn()
 const mockSocketSetServer = jest.fn()
+const mockMedicalDocumentFindFirst = jest.fn()
 
 const mockExpress = {
   get: ((path: string, handler: (req: Request, res: Response) => void) => {
@@ -58,6 +59,9 @@ const mockApp = {
     const name = (token as { name?: string } | undefined)?.name
     if (name === "SocketService") return { setServer: mockSocketSetServer }
     if (name === "StorageService") return { read: mockStorageRead }
+    if (name === "PrismaService") {
+      return { medicalDocument: { findFirst: mockMedicalDocumentFindFirst } }
+    }
     return undefined
   }),
   listen: jest.fn().mockResolvedValue(undefined),
@@ -192,6 +196,12 @@ describe("main bootstrap", () => {
     mockHelmetOpts.length = 0
     mockCorsOrigins.length = 0
     delete mockSocketHandlers.connection
+    // Non-avatar upload keys must resolve to a document the session user owns
+    // (patient/doctor/admin) — default to the bearer/cookie user being the
+    // patient so the auth-gate tests can focus on the middleware flow.
+    mockMedicalDocumentFindFirst.mockResolvedValue({
+      appointment: { patientId: "u1", doctor: { userId: "doc-1" } },
+    })
     await bootAndFlush()
   })
 
@@ -367,6 +377,45 @@ describe("main bootstrap", () => {
       jest.fn() as never,
     )
     expect(res.send).toHaveBeenCalledWith(Buffer.from("private"))
+  })
+
+  it("403s non-avatar keys when the session user is not the document owner", async () => {
+    ;(auth.api.getSession as jest.Mock).mockResolvedValue({
+      user: { id: "stranger-9" },
+    })
+    mockMedicalDocumentFindFirst.mockResolvedValue({
+      appointment: { patientId: "u1", doctor: { userId: "doc-1" } },
+    })
+    const res = makeRes()
+    await uploadsHandler()(
+      makeReq({
+        params: { key: "report-1.pdf" },
+        headers: { cookie: "session=abc; Path=/" },
+      }),
+      res as unknown as Response,
+      jest.fn() as never,
+    )
+    expect(res.status).toHaveBeenCalledWith(403)
+    // The storage layer must not be hit for forbidden keys
+    expect(mockStorageRead).not.toHaveBeenCalled()
+  })
+
+  it("falls through to 404 handling for unknown keys (no key-validity leak)", async () => {
+    ;(auth.api.getSession as jest.Mock).mockResolvedValue({
+      user: { id: "u1" },
+    })
+    mockMedicalDocumentFindFirst.mockResolvedValue(null)
+    const next = jest.fn()
+    await uploadsHandler()(
+      makeReq({
+        params: { key: "does-not-exist.pdf" },
+        headers: { cookie: "session=abc; Path=/" },
+      }),
+      makeRes() as unknown as Response,
+      next as never,
+    )
+    expect(next).toHaveBeenCalled()
+    expect(mockStorageRead).not.toHaveBeenCalled()
   })
 
   it("falls through to the 404 path when the object is missing", async () => {

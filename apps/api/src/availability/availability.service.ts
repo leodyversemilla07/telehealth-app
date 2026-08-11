@@ -260,7 +260,11 @@ export class AvailabilityService {
         appointments: {
           where: {
             status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
-            startTime: { gte: phtDayStart, lt: phtDayEnd },
+            // Overlap semantics: also catch appointments that START before
+            // this PHT day (or end after it) — an appointment straddling the
+            // PHT-midnight boundary must still block the slots it overlaps.
+            startTime: { lt: phtDayEnd },
+            endTime: { gt: phtDayStart },
           },
         },
         timeOffs: true,
@@ -285,13 +289,10 @@ export class AvailabilityService {
       }
     })()
 
+    // Time-offs are checked per-slot (interval overlap) so a PARTIAL day off
+    // hides only the affected slots instead of the entire day.
+    const timeOffs = schedule.timeOffs
     if (daySlots.length === 0) return []
-
-    // Check time-offs covering this date (compare in PHT date range)
-    const hasTimeOff = schedule.timeOffs.some(
-      (to) => to.startDate <= phtDayEnd && to.endDate >= phtDayStart,
-    )
-    if (hasTimeOff) return []
 
     // Generate time slots from the JSON schedule entries
     const duration = schedule.slotDuration
@@ -335,8 +336,11 @@ export class AvailabilityService {
         const isBooked = bookedTimes.some((bt) => {
           return slotStartUTC < bt.end && slotEndUTC > bt.start
         })
+        const overlapsTimeOff = timeOffs.some((to) => {
+          return slotStartUTC < to.endDate && slotEndUTC > to.startDate
+        })
 
-        if (!isBooked) {
+        if (!isBooked && !overlapsTimeOff) {
           slots.push({
             // Return UTC instants (Z) — the booking API parses these with
             // new Date() in the server's UTC timezone, so a naive PHT string

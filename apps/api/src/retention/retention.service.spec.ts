@@ -8,6 +8,7 @@ type MockPrisma = {
   notification: {
     deleteMany: jest.Mock
     create: jest.Mock
+    findFirst: jest.Mock
   }
   securityAlert: { deleteMany: jest.Mock }
   auditLog: {
@@ -18,15 +19,24 @@ type MockPrisma = {
     findMany: jest.Mock
     update: jest.Mock
   }
+  appointment: {
+    findMany: jest.Mock
+    updateMany: jest.Mock
+  }
 }
 
 function buildPrismaMock(): MockPrisma {
   return {
     verification: { deleteMany: jest.fn() },
-    notification: { deleteMany: jest.fn(), create: jest.fn() },
+    notification: {
+      deleteMany: jest.fn(),
+      create: jest.fn(),
+      findFirst: jest.fn(),
+    },
     securityAlert: { deleteMany: jest.fn() },
     auditLog: { deleteMany: jest.fn(), create: jest.fn() },
     doctorProfile: { findMany: jest.fn(), update: jest.fn() },
+    appointment: { findMany: jest.fn(), updateMany: jest.fn() },
   }
 }
 
@@ -104,7 +114,7 @@ describe("RetentionService", () => {
   })
 
   describe("license verification", () => {
-    it("should deactivate expired doctors and notify them", async () => {
+    it("should deactivate expired doctors, cancel their future appointments and notify them", async () => {
       const expired = [
         {
           id: "doc-1",
@@ -114,6 +124,14 @@ describe("RetentionService", () => {
       ]
       prisma.doctorProfile.findMany.mockResolvedValueOnce(expired)
       prisma.doctorProfile.findMany.mockResolvedValueOnce([])
+      prisma.appointment.findMany.mockResolvedValue([
+        {
+          id: "apt-1",
+          patientId: "pat-1",
+          doctor: { user: { name: "Dr. Cruz" } },
+        },
+      ])
+      prisma.appointment.updateMany.mockResolvedValue({ count: 1 })
       prisma.verification.deleteMany.mockResolvedValue({ count: 0 })
       prisma.notification.deleteMany.mockResolvedValue({ count: 0 })
       prisma.securityAlert.deleteMany.mockResolvedValue({ count: 0 })
@@ -125,6 +143,22 @@ describe("RetentionService", () => {
         where: { id: "doc-1" },
         data: { isApproved: false },
       })
+      // Future bookings cancelled
+      expect(prisma.appointment.updateMany).toHaveBeenCalledWith({
+        where: { id: { in: ["apt-1"] } },
+        data: { status: "CANCELLED" },
+      })
+      // The affected patient is told why
+      expect(prisma.notification.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: "pat-1",
+            type: "APPOINTMENT_CANCELLED",
+            title: "Appointment Cancelled — Doctor License Expired",
+          }),
+        }),
+      )
+      // The doctor is told their profile was deactivated
       expect(prisma.notification.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -143,7 +177,7 @@ describe("RetentionService", () => {
       })
     })
 
-    it("should warn doctors whose licenses expire within six months", async () => {
+    it("should warn expiring doctors only once (deduped across daily runs)", async () => {
       prisma.doctorProfile.findMany.mockResolvedValueOnce([])
       prisma.doctorProfile.findMany.mockResolvedValueOnce([
         {
@@ -152,6 +186,7 @@ describe("RetentionService", () => {
           prcLicenseExpiry: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         },
       ])
+      prisma.notification.findFirst.mockResolvedValue(null)
       prisma.verification.deleteMany.mockResolvedValue({ count: 0 })
       prisma.notification.deleteMany.mockResolvedValue({ count: 0 })
       prisma.securityAlert.deleteMany.mockResolvedValue({ count: 0 })
@@ -160,6 +195,7 @@ describe("RetentionService", () => {
       await service.purgeOldRecords()
 
       expect(prisma.doctorProfile.update).not.toHaveBeenCalled()
+      expect(prisma.notification.create).toHaveBeenCalledTimes(1)
       expect(prisma.notification.create).toHaveBeenCalledWith(
         expect.objectContaining({
           data: expect.objectContaining({
@@ -174,6 +210,28 @@ describe("RetentionService", () => {
           reason: expect.stringContaining("warned 1 expiring doctors"),
         }),
       })
+    })
+
+    it("skips the expiring-soon warning when one was already sent recently", async () => {
+      prisma.doctorProfile.findMany.mockResolvedValueOnce([])
+      prisma.doctorProfile.findMany.mockResolvedValueOnce([
+        {
+          id: "doc-3",
+          userId: "u3",
+          prcLicenseExpiry: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+        },
+      ])
+      prisma.notification.findFirst.mockResolvedValue({ id: "n-1" })
+      prisma.verification.deleteMany.mockResolvedValue({ count: 0 })
+      prisma.notification.deleteMany.mockResolvedValue({ count: 0 })
+      prisma.securityAlert.deleteMany.mockResolvedValue({ count: 0 })
+      prisma.auditLog.deleteMany.mockResolvedValue({ count: 0 })
+
+      await service.purgeOldRecords()
+
+      expect(prisma.notification.create).not.toHaveBeenCalled()
+      // Already warned → no new license audit entry
+      expect(prisma.auditLog.create).not.toHaveBeenCalled()
     })
 
     it("should not create a license audit entry when nothing needs attention", async () => {

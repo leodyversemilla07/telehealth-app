@@ -392,44 +392,48 @@ export class AppointmentsService {
     userId: string,
     role: string,
   ) {
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const appt = await tx.appointment.findUnique({ where: { id } })
-      if (!appt) throw new NotFoundException("Appointment not found")
+    const { result: updated, fromStatus } = await this.prisma.$transaction(
+      async (tx) => {
+        const appt = await tx.appointment.findUnique({ where: { id } })
+        if (!appt) throw new NotFoundException("Appointment not found")
 
-      // Validate state transition
-      const allowed = VALID_TRANSITIONS[appt.status] ?? []
-      if (!allowed.includes(status)) {
-        throw new ForbiddenException(
-          `Cannot transition from "${appt.status}" to "${status}". Allowed: ${allowed.join(", ") || "none"}`,
-        )
-      }
+        // Validate state transition
+        const allowed = VALID_TRANSITIONS[appt.status] ?? []
+        if (!allowed.includes(status)) {
+          throw new ForbiddenException(
+            `Cannot transition from "${appt.status}" to "${status}". Allowed: ${allowed.join(", ") || "none"}`,
+          )
+        }
 
-      // Check permissions
-      if (role === "DOCTOR") {
-        const profile = await tx.doctorProfile.findUnique({
-          where: { userId },
+        // Check permissions
+        if (role === "DOCTOR") {
+          const profile = await tx.doctorProfile.findUnique({
+            where: { userId },
+          })
+          if (!profile || profile.id !== appt.doctorId)
+            throw new ForbiddenException("Not your appointment")
+        }
+
+        const result = await tx.appointment.update({
+          where: { id },
+          data: { status },
+          include: {
+            patient: PATIENT_INCLUDE,
+            doctor: DOCTOR_INCLUDE,
+          },
         })
-        if (!profile || profile.id !== appt.doctorId)
-          throw new ForbiddenException("Not your appointment")
-      }
+        return { result, fromStatus: appt.status }
+      },
+    )
 
-      return tx.appointment.update({
-        where: { id },
-        data: { status },
-        include: {
-          patient: PATIENT_INCLUDE,
-          doctor: DOCTOR_INCLUDE,
-        },
-      })
-    })
-
-    // Audit log (after transaction succeeds, best-effort)
+    // Audit log (after transaction succeeds, best-effort) — record the
+    // pre-transition status captured inside the transaction.
     try {
       await this.auditLogs.createLog(
         userId,
         `Appointment status -> ${status}`,
         id,
-        `From: ${updated.status === status ? "previous" : updated.status}`,
+        `From: ${fromStatus}`,
       )
     } catch (err) {
       this.logger.error("Failed to create audit log:", err)
@@ -473,59 +477,67 @@ export class AppointmentsService {
    * Uses $transaction to prevent race conditions on concurrent cancellations.
    */
   async cancel(id: string, userId: string, role: string) {
-    const cancelled = await this.prisma.$transaction(async (tx) => {
-      const appt = await tx.appointment.findUnique({ where: { id } })
-      if (!appt) throw new NotFoundException("Appointment not found")
+    const { result: cancelled, fromStatus } = await this.prisma.$transaction(
+      async (tx) => {
+        const appt = await tx.appointment.findUnique({ where: { id } })
+        if (!appt) throw new NotFoundException("Appointment not found")
 
-      if (appt.status === "COMPLETED" || appt.status === "CANCELLED") {
-        throw new ConflictException("Cannot cancel this appointment")
-      }
+        if (appt.status === "COMPLETED" || appt.status === "CANCELLED") {
+          throw new ConflictException("Cannot cancel this appointment")
+        }
 
-      // Verify ownership
-      if (appt.patientId !== userId && role !== "ADMIN") {
-        if (role === "DOCTOR") {
-          const profile = await tx.doctorProfile.findUnique({
-            where: { userId },
-          })
-          if (!profile || profile.id !== appt.doctorId)
+        // Verify ownership
+        if (appt.patientId !== userId && role !== "ADMIN") {
+          if (role === "DOCTOR") {
+            const profile = await tx.doctorProfile.findUnique({
+              where: { userId },
+            })
+            if (!profile || profile.id !== appt.doctorId)
+              throw new ForbiddenException("Not your appointment")
+          } else {
             throw new ForbiddenException("Not your appointment")
-        } else {
-          throw new ForbiddenException("Not your appointment")
+          }
         }
-      }
 
-      // F-APPT-05 / SRS CANCELLATION_WINDOW: patients may only cancel at least
-      // the configured notice period before the appointment start time.
-      if (role === "PATIENT") {
-        const windowHours = Number(process.env.CANCELLATION_WINDOW_HOURS) || 24
-        const msUntilStart = appt.startTime.getTime() - Date.now()
-        // Only restrict upcoming appointments that fall inside the window.
-        if (msUntilStart > 0 && msUntilStart < windowHours * 3_600_000) {
-          throw new UnprocessableEntityException({
-            code: ERROR_CODES.CANCELLATION_WINDOW,
-            message: `Cancellations are only allowed at least ${windowHours} hours before the scheduled appointment time.`,
-            details: { hoursBeforeStart: windowHours },
-          })
+        // F-APPT-05 / SRS CANCELLATION_WINDOW: patients may only cancel at
+        // least the configured notice period before the appointment start time.
+        // The check is one-sided on purpose: it blocks cancellations inside
+        // the window AND after the appointment has started (an IN_PROGRESS or
+        // never-completed slot must go through the doctor/admin, not be
+        // retroactively cancelled by the patient).
+        if (role === "PATIENT") {
+          const windowHours =
+            Number(process.env.CANCELLATION_WINDOW_HOURS) || 24
+          const msUntilStart = appt.startTime.getTime() - Date.now()
+          if (msUntilStart < windowHours * 3_600_000) {
+            throw new UnprocessableEntityException({
+              code: ERROR_CODES.CANCELLATION_WINDOW,
+              message: `Cancellations are only allowed at least ${windowHours} hours before the scheduled appointment time.`,
+              details: { hoursBeforeStart: windowHours },
+            })
+          }
         }
-      }
 
-      return tx.appointment.update({
-        where: { id },
-        data: { status: "CANCELLED" },
-        include: {
-          patient: PATIENT_INCLUDE,
-          doctor: DOCTOR_INCLUDE,
-        },
-      })
-    })
+        const result = await tx.appointment.update({
+          where: { id },
+          data: { status: "CANCELLED" },
+          include: {
+            patient: PATIENT_INCLUDE,
+            doctor: DOCTOR_INCLUDE,
+          },
+        })
+        return { result, fromStatus: appt.status }
+      },
+    )
 
-    // Audit log (after transaction succeeds, best-effort)
+    // Audit log (after transaction succeeds, best-effort) — record the
+    // status we cancelled from, captured inside the transaction.
     try {
       await this.auditLogs.createLog(
         userId,
         "Cancelled appointment",
         id,
-        `Original status: previous`,
+        `Original status: ${fromStatus}`,
       )
     } catch (err) {
       this.logger.error("Failed to create audit log:", err)
@@ -587,20 +599,6 @@ export class AppointmentsService {
       )
     }
 
-    const overlappingTimeOff = await this.prisma.timeOff.findFirst({
-      where: {
-        scheduleId: schedule.id,
-        startDate: { lt: end },
-        endDate: { gt: start },
-      },
-    })
-
-    if (overlappingTimeOff) {
-      throw new ConflictException(
-        "Doctor is unavailable during the selected time window",
-      )
-    }
-
     // Check new slot availability and reschedule atomically
     const rescheduled = await this.prisma.$transaction(async (tx) => {
       // Re-validate status inside transaction to prevent race conditions
@@ -612,6 +610,22 @@ export class AppointmentsService {
         current.status === "IN_PROGRESS"
       ) {
         throw new ConflictException("Cannot reschedule this appointment")
+      }
+
+      // Re-check time-off inside the transaction (like create()) so a
+      // concurrent time-off insert can't slip between the outside check and
+      // this update, leaving an appointment inside a time-off window.
+      const overlappingTimeOff = await tx.timeOff.findFirst({
+        where: {
+          scheduleId: schedule.id,
+          startDate: { lt: end },
+          endDate: { gt: start },
+        },
+      })
+      if (overlappingTimeOff) {
+        throw new ConflictException(
+          "Doctor is unavailable during the selected time window",
+        )
       }
 
       const conflict = await tx.appointment.findFirst({
@@ -705,25 +719,40 @@ export class AppointmentsService {
         const doctorName = appt.doctor.user.name ?? "Doctor"
         const patientName = appt.patient.name ?? "Patient"
 
-        // In-app notification for patient
-        await this.notifications.createNotification(
-          appt.patientId,
-          "APPOINTMENT_REMINDER",
-          "Upcoming Appointment Reminder",
-          `Your consultation with Dr. ${doctorName} is scheduled for ${formattedTime}.`,
-        )
+        // Each recipient is notified independently — a failure on one side
+        // must not block the other or prevent marking the reminder as sent.
+        // Otherwise the hourly cron re-notifies every hour and the first
+        // recipient receives duplicate reminders.
+        try {
+          await this.notifications.createNotification(
+            appt.patientId,
+            "APPOINTMENT_REMINDER",
+            "Upcoming Appointment Reminder",
+            `Your consultation with Dr. ${doctorName} is scheduled for ${formattedTime}.`,
+          )
+        } catch (err) {
+          this.logger.error(
+            `Failed to notify patient ${appt.patientId} (${appt.id}):`,
+            err,
+          )
+        }
 
-        // In-app notification for doctor
-        await this.notifications.createNotification(
-          appt.doctor.user.id,
-          "APPOINTMENT_REMINDER",
-          "Upcoming Appointment Reminder",
-          `You have a consultation with ${patientName} scheduled for ${formattedTime}.`,
-        )
+        try {
+          await this.notifications.createNotification(
+            appt.doctor.user.id,
+            "APPOINTMENT_REMINDER",
+            "Upcoming Appointment Reminder",
+            `You have a consultation with ${patientName} scheduled for ${formattedTime}.`,
+          )
+        } catch (err) {
+          this.logger.error(
+            `Failed to notify doctor ${appt.doctor.user.id} (${appt.id}):`,
+            err,
+          )
+        }
 
-        // Mark reminded AFTER both in-app notifications succeeded (the primary
-        // channel) — the hourly cron then skips this appointment. Emails are
-        // best-effort and fire below.
+        // Mark reminded regardless of in-app notification success — the
+        // hourly cron then skips this appointment instead of re-notifying.
         await this.prisma.appointment.update({
           where: { id: appt.id },
           data: { reminderSentAt: now },

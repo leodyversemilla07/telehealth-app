@@ -12,10 +12,16 @@ import type {
   UpdateDoctorProfileDto,
 } from "./dto"
 
+/**
+ * Fields shown on the PUBLIC doctor card (list + byId, no auth).
+ * Deliberately excludes email/contact details — the homepage listing is
+ * anonymously reachable and must not leak PII that can be scraped for
+ * spam/phishing. Patients get the doctor's email via their appointment
+ * (private, authed) surfaces only.
+ */
 const PUBLIC_USER_SELECT = {
   id: true,
   name: true,
-  email: true,
   image: true,
 } as const
 

@@ -488,13 +488,27 @@ describe("AppointmentsService", () => {
       )
     })
 
-    it("should allow cancellation when appointment already started", async () => {
+    it("blocks patient cancellation after the appointment has started", async () => {
       prisma.appointment.findUnique.mockResolvedValue(
         apt({ startTime: new Date(Date.now() - 60_000) }),
       )
+
+      await expect(
+        service.cancel("apt-1", "user-1", "PATIENT"),
+      ).rejects.toThrow(UnprocessableEntityException)
+    })
+
+    it("allows a doctor to cancel a started appointment (bypasses patient window)", async () => {
+      prisma.appointment.findUnique.mockResolvedValue(
+        apt({ doctorId: "doc-1", startTime: new Date(Date.now() - 60_000) }),
+      )
+      prisma.doctorProfile.findUnique.mockResolvedValue({
+        id: "doc-1",
+        userId: "doc-user-1",
+      })
       prisma.appointment.update.mockResolvedValue(apt({ status: "CANCELLED" }))
 
-      const result = await service.cancel("apt-1", "user-1", "PATIENT")
+      const result = await service.cancel("apt-1", "doc-user-1", "DOCTOR")
       expect(result.status).toBe("CANCELLED")
     })
 
@@ -876,18 +890,23 @@ describe("AppointmentsService", () => {
       expect(prisma.appointment.update).toHaveBeenCalled()
     })
 
-    it("should continue past an appointment whose reminders fail", async () => {
+    it("marks reminders sent even when one recipient's notification fails (no re-notify next hour)", async () => {
       const bad = appt({ id: "bad" })
       const ok = appt({ id: "ok" })
       prisma.appointment.findMany.mockResolvedValue([bad, ok])
+      // The patient notification for `bad` fails; everything else succeeds
       ;(notifications.createNotification as jest.Mock).mockRejectedValueOnce(
         new Error("push fail"),
       )
       prisma.appointment.update.mockResolvedValue(ok)
 
       const result = await service.sendUpcomingReminders()
-      expect(result.sent).toBe(1)
-      expect(result.total).toBe(2)
+      // Both appointments are considered processed — the failure is isolated
+      expect(result).toEqual({ sent: 2, total: 2 })
+      // bad: patient failed, doctor succeeded; ok: both succeeded
+      expect(notifications.createNotification).toHaveBeenCalledTimes(4)
+      // Both appointments are marked reminded → no duplicate notifications
+      expect(prisma.appointment.update).toHaveBeenCalledTimes(2)
     })
   })
 })

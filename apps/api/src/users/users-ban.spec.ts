@@ -1,6 +1,7 @@
 import { ForbiddenException, NotFoundException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
 import { UsersService } from "./users.service"
@@ -42,11 +43,14 @@ function buildPrismaMock(): MockPrisma {
 describe("Banned user security", () => {
   let service: UsersService
   let prisma: MockPrisma
+  let socketMock: { disconnectUser: jest.Mock }
 
   beforeEach(async () => {
     const prismaMock = buildPrismaMock()
     const auditMock = { createLog: jest.fn() }
     const alertsMock = { createAlert: jest.fn() }
+    const socketMockValue = { disconnectUser: jest.fn() }
+    socketMock = socketMockValue
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -62,6 +66,10 @@ describe("Banned user security", () => {
         {
           provide: SecurityAlertsService,
           useValue: alertsMock as unknown as SecurityAlertsService,
+        },
+        {
+          provide: SocketService,
+          useValue: socketMockValue as unknown as SocketService,
         },
       ],
     }).compile()
@@ -97,6 +105,32 @@ describe("Banned user security", () => {
       expect(prisma.session.deleteMany).toHaveBeenCalledWith({
         where: { userId: "u1" },
       })
+    })
+
+    it("disconnects the banned user's live sockets", async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: "u1",
+        email: "u@test.com",
+      })
+      prisma.session.deleteMany.mockResolvedValue({ count: 3 })
+      prisma.user.update.mockResolvedValue({
+        id: "u1",
+        banned: true,
+        banReason: null,
+        banExpires: null,
+      })
+      prisma.$transaction.mockImplementation(
+        async (fn: (tx: MockPrisma) => Promise<unknown>) => {
+          return fn({
+            user: prisma.user,
+            session: prisma.session,
+          } as unknown as MockPrisma)
+        },
+      )
+
+      await service.banUser("admin-id", "u1", { reason: "Spam" })
+
+      expect(socketMock.disconnectUser).toHaveBeenCalledWith("u1")
     })
 
     it("should set ban reason and expiry", async () => {

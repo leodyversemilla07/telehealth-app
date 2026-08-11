@@ -70,14 +70,24 @@ export function useChatSocket(userId: string | undefined, enabled = true) {
       log.debug(`Chat socket reconnected after ${attempt} attempts`)
     }
 
+    // The server broadcasts this when the user's sessions were revoked
+    // (e.g. admin ban). Drop to the sign-in page — the session cookie is
+    // gone, so protected pages will bounce there anyway.
+    const onSessionRevoked = () => {
+      log.warn("Session revoked by the server — signing out")
+      window.location.href = "/sign-in"
+    }
+
     socket.on("chat:message", onMessage)
     socket.on("connect_error", onConnectError)
     socket.on("reconnect", onReconnect)
+    socket.on("session:revoked", onSessionRevoked)
 
     return () => {
       socket.off("chat:message", onMessage)
       socket.off("connect_error", onConnectError)
       socket.off("reconnect", onReconnect)
+      socket.off("session:revoked", onSessionRevoked)
       socketRef.current?.disconnect()
       socketRef.current = null
     }

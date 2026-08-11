@@ -5,6 +5,7 @@ import {
 } from "@nestjs/common"
 import type { Role } from "@workspace/shared/types/user"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
 
@@ -14,6 +15,7 @@ export class UsersService {
     private readonly prisma: PrismaService,
     private readonly auditLogs: AuditLogsService,
     private readonly alertsService: SecurityAlertsService,
+    private readonly socket: SocketService,
   ) {}
 
   /**
@@ -193,6 +195,10 @@ export class UsersService {
         },
       })
     })
+
+    // Kill live socket connections: a revoked session must not keep
+    // receiving notifications/events until the client happens to reconnect.
+    this.socket.disconnectUser(id)
 
     await this.auditLogs.createLog(
       actorId,
