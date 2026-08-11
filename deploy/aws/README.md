@@ -183,6 +183,38 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
   3. **`/uploads` auth-gating** — the middleware now runs BEFORE `express.static` so non-avatar
      keys require a session in every storage mode (previously LocalStorage/dev served medical
      files unauthenticated). Prod always uses S3 (private bucket); avatars stay public.
+
+### Codebase-analysis fixes (deployed `2dea97d`, 2026-08-11)
+
+Ranked findings from the full-codebase analysis were all closed:
+
+1. **Public doctor listing no longer leaks emails** — `PUBLIC_USER_SELECT` drops `email`;
+   anonymous `doctors.list`/`doctors.byId` expose only name/image/rating. (Web's book page
+   previously read `doctor.user.email` for an avatar fallback — removed.)
+2. **License cron no longer spams** — `verifyDoctorLicenses` dedups "PRC License Expiring
+   Soon" notifications (skips if one exists within ~5 months); an expired doctor's future
+   BOOKED/CONFIRMED appointments are now CANCELLED with notifications to each patient and
+   the doctor.
+3. **Patient cancellation window closed** — `cancel()` blocks a patient once inside the
+   notice window OR after the appointment started (one-sided `msUntilStart < window`
+   check); doctors/admins can still cancel started appointments.
+4. **`/uploads/:key` ownership checks** — `authorizeUploadsKey` (`apps/api/src/common/
+   middleware/uploads-gate.ts`) verifies the session user is the document's patient,
+   assigned doctor, or admin (mirrors `DocumentsService.assertAppointmentAccess`); unknown
+   keys → 404 without probing S3 (no key-validity leak); forbidden → 403 before any storage
+   read. Avatars stay public.
+5. **Reschedule time-off check moved inside the transaction** (mirrors `create()`).
+6. **Bans kill live sockets** — `banUser` emits `session:revoked` + force-disconnects the
+   user's Socket.io connections (web client redirects to `/sign-in`).
+7. **Slot accuracy** — `getAvailableSlots` filters slots against partial time-offs (no more
+   whole-day hiding) and counts midnight-straddling appointments via overlap semantics.
+8. **Audit-log values** — `updateStatus`/`cancel` capture the pre-transition status inside
+   the transaction (no more "previous"); the hourly reminder cron isolates each recipient
+   and always marks `reminderSentAt` (no duplicate reminders on partial failure).
+9. **Composite indexes** — migration `20260811120000_add_composite_indexes` adds
+   `Appointment(doctorId, status, startTime)` + `ChatMessage(senderId, receiverId)`
+   (the June performance indexes were dropped by `20260729090937` — re-added).
+   Applied to prod RDS 2026-08-11.
 - Better Auth server config via `createAuth(deps)` factory — deps (prisma,
   email transport) are injected by the API (`apps/api/src/auth/auth.ts`).
 - Client: `createTelehealthAuthClient(baseURL)` consumed by the web app
