@@ -22,6 +22,30 @@ Browser ── HTTPS :443 (nginx, Let's Encrypt)
 
 Processes: `pm2` (`api`, `web`) + `pm2 startup` (auto-restart on reboot).
 
+## Edge (nginx) — audited 2026-08-10
+
+Config lives on the box only: `/etc/nginx/sites-enabled/telehealth` (3 server blocks: :80
+redirect → 443, `tele-health.app`/`www` → :3000 + proxied `/api/`, `/socket.io`, `/uploads/` →
+:3001, and `api.tele-health.app` → :3001). TLS via one Let's Encrypt cert (SANs cover all
+three hostnames), renewed by `certbot.timer` (randomised 2×/day).
+
+Verified + hardened on 2026-08-10 (backups in `/etc/nginx/backups/` before any edit):
+- TLS 1.0/1.1 refused; 1.2 + 1.3 only, modern AEAD suites (ECDHE-ECDSA/RSA GCM + Chacha20).
+- `server_tokens off;` + `proxy_hide_header X-Powered-By;` on every proxied block (was leaking
+  `nginx/1.24.0 (Ubuntu)` and `Next.js`).
+- http-block default `ssl_protocols` now TLSv1.2+ (was TLSv1/1.1 — inert because certbot's
+  `options-ssl-nginx.conf` include overrode it per server, but a future block without the
+  include would have inherited weak TLS).
+- HSTS `max-age=63072000; includeSubDomains; preload`, nonce-based CSP, X-Frame-Options,
+  nosniff, Referrer-Policy, Permissions-Policy all verified on the wire (web sets CSP in
+  `apps/web/proxy.ts`; the API's helmet headers come from Nest). HTTP→HTTPS 301; `client_max_body_size 25m`.
+- No nginx `limit_req` **by design**: app-layer throttling (global REST throttler + tRPC
+  throttle middleware, keyed to the last XFF hop) already handles abuse; double-throttling
+  at the edge would fight it.
+- Backups of conf edits go to `/etc/nginx/backups/` (NOT `sites-enabled/` — nginx includes
+  `sites-enabled/*`, a `.bak` there duplicates every server block and breaks `nginx -t` with
+  "conflicting server name" warnings).
+
 ## Shell access (SSM, no SSH)
 
 Port 22 inbound is revoked from `telehealth-web-sg` (2026-08-05); the SSM agent runs
@@ -143,6 +167,22 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
 
 ## Auth package (`packages/auth`)
 
+- **Security posture (full-codebase review, closed 2026-08-10)**: verified sound — Better Auth
+  1.6.x (banned/locked → generic 401, password complexity, 2FA plugin, session rotation 24h,
+  Secure + SameSite-Lax prod cookies, lockout 5/15min), tRPC AuthMiddleware + RolesMiddleware
+  with 2FA enforcement on privileged roles, ownership checks on every traced flow, LiveKit
+  participant-only 1h tokens, documents magic-byte allowlist + server-generated keys,
+  nonce-based CSP, no XSS sinks. Three findings were closed in `eeee9f0` + the edge audit:
+  1. **Seeded accounts verified absent from prod** (queried RDS: 0 rows for the seed emails).
+     The seed's `NODE_ENV=production` refusal guard works; those creds exist only in the
+     hermetic CI DB (`e2e.yml` spins its own throwaway `postgres:16-alpine`).
+  2. **REST 2FA gap closed** — `Require2FaInterceptor` (`apps/api/src/common/interceptors/`,
+     registered globally in `main.ts`) mirrors the tRPC rule: privileged-only REST routes
+     (currently the 14 `@Roles(["ADMIN"])` routes) reject privileged sessions without 2FA
+     with `403 TWO_FACTOR_REQUIRED` (same message as the tRPC path).
+  3. **`/uploads` auth-gating** — the middleware now runs BEFORE `express.static` so non-avatar
+     keys require a session in every storage mode (previously LocalStorage/dev served medical
+     files unauthenticated). Prod always uses S3 (private bucket); avatars stay public.
 - Better Auth server config via `createAuth(deps)` factory — deps (prisma,
   email transport) are injected by the API (`apps/api/src/auth/auth.ts`).
 - Client: `createTelehealthAuthClient(baseURL)` consumed by the web app
@@ -158,7 +198,7 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
   `apps/api/src/main.ts` imports `dotenv/config` as its first line. Keep it
   that way when touching auth imports.
 
-## Cost & backups (set up 2026-08-01)
+## Cost & backups (set up 2026-08-01; refreshed 2026-08-10)
 
 - Budget `monthly-cost-budget` ($10/mo, 50%/100% alerts) + CloudWatch alarm `billing-10usd`
   → SNS topic `telehealth-billing-alerts` was removed 2026-08-08 (email subscription
@@ -166,6 +206,13 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
   Budgets console instead.
 - AMI `telehealth-base-<date>` (no-reboot) + RDS manual snapshot `telehealth-db-<date>` —
   create fresh ones before major deploys; delete stale ones (≈$2/mo storage).
+  Current pair (2026-08-10, prod at `eeee9f0`): `telehealth-base-20260810`
+  (`ami-0ed1a95e792ee4581`) + `telehealth-db-20260810`. Older snapshot/AMI pair was
+  deregistered/deleted (DB was empty; nothing referenced the old AMI — no launch
+  templates or ASGs exist).
+- RDS automated backups ON (daily 06:56–07:26 UTC window); retention is capped at 1 day
+  by the AWS **free-tier restriction** (`FreeTierRestrictionError` when trying to raise
+  it) — manual snapshots are the extra restore points while this account stays free-tier.
 - 4 orphaned EIPs were released (2026-08-01); only the in-use EIP above remains.
   Production DB is empty (smoke-test users deleted) — ready for real signups.
 
