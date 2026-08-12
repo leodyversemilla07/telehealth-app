@@ -8,6 +8,11 @@ import { updatePatientProfileInput } from "./patients.contracts"
 // class-validator DTO class in patients/dto was a type-only vestige).
 type UpdatePatientProfileDto = z.infer<typeof updatePatientProfileInput>
 
+/** A raw patient profile row as returned by findByUserId (Prisma shape). */
+export type PatientProfileRow = Awaited<
+  ReturnType<PatientsService["findByUserId"]>
+>
+
 @Injectable()
 export class PatientsService {
   constructor(private readonly prisma: PrismaService) {}
@@ -61,6 +66,9 @@ export class PatientsService {
           select: {
             id: true,
             name: true,
+            firstName: true,
+            middleName: true,
+            lastName: true,
             email: true,
             image: true,
           },

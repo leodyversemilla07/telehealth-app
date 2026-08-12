@@ -11,15 +11,6 @@ import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { useTRPC } from "@/lib/trpc/client"
 
-// JsonValue `medicalHistory` (recursive type) blows up deep inference, so the
-// tRPC result is shaped into this shallow DTO the form reads (see also
-// hooks/use-records select-casts).
-interface PatientProfile {
-  weight: number | null
-  height: number | null
-  medicalHistory: Record<string, unknown> | null
-}
-
 export function HealthContent() {
   const queryClient = useQueryClient()
   const trpc = useTRPC()
@@ -33,7 +24,7 @@ export function HealthContent() {
   const { data: profileRaw } = useQuery({
     ...trpc.patients.me.queryOptions(),
   })
-  const profile = profileRaw as unknown as PatientProfile | undefined
+  const profile = profileRaw
 
   useEffect(() => {
     if (profile) {
