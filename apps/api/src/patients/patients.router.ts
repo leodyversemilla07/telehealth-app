@@ -10,7 +10,7 @@ import {
 import type { AuthedTrpcContext } from "../trpc/context.types"
 import { AuthMiddleware } from "../trpc/middlewares/auth.middleware"
 import { RolesMiddleware } from "../trpc/middlewares/roles.middleware"
-import type { UpdatePatientProfileDto } from "./dto"
+import type { UpdatePatientProfileInput } from "./patients.contracts"
 import { updatePatientProfileInput } from "./patients.contracts"
 import { PatientsService } from "./patients.service"
 
@@ -38,7 +38,7 @@ export class PatientsRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async updateMe(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: UpdatePatientProfileDto,
+    @Input() input: UpdatePatientProfileInput,
   ) {
     return this.patients.updateProfile(ctx.user.id, input)
   }

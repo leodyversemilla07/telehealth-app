@@ -1,12 +1,12 @@
 import { z } from "zod"
 
-/** Pagination for the notification list (mirrors NotificationQueryDto). */
+/** Pagination for the notification list. */
 export const notificationListInput = z.object({
   limit: z.number().int().min(1).max(100).optional(),
   offset: z.number().int().min(0).optional(),
 })
 
-/** Partial notification-preferences update (mirrors the retired PUT body). */
+/** Partial notification-preferences update. */
 export const notificationPreferencesInput = z.object({
   appointmentReminder: z.boolean().optional(),
   appointmentConfirmation: z.boolean().optional(),

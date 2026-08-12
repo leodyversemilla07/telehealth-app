@@ -10,12 +10,24 @@ import {
 import { Cron, CronExpression } from "@nestjs/schedule"
 import type { AppointmentStatus } from "@telehealth/db"
 import { formatPHTFull } from "@workspace/shared"
+import type { z } from "zod"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
 import { ERROR_CODES } from "../common/errors/error-codes"
 import { EmailService } from "../common/services/email.service"
 import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
-import type { CreateAppointmentDto, RescheduleAppointmentDto } from "./dto"
+import {
+  createAppointmentInput,
+  rescheduleAppointmentInput,
+} from "./appointments.contracts"
+
+// Single source of truth: the router's zod contracts (the retired
+// class-validator DTO classes in appointments/dto were type-only vestiges).
+type CreateAppointmentDto = z.infer<typeof createAppointmentInput>
+type RescheduleAppointmentDto = Omit<
+  z.infer<typeof rescheduleAppointmentInput>,
+  "id" // id is a separate first argument to reschedule()
+>
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   BOOKED: ["CONFIRMED", "CANCELLED"],

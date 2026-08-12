@@ -2,8 +2,8 @@ import { z } from "zod"
 import { paginationInput } from "../trpc/contracts.util"
 
 /**
- * Zod contracts for the records router — the tRPC equivalent of the
- * class-validator DTOs (CreateConsultationDto) + id/pagination inputs.
+ * Zod contracts for the records router — the single source of truth for
+ * procedure inputs (the class-validator DTO mirror was removed).
  */
 
 export const byAppointmentInput = z.object({

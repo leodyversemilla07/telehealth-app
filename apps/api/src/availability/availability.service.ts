@@ -6,9 +6,18 @@ import {
   Logger,
   NotFoundException,
 } from "@nestjs/common"
+import type { z } from "zod"
 import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
-import type { CreateTimeOffDto, SetAvailabilityDto } from "./dto"
+import {
+  createTimeOffInput,
+  setAvailabilityInput,
+} from "./availability.contracts"
+
+// Single source of truth: the router's zod contracts (the retired
+// class-validator DTO classes in availability/dto were type-only vestiges).
+type SetAvailabilityDto = z.infer<typeof setAvailabilityInput>
+type CreateTimeOffDto = z.infer<typeof createTimeOffInput>
 
 /**
  * Convert a PHT date string ("YYYY-MM-DD") to the UTC date range

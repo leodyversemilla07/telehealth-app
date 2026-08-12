@@ -4,13 +4,20 @@ import {
   NotFoundException,
 } from "@nestjs/common"
 import type { Prisma } from "@telehealth/db"
+import type { z } from "zod"
 import { MemoryCache } from "../common/cache/memory-cache"
 import { PrismaService } from "../prisma/prisma.service"
-import type {
-  RegisterDoctorDto,
-  SearchDoctorsDto,
-  UpdateDoctorProfileDto,
-} from "./dto"
+import {
+  registerDoctorInput,
+  searchDoctorsInput,
+  updateDoctorProfileInput,
+} from "./doctors.contracts"
+
+// Single source of truth: the router's zod contracts (the retired
+// class-validator DTO classes in doctors/dto were type-only vestiges).
+type RegisterDoctorDto = z.infer<typeof registerDoctorInput>
+type SearchDoctorsDto = z.infer<typeof searchDoctorsInput>
+type UpdateDoctorProfileDto = z.infer<typeof updateDoctorProfileInput>
 
 /**
  * Fields shown on the PUBLIC doctor card (list + byId, no auth).

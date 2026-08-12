@@ -2,9 +2,9 @@ import { z } from "zod"
 import { isIsoDate } from "../trpc/contracts.util"
 
 /**
- * Zod contracts for the doctors router — the tRPC equivalent of the
- * class-validator DTOs (RegisterDoctorDto / UpdateDoctorProfileDto /
- * SearchDoctorsDto). The Rust CLI inlines these into the generated AppRouter.
+ * Zod contracts for the doctors router — the single source of truth for
+ * procedure inputs (the class-validator DTO mirror was removed). The Rust
+ * CLI inlines these into the generated AppRouter.
  */
 
 const pricePerVisitPattern = /^\d+(\.\d{1,2})?$/

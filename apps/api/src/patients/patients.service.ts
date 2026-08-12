@@ -1,7 +1,12 @@
 import { Injectable, NotFoundException } from "@nestjs/common"
 import type { Prisma } from "@telehealth/db"
+import type { z } from "zod"
 import { PrismaService } from "../prisma/prisma.service"
-import type { UpdatePatientProfileDto } from "./dto"
+import { updatePatientProfileInput } from "./patients.contracts"
+
+// Single source of truth: the router's zod contract (the retired
+// class-validator DTO class in patients/dto was a type-only vestige).
+type UpdatePatientProfileDto = z.infer<typeof updatePatientProfileInput>
 
 @Injectable()
 export class PatientsService {

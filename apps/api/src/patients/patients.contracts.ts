@@ -1,9 +1,8 @@
 import { z } from "zod"
 
 /**
- * Update current patient's profile. Mirrors UpdatePatientProfileDto
- * (class-validator on the retired REST controller); optional fields are only
- * written when present — the service skips falsy `dob`.
+ * Update current patient's profile. Optional fields are only written when
+ * present — the service skips falsy `dob`.
  */
 export const updatePatientProfileInput = z.object({
   dob: z

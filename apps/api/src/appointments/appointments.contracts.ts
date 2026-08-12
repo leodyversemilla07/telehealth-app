@@ -6,9 +6,8 @@ export type { PaginationInput } from "../trpc/contracts.util"
 export { paginationInput }
 
 /**
- * Zod contracts for the appointments router — the tRPC equivalent of the
- * class-validator DTOs (CreateAppointmentDto / RescheduleAppointmentDto /
- * UpdateAppointmentStatusDto / PaginationDto).
+ * Zod contracts for the appointments router — the single source of truth
+ * for procedure inputs (the class-validator DTO mirror was removed).
  */
 
 export const appointmentIdInput = z.object({

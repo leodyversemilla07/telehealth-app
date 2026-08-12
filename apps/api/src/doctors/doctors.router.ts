@@ -12,19 +12,18 @@ import { AuthMiddleware } from "../trpc/middlewares/auth.middleware"
 import { RolesMiddleware } from "../trpc/middlewares/roles.middleware"
 import {
   doctorIdInput,
+  type RegisterDoctorInput,
   registerDoctorInput,
+  type SearchDoctorsInput,
   searchDoctorsInput,
+  type UpdateDoctorProfileInput,
   updateDoctorProfileInput,
 } from "./doctors.contracts"
 import { DoctorsService } from "./doctors.service"
-import {
-  RegisterDoctorDto,
-  SearchDoctorsDto,
-  UpdateDoctorProfileDto,
-} from "./dto"
 
 /**
- * tRPC router for doctors. Mirrors DoctorsController — public procedures
+ * tRPC router for doctors (the retired DoctorsController had its routes
+ * folded here). Public procedures
  * (list / byId) need no session; the rest require auth and (via
  * `meta.roles`) a specific role, enforced by AuthMiddleware + RolesMiddleware.
  */
@@ -37,7 +36,7 @@ export class DoctorsRouter {
   // ─── Public / Patient-facing ────────────────────────────────────────
 
   @Query({ input: searchDoctorsInput })
-  async list(@Input() input: SearchDoctorsDto) {
+  async list(@Input() input: SearchDoctorsInput) {
     return this.doctors.findApproved(input)
   }
 
@@ -55,7 +54,7 @@ export class DoctorsRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async register(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: RegisterDoctorDto,
+    @Input() input: RegisterDoctorInput,
   ) {
     return this.doctors.register(ctx.user.id, input)
   }
@@ -75,7 +74,7 @@ export class DoctorsRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async updateMyProfile(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: UpdateDoctorProfileDto,
+    @Input() input: UpdateDoctorProfileInput,
   ) {
     return this.doctors.updateProfile(ctx.user.id, input)
   }

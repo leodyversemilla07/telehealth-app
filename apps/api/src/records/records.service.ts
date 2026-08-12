@@ -4,9 +4,20 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common"
+import type { z } from "zod"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
 import { PrismaService } from "../prisma/prisma.service"
-import type { CreateConsultationDto, CreatePrescriptionDto } from "./dto"
+import {
+  createConsultationInput,
+  createPrescriptionInput,
+} from "./records.contracts"
+
+// Single source of truth: the router's zod contracts. The retired
+// class-validator DTO classes (records/dto) were type-only vestiges — the
+// wire validation lives in the contracts, so the service types derive from
+// them too.
+type CreateConsultationDto = z.infer<typeof createConsultationInput>
+type CreatePrescriptionDto = z.infer<typeof createPrescriptionInput>
 
 @Injectable()
 export class RecordsService {

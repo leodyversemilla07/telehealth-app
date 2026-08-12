@@ -13,17 +13,15 @@ import { AuthMiddleware } from "../trpc/middlewares/auth.middleware"
 import { RolesMiddleware } from "../trpc/middlewares/roles.middleware"
 import {
   appointmentIdInput,
+  type CreateAppointmentInput,
   createAppointmentInput,
   paginationInput,
+  type RescheduleAppointmentInput,
   rescheduleAppointmentInput,
+  type UpdateAppointmentStatusInput,
   updateAppointmentStatusInput,
 } from "./appointments.contracts"
 import { AppointmentsService } from "./appointments.service"
-import type {
-  CreateAppointmentDto,
-  RescheduleAppointmentDto,
-  UpdateAppointmentStatusDto,
-} from "./dto"
 
 /** A raw appointment row as returned by the service (Prisma shape). */
 export type AppointmentRow = Awaited<ReturnType<AppointmentsService["findOne"]>>
@@ -104,7 +102,7 @@ export class AppointmentsRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async create(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: CreateAppointmentDto,
+    @Input() input: CreateAppointmentInput,
   ) {
     return toAppointmentDto(await this.appointments.create(ctx.user.id, input))
   }
@@ -178,7 +176,7 @@ export class AppointmentsRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async updateStatus(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: UpdateAppointmentStatusDto & { id: string },
+    @Input() input: UpdateAppointmentStatusInput,
   ) {
     return toAppointmentDto(
       await this.appointments.updateStatus(
@@ -212,7 +210,7 @@ export class AppointmentsRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async reschedule(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: RescheduleAppointmentDto & { id: string },
+    @Input() input: RescheduleAppointmentInput,
   ) {
     return toAppointmentDto(
       await this.appointments.reschedule(

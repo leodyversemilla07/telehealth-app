@@ -16,9 +16,9 @@ import type { AuthedTrpcContext } from "../trpc/context.types"
 import { paginationInput } from "../trpc/contracts.util"
 import { AuthMiddleware } from "../trpc/middlewares/auth.middleware"
 import { RolesMiddleware } from "../trpc/middlewares/roles.middleware"
-import type { CreateConsultationDto } from "./dto"
 import {
   byAppointmentInput,
+  type CreateConsultationInput,
   createConsultationInput,
   patientIdInput,
 } from "./records.contracts"
@@ -96,7 +96,8 @@ function toDoctorPatientRecords(
 }
 
 /**
- * tRPC router for medical records. Mirrors RecordsController — doctors create
+ * tRPC router for medical records (the retired RecordsController had its
+ * routes folded here). Doctors create
  * consultations (incl. prescriptions) and read their patients; patients read
  * their own consultations + prescriptions.
  */
@@ -115,7 +116,7 @@ export class RecordsRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async create(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: CreateConsultationDto,
+    @Input() input: CreateConsultationInput,
   ) {
     return this.records.createConsultation(ctx.user.id, input)
   }

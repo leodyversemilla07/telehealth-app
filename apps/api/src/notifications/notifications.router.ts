@@ -10,8 +10,8 @@ import {
 import type { AuthedTrpcContext } from "../trpc/context.types"
 import { AuthMiddleware } from "../trpc/middlewares/auth.middleware"
 import { RolesMiddleware } from "../trpc/middlewares/roles.middleware"
-import type { NotificationQueryDto } from "./dto/notification-query.dto"
 import {
+  type NotificationListInput,
   type NotificationPreferencesInput,
   notificationIdInput,
   notificationListInput,
@@ -37,7 +37,7 @@ export class NotificationsRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async list(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: NotificationQueryDto,
+    @Input() input: NotificationListInput,
   ) {
     return this.notifications.getNotifications(ctx.user.id, input)
   }

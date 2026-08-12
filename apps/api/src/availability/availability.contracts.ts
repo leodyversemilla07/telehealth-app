@@ -3,8 +3,8 @@ import { isIsoDate } from "../trpc/contracts.util"
 import { isValidDayWindowJson } from "./day-window.util"
 
 /**
- * Zod contracts for the availability router — the tRPC equivalent of the
- * class-validator DTOs (SetAvailabilityDto / CreateTimeOffDto).
+ * Zod contracts for the availability router — the single source of truth
+ * for procedure inputs (the class-validator DTO mirror was removed).
  */
 
 const daySchedule = z

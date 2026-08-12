@@ -12,17 +12,19 @@ import { AuthMiddleware } from "../trpc/middlewares/auth.middleware"
 import { RolesMiddleware } from "../trpc/middlewares/roles.middleware"
 import {
   availableSlotsInput,
+  type CreateTimeOffInput,
   createTimeOffInput,
   doctorIdInput,
+  type SetAvailabilityInput,
   setAvailabilityInput,
   timeOffIdInput,
 } from "./availability.contracts"
 import { AvailabilityService } from "./availability.service"
-import type { CreateTimeOffDto, SetAvailabilityDto } from "./dto"
 
 /**
- * tRPC router for availability. Mirrors AvailabilityController — doctor-only
- * procedures for the weekly schedule + time off, plus public procedures for
+ * tRPC router for availability (the retired AvailabilityController had its
+ * routes folded here). Doctor-only procedures for the weekly schedule + time
+ * off, plus public procedures for
  * the booking flow (available slots + weekly schedule).
  */
 @Router({ alias: "availability" })
@@ -41,7 +43,7 @@ export class AvailabilityRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async setAvailability(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: SetAvailabilityDto,
+    @Input() input: SetAvailabilityInput,
   ) {
     return this.availability.setAvailability(ctx.user.id, input)
   }
@@ -61,7 +63,7 @@ export class AvailabilityRouter {
   @UseMiddlewares(AuthMiddleware, RolesMiddleware)
   async addTimeOff(
     @Ctx() ctx: AuthedTrpcContext,
-    @Input() input: CreateTimeOffDto,
+    @Input() input: CreateTimeOffInput,
   ) {
     return this.availability.createTimeOff(ctx.user.id, input)
   }
