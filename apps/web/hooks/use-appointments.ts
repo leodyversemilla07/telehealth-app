@@ -6,7 +6,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query"
-import type { AppointmentDto } from "@workspace/shared"
 import { useTRPC } from "@/lib/trpc/client"
 
 // ─── Query Keys ──────────────────────────────────────────────
@@ -30,9 +29,8 @@ export function useMyAppointments(limit?: number, offset?: number) {
     placeholderData: keepPreviousData,
     select: (data) => ({
       ...data,
-      // The tRPC output is the raw Prisma shape; the pages consume the
-      // shared AppointmentDto contract (what the REST client typed too).
-      appointments: data.items as unknown as AppointmentDto[],
+      // Router now maps rows to the shared AppointmentDto at the source.
+      appointments: data.items,
     }),
   })
 }
@@ -44,7 +42,6 @@ export function useAppointment(id: string) {
     enabled: !!id,
     staleTime: 0,
     refetchOnMount: true,
-    select: (data) => data as unknown as AppointmentDto,
   })
 }
 

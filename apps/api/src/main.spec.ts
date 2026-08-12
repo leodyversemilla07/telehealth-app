@@ -102,13 +102,20 @@ jest.mock("helmet", () => ({
 
 import { auth } from "./auth/auth"
 import { setupSwagger } from "./config/swagger.config"
-import "./main"
+import { createApp } from "./create-app"
+
+// createApp() pulls the full module graph (incl. the real generated Prisma
+// client via PrismaService) inside the per-test beforeEach. On a cold ts-jest
+// cache that import alone can exceed Jest's 5s default hook timeout, so this
+// suite runs with a longer budget.
+jest.setTimeout(20_000)
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
 async function bootAndFlush() {
-  jest.isolateModules(() => void require("./main"))
-  // bootstrap() is async: let the create() promise chain settle
+  // createApp() is explicit per test — no import-time side effect to isolate.
+  await createApp()
+  // The factory's promise chain settles across microtasks + a macrotask tick.
   await new Promise((resolve) => setTimeout(resolve, 0))
   await new Promise((resolve) => setImmediate(resolve))
 }
@@ -285,7 +292,12 @@ describe("main bootstrap", () => {
     expect(setupSwagger).not.toHaveBeenCalled()
   })
 
-  it("listens on the configured PORT", async () => {
+  it("main.ts boots createApp() and listens on the configured PORT", async () => {
+    jest.clearAllMocks()
+    jest.isolateModules(() => void require("./main"))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await new Promise((resolve) => setImmediate(resolve))
+    expect(mockCreate).toHaveBeenCalled()
     expect(mockApp.listen).toHaveBeenCalledWith("3101")
   })
 
