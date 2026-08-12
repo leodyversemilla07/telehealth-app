@@ -10,7 +10,7 @@
 | **Auth** | Better Auth (email/password, 2FA, lockout) |
 | **Video** | LiveKit |
 | **Real-time** | Socket.io (WebSocket) |
-| **Email** | Nodemailer (local SMTP/Mailhog) |
+| **Email** | Resend (email API) |
 | **Storage** | Local filesystem (S3-compatible in prod) |
 
 ## Quick Start
@@ -36,7 +36,8 @@ pnpm dev
 - **API:** http://localhost:3001
 - **Swagger:** http://localhost:3001/api/docs
 
-> Note: This project is currently configured for local development only. Deployment scripts and hosting configs have been removed.
+> Note: local development runs against the `docker-compose.yml` Postgres on `:5433`.
+> Production deployment lives in [`deploy/aws`](./deploy/aws) (EC2 + nginx + pm2 + RDS + S3).
 
 ## 📦 Available Scripts
 
@@ -78,11 +79,11 @@ pnpm db:seed          # Seed database
 | `/api/admin/*` | Admin operations, audit logs, reports |
 | `/api/storage/*` | File upload |
 
-### Database Models (19 models)
+### Database Models (21 models)
 
-- **Core:** User, Session, Account, Verification
+- **Auth:** User, Session, Account, Verification, twoFactor
 - **Profiles:** PatientProfile, DoctorProfile, AvailabilitySchedule, TimeOff
-- **Appointments:** Appointment, Consultation, Prescription
+- **Appointments:** Appointment, Consultation, Prescription, MedicalDocument
 - **Communication:** Notification, NotificationPreference, PushSubscription, ChatMessage
 - **Security:** ConsentLog, AuditLog, SecurityAlert, Review
 
@@ -125,4 +126,4 @@ Private — All rights reserved.
 
 - **Video consultations:** fully implemented (backend `livekit-server-sdk` + web `@livekit/components-react`); requires `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` to connect. Without credentials the endpoints return `403 Video consultation is not configured`.
 - **Production compliance:** registering as a Personal Information Controller (PIC) and storing data in the Philippines (or equivalent jurisdiction) are deferred to the production-hardening milestone.
-- **All SRS requirements** are implemented; `pnpm build`, `pnpm typecheck`, `pnpm lint`, and `pnpm test` all pass (199 tests, 25 suites).
+- **All SRS requirements** are implemented; `pnpm build`, `pnpm typecheck`, `pnpm lint`, and the unit + integration suites pass (686 tests). The full-stack e2e suites additionally require a running Postgres (`docker compose up -d`) and the S3 storage suite requires AWS credentials.

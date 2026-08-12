@@ -26,7 +26,7 @@ import type {
 } from "./dto"
 
 /** A raw appointment row as returned by the service (Prisma shape). */
-type AppointmentRow = Awaited<ReturnType<AppointmentsService["findOne"]>>
+export type AppointmentRow = Awaited<ReturnType<AppointmentsService["findOne"]>>
 
 /**
  * Single boundary where a Prisma appointment row becomes the shared
@@ -34,9 +34,9 @@ type AppointmentRow = Awaited<ReturnType<AppointmentsService["findOne"]>>
  * generated AppRouter types match what the web app consumes (no
  * `as unknown as` casts at the client). pricePerVisit (Prisma Decimal) is
  * normalized to a plain number here instead of leaking `{s,e,d}` objects
- * onto the wire.
+ * onto the wire. Exported for direct unit coverage.
  */
-function toAppointmentDto(appt: AppointmentRow): AppointmentDto {
+export function toAppointmentDto(appt: AppointmentRow): AppointmentDto {
   const rawPrice = appt.doctor.pricePerVisit
   return {
     id: appt.id,
@@ -75,7 +75,7 @@ function toAppointmentDto(appt: AppointmentRow): AppointmentDto {
   }
 }
 
-function toPagedAppointments(
+export function toPagedAppointments(
   r: Awaited<ReturnType<AppointmentsService["findMyAppointments"]>>,
 ): { items: AppointmentDto[]; total: number; limit: number; offset: number } {
   return { ...r, items: r.items.map(toAppointmentDto) }

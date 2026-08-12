@@ -62,70 +62,11 @@ export function useCreateConsultation() {
 
 // ─── Doctor: patient list + per-patient records ─────────────
 
-/** Patient row shown in the doctor's patient list. */
-export interface DoctorPatientItem {
-  id: string
-  name: string | null
-  email: string
-  appointmentCount: number
-}
-
-/**
- * Per-patient record bundle (PHT-formatted dates at runtime, mirroring the
- * REST contract the page was written against). The tRPC output is the raw
- * Prisma shape, so we cast at the boundary.
- */
-export interface DoctorPatientRecordsDto {
-  patient: {
-    id: string
-    name: string | null
-    email: string
-    patientProfile: {
-      dob: string | null
-      sex: string | null
-      phone: string | null
-      address: string | null
-      philhealthNumber: string | null
-      weight: number | null
-      height: number | null
-      medicalHistory: {
-        allergies?: string[]
-        conditions?: string[]
-        medications?: string[]
-      } | null
-    } | null
-  }
-  appointments: Array<{
-    id: string
-    startTime: string
-    endTime: string
-    status: string
-    reason: string | null
-    symptoms: string | null
-    type: string
-    consultation: {
-      id: string
-      diagnosis: string | null
-      doctorNotes: string | null
-      plan: string | null
-      patientNotes: string | null
-      prescriptions: Array<{
-        id: string
-        medicationName: string
-        dosage: string
-        frequency: string
-        duration: string
-        instructions: string | null
-      }>
-    } | null
-  }>
-}
-
 export function useDoctorPatients() {
   const trpc = useTRPC()
   return useQuery({
     ...trpc.records.doctorPatients.queryOptions({}),
-    select: (data) => data.items as unknown as DoctorPatientItem[],
+    select: (data) => data.items,
   })
 }
 
@@ -134,6 +75,5 @@ export function useDoctorPatientRecords(patientId: string) {
   return useQuery({
     ...trpc.records.doctorPatientRecords.queryOptions({ patientId }),
     enabled: !!patientId,
-    select: (data) => data as unknown as DoctorPatientRecordsDto,
   })
 }

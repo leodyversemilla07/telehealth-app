@@ -393,10 +393,18 @@ export class RecordsService {
     })
     const patientById = new Map(patients.map((p) => [p.id, p]))
 
-    const items = grouped.map((g) => ({
-      ...patientById.get(g.patientId),
-      appointmentCount: g._count.id,
-    }))
+    // The patient rows came from these IDs, so the map lookups always hit;
+    // a safe accessor keeps the returned type free of `| undefined` (which
+    // previously forced `as unknown as` casts at the tRPC boundary).
+    const items = grouped.map((g) => {
+      const p = patientById.get(g.patientId)
+      return {
+        id: p?.id ?? g.patientId,
+        name: p?.name ?? null,
+        email: p?.email ?? "",
+        appointmentCount: g._count.id,
+      }
+    })
 
     return { items, total: totalDistinct.length, limit, offset }
   }

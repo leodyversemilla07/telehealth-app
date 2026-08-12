@@ -1,4 +1,9 @@
 import { Inject } from "@nestjs/common"
+import type {
+  DoctorPatientItemDto,
+  DoctorPatientRecordsDto,
+  PatientMedicalHistoryDto,
+} from "@workspace/shared"
 import {
   Ctx,
   Input,
@@ -18,6 +23,77 @@ import {
   patientIdInput,
 } from "./records.contracts"
 import { RecordsService } from "./records.service"
+
+/**
+ * Single boundary where a raw Prisma shape becomes the shared records DTO.
+ * The procedures below return the DTOs, so the generated AppRouter types are
+ * the client contract (no `as unknown as` casts at the web boundary). Dates
+ * stay as `Date` — the global PhtDateInterceptor converts them to PHT
+ * strings on the wire, exactly like the appointment/consultation DTOs.
+ */
+function toDoctorPatientItems(
+  r: Awaited<ReturnType<RecordsService["getDoctorPatients"]>>,
+): {
+  items: DoctorPatientItemDto[]
+  total: number
+  limit: number
+  offset: number
+} {
+  return { ...r, items: r.items }
+}
+
+function toDoctorPatientRecords(
+  r: Awaited<ReturnType<RecordsService["getPatientRecordsForDoctor"]>>,
+): DoctorPatientRecordsDto {
+  return {
+    patient: {
+      id: r.patient.id,
+      name: r.patient.name,
+      email: r.patient.email,
+      patientProfile: r.patient.patientProfile
+        ? {
+            dob: r.patient.patientProfile.dob,
+            sex: r.patient.patientProfile.sex,
+            phone: r.patient.patientProfile.phone,
+            address: r.patient.patientProfile.address,
+            philhealthNumber: r.patient.patientProfile.philhealthNumber,
+            weight: r.patient.patientProfile.weight,
+            height: r.patient.patientProfile.height,
+            // Prisma JSON — the stored medical-history object is validated at
+            // write time; normalize to the shared shape here once.
+            medicalHistory: r.patient.patientProfile
+              .medicalHistory as unknown as PatientMedicalHistoryDto | null,
+          }
+        : null,
+    },
+    appointments: r.appointments.map((appt) => ({
+      id: appt.id,
+      startTime: appt.startTime,
+      endTime: appt.endTime,
+      status: appt.status,
+      reason: appt.reason,
+      symptoms: appt.symptoms,
+      type: appt.type,
+      consultation: appt.consultation
+        ? {
+            id: appt.consultation.id,
+            diagnosis: appt.consultation.diagnosis,
+            doctorNotes: appt.consultation.doctorNotes,
+            plan: appt.consultation.plan,
+            patientNotes: appt.consultation.patientNotes,
+            prescriptions: appt.consultation.prescriptions.map((p) => ({
+              id: p.id,
+              medicationName: p.medicationName,
+              dosage: p.dosage,
+              frequency: p.frequency,
+              duration: p.duration,
+              instructions: p.instructions,
+            })),
+          }
+        : null,
+    })),
+  }
+}
 
 /**
  * tRPC router for medical records. Mirrors RecordsController — doctors create
@@ -95,10 +171,12 @@ export class RecordsRouter {
     @Ctx() ctx: AuthedTrpcContext,
     @Input() input: { limit?: number; offset?: number },
   ) {
-    return this.records.getDoctorPatients(
-      ctx.user.id,
-      input.limit,
-      input.offset,
+    return toDoctorPatientItems(
+      await this.records.getDoctorPatients(
+        ctx.user.id,
+        input.limit,
+        input.offset,
+      ),
     )
   }
 
@@ -108,6 +186,8 @@ export class RecordsRouter {
     @Ctx() ctx: AuthedTrpcContext,
     @Input("patientId") patientId: string,
   ) {
-    return this.records.getPatientRecordsForDoctor(patientId, ctx.user.id)
+    return toDoctorPatientRecords(
+      await this.records.getPatientRecordsForDoctor(patientId, ctx.user.id),
+    )
   }
 }
