@@ -9,6 +9,7 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import { cn } from "@workspace/ui/lib/utils"
 import { GalleryVerticalEndIcon, Key, Shield, ShieldAlert } from "lucide-react"
 import Link from "next/link"
@@ -21,7 +22,6 @@ import {
   useTransition,
 } from "react"
 import { useFormStatus } from "react-dom"
-import { toast } from "sonner"
 import { PasswordInput } from "@/components/password-input"
 import { authClient } from "@/lib/auth-client"
 
@@ -96,7 +96,10 @@ export function SignInForm({
       } | null
 
       if (data?.twoFactorRedirect) {
-        toast.info("Two-Factor Authentication is required for this account.")
+        toast.add({
+          title: "Two-Factor Authentication is required for this account.",
+          type: "info",
+        })
         return {
           error: null,
           twoFactorRequired: true,
@@ -162,7 +165,10 @@ export function SignInForm({
             code: twoFactorCode.trim(),
           })
           if (totpError) {
-            toast.error(totpError.message ?? "Invalid verification code.")
+            toast.add({
+              title: totpError.message ?? "Invalid verification code.",
+              type: "error",
+            })
             return
           }
         } else {
@@ -171,7 +177,10 @@ export function SignInForm({
               code: twoFactorCode.trim(),
             })
           if (backupError) {
-            toast.error(backupError.message ?? "Invalid recovery backup code.")
+            toast.add({
+              title: backupError.message ?? "Invalid recovery backup code.",
+              type: "error",
+            })
             return
           }
         }
@@ -194,11 +203,13 @@ export function SignInForm({
               : "/patient/dashboard")
         router.push(dashboard2FA)
       } catch (err) {
-        toast.error(
-          err instanceof Error
-            ? err.message
-            : "An unexpected error occurred during verification.",
-        )
+        toast.add({
+          title:
+            err instanceof Error
+              ? err.message
+              : "An unexpected error occurred during verification.",
+          type: "error",
+        })
       }
     })
   }
@@ -212,11 +223,17 @@ export function SignInForm({
         callbackURL: `${window.location.origin}/sign-in`,
       })
       if (error) {
-        toast.error(error.message ?? "Could not resend the verification email.")
+        toast.add({
+          title: error.message ?? "Could not resend the verification email.",
+          type: "error",
+        })
         return
       }
       setVerifyResent(true)
-      toast.success("Verification email sent. Please check your inbox.")
+      toast.add({
+        title: "Verification email sent. Please check your inbox.",
+        type: "success",
+      })
     })
   }
 

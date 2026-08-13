@@ -9,12 +9,12 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import { CheckCircle2, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useActionState } from "react"
 import { useFormStatus } from "react-dom"
-import { toast } from "sonner"
 import { AuthLayout } from "@/components/auth-layout"
 import { authClient } from "@/lib/auth-client"
 
@@ -79,7 +79,7 @@ function ResetPasswordForm() {
         }
       }
 
-      toast.success("Password reset successfully!")
+      toast.add({ title: "Password reset successfully!", type: "success" })
       return { error: null, success: true }
     },
     { error: null, success: false },

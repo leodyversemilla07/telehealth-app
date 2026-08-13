@@ -35,6 +35,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
+import { toast } from "@workspace/ui/components/toast"
 import {
   AlertCircle,
   Calendar,
@@ -49,7 +50,6 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useOptimistic, useState } from "react"
-import { toast } from "sonner"
 import { StatusBadge } from "@/components/status-badge"
 import {
   appointmentKeys,
@@ -88,14 +88,22 @@ export default function PatientAppointmentsPage() {
     const id = cancelDialogId
     setCancelDialogId(null)
     updateOptimistic(id)
-    toast.loading("Cancelling appointment...", { id: "cancel-appt" })
+    toast.add({
+      title: "Cancelling appointment...",
+      type: "loading",
+      ...{ id: "cancel-appt" },
+    })
 
     cancelMutation.mutate(
       { id },
       {
         onSuccess: () => {
-          toast.success("Appointment successfully cancelled", {
-            id: "cancel-appt",
+          toast.add({
+            title: "Appointment successfully cancelled",
+            type: "success",
+            ...{
+              id: "cancel-appt",
+            },
           })
         },
         onError: (err) => {
@@ -103,8 +111,12 @@ export default function PatientAppointmentsPage() {
           queryClient.invalidateQueries({
             queryKey: appointmentKeys.lists(),
           })
-          toast.error(err.message || "Failed to cancel appointment", {
-            id: "cancel-appt",
+          toast.add({
+            title: err.message || "Failed to cancel appointment",
+            type: "error",
+            ...{
+              id: "cancel-appt",
+            },
           })
         },
       },

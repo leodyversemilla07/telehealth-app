@@ -17,8 +17,8 @@ vi.mock("@/lib/api-client", () => ({
   },
 }))
 
-vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
+vi.mock("@workspace/ui/components/toast", () => ({
+  toast: { add: vi.fn() },
 }))
 
 vi.mock("next/navigation", () => ({
@@ -217,9 +217,7 @@ describe("BookAppointmentPage - booking flow", () => {
   })
 
   it("books the appointment and navigates to the appointments list", async () => {
-    const toast = (await import("sonner")).toast as unknown as {
-      success: (msg: string) => void
-    }
+    const { toast } = await import("@workspace/ui/components/toast")
     slotsHolder.slots = [SLOT]
     await openBookingDialog()
 
@@ -233,9 +231,10 @@ describe("BookAppointmentPage - booking flow", () => {
     await userEvent.setup().click(confirm!)
 
     await waitFor(() =>
-      expect(toast.success).toHaveBeenCalledWith(
-        "Appointment successfully booked in PHT time!",
-      ),
+      expect(toast.add).toHaveBeenCalledWith({
+        title: "Appointment successfully booked in PHT time!",
+        type: "success",
+      }),
     )
     expect(navHolder.push).toHaveBeenCalledWith("/patient/appointments")
   })

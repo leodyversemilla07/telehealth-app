@@ -10,6 +10,7 @@ import {
 } from "@workspace/ui/components/card"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import {
   ArrowLeft,
   Calendar,
@@ -21,7 +22,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
-import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
 import { usePatientPrescriptions } from "@/hooks/use-records"
 import { toDate } from "@/lib/dates"
@@ -40,7 +40,7 @@ export default function PrescriptionDetailPage() {
   const prescription = prescriptions.find((rx) => rx.id === id)
 
   const handlePrint = () => {
-    toast.info("Preparing print view...")
+    toast.add({ title: "Preparing print view...", type: "info" })
     window.print()
   }
 

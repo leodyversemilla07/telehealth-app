@@ -50,6 +50,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 import {
   AlertCircle,
   Calendar,
@@ -68,7 +69,6 @@ import {
 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
 import { MedicalDocumentsCard } from "@/components/medical-documents"
 import { StatusBadge } from "@/components/status-badge"
 import {
@@ -190,26 +190,36 @@ export default function DoctorConsultationDetailPage() {
 
   // Handle Video Calling End (F-CONSULT-06: Terminate room cleanly on server)
   const handleEndCall = () => {
-    toast.loading("Terminating virtual consultation session...", {
-      id: "video-end-doc",
+    toast.add({
+      title: "Terminating virtual consultation session...",
+      type: "loading",
+      ...{
+        id: "video-end-doc",
+      },
     })
     endRoomMutation.mutate(
       { appointmentId },
       {
         onSuccess: () => {
-          toast.dismiss("video-end-doc")
+          toast.close("video-end-doc")
           saveCallToken(null)
           saveCallUrl(null)
           setHasEndedCall(true)
-          toast.success("Consultation room closed successfully.")
+          toast.add({
+            title: "Consultation room closed successfully.",
+            type: "success",
+          })
           refetchAppt()
         },
         onError: (err: Error) => {
-          toast.dismiss("video-end-doc")
+          toast.close("video-end-doc")
           // Fallback cleanup of local state so the doctor is not stuck
           saveCallToken(null)
           saveCallUrl(null)
-          toast.warning(err.message || "Cleaned up local connection state.")
+          toast.add({
+            title: err.message || "Cleaned up local connection state.",
+            type: "warning",
+          })
           refetchAppt()
         },
       },
@@ -218,31 +228,42 @@ export default function DoctorConsultationDetailPage() {
 
   // Handle Video Calling Init
   const handleJoinCall = () => {
-    toast.loading("Initializing secure Webrtc room context...", {
-      id: "video-join-doc",
+    toast.add({
+      title: "Initializing secure Webrtc room context...",
+      type: "loading",
+      ...{
+        id: "video-join-doc",
+      },
     })
 
     joinRoomMutation.mutate(
       { appointmentId },
       {
         onSuccess: (data) => {
-          toast.dismiss("video-join-doc")
+          toast.close("video-join-doc")
           if (data.token && data.url) {
             saveCallToken(data.token)
             saveCallUrl(data.url)
-            toast.success("Admitted to virtual consult room!")
+            toast.add({
+              title: "Admitted to virtual consult room!",
+              type: "success",
+            })
             refetchAppt()
           } else {
-            toast.error(
-              "Invalid token signature returned from room token authority",
-            )
+            toast.add({
+              title:
+                "Invalid token signature returned from room token authority",
+              type: "error",
+            })
           }
         },
         onError: (err: Error) => {
-          toast.dismiss("video-join-doc")
-          toast.error(
-            err.message || "Failed to initialize Webrtc relay connection",
-          )
+          toast.close("video-join-doc")
+          toast.add({
+            title:
+              err.message || "Failed to initialize Webrtc relay connection",
+            type: "error",
+          })
         },
       },
     )
@@ -252,9 +273,10 @@ export default function DoctorConsultationDetailPage() {
   const handleAddMedication = (e: React.FormEvent) => {
     e.preventDefault()
     if (!medName || !medDosage || !medFreq || !medDur) {
-      toast.error(
-        "Medication Name, Dosage, Frequency, and Duration are required",
-      )
+      toast.add({
+        title: "Medication Name, Dosage, Frequency, and Duration are required",
+        type: "error",
+      })
       return
     }
 
@@ -272,7 +294,7 @@ export default function DoctorConsultationDetailPage() {
     setMedFreq("")
     setMedDur("")
     setMedInst("")
-    toast.success("Medication added to draft chart")
+    toast.add({ title: "Medication added to draft chart", type: "success" })
   }
 
   // Medication Deleting
@@ -285,7 +307,10 @@ export default function DoctorConsultationDetailPage() {
     e.preventDefault()
 
     if (!diagnosis) {
-      toast.error("A diagnostic assessment is required before finalizing.")
+      toast.add({
+        title: "A diagnostic assessment is required before finalizing.",
+        type: "error",
+      })
       return
     }
 
@@ -295,7 +320,11 @@ export default function DoctorConsultationDetailPage() {
   // Execute chart finalization after confirmation
   const handleConfirmFinalize = async () => {
     setShowFinalizeDialog(false)
-    toast.loading("Processing clinical signature...", { id: "chart-sub" })
+    toast.add({
+      title: "Processing clinical signature...",
+      type: "loading",
+      ...{ id: "chart-sub" },
+    })
 
     try {
       // 1. Transition Appointment to COMPLETED
@@ -319,8 +348,12 @@ export default function DoctorConsultationDetailPage() {
         })),
       })
 
-      toast.success("Clinical chart successfully signed and encrypted!", {
-        id: "chart-sub",
+      toast.add({
+        title: "Clinical chart successfully signed and encrypted!",
+        type: "success",
+        ...{
+          id: "chart-sub",
+        },
       })
       // F-CONSULT-05: Redirect to post-visit summary after chart finalization
       router.push("/doctor/consultations")
@@ -329,8 +362,12 @@ export default function DoctorConsultationDetailPage() {
         err instanceof Error
           ? err.message
           : "Failed to finalize consultation chart."
-      toast.error(message, {
-        id: "chart-sub",
+      toast.add({
+        title: message,
+        type: "error",
+        ...{
+          id: "chart-sub",
+        },
       })
     }
   }

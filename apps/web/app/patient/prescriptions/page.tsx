@@ -19,6 +19,7 @@ import {
 } from "@workspace/ui/components/empty"
 import { Separator } from "@workspace/ui/components/separator"
 import { Skeleton } from "@workspace/ui/components/skeleton"
+import { toast } from "@workspace/ui/components/toast"
 import {
   Calendar,
   FileCheck,
@@ -28,7 +29,6 @@ import {
   Printer,
   User,
 } from "lucide-react"
-import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
 import { usePatientPrescriptions } from "@/hooks/use-records"
 import { toDate } from "@/lib/dates"
@@ -43,7 +43,10 @@ export default function PatientPrescriptionsPage() {
 
   // Handle printing a prescription card
   const handlePrint = (medName: string) => {
-    toast.info(`Generating PDEA / PRC compliant print view for ${medName}...`)
+    toast.add({
+      title: `Generating PDEA / PRC compliant print view for ${medName}...`,
+      type: "info",
+    })
     window.print()
   }
 

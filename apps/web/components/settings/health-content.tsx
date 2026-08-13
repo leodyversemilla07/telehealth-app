@@ -6,9 +6,9 @@ import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import { Save } from "lucide-react"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
 import { useTRPC } from "@/lib/trpc/client"
 
 export function HealthContent() {
@@ -46,10 +46,11 @@ export function HealthContent() {
   const mutation = useMutation({
     ...trpc.patients.updateMe.mutationOptions(),
     onSuccess: () => {
-      toast.success("Health info saved!")
+      toast.add({ title: "Health info saved!", type: "success" })
       queryClient.invalidateQueries({ queryKey: trpc.patients.me.queryKey() })
     },
-    onError: (err) => toast.error(err.message || "Failed"),
+    onError: (err) =>
+      toast.add({ title: err.message || "Failed", type: "error" }),
   })
 
   function handleSubmit() {

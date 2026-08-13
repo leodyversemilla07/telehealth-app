@@ -5,9 +5,9 @@ import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import { Key } from "lucide-react"
 import { useState } from "react"
-import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
 
 export function PasswordContent() {
@@ -19,27 +19,30 @@ export function PasswordContent() {
     mutationFn: (data: { currentPassword: string; newPassword: string }) =>
       authClient.changePassword(data),
     onSuccess: () => {
-      toast.success("Password changed!")
+      toast.add({ title: "Password changed!", type: "success" })
       setCurrentPassword("")
       setPassword("")
       setConfirmPassword("")
     },
     onError: (err: { message?: string }) =>
-      toast.error(err.message || "Failed"),
+      toast.add({ title: err.message || "Failed", type: "error" }),
   })
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!currentPassword) {
-      toast.error("Enter current password")
+      toast.add({ title: "Enter current password", type: "error" })
       return
     }
     if (password.length < 8) {
-      toast.error("Password must be at least 8 characters")
+      toast.add({
+        title: "Password must be at least 8 characters",
+        type: "error",
+      })
       return
     }
     if (password !== confirmPassword) {
-      toast.error("Passwords don't match")
+      toast.add({ title: "Passwords don't match", type: "error" })
       return
     }
     mutation.mutate({ currentPassword, newPassword: password })

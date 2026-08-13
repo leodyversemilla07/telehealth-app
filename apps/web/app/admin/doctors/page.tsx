@@ -55,6 +55,7 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 import {
   CheckCircle,
   Clock,
@@ -67,7 +68,6 @@ import {
   XCircle,
 } from "lucide-react"
 import { useMemo, useState } from "react"
-import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
 import { apiClient } from "@/lib/api-client"
 import { getPageItems } from "@/lib/page-items"
@@ -118,11 +118,17 @@ export default function AdminDoctorsPage() {
       apiClient.patch<DoctorProfile>(`/admin/doctors/${id}/approve`),
     onSuccess: (_doc, id) => {
       const doc = doctors.find((d) => d.id === id)
-      toast.success(`${doc?.user.name || doc?.user.email || "Doctor"} approved`)
+      toast.add({
+        title: `${doc?.user.name || doc?.user.email || "Doctor"} approved`,
+        type: "success",
+      })
       queryClient.invalidateQueries({ queryKey: ["admin-doctors"] })
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to approve doctor")
+      toast.add({
+        title: err.message || "Failed to approve doctor",
+        type: "error",
+      })
     },
   })
 
@@ -133,11 +139,17 @@ export default function AdminDoctorsPage() {
       }),
     onSuccess: (_doc, { id }) => {
       const doc = doctors.find((d) => d.id === id)
-      toast.success(`${doc?.user.name || doc?.user.email || "Doctor"} rejected`)
+      toast.add({
+        title: `${doc?.user.name || doc?.user.email || "Doctor"} rejected`,
+        type: "success",
+      })
       queryClient.invalidateQueries({ queryKey: ["admin-doctors"] })
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to reject doctor")
+      toast.add({
+        title: err.message || "Failed to reject doctor",
+        type: "error",
+      })
     },
   })
 
@@ -147,15 +159,19 @@ export default function AdminDoctorsPage() {
         `/admin/doctors/${args.id}/${args.verify ? "verify" : "unverify"}`,
       ),
     onSuccess: (_doc, { verify }) => {
-      toast.success(
-        verify
+      toast.add({
+        title: verify
           ? "Credentials marked as verified"
           : "Verification badge removed",
-      )
+        type: "success",
+      })
       queryClient.invalidateQueries({ queryKey: ["admin-doctors"] })
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to update verification status")
+      toast.add({
+        title: err.message || "Failed to update verification status",
+        type: "error",
+      })
     },
   })
 

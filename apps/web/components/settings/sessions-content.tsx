@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Skeleton } from "@workspace/ui/components/skeleton"
-import { toast } from "sonner"
+import { toast } from "@workspace/ui/components/toast"
 import { apiClient } from "@/lib/api-client"
 import { toDate } from "@/lib/dates"
 
@@ -28,7 +28,7 @@ export function SessionsContent() {
   const revokeMutation = useMutation({
     mutationFn: (id: string) => apiClient.delete(`/users/me/sessions/${id}`),
     onSuccess: () => {
-      toast.success("Session revoked")
+      toast.add({ title: "Session revoked", type: "success" })
       queryClient.invalidateQueries({ queryKey: ["sessions"] })
     },
   })

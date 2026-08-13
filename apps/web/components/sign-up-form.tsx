@@ -20,13 +20,13 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import { cn } from "@workspace/ui/lib/utils"
 import { GalleryVerticalEndIcon, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
-import { toast } from "sonner"
 import { PasswordInput } from "@/components/password-input"
 import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
@@ -89,7 +89,8 @@ export function SignUpForm({
           ),
         recordConsent: (data) => apiClient.post("/consent", data),
       })
-      if (result.success) toast.success("Account created successfully!")
+      if (result.success)
+        toast.add({ title: "Account created successfully!", type: "success" })
       return result
     },
     { error: null, success: false, email: "", role: "PATIENT" },
@@ -143,14 +144,19 @@ export function SignUpForm({
 
             if (error) {
               setVerificationState("idle")
-              toast.error(
-                error.message ?? "Could not resend the verification email.",
-              )
+              toast.add({
+                title:
+                  error.message ?? "Could not resend the verification email.",
+                type: "error",
+              })
               return
             }
 
             setVerificationState("sent")
-            toast.success("Verification email sent. Please check your inbox.")
+            toast.add({
+              title: "Verification email sent. Please check your inbox.",
+              type: "success",
+            })
           }}
           disabled={
             verificationState === "sending" || verificationState === "sent"

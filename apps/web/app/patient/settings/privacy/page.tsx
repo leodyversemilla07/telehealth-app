@@ -27,6 +27,7 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
+import { toast } from "@workspace/ui/components/toast"
 import {
   AlertTriangle,
   ClipboardList,
@@ -37,7 +38,6 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
 import { SettingsLayout } from "@/components/settings-layout"
 import type { ConsentType } from "@/hooks/use-consent"
 import {
@@ -65,7 +65,10 @@ export default function PrivacyConsentPage() {
     setIsDeleting(true)
     try {
       await apiClient.delete("/users/me")
-      toast.success("Your account has been permanently deleted.")
+      toast.add({
+        title: "Your account has been permanently deleted.",
+        type: "success",
+      })
       try {
         await authClient.signOut()
       } catch {
@@ -73,9 +76,10 @@ export default function PrivacyConsentPage() {
       }
       router.push("/")
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to delete account.",
-      )
+      toast.add({
+        title: err instanceof Error ? err.message : "Failed to delete account.",
+        type: "error",
+      })
     } finally {
       setIsDeleting(false)
       setDeleteOpen(false)
@@ -90,14 +94,18 @@ export default function PrivacyConsentPage() {
       { consentType: consentType as ConsentType, granted },
       {
         onSuccess: () => {
-          toast.success(
-            granted
+          toast.add({
+            title: granted
               ? "Consent granted successfully"
               : "Consent revoked successfully",
-          )
+            type: "success",
+          })
         },
         onError: (err: Error) => {
-          toast.error(err.message || "Failed to update consent preference")
+          toast.add({
+            title: err.message || "Failed to update consent preference",
+            type: "error",
+          })
         },
         onSettled: () => {
           setPendingChanges((prev) => {

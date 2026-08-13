@@ -38,6 +38,7 @@ import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 import {
   ArrowLeft,
   Calendar,
@@ -56,7 +57,6 @@ import {
 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
 import { MedicalDocumentsCard } from "@/components/medical-documents"
 import { StatusBadge } from "@/components/status-badge"
@@ -178,31 +178,38 @@ export default function AppointmentDetailPage() {
 
   // Handle Join Session
   const handleJoinCall = () => {
-    toast.loading("Initiating secure video consultation room...", {
-      id: "video-join",
+    toast.add({
+      title: "Initiating secure video consultation room...",
+      type: "loading",
+      ...{
+        id: "video-join",
+      },
     })
 
     joinRoomMutation.mutate(
       { appointmentId: id },
       {
         onSuccess: (data) => {
-          toast.dismiss("video-join")
+          toast.close("video-join")
           if (data.token && data.url) {
             saveCallToken(data.token)
             saveCallUrl(data.url)
-            toast.success("Joined video room!")
+            toast.add({ title: "Joined video room!", type: "success" })
           } else {
-            toast.error(
-              "Invalid token payload returned from video room service",
-            )
+            toast.add({
+              title: "Invalid token payload returned from video room service",
+              type: "error",
+            })
           }
         },
         onError: (err) => {
-          toast.dismiss("video-join")
-          toast.error(
-            err.message ||
+          toast.close("video-join")
+          toast.add({
+            title:
+              err.message ||
               "Failed to initialize LiveKit room. Verify configurations.",
-          )
+            type: "error",
+          })
         },
       },
     )
@@ -211,19 +218,31 @@ export default function AppointmentDetailPage() {
   // Handle Cancel Session
   const handleCancel = () => {
     setShowCancelDialog(false)
-    toast.loading("Processing cancellation...", { id: "cancel-appt" })
+    toast.add({
+      title: "Processing cancellation...",
+      type: "loading",
+      ...{ id: "cancel-appt" },
+    })
 
     cancelMutation.mutate(
       { id },
       {
         onSuccess: () => {
-          toast.success("Appointment successfully cancelled", {
-            id: "cancel-appt",
+          toast.add({
+            title: "Appointment successfully cancelled",
+            type: "success",
+            ...{
+              id: "cancel-appt",
+            },
           })
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to cancel appointment", {
-            id: "cancel-appt",
+          toast.add({
+            title: err.message || "Failed to cancel appointment",
+            type: "error",
+            ...{
+              id: "cancel-appt",
+            },
           })
         },
       },
@@ -233,11 +252,18 @@ export default function AppointmentDetailPage() {
   // Handle Submit Review
   const handleSubmitReview = () => {
     if (reviewRating < 1 || reviewRating > 5) {
-      toast.error("Please select a rating between 1 and 5")
+      toast.add({
+        title: "Please select a rating between 1 and 5",
+        type: "error",
+      })
       return
     }
 
-    toast.loading("Submitting review...", { id: "review" })
+    toast.add({
+      title: "Submitting review...",
+      type: "loading",
+      ...{ id: "review" },
+    })
 
     createReviewMutation.mutate(
       {
@@ -247,13 +273,21 @@ export default function AppointmentDetailPage() {
       },
       {
         onSuccess: () => {
-          toast.success("Review submitted successfully!", { id: "review" })
+          toast.add({
+            title: "Review submitted successfully!",
+            type: "success",
+            ...{ id: "review" },
+          })
           setReviewRating(5)
           setReviewComment("")
         },
         onError: (err: { message?: string }) => {
-          toast.error(err.message || "Failed to submit review", {
-            id: "review",
+          toast.add({
+            title: err.message || "Failed to submit review",
+            type: "error",
+            ...{
+              id: "review",
+            },
           })
         },
       },
@@ -263,11 +297,15 @@ export default function AppointmentDetailPage() {
   // Handle Reschedule
   const handleReschedule = () => {
     if (!rescheduleSlot) {
-      toast.error("Please select a new time slot")
+      toast.add({ title: "Please select a new time slot", type: "error" })
       return
     }
 
-    toast.loading("Rescheduling appointment...", { id: "reschedule-appt" })
+    toast.add({
+      title: "Rescheduling appointment...",
+      type: "loading",
+      ...{ id: "reschedule-appt" },
+    })
 
     rescheduleMutation.mutate(
       {
@@ -277,8 +315,12 @@ export default function AppointmentDetailPage() {
       },
       {
         onSuccess: () => {
-          toast.success("Appointment rescheduled successfully", {
-            id: "reschedule-appt",
+          toast.add({
+            title: "Appointment rescheduled successfully",
+            type: "success",
+            ...{
+              id: "reschedule-appt",
+            },
           })
           setShowRescheduleDialog(false)
           setRescheduleDate("")
@@ -286,8 +328,12 @@ export default function AppointmentDetailPage() {
           refetch()
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to reschedule", {
-            id: "reschedule-appt",
+          toast.add({
+            title: err.message || "Failed to reschedule",
+            type: "error",
+            ...{
+              id: "reschedule-appt",
+            },
           })
         },
       },
@@ -378,7 +424,7 @@ export default function AppointmentDetailPage() {
             onClick={() => {
               saveCallToken(null)
               saveCallUrl(null)
-              toast.info("Left the consultation room.")
+              toast.add({ title: "Left the consultation room.", type: "info" })
               // F-CONSULT-05: Redirect to post-visit appointments list
               router.push("/patient/appointments")
             }}

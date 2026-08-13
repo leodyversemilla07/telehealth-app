@@ -34,9 +34,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { toast } from "@workspace/ui/components/toast"
 import { Search, Users } from "lucide-react"
 import { useMemo, useState } from "react"
-import { toast } from "sonner"
 import { BanDialog } from "@/components/admin/users/ban-dialog"
 import { RoleDialog } from "@/components/admin/users/role-dialog"
 import { UserSearchBar } from "@/components/admin/users/user-search-bar"
@@ -124,14 +124,18 @@ export default function AdminUsersPage() {
         role: "PATIENT" | "DOCTOR" | "ADMIN"
       }>(`/admin/users/${id}/role`, { role }),
     onSuccess: (updatedUser) => {
-      toast.success(
-        `Role updated to ${updatedUser.role} for ${updatedUser.email}`,
-      )
+      toast.add({
+        title: `Role updated to ${updatedUser.role} for ${updatedUser.email}`,
+        type: "success",
+      })
       queryClient.invalidateQueries({ queryKey: ["users"] })
       setSelectedUserForRole(null)
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to update user role")
+      toast.add({
+        title: err.message || "Failed to update user role",
+        type: "error",
+      })
     },
   })
 
@@ -144,13 +148,13 @@ export default function AdminUsersPage() {
         banReason?: string | null
       }>(`/admin/users/${id}/ban`, { reason }),
     onSuccess: (res) => {
-      toast.success(`User ${res.email} has been banned`)
+      toast.add({ title: `User ${res.email} has been banned`, type: "success" })
       queryClient.invalidateQueries({ queryKey: ["users"] })
       setSelectedUserForBan(null)
       setBanReason("")
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to ban user")
+      toast.add({ title: err.message || "Failed to ban user", type: "error" })
     },
   })
 
@@ -160,11 +164,14 @@ export default function AdminUsersPage() {
         `/admin/users/${id}/ban`,
       ),
     onSuccess: (res) => {
-      toast.success(`User ${res.email} has been unbanned`)
+      toast.add({
+        title: `User ${res.email} has been unbanned`,
+        type: "success",
+      })
       queryClient.invalidateQueries({ queryKey: ["users"] })
     },
     onError: (err: Error) => {
-      toast.error(err.message || "Failed to unban user")
+      toast.add({ title: err.message || "Failed to unban user", type: "error" })
     },
   })
 

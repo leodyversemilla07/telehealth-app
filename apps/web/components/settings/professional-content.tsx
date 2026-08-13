@@ -17,10 +17,10 @@ import {
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 import { Clock, Save, Stethoscope, XCircle } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
 import { useTRPC } from "@/lib/trpc/client"
 
 const SPECIALTIES = [
@@ -103,13 +103,16 @@ export function ProfessionalContent() {
   const mutation = useMutation({
     ...trpc.doctors.updateMyProfile.mutationOptions(),
     onSuccess: () => {
-      toast.success("Professional info saved!")
+      toast.add({ title: "Professional info saved!", type: "success" })
       queryClient.invalidateQueries({
         queryKey: trpc.doctors.myProfile.queryKey(),
       })
     },
     onError: (err) =>
-      toast.error(err instanceof Error ? err.message : "Failed to save"),
+      toast.add({
+        title: err instanceof Error ? err.message : "Failed to save",
+        type: "error",
+      }),
   })
 
   function handleSubmit() {

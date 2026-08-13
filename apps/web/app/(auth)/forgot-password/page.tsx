@@ -9,11 +9,11 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import { ArrowLeft, CheckCircle2, ShieldAlert } from "lucide-react"
 import Link from "next/link"
 import { useActionState } from "react"
 import { useFormStatus } from "react-dom"
-import { toast } from "sonner"
 import { AuthLayout } from "@/components/auth-layout"
 import { env } from "@/lib/env"
 
@@ -68,9 +68,11 @@ function ForgotPasswordForm() {
         }
       }
 
-      toast.success(
-        "If this email exists, you'll receive a password reset link shortly.",
-      )
+      toast.add({
+        title:
+          "If this email exists, you'll receive a password reset link shortly.",
+        type: "success",
+      })
       return { error: null, success: true, email }
     },
     { error: null, success: false, email: "" },

@@ -34,6 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@workspace/ui/components/table"
+import { toast } from "@workspace/ui/components/toast"
 import {
   Calendar,
   Check,
@@ -51,7 +52,6 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
 import { ErrorAlert } from "@/components/error-alert"
 import {
   useCancelAppointment,
@@ -86,20 +86,32 @@ export default function DoctorConsultationsPage() {
     if (!appointmentToCancel) return
 
     setCancelDialogOpen(false)
-    toast.loading("Cancelling consultation...", { id: "cancel-appt" })
+    toast.add({
+      title: "Cancelling consultation...",
+      type: "loading",
+      ...{ id: "cancel-appt" },
+    })
 
     cancelMutation.mutate(
       { id: appointmentToCancel.id },
       {
         onSuccess: () => {
-          toast.success("Consultation successfully cancelled", {
-            id: "cancel-appt",
+          toast.add({
+            title: "Consultation successfully cancelled",
+            type: "success",
+            ...{
+              id: "cancel-appt",
+            },
           })
           setAppointmentToCancel(null)
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to cancel consultation", {
-            id: "cancel-appt",
+          toast.add({
+            title: err.message || "Failed to cancel consultation",
+            type: "error",
+            ...{
+              id: "cancel-appt",
+            },
           })
         },
       },
@@ -107,19 +119,31 @@ export default function DoctorConsultationsPage() {
   }
 
   const handleConfirm = (id: string) => {
-    toast.loading("Confirming appointment...", { id: "confirm-appt" })
+    toast.add({
+      title: "Confirming appointment...",
+      type: "loading",
+      ...{ id: "confirm-appt" },
+    })
 
     updateStatusMutation.mutate(
       { id, status: "CONFIRMED" },
       {
         onSuccess: () => {
-          toast.success("Appointment confirmed successfully!", {
-            id: "confirm-appt",
+          toast.add({
+            title: "Appointment confirmed successfully!",
+            type: "success",
+            ...{
+              id: "confirm-appt",
+            },
           })
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to confirm appointment", {
-            id: "confirm-appt",
+          toast.add({
+            title: err.message || "Failed to confirm appointment",
+            type: "error",
+            ...{
+              id: "confirm-appt",
+            },
           })
         },
       },
@@ -127,18 +151,30 @@ export default function DoctorConsultationsPage() {
   }
 
   const handleStartConsult = (id: string) => {
-    toast.loading("Starting consultation...", { id: "start-appt" })
+    toast.add({
+      title: "Starting consultation...",
+      type: "loading",
+      ...{ id: "start-appt" },
+    })
 
     updateStatusMutation.mutate(
       { id, status: "IN_PROGRESS" },
       {
         onSuccess: () => {
-          toast.success("Consultation started!", { id: "start-appt" })
+          toast.add({
+            title: "Consultation started!",
+            type: "success",
+            ...{ id: "start-appt" },
+          })
           router.push(`/doctor/consultations/${id}`)
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to start consultation", {
-            id: "start-appt",
+          toast.add({
+            title: err.message || "Failed to start consultation",
+            type: "error",
+            ...{
+              id: "start-appt",
+            },
           })
         },
       },

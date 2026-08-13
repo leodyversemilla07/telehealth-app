@@ -16,9 +16,9 @@ import {
 } from "@workspace/ui/components/select"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import { Camera, Save } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
 import { useFormDirty, useUnsavedChanges } from "@/hooks/use-unsaved-changes"
 import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
@@ -169,7 +169,7 @@ export function ProfileContent() {
       image?: string
     }) => apiClient.patch("/users/me", data),
     onSuccess: () => {
-      toast.success("Profile updated!")
+      toast.add({ title: "Profile updated!", type: "success" })
       setInitialValues((prev) => ({
         ...prev,
         firstName,
@@ -180,7 +180,7 @@ export function ProfileContent() {
       refetch()
     },
     onError: (err: { message?: string }) =>
-      toast.error(err.message || "Failed"),
+      toast.add({ title: err.message || "Failed", type: "error" }),
   })
 
   const uploadMutation = useMutation({
@@ -192,19 +192,19 @@ export function ProfileContent() {
     onSuccess: (data) => {
       setImageUrl(data.image ?? "")
       setPreviewUrl(null)
-      toast.success("Avatar uploaded!")
+      toast.add({ title: "Avatar uploaded!", type: "success" })
       refetch()
     },
     onError: (err: { message?: string }) => {
       setPreviewUrl(null)
-      toast.error(err.message || "Upload failed")
+      toast.add({ title: err.message || "Upload failed", type: "error" })
     },
   })
 
   const patientMutation = useMutation({
     ...trpc.patients.updateMe.mutationOptions(),
     onSuccess: () => {
-      toast.success("Personal details saved!")
+      toast.add({ title: "Personal details saved!", type: "success" })
       setInitialValues((prev) => ({
         ...prev,
         dob,
@@ -215,17 +215,18 @@ export function ProfileContent() {
       }))
       queryClient.invalidateQueries({ queryKey: trpc.patients.me.queryKey() })
     },
-    onError: (err) => toast.error(err.message || "Failed"),
+    onError: (err) =>
+      toast.add({ title: err.message || "Failed", type: "error" }),
   })
 
   function handleUpload(file: File) {
     const allowed = ["image/jpeg", "image/png", "image/webp"]
     if (!allowed.includes(file.type)) {
-      toast.error("Only JPEG, PNG, WEBP allowed")
+      toast.add({ title: "Only JPEG, PNG, WEBP allowed", type: "error" })
       return
     }
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("Max 2MB")
+      toast.add({ title: "Max 2MB", type: "error" })
       return
     }
     setPreviewUrl(URL.createObjectURL(file))

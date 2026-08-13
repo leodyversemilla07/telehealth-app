@@ -4,6 +4,7 @@ import { useMutation } from "@tanstack/react-query"
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import {
   AlertTriangle,
   CheckCircle2,
@@ -13,7 +14,6 @@ import {
 } from "lucide-react"
 import { QRCodeSVG } from "qrcode.react"
 import { useState } from "react"
-import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
 
 export function TwoFactorContent() {
@@ -42,7 +42,7 @@ export function TwoFactorContent() {
       setStep("verify")
     },
     onError: (err: { message?: string }) =>
-      toast.error(err.message || "Failed"),
+      toast.add({ title: err.message || "Failed", type: "error" }),
   })
 
   const verifyMutation = useMutation({
@@ -53,13 +53,13 @@ export function TwoFactorContent() {
     },
     onSuccess: (data: unknown) => {
       const d = data as { backupCodes?: string[] } | null
-      toast.success("2FA enabled!")
+      toast.add({ title: "2FA enabled!", type: "success" })
       refetch()
       setBackupCodes(d?.backupCodes ?? [])
       setStep("backup")
     },
     onError: (err: { message?: string }) =>
-      toast.error(err.message || "Invalid code"),
+      toast.add({ title: err.message || "Invalid code", type: "error" }),
   })
 
   const disableMutation = useMutation({
@@ -70,13 +70,13 @@ export function TwoFactorContent() {
       if (error) throw new Error(error.message)
     },
     onSuccess: () => {
-      toast.success("2FA disabled")
+      toast.add({ title: "2FA disabled", type: "success" })
       refetch()
       setShowDisable(false)
       setDisablePassword("")
     },
     onError: (err: { message?: string }) =>
-      toast.error(err.message || "Failed"),
+      toast.add({ title: err.message || "Failed", type: "error" }),
   })
 
   function downloadBackupCodes() {

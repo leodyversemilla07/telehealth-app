@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { Fraunces, Geist_Mono, Inter } from "next/font/google"
 
 import "@workspace/ui/globals.css"
-import { Toaster } from "@workspace/ui/components/sonner"
+import { Toaster } from "@workspace/ui/components/toast"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 import { cn } from "@workspace/ui/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"

@@ -10,8 +10,8 @@ vi.mock("@/lib/api-client", () => ({
   },
 }))
 
-vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn() },
+vi.mock("@workspace/ui/components/toast", () => ({
+  toast: { add: vi.fn() },
 }))
 
 vi.mock("next/navigation", () => ({

@@ -2,8 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Switch } from "@workspace/ui/components/switch"
+import { toast } from "@workspace/ui/components/toast"
 import { Bell, BellOff, Loader2 } from "lucide-react"
-import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
 
 interface NotificationPreferences {
@@ -58,10 +58,10 @@ export function NotificationsContent() {
       ),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notification-preferences"] })
-      toast.success("Notification preferences updated")
+      toast.add({ title: "Notification preferences updated", type: "success" })
     },
     onError: () => {
-      toast.error("Failed to update preferences")
+      toast.add({ title: "Failed to update preferences", type: "error" })
     },
   })
 

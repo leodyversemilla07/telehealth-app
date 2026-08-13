@@ -18,6 +18,7 @@ import {
 } from "@workspace/ui/components/select"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Spinner } from "@workspace/ui/components/spinner"
+import { toast } from "@workspace/ui/components/toast"
 import {
   Download,
   FileText,
@@ -27,7 +28,6 @@ import {
   Upload,
 } from "lucide-react"
 import { useRef, useState } from "react"
-import { toast } from "sonner"
 import {
   type MedicalDocumentDto,
   type MedicalDocumentType,
@@ -89,24 +89,33 @@ export function MedicalDocumentsCard({
 
   const handleUpload = () => {
     if (!file) {
-      toast.error("Please choose a file to upload")
+      toast.add({ title: "Please choose a file to upload", type: "error" })
       return
     }
     if (file.size > DEFAULT_MB * 1024 * 1024) {
-      toast.error(`File is too large. Max allowed size is ${DEFAULT_MB}MB.`)
+      toast.add({
+        title: `File is too large. Max allowed size is ${DEFAULT_MB}MB.`,
+        type: "error",
+      })
       return
     }
     upload.mutate(
       { appointmentId, type: type || undefined, file },
       {
         onSuccess: () => {
-          toast.success("Document uploaded successfully")
+          toast.add({
+            title: "Document uploaded successfully",
+            type: "success",
+          })
           setFile(null)
           setType("")
           if (fileInputRef.current) fileInputRef.current.value = ""
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to upload document")
+          toast.add({
+            title: err.message || "Failed to upload document",
+            type: "error",
+          })
         },
       },
     )

@@ -7,8 +7,8 @@ vi.mock("@/lib/api-client", () => ({
   apiClient: { post: vi.fn() },
 }))
 
-vi.mock("sonner", () => ({
-  toast: { success: vi.fn(), error: vi.fn(), info: vi.fn() },
+vi.mock("@workspace/ui/components/toast", () => ({
+  toast: { add: vi.fn() },
 }))
 
 vi.mock("next/navigation", () => ({

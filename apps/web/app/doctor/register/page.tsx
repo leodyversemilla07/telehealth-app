@@ -25,6 +25,7 @@ import { Separator } from "@workspace/ui/components/separator"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 import {
   BadgeCheck,
   CheckCircle2,
@@ -38,7 +39,6 @@ import {
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { toast } from "sonner"
 import { authClient } from "@/lib/auth-client"
 import { useTRPCClient } from "@/lib/trpc/client"
 
@@ -218,7 +218,7 @@ export default function DoctorRegisterPage() {
       // Send the null-normalized payload (empty strings would fail the
       // API's ISO 8601 / decimal validation on optional fields).
       await trpcClient.doctors.register.mutate(formAsPayload(form))
-      toast.success("Application submitted for review!")
+      toast.add({ title: "Application submitted for review!", type: "success" })
       const submitted = formAsApplication(form)
       setForm(EMPTY_FORM)
       // Registering flips the DB role to DOCTOR; the session token still

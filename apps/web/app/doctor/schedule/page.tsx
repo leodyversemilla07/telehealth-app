@@ -40,6 +40,7 @@ import { Separator } from "@workspace/ui/components/separator"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
+import { toast } from "@workspace/ui/components/toast"
 import {
   CalendarRange,
   CheckCircle2,
@@ -49,7 +50,6 @@ import {
   Trash2,
 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { toast } from "sonner"
 import {
   useAddTimeOff,
   useDeleteTimeOff,
@@ -196,7 +196,11 @@ export default function DoctorSchedulePage() {
   const handleSaveAvailability = (e: React.FormEvent) => {
     e.preventDefault()
 
-    toast.loading("Saving weekly schedule shifts...", { id: "save-sched" })
+    toast.add({
+      title: "Saving weekly schedule shifts...",
+      type: "loading",
+      ...{ id: "save-sched" },
+    })
 
     const payload: Record<string, unknown> = { slotDuration }
     for (const day of WEEKDAYS) {
@@ -209,8 +213,11 @@ export default function DoctorSchedulePage() {
         const eMins = (eh ?? 0) * 60 + (em ?? 0)
 
         if (sMins >= eMins) {
-          toast.dismiss("save-sched")
-          toast.error(`Shift end time must be after start time on ${day.label}`)
+          toast.close("save-sched")
+          toast.add({
+            title: `Shift end time must be after start time on ${day.label}`,
+            type: "error",
+          })
           return
         }
 
@@ -222,14 +229,22 @@ export default function DoctorSchedulePage() {
 
     setAvailabilityMutation.mutate(payload, {
       onSuccess: () => {
-        toast.success("Availability schedule successfully saved!", {
-          id: "save-sched",
+        toast.add({
+          title: "Availability schedule successfully saved!",
+          type: "success",
+          ...{
+            id: "save-sched",
+          },
         })
         refetchSchedule()
       },
       onError: (err) => {
-        toast.error(err.message || "Failed to update availability schedule.", {
-          id: "save-sched",
+        toast.add({
+          title: err.message || "Failed to update availability schedule.",
+          type: "error",
+          ...{
+            id: "save-sched",
+          },
         })
       },
     })
@@ -239,18 +254,28 @@ export default function DoctorSchedulePage() {
   const handleAddTimeOff = (e: React.FormEvent) => {
     e.preventDefault()
     if (!toStart || !toEnd) {
-      toast.error("Please configure start and end timestamps")
+      toast.add({
+        title: "Please configure start and end timestamps",
+        type: "error",
+      })
       return
     }
 
     const sDate = new Date(toStart)
     const eDate = new Date(toEnd)
     if (sDate >= eDate) {
-      toast.error("Blocked time-off end date must be after start date")
+      toast.add({
+        title: "Blocked time-off end date must be after start date",
+        type: "error",
+      })
       return
     }
 
-    toast.loading("Registering time block...", { id: "add-to" })
+    toast.add({
+      title: "Registering time block...",
+      type: "loading",
+      ...{ id: "add-to" },
+    })
 
     addTimeOffMutation.mutate(
       {
@@ -260,15 +285,23 @@ export default function DoctorSchedulePage() {
       },
       {
         onSuccess: () => {
-          toast.success("Time block registered successfully!", { id: "add-to" })
+          toast.add({
+            title: "Time block registered successfully!",
+            type: "success",
+            ...{ id: "add-to" },
+          })
           setToStart("")
           setToEnd("")
           setToReason("")
           refetchTimeOff()
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to register time off.", {
-            id: "add-to",
+          toast.add({
+            title: err.message || "Failed to register time off.",
+            type: "error",
+            ...{
+              id: "add-to",
+            },
           })
         },
       },
@@ -280,18 +313,30 @@ export default function DoctorSchedulePage() {
     if (!deleteTimeOffId) return
 
     setDeleteTimeOffId(null)
-    toast.loading("Removing time block...", { id: "del-to" })
+    toast.add({
+      title: "Removing time block...",
+      type: "loading",
+      ...{ id: "del-to" },
+    })
 
     deleteTimeOffMutation.mutate(
       { id: deleteTimeOffId },
       {
         onSuccess: () => {
-          toast.success("Time block removed successfully!", { id: "del-to" })
+          toast.add({
+            title: "Time block removed successfully!",
+            type: "success",
+            ...{ id: "del-to" },
+          })
           refetchTimeOff()
         },
         onError: (err) => {
-          toast.error(err.message || "Failed to remove time block.", {
-            id: "del-to",
+          toast.add({
+            title: err.message || "Failed to remove time block.",
+            type: "error",
+            ...{
+              id: "del-to",
+            },
           })
         },
       },

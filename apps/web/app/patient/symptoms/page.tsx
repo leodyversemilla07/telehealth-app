@@ -23,6 +23,7 @@ import {
 import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 import {
   AlertCircle,
   AlertTriangle,
@@ -37,7 +38,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { useRef, useState } from "react"
-import { toast } from "sonner"
 import { apiClient } from "@/lib/api-client"
 
 interface SymptomResult {
@@ -113,14 +113,17 @@ export default function SymptomCheckerPage() {
       analysisCache.set(key, data)
 
       setResult(data)
-      toast.success("Symptoms analyzed successfully!")
+      toast.add({ title: "Symptoms analyzed successfully!", type: "success" })
     },
     onError: (err: Error) => {
       if (err.name === "AbortError") {
-        toast.info("Analysis cancelled")
+        toast.add({ title: "Analysis cancelled", type: "info" })
         return
       }
-      toast.error(err.message || "Failed to analyze symptoms")
+      toast.add({
+        title: err.message || "Failed to analyze symptoms",
+        type: "error",
+      })
     },
   })
 
@@ -132,7 +135,7 @@ export default function SymptomCheckerPage() {
 
   const handleAnalyze = () => {
     if (!symptoms.trim()) {
-      toast.error("Please describe your symptoms")
+      toast.add({ title: "Please describe your symptoms", type: "error" })
       return
     }
     // Check cache before mutating
@@ -140,7 +143,7 @@ export default function SymptomCheckerPage() {
     const cached = analysisCache.get(key)
     if (cached) {
       setResult(cached)
-      toast.success("Showing cached results")
+      toast.add({ title: "Showing cached results", type: "success" })
       return
     }
     analyzeMutation.mutate({ symptoms: symptoms.trim() })

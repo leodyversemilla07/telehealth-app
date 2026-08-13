@@ -59,6 +59,7 @@ import { Skeleton } from "@workspace/ui/components/skeleton"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Switch } from "@workspace/ui/components/switch"
 import { Textarea } from "@workspace/ui/components/textarea"
+import { toast } from "@workspace/ui/components/toast"
 import {
   Brain,
   Calendar,
@@ -72,7 +73,6 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
 import { TimeSlotPicker } from "@/components/time-slot-picker"
 import { useAvailableSlots, useBookAppointment } from "@/hooks/use-appointments"
 import { useDoctors } from "@/hooks/use-doctors"
@@ -140,23 +140,30 @@ export default function BookAppointmentPage() {
     onSuccess: (data) => {
       if (data.specialties.length > 0) {
         setSpecialty(data.specialties[0] ?? "all")
-        toast.success(
-          `AI suggests consulting a ${data.specialties.join(" or ")} specialist`,
-        )
+        toast.add({
+          title: `AI suggests consulting a ${data.specialties.join(" or ")} specialist`,
+          type: "success",
+        })
       } else {
-        toast.info("No specific specialty identified. Showing all doctors.")
+        toast.add({
+          title: "No specific specialty identified. Showing all doctors.",
+          type: "info",
+        })
       }
       setShowSymptomDialog(false)
       setSymptomText("")
     },
     onError: (err) => {
-      toast.error(err.message || "Failed to analyze symptoms")
+      toast.add({
+        title: err.message || "Failed to analyze symptoms",
+        type: "error",
+      })
     },
   })
 
   const handleSymptomSearch = () => {
     if (!symptomText.trim()) {
-      toast.error("Please describe your symptoms")
+      toast.add({ title: "Please describe your symptoms", type: "error" })
       return
     }
     recommendMutation.mutate(symptomText.trim())
@@ -178,15 +185,18 @@ export default function BookAppointmentPage() {
   // Handle Booking Execution Transaction
   const handleConfirmBooking = () => {
     if (!selectedDoctor) {
-      toast.error("Please select a doctor")
+      toast.add({ title: "Please select a doctor", type: "error" })
       return
     }
     if (!selectedSlot) {
-      toast.error("Please select a time slot")
+      toast.add({ title: "Please select a time slot", type: "error" })
       return
     }
     if (!dpaConsent) {
-      toast.error("You must review and consent to the Data Privacy Notice")
+      toast.add({
+        title: "You must review and consent to the Data Privacy Notice",
+        type: "error",
+      })
       return
     }
 
@@ -204,14 +214,19 @@ export default function BookAppointmentPage() {
       },
       {
         onSuccess: () => {
-          toast.success("Appointment successfully booked in PHT time!")
+          toast.add({
+            title: "Appointment successfully booked in PHT time!",
+            type: "success",
+          })
           setSelectedDoctor(null)
           router.push("/patient/appointments")
         },
         onError: (err) => {
-          toast.error(
-            err.message || "Failed to book appointment. Slot may be taken.",
-          )
+          toast.add({
+            title:
+              err.message || "Failed to book appointment. Slot may be taken.",
+            type: "error",
+          })
         },
       },
     )
