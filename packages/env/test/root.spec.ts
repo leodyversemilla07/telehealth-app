@@ -51,7 +51,7 @@ describe("finding the workspace root", () => {
   })
 
   it("returns null above the repo rather than walking to a drive root", () => {
-    expect(findRoot(resolve(repoRoot, "..") + "/__nope__")).toBeNull()
+    expect(findRoot(`${resolve(repoRoot, "..")}/__nope__`)).toBeNull()
   })
 
   it("recognises the pnpm workspace root's own package.json lacks workspaces", () => {

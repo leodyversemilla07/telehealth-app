@@ -40,12 +40,13 @@ export function totp(secret: string): string {
   const msg = Buffer.alloc(8)
   msg.writeBigUInt64BE(BigInt(counter))
   const digest = createHmac("sha1", key).update(msg).digest()
-  const offset = digest[digest.length - 1]! & 0x0f
-  const bin =
-    ((digest[offset]! & 0x7f) << 24) |
-    ((digest[offset + 1]! & 0xff) << 16) |
-    ((digest[offset + 2]! & 0xff) << 8) |
-    (digest[offset + 3]! & 0xff)
+  const lastByte = digest.at(-1)
+  if (lastByte === undefined) {
+    throw new Error("TOTP digest is unexpectedly empty")
+  }
+
+  const offset = lastByte & 0x0f
+  const bin = digest.readUInt32BE(offset) & 0x7fff_ffff
   return String(bin % 1_000_000).padStart(6, "0")
 }
 
