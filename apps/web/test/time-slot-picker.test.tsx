@@ -11,7 +11,7 @@ const slot = (start: string): AvailableSlotDto => ({
   endTime: new Date(new Date(start).getTime() + 60 * 60 * 1000).toISOString(),
 })
 
-const SLOTS: AvailableSlotDto[] = [
+const SLOTS: [AvailableSlotDto, AvailableSlotDto, AvailableSlotDto] = [
   slot("2026-08-20T04:00:00.000Z"),
   slot("2026-08-20T05:00:00.000Z"),
   slot("2026-08-20T06:00:00.000Z"),
@@ -62,17 +62,14 @@ describe("TimeSlotPicker", () => {
     )
     // UTC 04:00 → 12:00 PM in Asia/Manila
     const [first, second, third] = SLOTS
-    expect(first).toBeDefined()
-    expect(second).toBeDefined()
-    expect(third).toBeDefined()
     expect(
-      screen.getByRole("button", { name: slotLabel(first!.startTime) }),
+      screen.getByRole("button", { name: slotLabel(first.startTime) }),
     ).toBeDefined()
     expect(
-      screen.getByRole("button", { name: slotLabel(second!.startTime) }),
+      screen.getByRole("button", { name: slotLabel(second.startTime) }),
     ).toBeDefined()
     expect(
-      screen.getByRole("button", { name: slotLabel(third!.startTime) }),
+      screen.getByRole("button", { name: slotLabel(third.startTime) }),
     ).toBeDefined()
   })
 
@@ -82,10 +79,9 @@ describe("TimeSlotPicker", () => {
       <TimeSlotPicker slots={SLOTS} selectedSlot={null} onSelect={onSelect} />,
     )
     const second = SLOTS[1]
-    expect(second).toBeDefined()
     await userEvent
       .setup()
-      .click(screen.getByRole("button", { name: slotLabel(second!.startTime) }))
+      .click(screen.getByRole("button", { name: slotLabel(second.startTime) }))
     expect(onSelect).toHaveBeenCalledWith(second)
   })
 
@@ -93,7 +89,7 @@ describe("TimeSlotPicker", () => {
     render(
       <TimeSlotPicker
         slots={SLOTS}
-        selectedSlot={SLOTS[0]!}
+        selectedSlot={SLOTS[0]}
         onSelect={() => {}}
         disabled
       />,
@@ -109,10 +105,9 @@ describe("TimeSlotPicker", () => {
       <TimeSlotPicker slots={SLOTS} selectedSlot={null} onSelect={onSelect} />,
     )
     const third = SLOTS[2]
-    expect(third).toBeDefined()
     await userEvent
       .setup()
-      .click(screen.getByRole("button", { name: slotLabel(third!.startTime) }))
+      .click(screen.getByRole("button", { name: slotLabel(third.startTime) }))
     expect(onSelect).toHaveBeenCalledWith(third)
   })
 })

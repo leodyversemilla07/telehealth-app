@@ -76,8 +76,12 @@ describe("RoleDialog", () => {
       />,
     )
     const confirm = screen.getByText("Confirm Role Change").closest("button")
-    expect(confirm?.disabled).toBe(false)
-    await userEvent.setup().click(confirm!)
+    if (!confirm) {
+      throw new Error("Confirm Role Change button was not rendered")
+    }
+
+    expect(confirm.disabled).toBe(false)
+    await userEvent.setup().click(confirm)
     expect(onConfirm).toHaveBeenCalledTimes(1)
   })
 

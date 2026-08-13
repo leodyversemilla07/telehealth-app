@@ -9,9 +9,8 @@ vi.mock("next/navigation", () => ({
 }))
 
 vi.mock("next/image", () => ({
-  default: ({ alt, ...props }: Record<string, unknown>) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img alt={String(alt ?? "")} {...props} />
+  default: ({ alt }: { alt?: string }) => (
+    <span aria-label={alt ?? ""} role="img" />
   ),
 }))
 

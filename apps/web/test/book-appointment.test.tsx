@@ -188,21 +188,19 @@ describe("BookAppointmentPage - booking flow", () => {
   }
 
   async function openBookingDialog() {
-    const result = await renderBookAppointment()
-    await userEvent
-      .setup()
-      .click((await screen.findAllByText("Book Consult"))[0]!)
+    await renderBookAppointment()
+    const [bookConsult] = await screen.findAllByText("Book Consult")
+    if (!bookConsult) {
+      throw new Error("Book Consult button was not rendered")
+    }
+
+    await userEvent.setup().click(bookConsult)
     await screen.findByText("Schedule Appointment")
-    return result
   }
 
   it("keeps Confirm Booking disabled until a slot and consent are chosen", async () => {
     slotsHolder.slots = [SLOT]
-    await renderBookAppointment()
-    await userEvent
-      .setup()
-      .click((await screen.findAllByText("Book Consult"))[0]!)
-    await screen.findByText("Schedule Appointment")
+    await openBookingDialog()
 
     const notReady = screen.getByText("Confirm Booking").closest("button")
     expect(notReady?.hasAttribute("disabled")).toBe(true)
@@ -227,8 +225,12 @@ describe("BookAppointmentPage - booking flow", () => {
     await userEvent.setup().click(screen.getByRole("switch"))
 
     const confirm = screen.getByText("Confirm Booking").closest("button")
-    expect(confirm?.hasAttribute("disabled")).toBe(false)
-    await userEvent.setup().click(confirm!)
+    if (!confirm) {
+      throw new Error("Confirm Booking button was not rendered")
+    }
+
+    expect(confirm.hasAttribute("disabled")).toBe(false)
+    await userEvent.setup().click(confirm)
 
     await waitFor(() =>
       expect(toast.add).toHaveBeenCalledWith({
