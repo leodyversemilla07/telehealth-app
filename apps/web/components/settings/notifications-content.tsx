@@ -1,10 +1,12 @@
 "use client"
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Switch } from "@workspace/ui/components/switch"
 import { toast } from "@workspace/ui/components/toast"
-import { Bell, BellOff, Loader2 } from "lucide-react"
-import { apiClient } from "@/lib/api-client"
+import { Bell, Loader2 } from "lucide-react"
+import {
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+} from "@/hooks/use-notifications"
 
 interface NotificationPreferences {
   appointmentReminder: boolean
@@ -14,7 +16,6 @@ interface NotificationPreferences {
   scheduleUpdated: boolean
   system: boolean
   pushEnabled: boolean
-  emailEnabled: boolean
 }
 
 const preferenceLabels: Record<keyof NotificationPreferences, string> = {
@@ -25,7 +26,6 @@ const preferenceLabels: Record<keyof NotificationPreferences, string> = {
   scheduleUpdated: "Schedule Updates",
   system: "System Announcements",
   pushEnabled: "Push Notifications",
-  emailEnabled: "Email Notifications",
 }
 
 const preferenceDescriptions: Partial<
@@ -38,36 +38,28 @@ const preferenceDescriptions: Partial<
   scheduleUpdated: "Get alerts when your doctor updates their schedule",
   system: "Receive important system announcements",
   pushEnabled: "Receive push notifications in your browser",
-  emailEnabled: "Receive notifications via email",
 }
 
 export function NotificationsContent() {
-  const queryClient = useQueryClient()
-
-  const { data: prefs, isPending } = useQuery({
-    queryKey: ["notification-preferences"],
-    queryFn: () =>
-      apiClient.get<NotificationPreferences>("/notifications/preferences"),
-  })
-
-  const updateMutation = useMutation({
-    mutationFn: (data: Partial<NotificationPreferences>) =>
-      apiClient.put<NotificationPreferences>(
-        "/notifications/preferences",
-        data,
-      ),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notification-preferences"] })
-      toast.add({ title: "Notification preferences updated", type: "success" })
-    },
-    onError: () => {
-      toast.add({ title: "Failed to update preferences", type: "error" })
-    },
-  })
+  const { data: prefs, isPending } = useNotificationPreferences()
+  const updateMutation = useUpdateNotificationPreferences()
 
   const toggle = (key: keyof NotificationPreferences) => {
     if (!prefs) return
-    updateMutation.mutate({ [key]: !prefs[key] })
+    updateMutation.mutate(
+      { [key]: !prefs[key] },
+      {
+        onSuccess: () => {
+          toast.add({
+            title: "Notification preferences updated",
+            type: "success",
+          })
+        },
+        onError: () => {
+          toast.add({ title: "Failed to update preferences", type: "error" })
+        },
+      },
+    )
   }
 
   const typeKeys: (keyof NotificationPreferences)[] = [
@@ -79,10 +71,7 @@ export function NotificationsContent() {
     "system",
   ]
 
-  const channelKeys: (keyof NotificationPreferences)[] = [
-    "pushEnabled",
-    "emailEnabled",
-  ]
+  const channelKeys: (keyof NotificationPreferences)[] = ["pushEnabled"]
 
   if (isPending) {
     return (
@@ -141,11 +130,7 @@ export function NotificationsContent() {
                 className="flex items-center justify-between rounded-xl border border-border bg-card p-4"
               >
                 <div className="flex items-center gap-3">
-                  {key === "pushEnabled" ? (
-                    <Bell className="size-5 text-primary" />
-                  ) : (
-                    <BellOff className="size-5 text-muted-foreground" />
-                  )}
+                  <Bell className="size-5 text-primary" />
                   <div className="space-y-0.5">
                     <p className="text-sm font-medium">
                       {preferenceLabels[key]}

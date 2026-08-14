@@ -174,7 +174,6 @@ describe("NotificationsService (integration logic)", () => {
         scheduleUpdated: true,
         system: true,
         pushEnabled: true,
-        emailEnabled: false,
       })
     })
 
@@ -188,7 +187,6 @@ describe("NotificationsService (integration logic)", () => {
         scheduleUpdated: false,
         system: true,
         pushEnabled: true,
-        emailEnabled: true,
       }
       prisma.notificationPreference.findUnique.mockResolvedValue(prefs)
 

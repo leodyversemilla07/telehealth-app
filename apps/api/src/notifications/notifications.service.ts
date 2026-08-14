@@ -80,7 +80,6 @@ export class NotificationsService {
         scheduleUpdated: true,
         system: true,
         pushEnabled: true,
-        emailEnabled: false,
       }
     }
     return prefs
@@ -96,7 +95,6 @@ export class NotificationsService {
       scheduleUpdated?: boolean
       system?: boolean
       pushEnabled?: boolean
-      emailEnabled?: boolean
     },
   ) {
     return this.prisma.notificationPreference.upsert({

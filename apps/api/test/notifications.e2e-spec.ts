@@ -123,7 +123,6 @@ describe("Notifications (module e2e)", () => {
       appointmentReminder: true,
       appointmentConfirmation: true,
       pushEnabled: true,
-      emailEnabled: false,
     })
     await expect(service.getPreferences("u-1")).resolves.toMatchObject({
       appointmentReminder: true,

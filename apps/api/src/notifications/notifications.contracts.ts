@@ -15,7 +15,6 @@ export const notificationPreferencesInput = z.object({
   scheduleUpdated: z.boolean().optional(),
   system: z.boolean().optional(),
   pushEnabled: z.boolean().optional(),
-  emailEnabled: z.boolean().optional(),
 })
 
 export const notificationIdInput = z.object({ id: z.string() })

@@ -28,6 +28,13 @@ export function useNotifications() {
   })
 }
 
+export function useNotificationPreferences() {
+  const trpc = useTRPC()
+  return useQuery({
+    ...trpc.notifications.preferences.queryOptions(),
+  })
+}
+
 export function useUnreadCount() {
   const trpc = useTRPC()
   return useQuery({
@@ -38,6 +45,20 @@ export function useUnreadCount() {
 }
 
 // ─── Mutations ──────────────────────────────────────────────────────────────
+
+export function useUpdateNotificationPreferences() {
+  const trpc = useTRPC()
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    ...trpc.notifications.updatePreferences.mutationOptions(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: trpc.notifications.preferences.queryKey(),
+      })
+    },
+  })
+}
 
 export function useMarkAsRead() {
   const trpc = useTRPC()

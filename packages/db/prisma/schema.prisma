@@ -356,7 +356,6 @@ model NotificationPreference {
   system                Boolean @default(true)
 
   pushEnabled Boolean @default(true)
-  emailEnabled Boolean @default(false)
 
   @@map("notification_preferences")
 }
