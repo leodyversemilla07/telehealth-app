@@ -43,7 +43,7 @@ src/
 ├── chat/                   # Real-time messaging (Socket.io)
 ├── common/decorators/      # Shared decorators (@Public)
 ├── config/                 # Env validation, Swagger setup, throttler
-├── consent/                # Privacy consent tracking (RA 10173)
+├── consent/                # Privacy consent tracking
 ├── doctors/                # Doctor profiles, registration, search
 ├── notifications/          # Notification CRUD, preferences, WebSocket gateway
 ├── patients/               # Patient profile CRUD
@@ -231,7 +231,7 @@ src/
 | PATCH  | `/admin/doctors/:id/approve`      | ADMIN   | Approve doctor (verify PRC)     |
 | PATCH  | `/admin/doctors/:id/reject`       | ADMIN   | Reject doctor                   |
 | GET    | `/admin/appointments`             | ADMIN   | All appointments                |
-| GET    | `/admin/audit-logs`               | ADMIN   | Audit trail (NPC compliance)    |
+| GET    | `/admin/audit-logs`               | ADMIN   | Audit trail                     |
 | GET    | `/admin/security-alerts`          | ADMIN   | Security alerts                 |
 | GET    | `/admin/reports`                  | ADMIN   | Platform analytics/reports      |
 
@@ -261,7 +261,7 @@ src/
 | `Notification`          | Push notifications for all event types   |
 | `NotificationPreference`| Per-type per-user notification toggles   |
 | `PushSubscription`      | Web push subscription endpoints          |
-| `ConsentLog`            | Privacy consent records (RA 10173)       |
+| `ConsentLog`            | Privacy consent records                  |
 | `AuditLog`              | Immutable admin action trail             |
 | `SecurityAlert`         | Security event notifications             |
 | `ChatMessage`           | Real-time messaging between users        |

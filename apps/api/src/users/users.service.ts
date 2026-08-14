@@ -332,10 +332,9 @@ export class UsersService {
   }
 
   /**
-   * Permanently delete the current user's account (right to erasure, RA 10173).
-   * Related records (sessions, accounts, profiles, appointments, consents,
-   * notifications, etc.) are removed via Prisma cascade rules. Audit logs are
-   * intentionally retained for compliance.
+   * Permanently delete the current user's account. Related records (sessions,
+   * accounts, profiles, appointments, consents, notifications, etc.) are
+   * removed via Prisma cascade rules. Audit logs are retained independently.
    */
   async deleteAccount(userId: string, email: string) {
     // Log the erasure before the row is gone (AuditLog has no FK to User).

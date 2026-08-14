@@ -40,7 +40,6 @@ const FOOTER_COLUMNS = [
       { href: "/privacy", label: "Privacy Policy" },
       { href: "/terms", label: "Terms of Service" },
       { href: "/cookies", label: "Cookie Preferences" },
-      { href: "/compliance", label: "Compliance" },
     ],
   },
 ]

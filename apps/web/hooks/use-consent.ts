@@ -22,8 +22,7 @@ const CONSENT_TYPES = [
   {
     id: "privacy_policy",
     label: "Privacy Policy",
-    description:
-      "Agree to the processing of personal data in accordance with the Data Privacy Act (RA 10173)",
+    description: "Agree to the processing of your personal data",
   },
   {
     id: "data_sharing",

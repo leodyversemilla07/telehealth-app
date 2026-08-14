@@ -45,12 +45,12 @@
    - 5.3 Reliability and Availability
    - 5.4 Usability
    - 5.5 Scalability
-   - 5.6 Compliance
+   - 5.6 Production Readiness
 6. [Appendices](#6-appendices)
    - Appendix A: Data Models (Prisma)
    - Appendix B: API Route Map
    - Appendix C: Error Codes
-   - Appendix D: Philippine Compliance Checklist
+   - Appendix D: Production Readiness
    - Appendix E: Deliverables Checklist (Submission)
 
 ---
@@ -59,7 +59,7 @@
 
 ### 1.1 Purpose
 
-This Software Requirements Specification (SRS) defines the complete functional and non-functional requirements for a Telehealth Application built for the **WC Launchpad Builder Round**. The system enables patients to connect with licensed healthcare professionals through video consultations, secure messaging, and integrated health record management — all while complying with Philippine laws and regulations including the Data Privacy Act of 2012 (RA 10173).
+This Software Requirements Specification (SRS) defines the complete functional and non-functional requirements for a Telehealth Application built for the **WC Launchpad Builder Round**. The system enables patients to connect with licensed healthcare professionals through video consultations, secure messaging, and integrated health record management, with privacy and security controls planned for the product.
 
 The application is designed as a **minimal viable product (MVP)** with two primary modules:
 - **Patient Module** — account management, doctor discovery, appointment booking, video consultations, and health records
@@ -86,7 +86,7 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 | Doctor Reviews | Rate and review doctors after consultations | ✅ Implemented |
 | Admin Dashboard | Manage users, approve doctors, view audit logs | ✅ Implemented |
 | Privacy Consent at Sign-up | Explicit consent checkbox + ConsentLog on registration (F-AUTH-07) | ✅ Implemented |
-| Account Deletion (RA 10173) | DELETE /api/users/me + Delete Account UI | ✅ Implemented |
+| Account Deletion | DELETE /api/users/me + Delete Account UI | ✅ Implemented |
 | Server-side Route Guard | Next.js 16 proxy.ts session check on protected areas | ✅ Implemented |
 | Standardized Error Codes | SRS Appendix C codes in every error response (NFR-REL-03) | ✅ Implemented |
 
@@ -97,12 +97,9 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 | **Patient** | End-user who books and attends consultations |
 | **Doctor** | Medical professional who manages schedules, consultations, prescriptions, and notes |
 | **Admin** | System administrator managing the platform |
-| **DOH** | Department of Health (Philippines) |
 | **PRC** | Professional Regulation Commission — issues and regulates professional licenses |
 | **PDEA** | Philippine Drug Enforcement Agency — regulates controlled substances |
 | **PhilHealth** | Philippine Health Insurance Corporation |
-| **RA 10173** | Data Privacy Act of 2012 — the primary data privacy law in the Philippines |
-| **NPC** | National Privacy Commission — enforces RA 10173 |
 | **S2 License** | PDEA license required to prescribe controlled substances |
 | **eRx** | Electronic Prescription |
 | **EHR** | Electronic Health Record |
@@ -117,8 +114,6 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 
 | Reference | Source |
 |---|---|
-| Data Privacy Act of 2012 (RA 10173) | https://www.privacy.gov.ph/data-privacy-act/ |
-| DOH Telehealth Guidelines (AO 2021-0037) | https://doh.gov.ph |
 | PRC Online Services | https://www.prc.gov.ph |
 | Better Auth Documentation | https://www.better-auth.com |
 | Next.js Documentation | https://nextjs.org/docs |
@@ -215,23 +210,15 @@ The system supports the following high-level functions:
 
 ### 2.4 Constraints
 
-1. **Regulatory Compliance** — The system must comply with:
-   - **RA 10173 (Data Privacy Act of 2012)** — personal and sensitive personal information
-   - **DOH AO 2021-0037** — Guidelines on the Implementation of Telehealth Services
-   - **PRC requirements** — valid license verification for all practicing doctors
-   - **PDEA regulations** — for controlled substance prescriptions
+1. **Production readiness** — Formal privacy, regulatory, and data-residency work is outside the current MVP scope and must be completed before a production launch.
 
-2. **Data Sovereignty** — Patient health data must be stored within the Philippines or in jurisdictions with equivalent data protection standards recognized by the NPC.
+2. **Browser Support** — Must support the last two major versions of Chrome, Firefox, Safari, and Edge. Mobile Safari and Chrome on Android are primary targets.
 
-3. **Browser Support** — Must support the last two major versions of Chrome, Firefox, Safari, and Edge. Mobile Safari and Chrome on Android are primary targets.
+3. **Monorepo Architecture** — All code must live within the existing `telehealth-app` structure and adhere to its conventions (Turborepo, Biome linting, shared packages).
 
-4. **Monorepo Architecture** — All code must live within the existing `telehealth-app` structure and adhere to its conventions (Turborepo, Biome linting, shared packages).
+4. **Database** — PostgreSQL; schema changes managed via Prisma migrations in the `apps/api` workspace.
 
-5. **Monorepo Architecture** — All code must live within the existing `telehealth-app` structure and adhere to its conventions (Turborepo, Biome linting, shared packages).
-
-6. **Database** — PostgreSQL; schema changes managed via Prisma migrations in the `apps/api` workspace.
-
-7. **Authentication** — Must use Better Auth as the authentication provider.
+5. **Authentication** — Must use Better Auth as the authentication provider.
 
 ### 2.5 Assumptions and Dependencies
 
@@ -256,7 +243,7 @@ The system supports the following high-level functions:
 
 **ID:** F-AUTH
 
-**Description:** The system shall provide secure registration, login, and role-based access control for Patient and Doctor users, compliant with the Data Privacy Act of 2012 (RA 10173).
+**Description:** The system shall provide registration, login, and role-based access control for Patient and Doctor users.
 
 **Priority:** Critical
 
@@ -270,9 +257,9 @@ The system supports the following high-level functions:
 | F-AUTH-04 | The system shall allow users to reset their password via a secure email link. | Test: Password reset sent, link works once |
 | F-AUTH-05 | The system shall maintain session tokens with a configurable expiry (default: 7 days). | Test: Session expires as configured |
 | F-AUTH-06 | The system shall allow Doctors to complete a profile with: full name, PRC license number, PRC license expiry date, specialty, bio, profile photo. | Test: Profile update persists |
-| F-AUTH-07 | The system shall display a prominent privacy notice (Data Privacy Act compliant) during registration, requiring explicit consent. | Test: Consent checkbox required; without it, registration blocked |
+| F-AUTH-07 | The system shall display a privacy notice during registration, requiring explicit consent. | Test: Consent checkbox required; without it, registration blocked |
 | F-AUTH-08 | The system shall allow Admins to verify and approve Doctor registrations by validating PRC license details. | Test: Pending doctor cannot offer appointments |
-| F-AUTH-09 | The system shall log all login attempts (successful and failed) with IP address and timestamp for NPC compliance. | Test: Audit log entry created on each attempt |
+| F-AUTH-09 | The system shall log login attempts with IP address and timestamp for operational review. | Test: Audit log entry created on each attempt |
 | F-AUTH-10 | The system shall support two-factor authentication (2FA) via TOTP authenticator apps with backup codes. | Test: 2FA enable/disable/verify works correctly |
 
 ### 3.2 Patient Profile Management
@@ -508,16 +495,16 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 | ID | Requirement |
 |---|---|
-| NFR-SEC-01 | All personal and sensitive personal information (as defined by RA 10173) shall be encrypted at rest using AES-256. |
+| NFR-SEC-01 | Sensitive data protections are a production-hardening requirement and require formal review before launch. |
 | NFR-SEC-02 | All data in transit shall be encrypted using TLS 1.3. |
 | NFR-SEC-03 | Passwords shall be hashed using bcrypt (minimum 12 rounds). |
 | NFR-SEC-04 | Session tokens shall be cryptographically random and stored as HTTP-only, SameSite=Strict cookies. |
 | NFR-SEC-05 | API endpoints shall enforce rate limiting (30 requests per 60-second window). |
 | NFR-SEC-06 | All database queries shall use parameterized queries to prevent SQL injection. |
 | NFR-SEC-07 | Access to health records shall be logged with: user ID, timestamp, IP address, action performed, resource ID. |
-| NFR-SEC-08 | Audit logs shall be immutable (write-once, append-only) and stored for a minimum of 5 years per NPC guidelines. |
-| NFR-SEC-09 | A Data Privacy Officer (DPO) contact shall be displayed on the privacy page and registration flow per NPC requirement. — ✅ Implemented (DPO contact shown on privacy page and registration consent notice). |
-| NFR-SEC-10 | The system shall provide a mechanism for users to exercise their data privacy rights: access, correction, deletion, and portability (RA 10173). — ✅ Implemented (access/correction via settings endpoints; deletion via DELETE /api/users/me; portability via records API). |
+| NFR-SEC-08 | Audit-log retention requirements will be finalized during production hardening. |
+| NFR-SEC-09 | A support contact and privacy-governance process will be defined before production launch. |
+| NFR-SEC-10 | The system shall provide account data access, correction, and deletion controls. |
 
 ### 5.3 Reliability and Availability
 
@@ -547,15 +534,9 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 | NFR-SCAL-03 | The database shall support read replicas for scaling read-heavy operations. |
 | NFR-SCAL-04 | Static assets shall be served via CDN for low-latency access across all Philippine regions. |
 
-### 5.6 Compliance
+### 5.6 Production Readiness
 
-| ID | Requirement | Standard / Law |
-|---|---|---|
-| NFR-COMP-01 | All personal and sensitive personal information handling shall comply with RA 10173 (Data Privacy Act of 2012) and NPC issuances. | RA 10173 |
-| NFR-COMP-02 | The system shall register as a Personal Information Controller (PIC) with the National Privacy Commission. | NPC |
-| NFR-COMP-03 | The system shall comply with DOH Administrative Order 2021-0037 on telehealth services implementation. | DOH AO 2021-0037 |
-| NFR-COMP-04 | The system shall maintain audit trails for a minimum of 5 years per NPC guidelines. | NPC |
-| NFR-COMP-05 | Doctor credentials (PRC license) shall be reverified at minimum every 6 months automatically. | PRC |
+Formal privacy, regulatory, data-residency, and certification work is not part of this MVP and must be completed before production launch.
 
 ---
 
@@ -654,7 +635,7 @@ The complete schema is maintained at `apps/api/prisma/schema.prisma`. All primar
 - id, userId (unique)
 - appointmentReminder, appointmentConfirmation, appointmentCancelled
 - newMessage, scheduleUpdated, system (all Boolean @default(true))
-- pushEnabled (Boolean @default(true)), emailEnabled (Boolean @default(false))
+- pushEnabled (Boolean @default(true))
 ```
 
 **PushSubscription Model:**
@@ -772,7 +753,7 @@ PATCH /api/admin/users/:id/role        # Change user role
 PATCH /api/admin/doctors/:id/approve   # Approve doctor (verify PRC)
 PATCH /api/admin/doctors/:id/reject    # Reject doctor
 GET /api/admin/appointments            # All appointments
-GET /api/admin/audit-logs              # Audit trail (NPC compliance)
+GET /api/admin/audit-logs              # Audit trail
 GET /api/admin/security-alerts         # Security alerts
 GET /api/admin/reports                 # Platform analytics/reports
 
@@ -799,27 +780,9 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 | `PRIVACY_CONSENT_REQUIRED` | 403 | User has not accepted privacy policy |
 | `INTERNAL_ERROR` | 500 | Unexpected server error |
 
-### Appendix D: Philippine Compliance Checklist
+### Appendix D: Production Readiness
 
-| Requirement | Law/Regulation | Status |
-|---|---|---|
-| Data privacy consent during registration | RA 10173 Sec. 13 | ✅ ConsentLog model + consent collection |
-| Privacy notice prominently displayed | NPC Advisory 2020-01 | ✅ Privacy notice during sign-up flow |
-| Patient right to data access | RA 10173 Sec. 16 | ✅ Records/consultation history available via API |
-| Patient right to data correction | RA 10173 Sec. 17 | ✅ Profile settings update endpoints |
-| Patient right to data deletion | RA 10173 Sec. 18 | ✅ Implemented — DELETE /api/users/me + Delete Account UI |
-| Patient right to data portability | RA 10173 Sec. 19 | ✅ All data accessible via API for export |
-| Appointment of Data Protection Officer | NPC Circular 16-01 | ✅ Implemented — DPO contact (dpo@tele-health.app) shown on privacy page |
-| Register as Personal Information Controller | NPC | ⬜ Production requirement |
-| PRC license verification for all doctors | PRC | ✅ Doctor registration with PRC license + admin approval workflow + auto-reverification cron (6-month expiry check) |
-| Account lockout after failed attempts | NPC | ✅ Lockout after 5 failed attempts (configurable) |
-| Audit logging of all auth events | NPC | ✅ AuditLog table — login, logout, failed attempts |
-| Password complexity enforcement | NPC | ✅ Min 8 chars, uppercase, lowercase, number, special char |
-| Session management with expiry | NPC | ✅ 7-day session expiry, rotation every 24h |
-| Email verification required | NPC | ✅ requireEmailVerification: true |
-| Security alerts for sensitive actions | NPC | ✅ SecurityAlert model — password change, etc. |
-| Minimum 5-year record retention | NPC | ✅ Retention scheduling service (`retention/`) with daily cron for PRC license verification |
-| Data stored in PH or equivalent jurisdiction | NPC | ⬜ To be addressed when production deployment is planned |
+Formal privacy, regulatory, certification, and data-residency review remains out of scope for this MVP.
 
 ### Appendix E: Deliverables Checklist (WC Launchpad Submission — SE Track)
 
@@ -847,11 +810,10 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 | Dynamic Breadcrumbs | Context-aware navigation breadcrumbs |
 | Design System | Custom telehealth-themed design system (oklch color palette) |
 | Shared UI Components | Empty states, spinners, date pickers, navigation menus |
-| Notification Preferences | Per-type notification toggles (in-app, push, email) for all roles |
+| Notification Preferences | Per-type in-app and push notification toggles for all roles |
 | Waiting Room Overlay | Patient sees waiting state until doctor admits; doctor sees "Patient is waiting" banner |
 | PRC Auto-Reverification | Daily cron that deactivates expired licenses and warns expiring ones |
 | Bundle Analyzer | @next/bundle-analyzer for monitoring page weight (NFR-PERF-04/05) |
-| Philippine Compliance | Consent logging, audit trails, PRC license validation, PDEA S2 support, DPO contact |
 
 ---
 
@@ -859,11 +821,11 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 
 | Version | Date | Author | Changes |
 |---|---|---|---|
-| 1.0 | 2026-05-30 | System | Updated for WC Launchpad Builder Round — focused MVP with Patient/Doctor modules, AI recommendation, real-time notifications, and RA 10173 compliance |
+| 1.0 | 2026-05-30 | System | Updated for WC Launchpad Builder Round — focused MVP with Patient/Doctor modules, AI recommendation, and real-time notifications |
 | 1.1 | 2026-05-27 | System | Provider→Doctor rename throughout; updated Appendix A (normalized Consultation/Prescription models); updated Appendix B (API routes to match implementation: /doctors, /availability, /records, /video, /notifications, /consent) |
 | 1.2 | 2026-05-29 | System | Added Doctor Reviews/Ratings schema and JSON structures in Appendix A. |
 | 1.3 | 2026-05-30 | System | Updated schema to uuid(); added lockout, 2FA, chat, review, security models. Added bonus features. Final deliverable checklist. |
-| 1.4 | 2026-07-20 | System | Added NotificationPreference model + preference UI; PRC auto-reverification cron; waiting room overlay (F-CONSULT-03); post-visit redirect (F-CONSULT-05); bundle analyzer (NFR-PERF-04/05); DPO email in sign-up (NFR-SEC-09). |
+| 1.4 | 2026-07-20 | System | Added notification preferences, PRC auto-reverification cron, waiting room overlay, post-visit redirect, and bundle analyzer. |
 
 ---
 

@@ -10,10 +10,7 @@ import {
   Mic,
   MicOff,
   PhoneOff,
-  ShieldCheck,
   Sparkles,
-  Star,
-  Timer,
   Video,
   VideoOff,
 } from "lucide-react"
@@ -49,14 +46,6 @@ const DoctorsSection = dynamic(
   { ssr: false },
 )
 
-const TestimonialsSection = dynamic(
-  () =>
-    import("@/components/homepage/testimonials-section").then(
-      (m) => m.TestimonialsSection,
-    ),
-  { ssr: false },
-)
-
 const FAQSection = dynamic(
   () => import("@/components/homepage/faq-section").then((m) => m.FAQSection),
   { ssr: false },
@@ -76,8 +65,7 @@ const CTASection = dynamic(
 )
 
 const TRUST_BADGES = [
-  { icon: ShieldCheck, label: "HIPAA-ready" },
-  { icon: BadgeCheck, label: "Licensed doctors" },
+  { icon: BadgeCheck, label: "Doctor profiles" },
   { icon: Sparkles, label: "AI symptom check" },
 ]
 
@@ -118,7 +106,7 @@ function LiveConsultMock() {
             </AvatarFallback>
           </Avatar>
           <div className="absolute left-4 top-4 rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-foreground backdrop-blur-md">
-            Dr. Maria Santos · General Practice
+            Doctor consultation
           </div>
           <div className="absolute bottom-4 right-4 rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-foreground backdrop-blur-md">
             02:14 elapsed
@@ -151,32 +139,6 @@ function LiveConsultMock() {
                 <c.icon className="size-4.5" />
               </button>
             ))}
-        </div>
-      </div>
-
-      {/* floating chip: wait time */}
-      <div className="animate-float absolute -left-4 bottom-16 flex items-center gap-2 rounded-2xl border border-border/70 bg-background/90 px-4 py-3 shadow-xl backdrop-blur-md [animation-delay:1.2s] dark:bg-card/90 dark:border-white/10">
-        <span className="flex size-9 items-center justify-center rounded-full bg-warning/15 text-warning">
-          <Timer className="size-4.5" />
-        </span>
-        <div>
-          <div className="text-xs font-semibold text-foreground">
-            You're next
-          </div>
-          <div className="text-[11px] text-muted-foreground">~4 min wait</div>
-        </div>
-      </div>
-
-      {/* floating chip: rating */}
-      <div className="animate-float absolute -right-3 top-24 flex items-center gap-2 rounded-2xl border border-border/70 bg-background/90 px-4 py-3 shadow-xl backdrop-blur-md [animation-delay:0.6s] dark:bg-card/90 dark:border-white/10">
-        <span className="flex size-9 items-center justify-center rounded-full bg-warning/15 text-warning">
-          <Star className="size-4.5 fill-current" />
-        </span>
-        <div>
-          <div className="text-xs font-semibold text-foreground">
-            4.9 rating
-          </div>
-          <div className="text-[11px] text-muted-foreground">312 reviews</div>
         </div>
       </div>
     </div>
@@ -242,7 +204,7 @@ export default function Page() {
                 <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
                 <span className="relative inline-flex size-2 rounded-full bg-primary" />
               </span>
-              Consult with licensed doctors — 24/7
+              Connect with doctors online
             </div>
 
             <div
@@ -321,28 +283,6 @@ export default function Page() {
                 </span>
               ))}
             </div>
-
-            {/* stats */}
-            <div
-              className="mt-12 grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4 lg:mt-14 reveal-on-scroll"
-              style={{ transitionDelay: "400ms" }}
-            >
-              {[
-                ["50K+", "patients cared for"],
-                ["200+", "licensed doctors"],
-                ["15K+", "visits every month"],
-                ["4.9★", "average rating"],
-              ].map(([value, label]) => (
-                <div key={label} className="text-left">
-                  <div className="font-display text-3xl font-semibold text-foreground">
-                    {value}
-                  </div>
-                  <div className="mt-1 text-xs leading-snug text-muted-foreground">
-                    {label}
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Right — live consultation mock */}
@@ -363,7 +303,6 @@ export default function Page() {
       <FeaturesSection />
       <SymptomChecker />
       <DoctorsSection />
-      <TestimonialsSection />
       <FAQSection />
       <SecuritySection />
       <CTASection

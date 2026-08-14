@@ -95,14 +95,14 @@ pnpm db:seed          # Seed database
 - ✅ Password complexity validation (min 8, upper, lower, number, special)
 - ✅ Session rotation (7-day expiry, rotation every 24h)
 - ✅ Rate limiting (20 req/min auth)
-- ✅ Audit logging (NPC compliance)
+- ✅ Audit logging
 - ✅ Security alerts (password change, etc.)
 - ✅ PRC license verification + auto-reverification daily cron
 - ✅ Notification preference controls (per-type toggles)
 
 ## Documentation
 
-- [Software Requirements](./docs/SRS.md) — NPC compliance, features
+- [Software Requirements](./docs/SRS.md) — product features and requirements
 - [Design System](./docs/DESIGN-SYSTEM.md) — Colors, components
 
 ## 🧪 Testing
@@ -125,5 +125,5 @@ Private — All rights reserved.
 ## ⚠️ Known Limitations
 
 - **Video consultations:** fully implemented (backend `livekit-server-sdk` + web `@livekit/components-react`); requires `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` to connect. Without credentials the endpoints return `403 Video consultation is not configured`.
-- **Production compliance:** registering as a Personal Information Controller (PIC) and storing data in the Philippines (or equivalent jurisdiction) are deferred to the production-hardening milestone.
-- **All SRS requirements** are implemented; `pnpm build`, `pnpm typecheck`, `pnpm lint`, and the unit + integration suites pass (686 tests). The full-stack e2e suites additionally require a running Postgres (`docker compose up -d`) and the S3 storage suite requires AWS credentials.
+- **Production readiness:** privacy governance, formal regulatory review, and data-residency decisions are deferred to the production-hardening milestone.
+- **The MVP has not undergone formal regulatory review.** `pnpm build`, `pnpm typecheck`, `pnpm lint`, and the unit + integration suites pass (686 tests). The full-stack e2e suites additionally require a running Postgres (`docker compose up -d`) and the S3 storage suite requires AWS credentials.

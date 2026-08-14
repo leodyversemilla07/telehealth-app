@@ -1,53 +1,28 @@
 "use client"
 
 import { Badge } from "@workspace/ui/components/badge"
-import { Activity, CheckCircle2, LockKeyhole, ShieldCheck } from "lucide-react"
+import { Activity, LockKeyhole, ShieldCheck } from "lucide-react"
 
 const SECURITY_FEATURES = [
   {
-    icon: ShieldCheck,
-    title: "HIPAA Compliant",
-    description: "Full compliance with healthcare data protection regulations.",
+    icon: LockKeyhole,
+    title: "Account protections",
+    description:
+      "Email verification, password controls, and optional two-factor authentication help protect accounts.",
   },
   {
-    icon: LockKeyhole,
-    title: "End-to-end encryption",
+    icon: ShieldCheck,
+    title: "Access controls",
     description:
-      "All video calls, messages, and records are encrypted in transit and at rest.",
+      "Authenticated sessions and role-based permissions limit access to platform features.",
   },
   {
     icon: Activity,
-    title: "Audit logging",
+    title: "Activity history",
     description:
-      "Complete audit trail for all actions. Transparent and accountable.",
+      "Account and platform actions are recorded to support operational review.",
   },
 ]
-
-const STATUS_CARDS = [
-  {
-    icon: CheckCircle2,
-    title: "Session secured",
-    description: "2FA enabled · Last login 2 min ago",
-    color: "text-success",
-    bg: "bg-success/15",
-  },
-  {
-    icon: LockKeyhole,
-    title: "Data encrypted",
-    description: "AES-256 · All records protected",
-    color: "text-primary",
-    bg: "bg-primary/15",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Consent logged",
-    description: "RA 10173 / PDPA compliant",
-    color: "text-warning",
-    bg: "bg-warning/15",
-  },
-]
-
-const CERT_BADGES = ["HIPAA", "SOC 2 Type II", "ISO 27001", "PDPA Compliant"]
 
 export function SecuritySection() {
   return (
@@ -56,101 +31,39 @@ export function SecuritySection() {
       <div className="absolute inset-0 -z-10 bg-dot-grid-subtle opacity-50 [mask-image:radial-gradient(ellipse_70%_50%_at_50%_50%,black,transparent_70%)]" />
 
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
-        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
-          {/* Left column — intro + features */}
-          <div className="reveal-on-scroll">
-            <Badge className="rounded-full border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs text-primary">
-              Security & Compliance
-            </Badge>
-            <h2 className="mt-5 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
-              Your privacy is{" "}
-              <span className="italic text-primary">non-negotiable</span>
-            </h2>
-            <p className="mt-5 text-lg text-muted-foreground">
-              We built Telehealth with healthcare-grade security from day one.
-              Every feature is designed to protect your sensitive medical data.
-            </p>
+        <div className="mx-auto max-w-3xl text-center reveal-on-scroll">
+          <Badge className="rounded-full border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs text-primary">
+            Security
+          </Badge>
+          <h2 className="mt-5 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
+            Designed with your{" "}
+            <span className="italic text-primary">privacy</span> in mind.
+          </h2>
+          <p className="mt-5 text-lg text-muted-foreground">
+            Explore the account and access controls available in Telehealth.
+          </p>
+        </div>
 
-            <div className="mt-8 space-y-4 stagger-children">
-              {SECURITY_FEATURES.map((item) => {
-                const Icon = item.icon
-                return (
-                  <div
-                    key={item.title}
-                    className="group flex gap-4 rounded-xl p-3 -mx-3 transition-all duration-300 hover:bg-card/50 reveal-on-scroll"
-                  >
-                    <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 transition-all duration-300 group-hover:bg-primary/15 group-hover:scale-105">
-                      <Icon className="size-5 text-primary" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-card-foreground">
-                        {item.title}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {item.description}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Certification badges row */}
-            <div className="mt-8 flex flex-wrap gap-2 reveal-on-scroll">
-              {CERT_BADGES.map((badge) => (
-                <Badge
-                  key={badge}
-                  variant="outline"
-                  className="rounded-full border-primary/20 bg-primary/[0.04] px-3 py-1 text-xs text-muted-foreground"
-                >
-                  <CheckCircle2 className="mr-1 size-3 text-primary/60" />
-                  {badge}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          {/* Right column — status cards as a compact bento */}
-          <div className="relative rounded-3xl border border-border bg-card/80 p-8 backdrop-blur-sm reveal-on-scroll">
-            {/* Subtle glow */}
-            <div className="pointer-events-none absolute -inset-px rounded-3xl bg-gradient-to-b from-primary/[0.03] to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-            <div className="space-y-4 stagger-children">
-              {STATUS_CARDS.map((item) => {
-                const Icon = item.icon
-                return (
-                  <div
-                    key={item.title}
-                    className="group/status flex items-center gap-3 rounded-xl border border-border bg-muted/50 p-4 transition-all duration-300 hover:border-primary/20 hover:bg-muted/80 reveal-on-scroll"
-                  >
-                    <div
-                      className={`flex size-10 items-center justify-center rounded-lg ${item.bg} transition-all duration-300 group-hover/status:scale-105`}
-                    >
-                      <Icon className={`size-5 ${item.color}`} />
-                    </div>
-                    <div>
-                      <div className="text-sm font-medium text-card-foreground">
-                        {item.title}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {item.description}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Live indicator */}
-            <div className="mt-6 flex items-center gap-2 rounded-lg border border-success/20 bg-success/[0.04] px-4 py-2.5">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/40" />
-                <span className="relative inline-flex size-2 rounded-full bg-success" />
-              </span>
-              <span className="text-xs text-muted-foreground">
-                All systems operational &mdash; end-to-end encryption active
-              </span>
-            </div>
-          </div>
+        <div className="mx-auto mt-12 grid max-w-5xl gap-4 md:grid-cols-3 stagger-children">
+          {SECURITY_FEATURES.map((item) => {
+            const Icon = item.icon
+            return (
+              <div
+                key={item.title}
+                className="rounded-xl border border-border bg-card/80 p-6 reveal-on-scroll"
+              >
+                <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+                  <Icon className="size-5 text-primary" />
+                </div>
+                <h3 className="mt-5 font-medium text-card-foreground">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {item.description}
+                </p>
+              </div>
+            )
+          })}
         </div>
       </div>
     </section>

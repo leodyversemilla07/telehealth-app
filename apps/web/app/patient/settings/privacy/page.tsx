@@ -139,9 +139,8 @@ export default function PrivacyConsentPage() {
             Privacy &amp; Data Consent
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Manage your data sharing preferences in compliance with the Data
-            Privacy Act of 2012 (RA 10173). All consent actions are logged for
-            audit purposes.
+            Manage your data-sharing preferences. Your consent selections are
+            recorded in your account history.
           </p>
         </div>
 
@@ -261,30 +260,9 @@ export default function PrivacyConsentPage() {
           )}
         </div>
 
-        {/* NPC Compliance Notice */}
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-xs text-muted-foreground space-y-2">
-          <p className="font-semibold text-foreground flex items-center gap-1.5">
-            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
-            Data Privacy Act Compliance (RA 10173)
-          </p>
-          <p>
-            You have the right to access, modify, and revoke your consent at any
-            time. All consent transactions are logged with timestamps and IP
-            addresses for audit trail purposes as required by NPC guidelines.
-          </p>
-          <p>
-            For concerns regarding your data privacy, please contact our Data
-            Protection Officer at{" "}
-            <span className="font-medium text-foreground">
-              dpo@tele-health.app
-            </span>
-            .
-          </p>
-        </div>
-
         <Separator />
 
-        {/* Delete Account — RA 10173 right to erasure */}
+        {/* Delete Account */}
         <Card className="border-destructive/30">
           <CardHeader className="pb-3">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

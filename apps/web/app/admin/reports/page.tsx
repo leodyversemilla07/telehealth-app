@@ -91,7 +91,7 @@ export default function AdminReportsPage() {
               Reports
             </CardTitle>
             <CardDescription className="text-sm">
-              Platform analytics and compliance overview.
+              Platform analytics and activity overview.
             </CardDescription>
           </CardHeader>
         </Card>
@@ -139,7 +139,7 @@ export default function AdminReportsPage() {
               Reports
             </CardTitle>
             <CardDescription className="text-sm">
-              Platform analytics, appointment utilization, and compliance
+              Platform analytics, appointment utilization, and activity
               overview.
             </CardDescription>
           </div>

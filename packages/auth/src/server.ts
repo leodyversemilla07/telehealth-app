@@ -415,8 +415,7 @@ Telehealth App`,
           }
         }
 
-        // NPC Compliance (F-AUTH-09): Audit log + lockout tracking for
-        // login attempts
+        // Audit log and lockout tracking for login attempts
         if (ctx.path === "/sign-in/email") {
           const userEmail = ctx.body?.email as string | undefined
           const isSuccess = !(ctx.context.returned instanceof Error)
@@ -480,7 +479,7 @@ Telehealth App`,
           }
         }
 
-        // NPC Compliance (F-AUTH-09): Audit log for sign-out
+        // Audit log for sign-out
         if (
           ctx.path === "/sign-out" &&
           !(ctx.context.returned instanceof Error)

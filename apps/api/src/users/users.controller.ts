@@ -160,7 +160,7 @@ export class UsersController {
 
   @Delete("me")
   @ApiOperation({
-    summary: "Delete current user's account (right to erasure, RA 10173)",
+    summary: "Delete current user's account",
   })
   @ApiOkResponse({ description: "Account permanently deleted" })
   @ApiUnauthorizedResponse({ description: "Not authenticated" })

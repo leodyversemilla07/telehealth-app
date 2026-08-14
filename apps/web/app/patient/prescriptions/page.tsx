@@ -44,7 +44,7 @@ export default function PatientPrescriptionsPage() {
   // Handle printing a prescription card
   const handlePrint = (medName: string) => {
     toast.add({
-      title: `Generating PDEA / PRC compliant print view for ${medName}...`,
+      title: `Preparing print view for ${medName}...`,
       type: "info",
     })
     window.print()

@@ -49,7 +49,6 @@ import {
   MapPin,
   Phone,
   RefreshCw,
-  ShieldCheck,
   Star,
   Trash2,
   User,
@@ -856,22 +855,6 @@ export default function AppointmentDetailPage() {
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* DPA Info Card */}
-          <Card className="bg-muted/20 shadow-xs text-left">
-            <CardContent className="pt-6 space-y-3">
-              <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-primary shrink-0" />
-                Data Protection Verified
-              </h4>
-              <p className="text-xs text-muted-foreground leading-normal">
-                This consultation operates in strict compliance with RA 10173.
-                Communication channels and video calling are encrypted in
-                transit and secured with WebRTC protocols via self-hosted
-                LiveKit relays.
-              </p>
             </CardContent>
           </Card>
         </div>

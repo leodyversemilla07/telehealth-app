@@ -398,20 +398,9 @@ export function SignUpForm({
                 >
                   Privacy Policy
                 </Link>{" "}
-                and consent to the processing of my personal data in accordance
-                with the Data Privacy Act of 2012 (RA 10173).
+                and consent to the processing of my personal data.
               </label>
             </div>
-            <p className="mt-1 text-xs text-muted-foreground px-1">
-              For data privacy concerns, contact our Data Protection Officer at{" "}
-              <a
-                href="mailto:dpo@tele-health.app"
-                className="underline underline-offset-2"
-              >
-                dpo@tele-health.app
-              </a>
-              .
-            </p>
           </Field>
 
           {state.error && (
@@ -444,9 +433,8 @@ export function SignUpForm({
             <AlertDialogTitle>Privacy consent required</AlertDialogTitle>
             <AlertDialogDescription>
               You must agree to our <Link href="/privacy">Privacy Policy</Link>{" "}
-              before creating an account. We process your personal data in
-              accordance with the Data Privacy Act of 2012 (RA 10173). Please
-              review the policy and tick the consent checkbox to continue.
+              before creating an account. Please review the policy and tick the
+              consent checkbox to continue.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

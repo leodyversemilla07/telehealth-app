@@ -32,12 +32,6 @@ import {
   DialogTitle,
 } from "@workspace/ui/components/dialog"
 import { Input } from "@workspace/ui/components/input"
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemTitle,
-} from "@workspace/ui/components/item"
 import { Label } from "@workspace/ui/components/label"
 import { Separator } from "@workspace/ui/components/separator"
 import { Spinner } from "@workspace/ui/components/spinner"
@@ -63,7 +57,6 @@ import {
   Pill,
   Plus,
   Printer,
-  ShieldCheck,
   Trash2,
   Video,
 } from "lucide-react"
@@ -585,21 +578,6 @@ export default function DoctorConsultationDetailPage() {
               description="Files shared for this consultation — patient uploads and any files
 you attach. Private storage, accessible only to you and your patient."
             />
-
-            {/* Verification compliant note */}
-            <Item variant="muted" size="sm">
-              <ItemContent>
-                <ItemTitle className="flex items-center gap-1.5">
-                  <ShieldCheck />
-                  Data Privacy RA 10173 Approved
-                </ItemTitle>
-                <ItemDescription>
-                  Consultation transcripts and visual sessions are securely
-                  isolated in transit. Standardized medical charting documents
-                  are encrypted and signed at rest.
-                </ItemDescription>
-              </ItemContent>
-            </Item>
           </div>
 
           {/* Right Column: SOAP Charting or Read-only completed preview (Span 7) */}

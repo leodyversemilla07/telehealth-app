@@ -6,58 +6,23 @@ import { ShieldCheck, Star } from "lucide-react"
 import Image from "next/image"
 import { useTRPC } from "@/lib/trpc/client"
 
-const DOCTORS = [
-  {
-    name: "Dr. Maria Santos",
-    specialty: "General Practice",
-    rating: 4.9,
-    reviews: 312,
-    available: true,
-    image: undefined,
-  },
-  {
-    name: "Dr. James Chen",
-    specialty: "Internal Medicine",
-    rating: 4.8,
-    reviews: 287,
-    available: true,
-    image: undefined,
-  },
-  {
-    name: "Dr. Sarah Williams",
-    specialty: "Pediatrics",
-    rating: 4.9,
-    reviews: 198,
-    available: false,
-    image: undefined,
-  },
-  {
-    name: "Dr. Michael Brown",
-    specialty: "Dermatology",
-    rating: 4.7,
-    reviews: 156,
-    available: true,
-    image: undefined,
-  },
-]
+type DoctorCardProps = {
+  name: string
+  specialty: string
+  rating?: number
+  reviews?: number
+  image?: string | null
+  isVerified?: boolean
+}
 
 function DoctorCard({
   name,
   specialty,
   rating,
   reviews,
-  available,
   image,
   isVerified = false,
-}: {
-  name: string
-  specialty: string
-  rating: number
-  reviews: number
-  available: boolean
-  image?: string | null
-  isVerified?: boolean
-}) {
+}: DoctorCardProps) {
   return (
     <div className="group overflow-hidden rounded-3xl border border-border/70 bg-card/60 transition-all duration-300 hover:border-primary/30 hover:bg-card hover:shadow-xl hover:shadow-primary/5 reveal-on-scroll">
       <div className="relative flex aspect-square items-center justify-center overflow-hidden bg-gradient-to-br from-muted/80 to-muted">
@@ -74,7 +39,6 @@ function DoctorCard({
             <div className="flex size-16 items-center justify-center rounded-2xl bg-primary/10 font-display text-2xl font-semibold text-primary transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/15">
               {name.replace("Dr. ", "").charAt(0)}
             </div>
-            {/* Decorative rings */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="size-32 rounded-full border border-border/30 transition-all duration-500 group-hover:border-primary/15" />
             </div>
@@ -82,44 +46,36 @@ function DoctorCard({
         )}
       </div>
       <div className="p-5">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="truncate font-display text-lg font-semibold text-card-foreground">
-              {name}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="truncate text-sm text-muted-foreground">
-                {specialty}
-              </span>
-              {isVerified && (
-                <span
-                  className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-primary/25 bg-primary/10 px-1.5 py-px text-[11px] font-semibold text-primary"
-                  title="Credentials verified by our admin team"
-                >
-                  <ShieldCheck className="size-2.5" />
-                  Verified
-                </span>
-              )}
-            </div>
+        <div className="min-w-0">
+          <div className="truncate font-display text-lg font-semibold text-card-foreground">
+            {name}
           </div>
-          <Badge
-            className={`shrink-0 rounded-full text-xs ${
-              available
-                ? "border-success/20 bg-success/15 text-success"
-                : "border-border bg-muted text-muted-foreground"
-            }`}
-            variant="outline"
-          >
-            {available ? "Available" : "Busy"}
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <span className="truncate text-sm text-muted-foreground">
+              {specialty}
+            </span>
+            {isVerified && (
+              <span
+                className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-primary/25 bg-primary/10 px-1.5 py-px text-[11px] font-semibold text-primary"
+                title="Credentials verified by our admin team"
+              >
+                <ShieldCheck className="size-2.5" />
+                Verified
+              </span>
+            )}
+          </div>
         </div>
-        <div className="mt-3.5 flex items-center gap-1.5 text-sm">
-          <Star className="size-4 fill-warning text-warning" />
-          <span className="font-medium text-card-foreground">{rating}</span>
-          <span className="text-muted-foreground">
-            ({reviews} review{reviews !== 1 ? "s" : ""})
-          </span>
-        </div>
+        {rating !== undefined ? (
+          <div className="mt-3.5 flex items-center gap-1.5 text-sm">
+            <Star className="size-4 fill-warning text-warning" />
+            <span className="font-medium text-card-foreground">{rating}</span>
+            <span className="text-muted-foreground">
+              ({reviews ?? 0} review{reviews === 1 ? "" : "s"})
+            </span>
+          </div>
+        ) : (
+          <p className="mt-3.5 text-sm text-muted-foreground">No ratings yet</p>
+        )}
       </div>
     </div>
   )
@@ -128,23 +84,17 @@ function DoctorCard({
 export function DoctorsSection() {
   const trpc = useTRPC()
   const { data: dynamicDoctors, isPending: isDoctorsLoading } = useQuery(
-    // Public, no auth — served through the tRPC pipeline + PHT middleware.
     trpc.doctors.list.queryOptions({}),
   )
 
-  const doctors = isDoctorsLoading
-    ? null
-    : dynamicDoctors && dynamicDoctors.length > 0
-      ? dynamicDoctors.map((doc) => ({
-          name: doc.user.name ?? "Dr. Partner",
-          specialty: doc.specialty,
-          rating: doc.averageRating ?? 4.8,
-          reviews: doc.totalReviews ?? 0,
-          available: true,
-          image: doc.user.image,
-          isVerified: doc.isVerified,
-        }))
-      : DOCTORS
+  const doctors = dynamicDoctors?.map((doc) => ({
+    name: doc.user.name ?? "Doctor profile",
+    specialty: doc.specialty,
+    rating: doc.averageRating,
+    reviews: doc.totalReviews,
+    image: doc.user.image,
+    isVerified: doc.isVerified,
+  }))
 
   return (
     <section
@@ -157,15 +107,14 @@ export function DoctorsSection() {
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8">
         <div className="mb-16 text-center reveal-on-scroll">
           <Badge className="rounded-full border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs text-primary">
-            Our doctors
+            Doctor profiles
           </Badge>
           <h2 className="mt-5 font-display text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-            Expert doctors with{" "}
-            <span className="italic text-primary">real-world experience</span>
+            Find a doctor for your{" "}
+            <span className="italic text-primary">care</span>
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
-            Board-certified professionals ready to provide quality care from
-            anywhere.
+            Browse doctor profiles and specialties available on Telehealth.
           </p>
         </div>
 
@@ -181,16 +130,17 @@ export function DoctorsSection() {
                     <div className="h-4 w-2/3 rounded bg-muted" />
                     <div className="h-3 w-1/2 rounded bg-muted" />
                   </div>
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="h-4 w-1/4 rounded bg-muted" />
-                    <div className="h-4 w-1/3 rounded bg-muted" />
-                  </div>
                 </div>
               ))
-            : (doctors ?? []).map((doctor, index) => (
+            : doctors?.map((doctor, index) => (
                 <DoctorCard key={doctor.name + index} {...doctor} />
               ))}
         </div>
+        {!isDoctorsLoading && doctors?.length === 0 && (
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            No doctor profiles are available yet.
+          </p>
+        )}
       </div>
     </section>
   )

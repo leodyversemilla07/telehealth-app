@@ -685,11 +685,11 @@ export default function BookAppointmentPage() {
               />
             </div>
 
-            {/* DPA Consent Checkbox Notice */}
+            {/* Information-sharing consent */}
             <div className="bg-muted/30 border border-border/20 rounded-xl p-3.5 space-y-3">
               <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <ShieldCheck className="h-3.5 w-3.5 text-primary shrink-0" />
-                Data Privacy Act Compliance (RA 10173)
+                Information-sharing consent
               </h4>
               <p className="text-xs text-muted-foreground leading-normal">
                 By toggling the consent switch below, you explicitly agree to

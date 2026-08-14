@@ -73,7 +73,7 @@ function getSettingsNavItems(role: string): NavItem[] {
     })
   }
 
-  // Privacy & Consent for all roles (NPC compliance)
+  // Privacy & Consent for all roles
   items.push({
     title: "Privacy & Consent",
     href: `${base}/privacy`,
