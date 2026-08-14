@@ -1,6 +1,6 @@
 {
   "name": "telehealth-app",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "scripts": {
     "postinstall": "pnpm --filter @telehealth/env build && pnpm --filter @telehealth/db generate",
