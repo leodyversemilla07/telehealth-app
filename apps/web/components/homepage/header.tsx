@@ -1,12 +1,21 @@
 "use client"
 
+import type { UserDto } from "@workspace/shared"
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
 import {
-  NavigationMenu,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-} from "@workspace/ui/components/navigation-menu"
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
 import {
   Sheet,
   SheetContent,
@@ -15,287 +24,374 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@workspace/ui/components/sheet"
-import { LayoutDashboard, Menu } from "lucide-react"
+import {
+  Calendar,
+  ChevronDown,
+  FileText,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Settings,
+} from "lucide-react"
 import Image from "next/image"
-import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+import { useState } from "react"
+import { authClient } from "@/lib/auth-client"
 import { ThemeToggle } from "../theme-toggle"
 
 const NAV_ITEMS = [
-  { href: "#features", label: "Features" },
-  { href: "#doctors", label: "Doctors" },
-  { href: "#faq", label: "FAQ" },
-  { href: "#security", label: "Security" },
+  { href: "/how-it-works", label: "How It Works" },
+  { href: "/doctors", label: "Doctors" },
+  { href: "/specialties", label: "Specialties" },
+  { href: "/about", label: "About Us" },
+  { href: "/faq", label: "FAQ" },
 ]
 
-// Scroll range over which the header morphs from a transparent overlay
-// into the floating glass pill (px of window.scrollY).
-const FADE_START = 8
-const FADE_RANGE = 64
-
-// Max values the interpolated styles reach when fully "scrolled".
-const MAX_TOP = 12 // px
-const MAX_PADDING_Y = 4 // px shrink (16 -> 12)
-const MAX_RADIUS = 16 // px (rounded-2xl)
-const MAX_SIDE_GAP = 12 // px per side: the pill floats in from the screen edges
-const MAX_BG_ALPHA = 0.95
-const MAX_BORDER_ALPHA = 0.6
-const MAX_BLUR = 20 // px
-const MAX_SHADOW = 0.08 // alpha of the soft shadow
-
 type HomepageHeaderProps = {
-  isAuthenticated: boolean
-  onCreateAccount: () => void
-  onSignIn: () => void
-  onSignOut: () => void
-  onDashboard: () => void
-}
-
-function BrandMark() {
-  return (
-    <a href="#top" className="flex items-center gap-2.5">
-      <Image
-        src="/logo.png"
-        alt="Telehealth"
-        width={36}
-        height={36}
-        className="size-9 rounded-xl object-cover"
-        suppressHydrationWarning
-      />
-      <span className="font-display text-xl font-semibold tracking-tight text-foreground">
-        Telehealth
-      </span>
-    </a>
-  )
+  isAuthenticated?: boolean
+  onCreateAccount?: () => void
+  onSignIn?: () => void
+  onSignOut?: () => void
+  onDashboard?: () => void
 }
 
 export function Header({
-  isAuthenticated,
+  isAuthenticated: propIsAuthenticated,
   onCreateAccount,
   onSignIn,
-  onSignOut: _onSignOut,
+  onSignOut,
   onDashboard,
 }: HomepageHeaderProps) {
+  const router = useRouter()
+  const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
-  // 0 = transparent overlay at the top, 1 = fully scrolled glass pill.
-  const [progress, setProgress] = useState(0)
-  const easedRef = useRef(0)
 
-  useEffect(() => {
-    let target = 0
-    let raf = 0
+  const { data: session, refetch } = authClient.useSession()
+  const user = session?.user as unknown as UserDto | undefined
+  const isAuth = Boolean(session) || Boolean(propIsAuthenticated)
 
-    const tick = () => {
-      const next = easedRef.current + (target - easedRef.current) * 0.14
-      easedRef.current = next
-      setProgress(next)
-      if (Math.abs(target - next) > 0.0005) {
-        raf = requestAnimationFrame(tick)
-      } else {
-        raf = 0
-      }
+  const workspacePath =
+    user?.role === "ADMIN"
+      ? "/admin/dashboard"
+      : user?.role === "DOCTOR"
+        ? "/doctor/dashboard"
+        : "/patient/dashboard"
+
+  const appointmentsPath =
+    user?.role === "DOCTOR" ? "/doctor/consultations" : "/patient/appointments"
+
+  const recordsPath =
+    user?.role === "DOCTOR" ? "/doctor/records" : "/patient/records"
+
+  const settingsPath =
+    user?.role === "ADMIN"
+      ? "/admin/settings"
+      : user?.role === "DOCTOR"
+        ? "/doctor/settings"
+        : "/patient/settings"
+
+  const handleSignOutAction = async () => {
+    if (onSignOut) {
+      onSignOut()
+    } else {
+      await authClient.signOut()
+      refetch()
+      router.push("/")
+      router.refresh()
     }
-
-    const onScroll = () => {
-      const p = Math.min(
-        Math.max((window.scrollY - FADE_START) / FADE_RANGE, 0),
-        1,
-      )
-      target = p
-      if (!raf) raf = requestAnimationFrame(tick)
-    }
-
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches
-    if (prefersReducedMotion) {
-      // Snap instead of easing for users who opt out of motion.
-      const onScrollReduced = () => {
-        target = Math.min(
-          Math.max((window.scrollY - FADE_START) / FADE_RANGE, 0),
-          1,
-        )
-        easedRef.current = target
-        setProgress(target)
-      }
-      onScrollReduced()
-      window.addEventListener("scroll", onScrollReduced, { passive: true })
-      return () => window.removeEventListener("scroll", onScrollReduced)
-    }
-
-    onScroll()
-    window.addEventListener("scroll", onScroll, { passive: true })
-    return () => {
-      window.removeEventListener("scroll", onScroll)
-      cancelAnimationFrame(raf)
-    }
-  }, [])
-
-  const e = progress
-  const headerStyle: React.CSSProperties = {
-    top: `${e * MAX_TOP}px`,
-    // Full-width while transparent at the top; on scroll the pill narrows
-    // so its edges stay clear of the screen sides on mobile.
-    width: `calc(100% - ${e * MAX_SIDE_GAP * 2}px)`,
-    paddingTop: `${16 - e * MAX_PADDING_Y}px`,
-    paddingBottom: `${16 - e * MAX_PADDING_Y}px`,
-    borderRadius: `${e * MAX_RADIUS}px`,
-    backgroundColor: `color-mix(in oklab, var(--background) ${e * MAX_BG_ALPHA * 100}%, transparent)`,
-    borderColor: `color-mix(in oklab, var(--border) ${e * MAX_BORDER_ALPHA * 100}%, transparent)`,
-    boxShadow: `0 ${e * 10}px ${e * 28}px -${e * 10}px rgb(0 0 0 / ${e * MAX_SHADOW})`,
-    backdropFilter: `blur(${e * MAX_BLUR}px)`,
-    WebkitBackdropFilter: `blur(${e * MAX_BLUR}px)`,
   }
 
-  // The desktop nav pill fades from a faint chip into a solid glass chip.
-  const navStyle: React.CSSProperties = {
-    backgroundColor: `color-mix(in oklab, var(--background) ${50 + 40 * e}%, transparent)`,
-    borderColor: `color-mix(in oklab, var(--border) 60%, transparent)`,
-    backdropFilter: `blur(12px)`,
-    WebkitBackdropFilter: `blur(12px)`,
-  }
-
-  function handleNavClick(href: string) {
-    setMobileOpen(false)
-    const el = document.querySelector(href)
-    el?.scrollIntoView({ behavior: "smooth" })
+  const getInitials = (name?: string | null) => {
+    if (!name) return "U"
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase()
   }
 
   return (
-    <header
-      className="fixed inset-x-0 top-0 z-50 mx-auto flex w-full max-w-7xl items-center justify-between border px-5 sm:px-8"
-      style={headerStyle}
-    >
-      <BrandMark />
+    <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/95 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8">
+        {/* Brand Logo */}
+        <Link href="/" className="flex items-center gap-2.5">
+          <Image
+            src="/logo.png"
+            alt="Telehealth"
+            width={36}
+            height={36}
+            className="size-8.5 rounded-xl object-cover"
+            suppressHydrationWarning
+          />
+          <span className="font-display text-xl font-bold tracking-tight text-foreground">
+            Telehealth
+          </span>
+        </Link>
 
-      {/* Desktop nav */}
-      <NavigationMenu
-        aria-label="Homepage"
-        className="hidden rounded-full border px-1.5 py-1 md:flex"
-        style={navStyle}
-      >
-        <NavigationMenuList className="gap-0">
-          {NAV_ITEMS.map((item) => (
-            <NavigationMenuItem key={item.href}>
-              <NavigationMenuLink
+        {/* Desktop Navigation Links */}
+        <nav
+          aria-label="Main navigation"
+          className="hidden md:flex items-center gap-1"
+        >
+          {NAV_ITEMS.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.href}
                 href={item.href}
-                className="inline-flex h-8 shrink-0 items-center rounded-full px-4 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground dark:text-white/60 dark:hover:bg-white/8 dark:hover:text-white"
+                className={`rounded-full px-3.5 py-1.5 text-sm transition ${
+                  isActive
+                    ? "bg-primary/10 font-semibold text-primary"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
               >
                 {item.label}
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-          ))}
-        </NavigationMenuList>
-      </NavigationMenu>
+              </Link>
+            )
+          })}
+        </nav>
 
-      <div className="flex items-center gap-2">
-        <ThemeToggle
-          variant="ghost"
-          size="icon"
-          className="size-9 rounded-full"
-        />
+        {/* Right Actions & Auth State */}
+        <div className="flex items-center gap-2.5">
+          <ThemeToggle
+            variant="ghost"
+            size="icon"
+            className="size-9 rounded-full text-muted-foreground hover:text-foreground"
+          />
 
-        {/* Mobile menu trigger */}
-        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetTrigger
-            render={
+          {isAuth ? (
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  if (onDashboard) onDashboard()
+                  else router.push(workspacePath)
+                }}
+                className="hidden sm:inline-flex h-9 rounded-xl border-border/80 text-xs font-semibold hover:bg-muted"
+              >
+                <LayoutDashboard className="mr-1.5 size-3.5 text-primary" />
+                Dashboard
+              </Button>
+
+              {/* User Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 rounded-full p-0.5 ring-1 ring-border/80 hover:ring-primary/50 transition focus:outline-none"
+                      aria-label="User profile menu"
+                    >
+                      <Avatar className="size-8">
+                        {user?.image ? (
+                          <AvatarImage
+                            src={user.image}
+                            alt={user.name || "User"}
+                          />
+                        ) : null}
+                        <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">
+                          {getInitials(user?.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <ChevronDown className="size-3.5 text-muted-foreground mr-1 hidden sm:inline-block" />
+                    </button>
+                  }
+                />
+                <DropdownMenuContent
+                  align="end"
+                  className="w-56 rounded-xl p-1.5 shadow-lg border-border/80"
+                >
+                  <DropdownMenuLabel className="px-2 py-1.5">
+                    <p className="text-sm font-semibold text-foreground truncate">
+                      {user?.name || "User Account"}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate font-normal">
+                      {user?.email || ""}
+                    </p>
+                    {user?.role && (
+                      <span className="mt-1 inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                        {user.role}
+                      </span>
+                    )}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem
+                      onClick={() => router.push(workspacePath)}
+                      className="cursor-pointer rounded-lg text-xs"
+                    >
+                      <LayoutDashboard className="mr-2 size-3.5 text-muted-foreground" />
+                      Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push(appointmentsPath)}
+                      className="cursor-pointer rounded-lg text-xs"
+                    >
+                      <Calendar className="mr-2 size-3.5 text-muted-foreground" />
+                      Appointments
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push(recordsPath)}
+                      className="cursor-pointer rounded-lg text-xs"
+                    >
+                      <FileText className="mr-2 size-3.5 text-muted-foreground" />
+                      Medical Records
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => router.push(settingsPath)}
+                      className="cursor-pointer rounded-lg text-xs"
+                    >
+                      <Settings className="mr-2 size-3.5 text-muted-foreground" />
+                      Account Settings
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSignOutAction}
+                    className="cursor-pointer rounded-lg text-xs text-destructive focus:bg-destructive/10 focus:text-destructive"
+                  >
+                    <LogOut className="mr-2 size-3.5" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
               <Button
                 variant="ghost"
-                size="icon"
-                className="size-9 md:hidden text-muted-foreground hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/10 dark:hover:text-white"
-                aria-label="Open navigation menu"
-              />
-            }
-          >
-            <Menu className="size-5" />
-          </SheetTrigger>
-          <SheetContent
-            side="right"
-            className="w-72 border-border/80 bg-background/95 backdrop-blur-xl text-foreground dark:bg-[oklch(0.12_0.025_220)/0.95] dark:border-white/10 dark:text-white"
-          >
-            <SheetHeader className="sr-only">
-              <SheetTitle>Navigation</SheetTitle>
-            </SheetHeader>
-            <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto px-3 pt-12 pb-2">
-              {NAV_ITEMS.map((item) => (
-                <Button
-                  variant="ghost"
-                  key={item.href}
-                  type="button"
-                  onClick={() => handleNavClick(item.href)}
-                  className="h-11 w-full justify-start rounded-xl px-4 text-left text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white"
-                >
-                  {item.label}
-                </Button>
-              ))}
-            </nav>
-            <SheetFooter className="border-t border-border/80 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] dark:border-white/10">
-              {isAuthenticated ? (
-                <Button
-                  variant="ghost"
-                  type="button"
-                  onClick={() => {
-                    setMobileOpen(false)
-                    onDashboard()
-                  }}
-                  className="h-11 w-full justify-start rounded-xl px-4 text-left text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white"
-                >
-                  <LayoutDashboard className="size-4 mr-2" />
-                  Dashboard
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    variant="ghost"
-                    type="button"
-                    onClick={() => {
-                      setMobileOpen(false)
-                      onSignIn()
-                    }}
-                    className="h-11 w-full justify-start rounded-xl px-4 text-left text-sm font-medium text-foreground/80 hover:bg-muted hover:text-foreground dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white"
-                  >
-                    Sign in
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      setMobileOpen(false)
-                      onCreateAccount()
-                    }}
-                    className="h-11 w-full justify-start rounded-xl bg-primary px-4 text-left text-sm font-semibold text-primary-foreground hover:bg-primary/90"
-                  >
-                    Get started
-                  </Button>
-                </>
-              )}
-            </SheetFooter>
-          </SheetContent>
-        </Sheet>
+                size="sm"
+                onClick={() => {
+                  if (onSignIn) onSignIn()
+                  else router.push("/sign-in")
+                }}
+                className="hidden sm:inline-flex h-9 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground"
+              >
+                Sign In
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  if (onCreateAccount) onCreateAccount()
+                  else router.push("/patient/appointments/book")
+                }}
+                className="h-9 rounded-xl bg-primary px-3.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 shadow-sm"
+              >
+                Book Consultation
+              </Button>
+            </div>
+          )}
 
-        {isAuthenticated ? (
-          <Button
-            variant="outline"
-            onClick={onDashboard}
-            className="hidden h-10 rounded-full border-border/80 bg-background/50 text-foreground hover:bg-muted sm:inline-flex dark:border-white/15 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
-          >
-            Dashboard
-          </Button>
-        ) : (
-          <>
-            <Button
-              variant="ghost"
-              onClick={onSignIn}
-              className="hidden h-10 rounded-full text-muted-foreground hover:bg-muted hover:text-foreground dark:text-white/70 dark:hover:bg-white/8 dark:hover:text-white sm:inline-flex"
+          {/* Mobile Menu Trigger */}
+          <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+            <SheetTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-9 md:hidden text-muted-foreground hover:text-foreground"
+                  aria-label="Open navigation menu"
+                />
+              }
             >
-              Sign in
-            </Button>
-            <Button
-              onClick={onCreateAccount}
-              className="hidden h-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-white dark:text-background dark:hover:bg-white/90 sm:inline-flex"
+              <Menu className="size-5" />
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              className="w-72 border-border/80 bg-background text-foreground p-0 flex flex-col justify-between"
             >
-              Get started
-            </Button>
-          </>
-        )}
+              <div>
+                <SheetHeader className="p-5 border-b border-border/80">
+                  <SheetTitle className="flex items-center gap-2 text-left">
+                    <Image
+                      src="/logo.png"
+                      alt="Telehealth"
+                      width={28}
+                      height={28}
+                      className="size-7 rounded-lg object-cover"
+                    />
+                    <span className="font-bold text-base">Telehealth</span>
+                  </SheetTitle>
+                </SheetHeader>
+
+                <nav className="flex flex-col gap-1 p-3">
+                  {NAV_ITEMS.map((item) => {
+                    const isActive = pathname === item.href
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileOpen(false)}
+                        className={`flex items-center rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
+                          isActive
+                            ? "bg-primary/10 font-bold text-primary"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        {item.label}
+                      </Link>
+                    )
+                  })}
+                </nav>
+              </div>
+
+              <SheetFooter className="p-4 border-t border-border/80 flex-col gap-2">
+                {isAuth ? (
+                  <div className="w-full space-y-2">
+                    <Button
+                      onClick={() => {
+                        setMobileOpen(false)
+                        router.push(workspacePath)
+                      }}
+                      className="w-full h-10 rounded-xl bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                    >
+                      <LayoutDashboard className="mr-2 size-3.5" />
+                      Open Dashboard
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setMobileOpen(false)
+                        handleSignOutAction()
+                      }}
+                      className="w-full h-10 rounded-xl border-border/80 text-xs font-semibold text-destructive hover:bg-destructive/10"
+                    >
+                      <LogOut className="mr-2 size-3.5" />
+                      Sign Out
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="w-full space-y-2">
+                    <Button
+                      onClick={() => {
+                        setMobileOpen(false)
+                        router.push("/patient/appointments/book")
+                      }}
+                      className="w-full h-10 rounded-xl bg-primary text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+                    >
+                      Book Consultation
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setMobileOpen(false)
+                        router.push("/sign-in")
+                      }}
+                      className="w-full h-10 rounded-xl border-border/80 text-xs font-semibold"
+                    >
+                      Sign In
+                    </Button>
+                  </div>
+                )}
+              </SheetFooter>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
     </header>
   )

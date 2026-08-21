@@ -22,7 +22,8 @@ import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import { cn } from "@workspace/ui/lib/utils"
-import { GalleryVerticalEndIcon, ShieldAlert } from "lucide-react"
+import { ShieldAlert } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useActionState, useState } from "react"
@@ -116,9 +117,13 @@ export function SignUpForm({
             href="/"
             className="flex flex-col items-center gap-2 font-medium"
           >
-            <div className="flex size-8 items-center justify-center rounded-md">
-              <GalleryVerticalEndIcon className="size-6" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Telehealth"
+              width={36}
+              height={36}
+              className="size-9 rounded-xl object-cover"
+            />
             <span className="sr-only">Telehealth</span>
           </Link>
           <h1 className="text-xl font-bold">Check your email</h1>
@@ -203,9 +208,13 @@ export function SignUpForm({
               href="/"
               className="flex flex-col items-center gap-2 font-medium"
             >
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <GalleryVerticalEndIcon className="size-6" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Telehealth"
+                width={36}
+                height={36}
+                className="size-9 rounded-xl object-cover"
+              />
               <span className="sr-only">Telehealth</span>
             </Link>
             <h1 className="text-xl font-bold">Create an account</h1>

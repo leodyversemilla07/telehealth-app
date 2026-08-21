@@ -1,15 +1,14 @@
 "use client"
 
-import { Badge } from "@workspace/ui/components/badge"
-import { Button } from "@workspace/ui/components/button"
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@workspace/ui/components/collapsible"
-import { cn } from "@workspace/ui/lib/utils"
-import { ChevronDown, MessageCircleQuestion } from "lucide-react"
-import { useState } from "react"
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@workspace/ui/components/accordion"
+import { Badge } from "@workspace/ui/components/badge"
+import { MessageCircleQuestion } from "lucide-react"
+import Link from "next/link"
 
 const FAQS = [
   {
@@ -39,80 +38,51 @@ const FAQS = [
 ]
 
 export function FAQSection() {
-  const [open, setOpen] = useState<string | null>(FAQS[0]?.q ?? null)
-
   return (
     <section
       id="faq"
-      className="relative scroll-mt-24 bg-primary/[0.02] py-24 sm:py-28 dark:bg-transparent"
+      className="relative scroll-mt-24 py-20 sm:py-24 border-t border-border/60"
     >
       <div className="mx-auto max-w-3xl px-5 sm:px-8">
         <div className="text-center reveal-on-scroll">
-          <Badge className="rounded-full border-primary/25 bg-primary/[0.08] px-3 py-1 text-xs text-primary">
-            <MessageCircleQuestion className="mr-1 size-3" />
+          <Badge className="rounded-full border-primary/25 bg-primary/[0.08] px-3.5 py-1 text-xs font-semibold text-primary">
+            <MessageCircleQuestion className="mr-1.5 size-3.5" />
             Questions, answered
           </Badge>
-          <h2 className="mt-5 font-display text-4xl font-semibold tracking-tight sm:text-5xl">
-            In plain language,{" "}
-            <span className="italic text-primary">not jargon.</span>
+          <h2 className="mt-4 font-display text-3xl font-bold tracking-tight sm:text-4xl text-foreground">
+            Frequently Asked Questions
           </h2>
-          <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground">
+          <p className="mx-auto mt-4 max-w-xl text-base text-muted-foreground">
             Everything you'd ask at the front desk — answered honestly, up
             front.
           </p>
         </div>
 
         <div
-          className="mt-12 space-y-3 reveal-on-scroll"
+          className="mt-10 rounded-2xl border border-border/80 bg-card p-6 shadow-sm reveal-on-scroll"
           style={{ transitionDelay: "120ms" }}
         >
-          {FAQS.map((faq) => {
-            const isOpen = open === faq.q
-            return (
-              <Collapsible
-                key={faq.q}
-                open={isOpen}
-                onOpenChange={() => setOpen(isOpen ? null : faq.q)}
-                className={cn(
-                  "rounded-2xl border transition-all duration-300",
-                  isOpen
-                    ? "border-primary/30 bg-card shadow-lg shadow-primary/[0.06]"
-                    : "border-border/70 bg-card/50 hover:border-primary/25 hover:bg-card",
-                )}
-              >
-                <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left">
-                  <span className="text-base font-semibold text-foreground">
-                    {faq.q}
-                  </span>
-                  <ChevronDown
-                    className={cn(
-                      "size-4.5 shrink-0 text-muted-foreground transition-transform duration-300",
-                      isOpen && "rotate-180 text-primary",
-                    )}
-                  />
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <p className="px-6 pb-6 text-[15px] leading-relaxed text-muted-foreground">
-                    {faq.a}
-                  </p>
-                </CollapsibleContent>
-              </Collapsible>
-            )
-          })}
+          <Accordion defaultValue={[FAQS[0]?.q ?? ""]}>
+            {FAQS.map((faq) => (
+              <AccordionItem key={faq.q} value={faq.q}>
+                <AccordionTrigger className="text-base font-semibold text-foreground hover:text-primary">
+                  {faq.q}
+                </AccordionTrigger>
+                <AccordionContent className="text-sm text-muted-foreground leading-relaxed">
+                  {faq.a}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
         </div>
 
-        <div className="mt-10 text-center reveal-on-scroll">
-          <Button
-            variant="ghost"
-            className="h-11 rounded-full px-6 text-muted-foreground hover:bg-muted hover:text-foreground"
-            onClick={() =>
-              document
-                .getElementById("top")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
+        <div className="mt-8 text-center reveal-on-scroll">
+          <Link
+            href="/faq"
+            className="inline-flex h-10 items-center justify-center rounded-xl px-5 text-sm font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
           >
-            Still curious? Get started and ask us directly
-          </Button>
+            View all FAQs in our Help Center →
+          </Link>
         </div>
       </div>
     </section>

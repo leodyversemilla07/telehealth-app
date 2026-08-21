@@ -70,10 +70,7 @@ export default function AdminLayout({
   if (user && user.role !== "ADMIN") {
     return (
       <div className="flex min-h-screen bg-background items-center justify-center p-6">
-        <div className="w-full max-w-md bg-card/40 border border-border/50 backdrop-blur-xl rounded-2xl p-8 shadow-2xl relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 size-32 bg-destructive/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-10 -left-10 size-32 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
-
+        <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-sm">
           <div className="flex flex-col items-center text-center gap-6">
             <div className="size-16 rounded-full bg-destructive/10 border border-destructive/20 flex items-center justify-center text-destructive">
               <ShieldAlert className="size-8 animate-bounce" />

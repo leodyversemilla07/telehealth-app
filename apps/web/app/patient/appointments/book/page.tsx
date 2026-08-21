@@ -71,8 +71,8 @@ import {
   Star,
   Stethoscope,
 } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useState } from "react"
 import { TimeSlotPicker } from "@/components/time-slot-picker"
 import { useAvailableSlots, useBookAppointment } from "@/hooks/use-appointments"
 import { useDoctors } from "@/hooks/use-doctors"
@@ -93,10 +93,16 @@ const SPECIALTIES = [
 
 export default function BookAppointmentPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const initialSearch = searchParams.get("search") || ""
+  const initialSpecialty = searchParams.get("specialty") || "all"
+  const initialSymptom = searchParams.get("symptom") || ""
+  const initialDoctorId = searchParams.get("doctorId") || null
 
   // Directory Filters States
-  const [search, setSearch] = useState("")
-  const [specialty, setSpecialty] = useState<string>("all")
+  const [search, setSearch] = useState(initialSearch)
+  const [specialty, setSpecialty] = useState<string>(initialSpecialty)
   const [sort, setSort] = useState<"name" | "price">("name")
 
   // Booking Modal States
@@ -110,7 +116,7 @@ export default function BookAppointmentPage() {
     null,
   )
   const [visitReason, setVisitReason] = useState("")
-  const [visitSymptoms, setVisitSymptoms] = useState("")
+  const [visitSymptoms, setVisitSymptoms] = useState(initialSymptom)
   const [dpaConsent, setDpaConsent] = useState(false)
 
   // 1. Fetch Doctors Directory (react-query)
@@ -119,6 +125,19 @@ export default function BookAppointmentPage() {
     specialty: specialty !== "all" ? specialty : undefined,
     sort,
   })
+
+  // Pre-select doctor if doctorId param is passed
+  useEffect(() => {
+    if (initialDoctorId && doctors.length > 0 && !selectedDoctor) {
+      const match = doctors.find((d) => d.id === initialDoctorId)
+      if (match) {
+        setSelectedDoctor(match)
+        if (initialSymptom) {
+          setVisitSymptoms(initialSymptom)
+        }
+      }
+    }
+  }, [initialDoctorId, doctors, selectedDoctor, initialSymptom])
 
   // 2. Fetch Slots Query (triggers when booking date & doctor change)
   const { data: slots = [], isPending: slotsLoading } = useAvailableSlots(

@@ -166,20 +166,27 @@ export default function PatientDashboardPage() {
       )}
 
       {/* Welcome Header */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <Card className="border-border/80 bg-card p-2 sm:p-4">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6">
           <div>
-            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-              Hello, {profile?.user?.name || "Patient"}!
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                <span className="size-1.5 rounded-full bg-primary" />
+                Patient Portal
+              </span>
+            </div>
+            <CardTitle className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Hello, {profile?.user?.name || "Patient"}! 👋
             </CardTitle>
-            <CardDescription className="text-sm mt-1">
-              Here&apos;s your health overview for today.
+            <CardDescription className="text-sm mt-1 text-muted-foreground">
+              Here&apos;s your health summary, appointments, and medical
+              updates.
             </CardDescription>
           </div>
           <Button
             nativeButton={false}
             render={<Link href="/patient/appointments/book" />}
-            className="h-9 sm:w-fit font-semibold shadow-xs"
+            className="h-10 sm:w-fit font-semibold shadow-md shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
           >
             <CalendarPlus className="mr-2 h-4 w-4" />
             Book Appointment
@@ -189,73 +196,73 @@ export default function PatientDashboardPage() {
 
       {/* Stats Cards Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Upcoming
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {upcoming.length}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-info/10 flex items-center justify-center text-info">
-                <Calendar className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-info/10 flex items-center justify-center text-info">
+                <Calendar className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Completed
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {completedCount}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center text-success">
-                <FileText className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success">
+                <FileText className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Records
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {records.length}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center text-accent-foreground">
-                <ClipboardIcon className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <ClipboardIcon className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Prescriptions
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {prescriptions.length}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
-                <Pill className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center text-warning">
+                <Pill className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
@@ -264,14 +271,16 @@ export default function PatientDashboardPage() {
 
       {/* Next Appointment Highlight */}
       {nextAppointment ? (
-        <Card className="border-success/20 dark:border-success/30 overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-success/5 rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <Card className="border border-primary/30 bg-card overflow-hidden shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-success animate-pulse" />
-                <CardTitle className="text-sm font-bold text-success uppercase tracking-wider">
-                  Next Appointment
+                <span className="relative flex size-2.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
+                  <span className="relative inline-flex size-2.5 rounded-full bg-primary" />
+                </span>
+                <CardTitle className="text-sm font-bold text-primary uppercase tracking-wider">
+                  Next Scheduled Appointment
                 </CardTitle>
               </div>
               {getStatusBadge(nextAppointment.status)}
@@ -279,22 +288,25 @@ export default function PatientDashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="flex items-center gap-3 flex-1">
-                <Avatar size="lg" className="border border-primary/20 shrink-0">
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold uppercase">
+              <div className="flex items-center gap-3.5 flex-1">
+                <Avatar
+                  size="lg"
+                  className="border-2 border-primary/20 shrink-0 shadow-sm"
+                >
+                  <AvatarFallback className="bg-primary/15 text-primary font-bold uppercase text-base">
                     {nextAppointment.doctor.user.name?.[0] || "D"}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="font-bold text-foreground">
+                  <p className="font-bold text-foreground text-base">
                     {nextAppointment.doctor.user.name || "Doctor"}
                   </p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-xs font-medium text-primary">
                     {nextAppointment.doctor.specialty}
                   </p>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
+                  <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1 font-medium">
+                      <Calendar className="size-3.5 text-primary" />
                       {toDate(nextAppointment, "startTime").toLocaleDateString(
                         undefined,
                         {
@@ -305,8 +317,8 @@ export default function PatientDashboardPage() {
                         },
                       )}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
+                    <span className="flex items-center gap-1 font-medium">
+                      <Clock className="size-3.5 text-primary" />
                       {toDate(nextAppointment, "startTime").toLocaleTimeString(
                         undefined,
                         {
@@ -321,10 +333,10 @@ export default function PatientDashboardPage() {
                   </div>
                 </div>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2.5">
                 <Button
                   variant="outline"
-                  className="text-xs h-9 border-border/60"
+                  className="text-xs h-10 px-4 rounded-xl border-border/80 hover:border-primary/40 font-medium"
                   onClick={() =>
                     router.push(`/patient/appointments/${nextAppointment.id}`)
                   }
@@ -332,15 +344,16 @@ export default function PatientDashboardPage() {
                   View Details
                 </Button>
                 {(nextAppointment.status === "CONFIRMED" ||
-                  nextAppointment.status === "IN_PROGRESS") && (
+                  nextAppointment.status === "IN_PROGRESS" ||
+                  nextAppointment.status === "BOOKED") && (
                   <Button
-                    className="text-xs h-9 font-bold"
+                    className="text-xs h-10 px-5 rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-md shadow-primary/25"
                     onClick={() =>
                       router.push(`/patient/appointments/${nextAppointment.id}`)
                     }
                   >
-                    <Stethoscope className="h-3.5 w-3.5 mr-1" />
-                    Join Call
+                    <Stethoscope className="size-4 mr-1.5" />
+                    Consultation Room
                   </Button>
                 )}
               </div>
@@ -354,38 +367,54 @@ export default function PatientDashboardPage() {
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-primary/30 hover:bg-primary/5"
+          className="h-auto py-4.5 flex flex-col items-center gap-2 rounded-2xl border-border/70 hover:border-primary/50 hover:bg-primary/[0.06] transition-all duration-200 shadow-sm"
           render={<Link href="/patient/appointments/book" />}
         >
-          <CalendarPlus className="h-5 w-5 text-primary" />
-          <span className="text-xs font-medium">Book Appointment</span>
+          <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <CalendarPlus className="size-5" />
+          </div>
+          <span className="text-xs font-semibold text-foreground">
+            Book Appointment
+          </span>
         </Button>
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-success/30 hover:bg-success/5"
+          className="h-auto py-4.5 flex flex-col items-center gap-2 rounded-2xl border-border/70 hover:border-success/50 hover:bg-success/[0.06] transition-all duration-200 shadow-sm"
           render={<Link href="/patient/records" />}
         >
-          <FileText className="h-5 w-5 text-success" />
-          <span className="text-xs font-medium">Medical Records</span>
+          <div className="flex size-10 items-center justify-center rounded-xl bg-success/10 text-success">
+            <FileText className="size-5" />
+          </div>
+          <span className="text-xs font-semibold text-foreground">
+            Medical Records
+          </span>
         </Button>
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-accent/30 hover:bg-accent/5"
+          className="h-auto py-4.5 flex flex-col items-center gap-2 rounded-2xl border-border/70 hover:border-info/50 hover:bg-info/[0.06] transition-all duration-200 shadow-sm"
           render={<Link href="/patient/chat" />}
         >
-          <MessageSquare className="h-5 w-5 text-accent-foreground" />
-          <span className="text-xs font-medium">Messages</span>
+          <div className="flex size-10 items-center justify-center rounded-xl bg-info/10 text-info">
+            <MessageSquare className="size-5" />
+          </div>
+          <span className="text-xs font-semibold text-foreground">
+            Doctor Chat
+          </span>
         </Button>
         <Button
           nativeButton={false}
           variant="outline"
-          className="h-auto py-4 flex flex-col items-center gap-1.5 border-border/50 hover:border-warning/30 hover:bg-warning/5"
+          className="h-auto py-4.5 flex flex-col items-center gap-2 rounded-2xl border-border/70 hover:border-warning/50 hover:bg-warning/[0.06] transition-all duration-200 shadow-sm"
           render={<Link href="/patient/prescriptions" />}
         >
-          <Pill className="h-5 w-5 text-warning" />
-          <span className="text-xs font-medium">Prescriptions</span>
+          <div className="flex size-10 items-center justify-center rounded-xl bg-warning/10 text-warning">
+            <Pill className="size-5" />
+          </div>
+          <span className="text-xs font-semibold text-foreground">
+            Prescriptions
+          </span>
         </Button>
       </div>
 

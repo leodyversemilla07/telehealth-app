@@ -83,86 +83,92 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-            Admin Dashboard
+      <Card className="border-border/80 bg-card p-2 sm:p-4">
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+              <span className="size-1.5 rounded-full bg-primary" />
+              Admin Center
+            </span>
+          </div>
+          <CardTitle className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            Platform Administration 🛡️
           </CardTitle>
-          <CardDescription className="text-sm">
-            Platform overview and key metrics.
+          <CardDescription className="text-sm mt-1 text-muted-foreground">
+            System overview, doctor verification queue, and user management.
           </CardDescription>
         </CardHeader>
       </Card>
 
       {/* Primary Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Total Users
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {stats?.totalUsers ?? 0}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                <Users className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Users className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Doctors
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Approved Doctors
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {stats?.totalDoctors ?? 0}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center text-success">
-                <ShieldCheck className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success">
+                <ShieldCheck className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Patients
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Total Patients
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {stats?.totalPatients ?? 0}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center text-accent-foreground">
-                <Activity className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-info/10 flex items-center justify-center text-info">
+                <Activity className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Appointments
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {stats?.totalAppointments ?? 0}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
-                <Calendar className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center text-warning">
+                <Calendar className="h-5 w-5" />
               </div>
             </div>
           </CardContent>

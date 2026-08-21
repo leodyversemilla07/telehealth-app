@@ -1,22 +1,19 @@
 "use client"
 
 import type { UserDto } from "@workspace/shared"
-import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Button } from "@workspace/ui/components/button"
+import { Input } from "@workspace/ui/components/input"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 import {
   ArrowRight,
   BadgeCheck,
-  Mic,
-  MicOff,
-  PhoneOff,
+  Search,
+  ShieldCheck,
   Sparkles,
-  Video,
-  VideoOff,
 } from "lucide-react"
 import dynamic from "next/dynamic"
 import { useRouter } from "next/navigation"
-import { EcgLine } from "@/components/homepage/ecg-line"
+import { useState } from "react"
 import { Footer } from "@/components/homepage/footer"
 import { Header } from "@/components/homepage/header"
 import { useScrollReveal } from "@/hooks/use-scroll-reveal"
@@ -65,93 +62,44 @@ const CTASection = dynamic(
 )
 
 const TRUST_BADGES = [
-  { icon: BadgeCheck, label: "Doctor profiles" },
-  { icon: Sparkles, label: "AI symptom check" },
+  { icon: BadgeCheck, label: "PRC-Licensed Doctors" },
+  { icon: ShieldCheck, label: "End-to-End Encrypted" },
+  { icon: Sparkles, label: "Instant E-Prescriptions" },
+]
+
+const QUICK_SPECIALTIES = [
+  "General Practice",
+  "Cardiology",
+  "Dermatology",
+  "Pediatrics",
+  "Psychiatry",
+  "Neurology",
 ]
 
 function SkeletonBlock({ className }: { className?: string }) {
   return <Skeleton className={className} />
 }
 
-/** Floating "live consultation" product mock — visual proof of the product. */
-function LiveConsultMock() {
-  return (
-    <div className="relative mx-auto w-full max-w-md">
-      {/* ambient ring */}
-      <div className="absolute -inset-8 -z-10 rounded-full bg-primary/[0.06] blur-3xl dark:bg-primary/[0.09]" />
-
-      <div className="animate-float overflow-hidden rounded-[1.75rem] border border-border/70 bg-card shadow-2xl shadow-primary/10 dark:border-white/10">
-        {/* window chrome */}
-        <div className="flex items-center justify-between border-b border-border/60 px-5 py-3.5">
-          <div className="flex items-center gap-1.5">
-            <span className="size-2.5 rounded-full bg-destructive/70" />
-            <span className="size-2.5 rounded-full bg-warning/70" />
-            <span className="size-2.5 rounded-full bg-success/70" />
-          </div>
-          <span className="text-xs font-medium text-muted-foreground">
-            tele-health.app · consultation
-          </span>
-          <span className="flex items-center gap-1.5 rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-success">
-            <span className="size-1.5 animate-pulse-ring rounded-full bg-success" />
-            Live
-          </span>
-        </div>
-
-        {/* video surface */}
-        <div className="relative flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-primary/[0.10] via-card to-primary/[0.05]">
-          <div className="bg-grain absolute inset-0 opacity-[0.35]" />
-          <Avatar className="size-20 border-4 border-background shadow-xl">
-            <AvatarFallback className="bg-primary/15 font-display text-3xl text-primary">
-              MS
-            </AvatarFallback>
-          </Avatar>
-          <div className="absolute left-4 top-4 rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-foreground backdrop-blur-md">
-            Doctor consultation
-          </div>
-          <div className="absolute bottom-4 right-4 rounded-full bg-background/80 px-3 py-1 text-xs font-medium text-foreground backdrop-blur-md">
-            02:14 elapsed
-          </div>
-          {/* heartbeat trace over the video */}
-          <EcgLine className="absolute inset-x-6 bottom-10 h-8 opacity-80" />
-        </div>
-
-        {/* controls */}
-        <div className="flex items-center justify-center gap-3 px-5 py-4">
-          {[
-            { icon: Mic, label: "Mute" },
-            { icon: Video, label: "Camera" },
-            { icon: PhoneOff, label: "End", danger: true },
-            { icon: MicOff, label: "Muted", active: true },
-            { icon: VideoOff, label: "Camera off", active: true },
-          ]
-            .slice(0, 3)
-            .map((c) => (
-              <button
-                key={c.label}
-                type="button"
-                aria-label={c.label}
-                className={`flex size-11 items-center justify-center rounded-full border transition ${
-                  c.danger
-                    ? "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                    : "border-border/70 bg-muted/60 text-foreground hover:bg-muted"
-                }`}
-              >
-                <c.icon className="size-4.5" />
-              </button>
-            ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function Page() {
   const router = useRouter()
+  const [searchQuery, setSearchQuery] = useState("")
   const { data: session, isPending, refetch } = authClient.useSession()
 
   async function handleSignOut() {
     await authClient.signOut()
     refetch()
+  }
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault()
+    if (searchQuery.trim()) {
+      router.push(
+        `/patient/appointments/book?search=${encodeURIComponent(searchQuery.trim())}`,
+      )
+    } else {
+      const doctorsEl = document.querySelector("#doctors")
+      doctorsEl?.scrollIntoView({ behavior: "smooth" })
+    }
   }
 
   const user = session?.user as unknown as UserDto | undefined
@@ -172,13 +120,8 @@ export default function Page() {
   const scrollRef = useScrollReveal()
 
   return (
-    <main
-      ref={scrollRef}
-      className="min-h-svh bg-[oklch(0.984_0.004_95)] text-foreground dark:bg-background"
-    >
-      {/* Fixed global nav — must live OUTSIDE the isolated hero section so its
-          z-index applies page-wide (inside a stacking context it would be
-          painted over by later sections while scrolling). */}
+    <main ref={scrollRef} className="min-h-svh bg-background text-foreground">
+      {/* Fixed global nav */}
       <Header
         isAuthenticated={Boolean(session)}
         onCreateAccount={() => router.push("/sign-up")}
@@ -187,116 +130,144 @@ export default function Page() {
         onDashboard={() => router.push(workspacePath)}
       />
 
-      {/* ── Hero ─────────────────────────────────────────────────────── */}
-      <section id="top" className="relative isolate overflow-hidden">
-        {/* atmosphere */}
-        <div className="absolute inset-0 -z-10 bg-dot-grid [mask-image:radial-gradient(ellipse_90%_60%_at_60%_0%,black,transparent_75%)] opacity-70" />
-        <div className="absolute inset-0 -z-10 bg-gradient-to-b from-primary/[0.06] via-transparent to-transparent dark:from-primary/[0.10]" />
-        <div className="absolute -left-40 top-10 -z-10 size-[34rem] rounded-full bg-primary/[0.05] blur-3xl dark:bg-primary/[0.08]" />
-        <div className="absolute -right-32 top-48 -z-10 size-[28rem] rounded-full bg-warning/[0.05] blur-3xl" />
-        <div className="bg-grain absolute inset-0 -z-10 opacity-[0.05] dark:opacity-[0.03]" />
+      {/* ── Minimalist Centered Hero ───────────────────────────────────────── */}
+      <section
+        id="top"
+        className="relative isolate overflow-hidden pt-10 pb-16 sm:pt-14 sm:pb-20 md:pt-16"
+      >
+        <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-8">
+          {/* Status Pill */}
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.08] px-4 py-1.5 text-xs font-semibold text-primary reveal-on-scroll">
+            <span className="size-2 rounded-full bg-primary" />
+            Licensed Doctors Available Online
+          </div>
 
-        <div className="relative mx-auto grid w-full max-w-7xl items-center gap-16 px-5 pb-20 pt-32 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-8 lg:pb-28 lg:pt-40">
-          {/* Left — copy + CTAs */}
-          <div className="text-center lg:text-left">
-            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.07] px-4 py-1.5 text-xs font-medium tracking-wide text-primary reveal-on-scroll">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-60" />
-                <span className="relative inline-flex size-2 rounded-full bg-primary" />
+          {/* Headline */}
+          <h1
+            className="font-display text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl text-foreground reveal-on-scroll"
+            style={{ transitionDelay: "60ms" }}
+          >
+            Connect with Licensed Doctors{" "}
+            <span className="text-primary">in Minutes</span>
+          </h1>
+
+          {/* Subtitle */}
+          <p
+            className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground reveal-on-scroll"
+            style={{ transitionDelay: "120ms" }}
+          >
+            Book a virtual consultation, speak face-to-face in a secure video
+            room, and receive official electronic prescriptions—all without the
+            waiting room.
+          </p>
+
+          {/* Direct Search Bar */}
+          <div
+            className="mx-auto mt-9 max-w-xl rounded-2xl border border-border/80 bg-card p-2 shadow-sm reveal-on-scroll"
+            style={{ transitionDelay: "180ms" }}
+          >
+            <form
+              onSubmit={handleSearch}
+              className="flex flex-col gap-2 sm:flex-row"
+            >
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search doctor name, specialty, or condition..."
+                  className="h-11 border-none bg-transparent pl-10 pr-3 text-sm shadow-none focus-visible:ring-0"
+                />
+              </div>
+              <Button
+                type="submit"
+                size="default"
+                className="h-11 rounded-xl bg-primary px-6 font-medium shadow-sm"
+              >
+                Find Doctor
+                <ArrowRight className="ml-1.5 size-4" />
+              </Button>
+            </form>
+
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 px-2 pb-1 border-t border-border/40 pt-2.5">
+              <span className="text-[11px] font-semibold text-muted-foreground mr-1">
+                Popular:
               </span>
-              Connect with doctors online
-            </div>
-
-            <div
-              className="reveal-on-scroll"
-              style={{ transitionDelay: "80ms" }}
-            >
-              <h1 className="font-display text-[2.75rem] font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:text-[4.25rem]">
-                Care that meets you{" "}
-                <span className="italic text-primary">wherever</span> you are.
-              </h1>
-            </div>
-
-            <div
-              className="reveal-on-scroll"
-              style={{ transitionDelay: "160ms" }}
-            >
-              <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground lg:mx-0">
-                Book a consultation, talk to your doctor face-to-face in a
-                secure video room, and get your prescription — all without the
-                waiting room. In the Philippines, or anywhere else.
-              </p>
-            </div>
-
-            <div
-              className="mt-9 flex flex-col items-center justify-center gap-3.5 sm:flex-row lg:justify-start reveal-on-scroll"
-              style={{ transitionDelay: "240ms" }}
-            >
-              {isPending ? (
-                <>
-                  <SkeletonBlock className="h-13 w-48" />
-                  <SkeletonBlock className="h-13 w-32" />
-                </>
-              ) : session ? (
-                <Button
-                  size="lg"
-                  onClick={() => router.push(workspacePath)}
-                  className="h-13 rounded-full bg-primary px-8 text-base shadow-lg shadow-primary/25 transition-all hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98]"
+              {QUICK_SPECIALTIES.map((spec) => (
+                <button
+                  key={spec}
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery(spec)
+                    router.push(
+                      `/patient/appointments/book?specialty=${encodeURIComponent(spec)}`,
+                    )
+                  }}
+                  className="rounded-full border border-border/70 bg-muted/40 px-2.5 py-0.5 text-[11px] text-muted-foreground transition hover:border-primary/40 hover:bg-primary/[0.08] hover:text-primary"
                 >
-                  {dashboardLabel}
-                  <ArrowRight className="ml-2 size-4.5" />
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    size="lg"
-                    onClick={() => router.push("/sign-up")}
-                    className="h-13 rounded-full bg-primary px-8 text-base shadow-lg shadow-primary/25 transition-all hover:scale-[1.02] hover:bg-primary/90 active:scale-[0.98]"
-                  >
-                    Get started — it's free
-                    <ArrowRight className="ml-2 size-4.5" />
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="ghost"
-                    onClick={() => router.push("/sign-in")}
-                    className="h-13 rounded-full px-7 text-base text-muted-foreground hover:bg-muted hover:text-foreground"
-                  >
-                    Sign in
-                  </Button>
-                </>
-              )}
-            </div>
-
-            {/* trust badges */}
-            <div
-              className="mt-8 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 lg:justify-start reveal-on-scroll"
-              style={{ transitionDelay: "320ms" }}
-            >
-              {TRUST_BADGES.map((b) => (
-                <span
-                  key={b.label}
-                  className="inline-flex items-center gap-1.5 text-sm text-muted-foreground"
-                >
-                  <b.icon className="size-4 text-primary" />
-                  {b.label}
-                </span>
+                  {spec}
+                </button>
               ))}
             </div>
           </div>
 
-          {/* Right — live consultation mock */}
+          {/* Action buttons */}
           <div
-            className="reveal-on-scroll lg:pl-6"
-            style={{ transitionDelay: "200ms" }}
+            className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row reveal-on-scroll"
+            style={{ transitionDelay: "240ms" }}
           >
-            <LiveConsultMock />
+            {isPending ? (
+              <>
+                <SkeletonBlock className="h-12 w-48 rounded-xl" />
+                <SkeletonBlock className="h-12 w-32 rounded-xl" />
+              </>
+            ) : session ? (
+              <Button
+                size="lg"
+                onClick={() => router.push(workspacePath)}
+                className="h-12 rounded-xl bg-primary px-8 text-base font-semibold shadow-md shadow-primary/20"
+              >
+                {dashboardLabel}
+                <ArrowRight className="ml-2 size-4.5" />
+              </Button>
+            ) : (
+              <>
+                <Button
+                  size="lg"
+                  onClick={() => router.push("/patient/appointments/book")}
+                  className="h-12 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-md shadow-primary/20"
+                >
+                  Book a Consultation
+                  <ArrowRight className="ml-2 size-4.5" />
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  onClick={() => router.push("/sign-in")}
+                  className="h-12 rounded-xl border-border/80 px-7 text-base font-medium hover:bg-muted"
+                >
+                  Sign in
+                </Button>
+              </>
+            )}
           </div>
-        </div>
 
-        {/* ECG signature divider */}
-        <div className="mx-auto max-w-5xl px-8 pb-10 opacity-80">
-          <EcgLine className="h-12 text-primary" />
+          {/* Trust bullet row */}
+          <div
+            className="mt-12 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 border-t border-border/60 pt-8 reveal-on-scroll"
+            style={{ transitionDelay: "300ms" }}
+          >
+            {TRUST_BADGES.map((b) => (
+              <span
+                key={b.label}
+                className="inline-flex items-center gap-2 text-xs font-semibold text-muted-foreground"
+              >
+                <b.icon className="size-4 text-primary" />
+                {b.label}
+              </span>
+            ))}
+          </div>
         </div>
       </section>
 

@@ -11,7 +11,8 @@ import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { toast } from "@workspace/ui/components/toast"
 import { cn } from "@workspace/ui/lib/utils"
-import { GalleryVerticalEndIcon, Key, Shield, ShieldAlert } from "lucide-react"
+import { Key, Shield, ShieldAlert } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import {
@@ -241,9 +242,13 @@ export function SignInForm({
     return (
       <div className="flex flex-col gap-6">
         <div className="flex flex-col items-center gap-4 text-center">
-          <div className="flex size-8 items-center justify-center rounded-md">
-            <GalleryVerticalEndIcon className="size-6" />
-          </div>
+          <Image
+            src="/logo.png"
+            alt="Telehealth"
+            width={36}
+            height={36}
+            className="size-9 rounded-xl object-cover"
+          />
           <span className="sr-only">Telehealth</span>
           <h1 className="text-xl font-bold">Two-Factor Authentication</h1>
           <div className="inline-flex items-center justify-center size-12 rounded-full bg-primary/10 text-primary">
@@ -331,9 +336,13 @@ export function SignInForm({
               href="/"
               className="flex flex-col items-center gap-2 font-medium"
             >
-              <div className="flex size-8 items-center justify-center rounded-md">
-                <GalleryVerticalEndIcon className="size-6" />
-              </div>
+              <Image
+                src="/logo.png"
+                alt="Telehealth"
+                width={36}
+                height={36}
+                className="size-9 rounded-xl object-cover"
+              />
               <span className="sr-only">Telehealth</span>
             </Link>
             <h1 className="text-xl font-bold">Welcome to Telehealth</h1>

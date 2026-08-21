@@ -94,52 +94,59 @@ export default function DoctorDashboardPage() {
       )}
 
       {/* Header */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <Card className="border-border/80 bg-card p-2 sm:p-4">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-6">
           <div>
-            <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
-              Doctor Dashboard
+            <div className="flex items-center gap-2 mb-1">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                <span className="size-1.5 rounded-full bg-primary" />
+                Doctor Workspace
+              </span>
+            </div>
+            <CardTitle className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Doctor Dashboard 🩺
             </CardTitle>
-            <CardDescription className="text-sm mt-1">
-              Track consultations, schedules, and patient activity.
+            <CardDescription className="text-sm mt-1 text-muted-foreground">
+              Monitor patient queue, incoming video appointments, and clinical
+              records.
             </CardDescription>
           </div>
           <Button
             nativeButton={false}
             render={<Link href="/doctor/consultations" />}
-            className="sm:w-fit font-semibold shadow-xs"
+            className="h-10 sm:w-fit font-semibold shadow-md shadow-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
           >
             <ClipboardList className="mr-2 h-4 w-4" />
-            View Queue
+            View Patient Queue
           </Button>
         </CardHeader>
       </Card>
 
       {/* Stats Cards Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Scheduled
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {upcomingConsults}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-info/10 flex items-center justify-center text-info">
-                <CalendarDays className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-info/10 flex items-center justify-center text-info">
+                <CalendarDays className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   In Consultation
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1 flex items-center gap-2">
@@ -152,44 +159,44 @@ export default function DoctorDashboardPage() {
                   )}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-warning/10 flex items-center justify-center text-warning">
-                <Video className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-warning/10 flex items-center justify-center text-warning">
+                <Video className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Completed
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {completedConsults}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-success/10 flex items-center justify-center text-success">
-                <CheckCircle2 className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-success/10 flex items-center justify-center text-success">
+                <CheckCircle2 className="h-5 w-5" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-border/60">
+        <Card className="border-border/70 bg-card/80 transition-all hover:border-primary/40 hover:shadow-md">
           <CardContent className="p-4 md:p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Total Logs
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Total Consults
                 </p>
                 <p className="text-3xl font-extrabold text-foreground mt-1">
                   {totalAppts}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-lg bg-accent/10 flex items-center justify-center text-accent-foreground">
-                <ClipboardList className="h-4.5 w-4.5" />
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <FileText className="h-5 w-5" />
               </div>
             </div>
           </CardContent>

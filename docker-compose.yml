@@ -1,22 +1,14 @@
-# Local dev/test databases (mirrors crm/docker-compose.yml).
-#
-#   docker compose up -d
-#   DATABASE_URL=postgresql://postgres:postgres@localhost:5433/telehealth?schema=public \
-#     pnpm --filter @telehealth/db exec prisma migrate deploy
-#   cd apps/api && pnpm run test:e2e:db
-#
-# The app itself runs against the managed RDS instance in production — this
-# compose file exists only for tests and local development.
 services:
   postgres:
     image: postgres:16.14-alpine
     container_name: telehealth-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: telehealth
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - telehealth-postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -24,6 +16,58 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    networks:
+      - telehealth-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: telehealth-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/telehealth?schema=public"
+      BETTER_AUTH_URL: "http://localhost:${API_PORT:-3001}"
+      BETTER_AUTH_SECRET: "e2e-only-better-auth-secret-0123456789abcdef"
+      CORS_ORIGIN: "http://localhost:${WEB_PORT:-3000},http://localhost:3000,http://localhost:3002"
+      SESSION_EXPIRY_SECONDS: 604800
+      CANCELLATION_WINDOW_HOURS: 24
+      THROTTLE_LIMIT: 500
+      RESEND_API_KEY: "re_dummy_e2e_key_not_used_for_delivery"
+      EMAIL_FROM: "Telehealth App <noreply@tele-health.app>"
+    ports:
+      - "${API_PORT:-3001}:3001"
+    networks:
+      - telehealth-network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: telehealth-web
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      API_URL: "http://api:3001"
+      WEB_URL: "http://localhost:${WEB_PORT:-3000}"
+      NEXT_PUBLIC_API_URL: ""
+      NEXT_PUBLIC_VAPID_KEY: ""
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    networks:
+      - telehealth-network
 
 volumes:
   telehealth-postgres-data:
+
+networks:
+  telehealth-network:
+    name: telehealth-network
