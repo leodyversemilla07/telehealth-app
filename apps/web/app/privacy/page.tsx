@@ -41,8 +41,8 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Last Updated: August 2026 · Compliant with Philippine Data Privacy
-            Act of 2012 (RA 10173)
+            Last Updated: August 2026 · Describes how we handle personal data
+            under the Philippine Data Privacy Act of 2012 (RA 10173)
           </p>
 
           <div className="mt-10 space-y-8 rounded-2xl border border-border/80 bg-card p-6 sm:p-10 shadow-sm text-muted-foreground leading-relaxed text-sm">
@@ -118,15 +118,14 @@ export default function PrivacyPolicyPage() {
 
             <section className="space-y-3">
               <h2 className="text-lg font-bold text-foreground">
-                4. Data Security & Encryption Standards
+                4. Data Security
               </h2>
               <p>
-                We implement industry-grade administrative, technical, and
-                physical security measures. All communications (video, audio,
-                and text) are transmitted over TLS 1.3 encryption, and all
-                electronic health records are encrypted at rest using AES-256
-                standards. Direct access to medical data is restricted strictly
-                on a role-based need-to-know basis.
+                We implement administrative, technical, and physical security
+                measures to protect your data. All communications (video, audio,
+                and text) are transmitted over encrypted connections. Direct
+                access to medical data is restricted strictly on a role-based
+                need-to-know basis.
               </p>
             </section>
 

@@ -86,13 +86,13 @@ const FAQ_CATEGORIES = [
     ],
   },
   {
-    category: "Security, Privacy & Compliance",
+    category: "Security & Privacy",
     icon: Lock,
     items: [
       {
-        question: "Is my medical data protected under Philippine law?",
+        question: "Is my medical data protected?",
         answer:
-          "Yes. Telehealth strictly complies with the Philippine Data Privacy Act of 2012 (Republic Act No. 10173). All health records, video streams, and text messages are encrypted using TLS & AES-256 standards.",
+          "Yes. Your health records are protected by account authentication, role-based access controls, and encrypted connections. Only you and the doctors treating you can view your consultations. See our Privacy Policy for full details.",
       },
       {
         question: "How are doctors vetted and verified?",

@@ -38,7 +38,7 @@ const FOOTER_NAV = [
       { href: "/about", label: "About Us & Mission" },
       { href: "/faq", label: "FAQ & Help Center" },
       { href: "/about", label: "Contact Support" },
-      { href: "/privacy", label: "Privacy Policy (RA 10173)" },
+      { href: "/privacy", label: "Privacy Policy" },
       { href: "/terms", label: "Terms of Service" },
     ],
   },
@@ -144,7 +144,7 @@ export function Footer({
         <div className="flex flex-col items-center justify-between gap-4 text-xs text-muted-foreground sm:flex-row">
           <p>
             &copy; {new Date().getFullYear()} Telehealth Philippines. All rights
-            reserved. Compliant with RA 10173.
+            reserved.
           </p>
 
           <div className="flex items-center gap-6">

@@ -12,9 +12,9 @@ const SECURITY_FEATURES = [
   },
   {
     icon: Lock,
-    title: "Encrypted Consultations",
+    title: "Encrypted Connections",
     description:
-      "All video consultations, chat messages, and electronic medical records are encrypted with industry-standard TLS & AES-256.",
+      "All video consultations, chat messages, and electronic medical records are transmitted over industry-standard encrypted connections.",
   },
   {
     icon: FileCheck,
