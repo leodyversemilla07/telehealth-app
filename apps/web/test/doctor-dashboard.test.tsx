@@ -73,7 +73,7 @@ describe("DoctorDashboardPage", () => {
       makeAppointment("a6", "BOOKED", "Jim"),
     ]
     await renderDashboard()
-    await screen.findByText("Total Logs")
+    await screen.findByText("Total Consults")
     expect(screen.getByText("Scheduled")).toBeDefined() // 3 booked+confirmed
     expect(screen.getByText("In Consultation")).toBeDefined() // 1
     expect(screen.getByText("Completed")).toBeDefined() // 2
@@ -98,7 +98,7 @@ describe("DoctorDashboardPage", () => {
 
   it("shows zeroed stats without a next-consultation card when empty", async () => {
     await renderDashboard()
-    await screen.findByText("Total Logs")
+    await screen.findByText("Total Consults")
     expect(screen.getAllByText("0").length).toBeGreaterThanOrEqual(4)
     expect(screen.queryByText("Next Scheduled Consultation")).toBeNull()
   })

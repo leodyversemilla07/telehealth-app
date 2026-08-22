@@ -23,6 +23,12 @@ vi.mock("@workspace/ui/components/toast", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: navHolder.push }),
+  useSearchParams: () => ({
+    get: (key: string) =>
+      ({ search: null, specialty: null, symptom: null, doctorId: null })[
+        key ?? ""
+      ] ?? null,
+  }),
   Link: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
 

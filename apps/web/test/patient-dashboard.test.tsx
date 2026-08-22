@@ -147,13 +147,13 @@ describe("PatientDashboardPage", () => {
     m.prescriptions = [{ id: "p1" }, { id: "p2" }]
     await renderDashboard()
 
-    await screen.findByText("Hello, Alice!")
+    await screen.findByText(/Hello, Alice!/)
     expect(screen.getByText("Upcoming")).toBeDefined()
     expect(screen.getByText("Completed")).toBeDefined()
     // stat values: upcoming 2, completed 1, records 1, prescriptions 2
-    expect(screen.getByText("Next Appointment")).toBeDefined()
+    expect(screen.getByText("Next Scheduled Appointment")).toBeDefined()
     expect(screen.getByText("Dr. Brain")).toBeDefined()
-    expect(screen.getByText("Join Call")).toBeDefined()
+    expect(screen.getByText("Consultation Room")).toBeDefined()
     expect(screen.getByText("Recent Consultations")).toBeDefined()
     expect(screen.getByText(/Hypertension/)).toBeDefined()
   })
@@ -161,8 +161,8 @@ describe("PatientDashboardPage", () => {
   it("renders zeros and empty states when there is no data", async () => {
     m.profile = { id: "u1", user: { name: "Bob" } }
     await renderDashboard()
-    await screen.findByText("Hello, Bob!")
-    expect(screen.queryByText("Next Appointment")).toBeNull()
+    await screen.findByText(/Hello, Bob!/)
+    expect(screen.queryByText("Next Scheduled Appointment")).toBeNull()
     expect(screen.getByText("No consultations recorded")).toBeDefined()
     // empty-state CTA
     expect(screen.getByText("Book Consultation")).toBeDefined()
@@ -192,7 +192,7 @@ describe("PatientDashboardPage", () => {
     m.profile = { id: "u1", user: { name: "Alice" } }
     m.appts = [makeAppointment("a-2", "CONFIRMED", "Dr. Brain")]
     await renderDashboard()
-    await screen.findByText("Next Appointment")
+    await screen.findByText("Next Scheduled Appointment")
     await userEvent.setup().click(screen.getByText("View Details"))
     expect(m.push).toHaveBeenCalledWith("/patient/appointments/a-2")
   })
