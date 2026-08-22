@@ -44,12 +44,12 @@ const KEY_BENEFITS = [
   {
     icon: Pill,
     title: "Digital E-Prescriptions",
-    desc: "Legally compliant e-prescriptions ready to present at any licensed pharmacy.",
+    desc: "Digital e-prescriptions you can present at any licensed pharmacy.",
   },
   {
     icon: Lock,
-    title: "HIPAA-Level Privacy",
-    desc: "End-to-end encrypted consultations with full patient data sovereignty and audit logs.",
+    title: "Private & Secure",
+    desc: "Encrypted connections for consultations, full patient data sovereignty, and complete audit logs.",
   },
   {
     icon: Sparkles,
