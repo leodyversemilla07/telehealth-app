@@ -34,7 +34,7 @@ services:
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/telehealth?schema=public"
       BETTER_AUTH_URL: "http://localhost:${API_PORT:-3001}"
       BETTER_AUTH_SECRET: "e2e-only-better-auth-secret-0123456789abcdef"
-      CORS_ORIGIN: "http://localhost:${WEB_PORT:-3000},http://localhost:3000,http://localhost:3002"
+      CORS_ORIGIN: "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:${WEB_PORT:-3002}"
       SESSION_EXPIRY_SECONDS: 604800
       CANCELLATION_WINDOW_HOURS: 24
       THROTTLE_LIMIT: 500
