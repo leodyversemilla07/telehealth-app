@@ -101,8 +101,8 @@ export default function PrivacyPolicyPage() {
                   licensed physicians.
                 </li>
                 <li>
-                  Generate legally compliant electronic prescriptions
-                  (e-prescriptions) and medical certificates.
+                  Generate electronic prescriptions (e-prescriptions) and
+                  medical certificates.
                 </li>
                 <li>
                   Maintain your longitudinal Electronic Health Record (EHR)
