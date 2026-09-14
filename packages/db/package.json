@@ -29,8 +29,8 @@
   },
   "devDependencies": {
     "@workspace/typescript-config": "workspace:*",
-    "prisma": "^7.9.1",
-    "tsx": "^4.23.6",
+    "prisma": "^7.10.0",
+    "tsx": "^4.23.13",
     "typescript": "^6.0.3"
   }
 }
