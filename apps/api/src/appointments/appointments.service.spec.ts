@@ -312,8 +312,7 @@ describe("AppointmentsService", () => {
       })
       prisma.$transaction.mockRejectedValue({
         code: "P2039",
-        message:
-          'Constraint violation: "appointments_doctor_active_time_excl"',
+        message: 'Constraint violation: "appointments_doctor_active_time_excl"',
       })
 
       await expect(service.create(userId, dto)).rejects.toMatchObject({
