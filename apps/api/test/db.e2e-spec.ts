@@ -393,7 +393,10 @@ describe("API (e2e) — full AppModule, real Postgres", () => {
             status: "CONFIRMED",
           },
         }),
-      ).rejects.toMatchObject({ code: "P2004" })
+      ).rejects.toMatchObject({
+        // Prisma's Rust engine used P2004; driver adapters use P2039.
+        code: expect.stringMatching(/^(P2004|P2039)$/),
+      })
     })
 
     it("rejects a time outside the doctor's availability", async () => {

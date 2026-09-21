@@ -92,8 +92,8 @@ export class AppointmentsService {
   /**
    * Translate the PostgreSQL active-slot exclusion constraint (and its legacy
    * exact-slot unique index) into the stable domain error clients expect.
-   * Prisma may surface an exclusion violation as P2004 or as an underlying
-   * SQLSTATE 23P01 depending on the driver/engine version.
+   * Prisma may surface an exclusion violation as P2004, P2039 (driver-adapter
+   * error), or as an underlying SQLSTATE 23P01 depending on the engine.
    */
   private async withSlotConflictTranslation<T>(
     operation: () => Promise<T>,
@@ -115,7 +115,9 @@ export class AppointmentsService {
         .join(" ")
       const isSlotConstraint =
         candidate.code === "P2002" ||
-        ((candidate.code === "P2004" || detail.includes("23P01")) &&
+        ((candidate.code === "P2004" ||
+          candidate.code === "P2039" ||
+          detail.includes("23P01")) &&
           detail.includes("appointments_doctor_active_time_excl"))
 
       if (isSlotConstraint) {

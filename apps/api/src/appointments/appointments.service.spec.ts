@@ -293,6 +293,38 @@ describe("AppointmentsService", () => {
       )
     })
 
+    it("should translate Prisma adapter exclusion errors", async () => {
+      prisma.patientProfile.findUnique.mockResolvedValue({
+        id: "pat-1",
+        userId,
+      })
+      prisma.doctorProfile.findUnique.mockResolvedValue({
+        id: dto.doctorId,
+        isApproved: true,
+        prcLicenseExpiry: new Date("2100-01-01T00:00:00.000Z"),
+        user: { role: "DOCTOR", banned: false, banExpires: null },
+      })
+      prisma.availabilitySchedule.findUnique.mockResolvedValue({
+        id: dto.scheduleId,
+        doctorId: dto.doctorId,
+        slotDuration: 30,
+        saturday: '["09:00-17:00"]',
+      })
+      prisma.$transaction.mockRejectedValue({
+        code: "P2039",
+        message:
+          'Constraint violation: "appointments_doctor_active_time_excl"',
+      })
+
+      await expect(service.create(userId, dto)).rejects.toMatchObject({
+        status: 409,
+        response: {
+          code: "SLOT_UNAVAILABLE",
+          message: "This time slot is already booked",
+        },
+      })
+    })
+
     it("should create appointment when all checks pass", async () => {
       const createdApt = {
         id: "apt-new",
