@@ -12,9 +12,12 @@ packages:
 #    fixes land in 7.29.0, which is inside jsdom's ^7.25.0 range. The scoped
 #    override forces the in-range patched version (8.x would break jsdom:
 #    it needs the removed undici/lib/handler/wrap-handler.js).
-#  - fast-uri: ajv@8.18.0 (NestJS CLI tooling) pins 3.1.2, which is below
-#    the advisory fix (>=3.1.4); 3.1.5 is the patched 3.x (4.x is a forced
-#    major we don't need).
+#  - fast-uri: ajv resolves a vulnerable 3.1.x; pin the patched 3.x release.
+#  - multer, mysql2, and qs: framework/auth transitive ranges currently
+#    resolve vulnerable releases; force the advisory's patched versions.
+#  - js-yaml: keep each transitive consumer on its existing major while
+#    applying the patched 3.x and 4.x releases. Swagger's 5.x is already safe.
+#  - hono: shadcn's MCP tooling resolves a vulnerable patch release.
 #  - socket.io-parser: socket.io@4.8.3 pins 4.2.6, below the memory-
 #    exhaustion fix (>=4.2.7); 4.2.7 is in-range and patched.
 #  - nanoid@3: postcss (via next/tailwind/vite) resolves 3.3.17, below the
@@ -26,7 +29,13 @@ packages:
 overrides:
   ws: 8.21.2
   jsdom>undici: 7.29.0
-  fast-uri: 3.1.5
+  fast-uri: 3.1.6
+  multer: 2.3.0
+  mysql2: 3.23.1
+  qs: 6.16.0
+  js-yaml@3: 3.15.2
+  js-yaml@4: 4.3.2
+  hono: 4.13.5
   socket.io-parser: 4.2.7
   '@nestjs/swagger>js-yaml': 5.2.2
   vite: 8.2.1

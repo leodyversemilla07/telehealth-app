@@ -345,10 +345,7 @@ export class UsersService {
     const [documents, avatarKeys] = await Promise.all([
       this.prisma.medicalDocument.findMany({
         where: {
-          OR: [
-            { patientId: userId },
-            { appointment: { doctor: { userId } } },
-          ],
+          OR: [{ patientId: userId }, { appointment: { doctor: { userId } } }],
         },
         select: { storageKey: true },
       }),

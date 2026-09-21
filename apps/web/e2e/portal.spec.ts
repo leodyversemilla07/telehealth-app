@@ -85,14 +85,12 @@ test.describe("Admin Dashboard", () => {
     await expectPageTitle(page, /audit logs/i)
   })
 
-  test("non-admin gets 403 on admin routes", async ({ page }) => {
-    // Login as patient first
+  test("non-admin is redirected away from admin routes", async ({ page }) => {
     await loginAs(page, "patient")
 
-    // Try to access admin route
     await page.goto("/admin/dashboard")
-    await expect(
-      page.getByText(/access denied/i).or(page.getByText(/403/i)),
-    ).toBeVisible({ timeout: 10_000 })
+    await expect(page).toHaveURL(/\/patient\/dashboard$/, {
+      timeout: 10_000,
+    })
   })
 })

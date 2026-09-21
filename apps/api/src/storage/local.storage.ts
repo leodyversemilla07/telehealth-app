@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, unlinkSync } from "node:fs"
-import { readFile, readdir, writeFile } from "node:fs/promises"
+import { readdir, readFile, writeFile } from "node:fs/promises"
 import { extname, join } from "node:path"
 import type { StorageProvider } from "./storage.interface"
 

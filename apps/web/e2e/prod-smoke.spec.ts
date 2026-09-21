@@ -109,7 +109,7 @@ test.describe("Production smoke (read-only)", () => {
 
   test("API health endpoint responds ok", async ({ request }) => {
     const res = await request.get(
-      `${process.env.API_URL || "https://api.tele-health.app"}/`,
+      `${process.env.API_URL || "http://localhost:3001"}/`,
     )
     expect(res.status()).toBe(200)
     const body = await res.json()

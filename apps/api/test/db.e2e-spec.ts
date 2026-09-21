@@ -223,9 +223,9 @@ describe("API (e2e) — full AppModule, real Postgres", () => {
     })
 
     const { ChatService } = await import("../src/chat/chat.service")
-    const conversations = await app.get(ChatService).getConversations(
-      patientUserId,
-    )
+    const conversations = await app
+      .get(ChatService)
+      .getConversations(patientUserId)
 
     expect(conversations).toEqual(
       expect.arrayContaining([

@@ -654,7 +654,8 @@ export default function DoctorSchedulePage() {
                 <div className="space-y-3.5">
                   {timeOffs.map((to) => {
                     const formatDt = (value: string | Date) => {
-                      const date = value instanceof Date ? value : new Date(value)
+                      const date =
+                        value instanceof Date ? value : new Date(value)
                       return date.toLocaleString(undefined, {
                         month: "short",
                         day: "numeric",
