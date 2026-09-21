@@ -91,8 +91,8 @@ describe("AppointmentsService (integration logic)", () => {
         service.create("patient-1", {
           doctorId: "doc-1",
           scheduleId: "sched-1",
-          startTime: "2026-07-03T10:00:00.000Z",
-          endTime: "2026-07-03T10:30:00.000Z",
+          startTime: "2099-07-03T10:00:00.000Z",
+          endTime: "2099-07-03T10:30:00.000Z",
         }),
       ).rejects.toThrow(NotFoundException)
     })
@@ -108,8 +108,8 @@ describe("AppointmentsService (integration logic)", () => {
         service.create("patient-1", {
           doctorId: "doc-1",
           scheduleId: "sched-1",
-          startTime: "2026-07-03T10:00:00.000Z",
-          endTime: "2026-07-03T10:30:00.000Z",
+          startTime: "2099-07-03T10:00:00.000Z",
+          endTime: "2099-07-03T10:30:00.000Z",
         }),
       ).rejects.toThrow(ForbiddenException)
     })
@@ -119,6 +119,8 @@ describe("AppointmentsService (integration logic)", () => {
       prisma.doctorProfile.findUnique.mockResolvedValue({
         id: "doc-1",
         isApproved: true,
+        prcLicenseExpiry: new Date("2100-01-01T00:00:00.000Z"),
+        user: { role: "DOCTOR", banned: false, banExpires: null },
       })
       prisma.availabilitySchedule.findUnique.mockResolvedValue({
         id: "sched-1",
@@ -152,8 +154,8 @@ describe("AppointmentsService (integration logic)", () => {
         service.create("patient-1", {
           doctorId: "doc-1",
           scheduleId: "sched-1",
-          startTime: "2026-07-03T01:00:00.000Z",
-          endTime: "2026-07-03T01:30:00.000Z",
+          startTime: "2099-07-03T01:00:00.000Z",
+          endTime: "2099-07-03T01:30:00.000Z",
         }),
       ).rejects.toThrow(ConflictException)
     })

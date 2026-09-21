@@ -2,8 +2,10 @@
  * Pure sign-up submission logic, extracted from SignUpForm so it can be
  * unit-tested without rendering the (JSX) component.
  *
- * Implements F-AUTH-07: a privacy-consent gate before account creation,
- * followed by a best-effort privacy-consent record via POST /consent.
+ * Implements F-AUTH-07: a privacy-consent gate before account creation.
+ * The acceptance marker is sent with the Better Auth signup request, where
+ * the server replaces it with an authoritative timestamp and policy version
+ * persisted in the same transaction as the user.
  */
 
 export type SignUpState = {
@@ -22,11 +24,8 @@ export interface SignUpDeps {
     email: string
     password: string
     role: string
+    privacyPolicyConsent: true
   }) => Promise<{ error: { message?: string; statusText?: string } | null }>
-  recordConsent: (data: {
-    consentType: string
-    granted: boolean
-  }) => Promise<unknown>
 }
 
 export async function submitSignUp(
@@ -70,6 +69,7 @@ export async function submitSignUp(
     email,
     password,
     role,
+    privacyPolicyConsent: true,
   })
 
   if (signUpError) {
@@ -79,19 +79,6 @@ export async function submitSignUp(
       email: "",
       role,
     }
-  }
-
-  // Record privacy-consent acceptance (best-effort). Better Auth auto signs
-  // the user in on sign-up, so the session cookie is available for the
-  // authenticated /consent request. Failure here is non-fatal; the user can
-  // manage consent later in settings.
-  try {
-    await deps.recordConsent({
-      consentType: "privacy_policy",
-      granted: true,
-    })
-  } catch {
-    // Non-fatal: consent can be recorded later in settings.
   }
 
   return { error: null, success: true, email, role }

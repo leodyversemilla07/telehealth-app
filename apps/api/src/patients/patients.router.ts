@@ -18,9 +18,8 @@ import { PatientsService } from "./patients.service"
 
 /**
  * Single boundary where a raw Prisma patient profile becomes the shared
- * PatientProfileDto. Dates stay as `Date` — the global PhtDateInterceptor
- * converts them to PHT strings on the wire, and clients read them back with
- * the shared `toDate` helper (profile-content already does for `dob`).
+ * PatientProfileDto. Dates stay as `Date` and are preserved by the shared
+ * tRPC transformer; REST/socket ISO strings remain supported by `toDate`.
  * Exported for direct unit coverage.
  */
 export function toPatientProfileDto(row: PatientProfileRow): PatientProfileDto {

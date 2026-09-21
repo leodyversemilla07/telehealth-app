@@ -9,7 +9,6 @@ function makeForm(data: Record<string, string>) {
 
 const baseDeps: SignUpDeps = {
   signUpEmail: vi.fn().mockResolvedValue({ error: null }),
-  recordConsent: vi.fn().mockResolvedValue({}),
 }
 
 describe("submitSignUp (F-AUTH-07: privacy consent required)", () => {
@@ -33,10 +32,9 @@ describe("submitSignUp (F-AUTH-07: privacy consent required)", () => {
     expect(result.success).toBe(false)
     expect(result.error).toMatch(/Privacy Policy/i)
     expect(baseDeps.signUpEmail).not.toHaveBeenCalled()
-    expect(baseDeps.recordConsent).not.toHaveBeenCalled()
   })
 
-  it("signs up and records privacy consent when consent is given", async () => {
+  it("includes privacy consent in the atomic signup request", async () => {
     const result = await submitSignUp(
       makeForm({
         firstName: "Jane",
@@ -59,12 +57,9 @@ describe("submitSignUp (F-AUTH-07: privacy consent required)", () => {
         email: "jane@example.com",
         password: "Password123!",
         role: "PATIENT",
+        privacyPolicyConsent: true,
       }),
     )
-    expect(baseDeps.recordConsent).toHaveBeenCalledWith({
-      consentType: "privacy_policy",
-      granted: true,
-    })
   })
 
   it("requires all fields", async () => {

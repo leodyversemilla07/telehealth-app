@@ -25,6 +25,7 @@ const mockSocketSetServer = jest.fn()
 const mockMedicalDocumentFindFirst = jest.fn()
 
 const mockExpress = {
+  set: jest.fn() as unknown as Express["set"],
   get: ((path: string, handler: (req: Request, res: Response) => void) => {
     if (path === "/") {
       mockRouteHandlers.push(handler)
@@ -231,7 +232,7 @@ describe("main bootstrap", () => {
     expect(mockApp.setGlobalPrefix).toHaveBeenCalledWith("api")
     expect(mockApp.enableShutdownHooks).toHaveBeenCalled()
     expect(mockApp.useGlobalFilters).toHaveBeenCalledTimes(1)
-    expect(mockApp.useGlobalInterceptors).toHaveBeenCalledTimes(3)
+    expect(mockApp.useGlobalInterceptors).toHaveBeenCalledTimes(2)
     expect(mockApp.useGlobalPipes).toHaveBeenCalledTimes(1)
   })
 

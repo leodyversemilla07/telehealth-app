@@ -8,6 +8,7 @@ import { AuditLogsService } from "../audit-logs/audit-logs.service"
 import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
+import { StorageService } from "../storage/storage.service"
 
 @Injectable()
 export class UsersService {
@@ -16,6 +17,7 @@ export class UsersService {
     private readonly auditLogs: AuditLogsService,
     private readonly alertsService: SecurityAlertsService,
     private readonly socket: SocketService,
+    private readonly storage: StorageService,
   ) {}
 
   /**
@@ -337,6 +339,31 @@ export class UsersService {
    * removed via Prisma cascade rules. Audit logs are retained independently.
    */
   async deleteAccount(userId: string, email: string) {
+    // Collect every object whose database row will be removed by the account
+    // cascade. Object storage has no foreign keys, so it must be cleaned up
+    // explicitly before the user row disappears.
+    const [documents, avatarKeys] = await Promise.all([
+      this.prisma.medicalDocument.findMany({
+        where: {
+          OR: [
+            { patientId: userId },
+            { appointment: { doctor: { userId } } },
+          ],
+        },
+        select: { storageKey: true },
+      }),
+      this.storage.listFiles(`avatar-${userId}-`),
+    ])
+
+    const keys = new Set([
+      ...documents.map((document) => document.storageKey),
+      ...avatarKeys,
+    ])
+
+    // Fail closed: if storage cleanup fails, keep the account so the user can
+    // retry instead of leaving inaccessible orphaned health data behind.
+    await Promise.all([...keys].map((key) => this.storage.deleteFile(key)))
+
     // Log the erasure before the row is gone (AuditLog has no FK to User).
     await this.auditLogs.createLog(
       userId,

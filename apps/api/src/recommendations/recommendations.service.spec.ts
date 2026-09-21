@@ -69,7 +69,9 @@ describe("RecommendationsService", () => {
         .mockResolvedValue(
           okResponse('["Cardiology","Internal Medicine"]'),
         ) as unknown as typeof fetch
-      const doctors = [{ id: "d1", user: { name: "Dr. A" } }]
+      const doctors = [
+        { id: "d1", pricePerVisit: 500, user: { name: "Dr. A" } },
+      ]
       prisma.doctorProfile.findMany.mockResolvedValue(doctors)
 
       const result = await service.getRecommendation("chest pain")
@@ -80,10 +82,10 @@ describe("RecommendationsService", () => {
       })
       expect(prisma.doctorProfile.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: {
+          where: expect.objectContaining({
             isApproved: true,
             specialty: { in: ["Cardiology", "Internal Medicine"] },
-          },
+          }),
         }),
       )
     })
@@ -147,7 +149,7 @@ describe("RecommendationsService", () => {
           }),
         ),
       ) as unknown as typeof fetch
-      const doctors = [{ id: "d1" }]
+      const doctors = [{ id: "d1", pricePerVisit: 500 }]
       prisma.doctorProfile.findMany.mockResolvedValue(doctors)
 
       const result = await service.checkSymptoms("runny nose")

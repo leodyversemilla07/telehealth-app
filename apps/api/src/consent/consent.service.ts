@@ -32,16 +32,51 @@ export class ConsentService {
       where: { userId, consentType },
       orderBy: { createdAt: "desc" },
     })
-    return latest?.granted ?? false
+    if (latest) return latest.granted
+
+    if (consentType === "privacy_policy") {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { privacyPolicyAcceptedAt: true },
+      })
+      return user?.privacyPolicyAcceptedAt != null
+    }
+
+    return false
   }
 
   /**
    * Get all consent logs for a user.
    */
   async getUserConsents(userId: string) {
-    return this.prisma.consentLog.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-    })
+    const [logs, user] = await Promise.all([
+      this.prisma.consentLog.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+      }),
+      this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { privacyPolicyAcceptedAt: true },
+      }),
+    ])
+
+    if (
+      user?.privacyPolicyAcceptedAt &&
+      !logs.some((log) => log.consentType === "privacy_policy")
+    ) {
+      return [
+        {
+          id: `signup-privacy-${userId}`,
+          userId,
+          consentType: "privacy_policy",
+          granted: true,
+          ipAddress: null,
+          createdAt: user.privacyPolicyAcceptedAt,
+        },
+        ...logs,
+      ]
+    }
+
+    return logs
   }
 }

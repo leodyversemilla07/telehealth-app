@@ -1,11 +1,11 @@
 import { Module } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
+import { dateTransformer } from "@workspace/shared"
 import { TRPCModule } from "nestjs-trpc"
 import { formatTrpcError } from "./error-formatter"
 import { AuthMiddleware } from "./middlewares/auth.middleware"
 import { DomainErrorMiddleware } from "./middlewares/domain-error.middleware"
 import { LoggingMiddleware } from "./middlewares/logging.middleware"
-import { PhtMiddleware } from "./middlewares/pht.middleware"
 import { RolesMiddleware } from "./middlewares/roles.middleware"
 import { ThrottleMiddleware } from "./middlewares/throttle.middleware"
 import { TrpcContext } from "./trpc.context"
@@ -23,13 +23,13 @@ import { TrpcErrorHandler } from "./trpc-error.handler"
     TRPCModule.forRoot({
       basePath: "/api/trpc",
       context: TrpcContext,
+      transformer: dateTransformer,
       errorFormatter: formatTrpcError,
       onError: TrpcErrorHandler,
       globalMiddlewares: [
         ThrottleMiddleware,
         LoggingMiddleware,
         DomainErrorMiddleware,
-        PhtMiddleware,
       ],
     }),
   ],
@@ -39,7 +39,6 @@ import { TrpcErrorHandler } from "./trpc-error.handler"
     ThrottleMiddleware,
     LoggingMiddleware,
     DomainErrorMiddleware,
-    PhtMiddleware,
     RolesMiddleware,
     AuthMiddleware,
   ],

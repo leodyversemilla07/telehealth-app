@@ -64,10 +64,7 @@ import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
 import { MedicalDocumentsCard } from "@/components/medical-documents"
 import { StatusBadge } from "@/components/status-badge"
-import {
-  useAppointment,
-  useUpdateAppointmentStatus,
-} from "@/hooks/use-appointments"
+import { useAppointment } from "@/hooks/use-appointments"
 import {
   useAppointmentConsultation,
   useCreateConsultation,
@@ -176,7 +173,6 @@ export default function DoctorConsultationDetailPage() {
     useAppointmentConsultation(appointmentId)
 
   // 2. Mutations
-  const updateStatusMutation = useUpdateAppointmentStatus()
   const joinRoomMutation = useJoinRoom()
   const endRoomMutation = useEndRoom()
   const createConsultationMutation = useCreateConsultation()
@@ -320,13 +316,9 @@ export default function DoctorConsultationDetailPage() {
     })
 
     try {
-      // 1. Transition Appointment to COMPLETED
-      await updateStatusMutation.mutateAsync({
-        id: appointmentId,
-        status: "COMPLETED",
-      })
-
-      // 2. Submit SOAP notes and prescriptions
+      // The records mutation atomically completes an IN_PROGRESS appointment
+      // and creates its chart. A LiveKit-ended appointment is already
+      // COMPLETED and is accepted as-is by the same backend transaction.
       await createConsultationMutation.mutateAsync({
         appointmentId,
         diagnosis: diagnosis.trim(),
@@ -1135,13 +1127,9 @@ you attach. Private storage, accessible only to you and your patient."
                       type="submit"
                       size="sm"
                       className="text-xs h-9 bg-primary hover:bg-primary/95 text-primary-foreground font-bold flex items-center gap-1.5 shadow-sm"
-                      disabled={
-                        createConsultationMutation.isPending ||
-                        updateStatusMutation.isPending
-                      }
+                      disabled={createConsultationMutation.isPending}
                     >
-                      {createConsultationMutation.isPending ||
-                      updateStatusMutation.isPending ? (
+                      {createConsultationMutation.isPending ? (
                         <>
                           <Spinner className="h-3.5 w-3.5" />
                           Signing & Encoding Chart...
@@ -1217,24 +1205,17 @@ you attach. Private storage, accessible only to you and your patient."
               variant="outline"
               size="sm"
               onClick={() => setShowFinalizeDialog(false)}
-              disabled={
-                createConsultationMutation.isPending ||
-                updateStatusMutation.isPending
-              }
+              disabled={createConsultationMutation.isPending}
             >
               Review Again
             </Button>
             <Button
               size="sm"
               onClick={handleConfirmFinalize}
-              disabled={
-                createConsultationMutation.isPending ||
-                updateStatusMutation.isPending
-              }
+              disabled={createConsultationMutation.isPending}
               className="font-bold"
             >
-              {createConsultationMutation.isPending ||
-              updateStatusMutation.isPending
+              {createConsultationMutation.isPending
                 ? "Signing..."
                 : "Yes, Finalize Chart"}
             </Button>

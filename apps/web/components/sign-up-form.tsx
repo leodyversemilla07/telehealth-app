@@ -29,7 +29,6 @@ import { useRouter } from "next/navigation"
 import { useActionState, useState } from "react"
 import { useFormStatus } from "react-dom"
 import { PasswordInput } from "@/components/password-input"
-import { apiClient } from "@/lib/api-client"
 import { authClient } from "@/lib/auth-client"
 import { type SignUpState, submitSignUp } from "./sign-up-submit"
 
@@ -88,7 +87,6 @@ export function SignUpForm({
           authClient.signUp.email(
             input as unknown as Parameters<typeof authClient.signUp.email>[0],
           ),
-        recordConsent: (data) => apiClient.post("/consent", data),
       })
       if (result.success)
         toast.add({ title: "Account created successfully!", type: "success" })

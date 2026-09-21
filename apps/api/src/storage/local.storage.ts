@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, unlinkSync } from "node:fs"
-import { readFile, writeFile } from "node:fs/promises"
+import { readFile, readdir, writeFile } from "node:fs/promises"
 import { extname, join } from "node:path"
 import type { StorageProvider } from "./storage.interface"
 
@@ -50,6 +50,11 @@ export class LocalStorage implements StorageProvider {
 
   async exists(key: string): Promise<boolean> {
     return existsSync(join(this.baseDir, key))
+  }
+
+  async list(prefix: string): Promise<string[]> {
+    const entries = await readdir(this.baseDir)
+    return entries.filter((entry) => entry.startsWith(prefix))
   }
 
   async read(

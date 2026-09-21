@@ -1,4 +1,4 @@
-FROM node:22-alpine AS base
+FROM node:24-alpine AS base
 
 # Install openssl and libc6-compat for Prisma & build tools
 RUN apk add --no-cache openssl libc6-compat
@@ -31,5 +31,7 @@ EXPOSE 3001
 ENV PORT=3001
 ENV NODE_ENV=production
 
-# Startup command to apply migrations, seed demo accounts, and launch the API server
-CMD ["sh", "-c", "pnpm --filter @telehealth/db exec prisma migrate deploy && pnpm seed && pnpm --filter api start"]
+# Apply migrations and launch the API. Demo seeding is deliberately excluded:
+# the seed script refuses to run in production and production data must never
+# receive the well-known development accounts.
+CMD ["sh", "-c", "pnpm --filter @telehealth/db exec prisma migrate deploy && pnpm --filter api start"]

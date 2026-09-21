@@ -28,8 +28,7 @@ import { RecordsService } from "./records.service"
  * Single boundary where a raw Prisma shape becomes the shared records DTO.
  * The procedures below return the DTOs, so the generated AppRouter types are
  * the client contract (no `as unknown as` casts at the web boundary). Dates
- * stay as `Date` — the global PhtDateInterceptor converts them to PHT
- * strings on the wire, exactly like the appointment/consultation DTOs.
+ * stay as `Date` and are preserved on the wire by the shared tRPC transformer.
  */
 function toDoctorPatientItems(
   r: Awaited<ReturnType<RecordsService["getDoctorPatients"]>>,

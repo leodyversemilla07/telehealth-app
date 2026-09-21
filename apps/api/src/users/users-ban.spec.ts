@@ -4,6 +4,7 @@ import { AuditLogsService } from "../audit-logs/audit-logs.service"
 import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
+import { StorageService } from "../storage/storage.service"
 import { UsersService } from "./users.service"
 
 type MockPrisma = {
@@ -70,6 +71,10 @@ describe("Banned user security", () => {
         {
           provide: SocketService,
           useValue: socketMockValue as unknown as SocketService,
+        },
+        {
+          provide: StorageService,
+          useValue: { listFiles: jest.fn(), deleteFile: jest.fn() },
         },
       ],
     }).compile()

@@ -171,6 +171,12 @@ export class DocumentsService {
     if (!read) {
       throw new NotFoundException("File not found in storage")
     }
+    await this.auditLogs.createLog(
+      userId,
+      "Downloaded medical document",
+      doc.patientId,
+      `Appointment: ${doc.appointmentId}; document: ${doc.id}`,
+    )
     return {
       data: read.data,
       contentType: read.contentType,

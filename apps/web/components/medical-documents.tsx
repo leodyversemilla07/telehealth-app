@@ -58,6 +58,15 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
+function formatDocumentDate(value: string | Date): string {
+  const date = value instanceof Date ? value : new Date(value)
+  return date.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
 interface MedicalDocumentsProps {
   appointmentId: string
   /** Whether the viewer may upload documents (patients + assigned doctor). */
@@ -229,11 +238,7 @@ export function MedicalDocumentsCard({
                     <p className="text-xs text-muted-foreground">
                       {TYPE_LABELS[doc.type]} &middot;{" "}
                       {formatBytes(doc.sizeBytes)} &middot;{" "}
-                      {new Date(doc.createdAt).toLocaleDateString(undefined, {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatDocumentDate(doc.createdAt)}
                     </p>
                   </div>
                   <Button

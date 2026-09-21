@@ -6,8 +6,23 @@ describe("StorageService", () => {
   let provider: jest.Mocked<StorageProvider>
 
   beforeEach(() => {
-    provider = { save: jest.fn(), delete: jest.fn(), exists: jest.fn() }
+    provider = {
+      save: jest.fn(),
+      delete: jest.fn(),
+      exists: jest.fn(),
+      list: jest.fn(),
+      read: jest.fn(),
+    }
     service = new StorageService(provider)
+  })
+
+  it("should delegate prefix listing to the provider", async () => {
+    provider.list.mockResolvedValue(["avatar-u1-1.jpg"])
+
+    await expect(service.listFiles("avatar-u1-")).resolves.toEqual([
+      "avatar-u1-1.jpg",
+    ])
+    expect(provider.list).toHaveBeenCalledWith("avatar-u1-")
   })
 
   describe("validateMimeType", () => {

@@ -45,7 +45,11 @@ interface RequestOptions extends RequestInit {
   params?: Record<string, string | number | boolean | undefined>
   /** Timeout in ms (default: 30s). Set to 0 to disable. */
   timeout?: number
-  /** Number of retries for transient failures (default: 2). Set to 0 to disable. */
+  /**
+   * Number of retries for transient failures. Defaults to 2 for idempotent
+   * GET/HEAD requests and 0 for mutations; callers retrying a mutation must
+   * provide an application-level idempotency guarantee.
+   */
   retries?: number
 }
 
@@ -77,7 +81,16 @@ async function request<TResponse>(
   path: string,
   options: RequestOptions = {},
 ): Promise<TResponse> {
-  const { params, headers, timeout = 30_000, retries = 2, ...rest } = options
+  const {
+    params,
+    headers,
+    timeout = 30_000,
+    retries: configuredRetries,
+    ...rest
+  } = options
+  const method = (rest.method ?? "GET").toUpperCase()
+  const retries =
+    configuredRetries ?? (method === "GET" || method === "HEAD" ? 2 : 0)
 
   // Append query string if params are provided
   let url = `${getApiBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`

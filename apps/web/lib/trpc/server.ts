@@ -1,5 +1,6 @@
 import "server-only"
 import { createTRPCClient, httpBatchLink } from "@trpc/client"
+import { dateTransformer } from "@workspace/shared"
 import {
   createTRPCOptionsProxy,
   type TRPCOptionsProxy,
@@ -27,6 +28,7 @@ export function getServerTrpc(): TRPCOptionsProxy<AppRouter> {
     links: [
       httpBatchLink({
         url: `${API_BASE_URL}/api/trpc`,
+        transformer: dateTransformer,
         headers: async () => {
           const cookie = (await cookies()).toString()
           return cookie ? { cookie } : {}

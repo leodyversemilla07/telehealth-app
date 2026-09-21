@@ -70,10 +70,10 @@ const SPECIALTIES = [
 interface DoctorApplication {
   specialty: string
   prcLicenseNumber: string
-  prcLicenseExpiry: string
+  prcLicenseExpiry: string | Date
   philhealthAccreditation: string | null
   pdeaS2License: string | null
-  pdeaS2Expiry: string | null
+  pdeaS2Expiry: string | Date | null
   bio: string | null
   clinicAddress: string | null
   pricePerVisit: number | string
@@ -99,18 +99,20 @@ const EMPTY_FORM = {
   pricePerVisit: "",
 }
 
+function toDateInput(value: string | Date | null): string {
+  if (!value) return ""
+  const date = value instanceof Date ? value : new Date(value)
+  return date.toISOString().split("T")[0] ?? ""
+}
+
 function applicationToForm(app: DoctorApplication) {
   return {
     specialty: app.specialty,
     prcLicenseNumber: app.prcLicenseNumber,
-    prcLicenseExpiry: app.prcLicenseExpiry
-      ? (new Date(app.prcLicenseExpiry).toISOString().split("T")[0] ?? "")
-      : "",
+    prcLicenseExpiry: toDateInput(app.prcLicenseExpiry),
     philhealthAccreditation: app.philhealthAccreditation ?? "",
     pdeaS2License: app.pdeaS2License ?? "",
-    pdeaS2Expiry: app.pdeaS2Expiry
-      ? (new Date(app.pdeaS2Expiry).toISOString().split("T")[0] ?? "")
-      : "",
+    pdeaS2Expiry: toDateInput(app.pdeaS2Expiry),
     bio: app.bio ?? "",
     clinicAddress: app.clinicAddress ?? "",
     pricePerVisit: app.pricePerVisit ? String(app.pricePerVisit) : "",
@@ -149,8 +151,9 @@ function formAsPayload(form = EMPTY_FORM) {
   }
 }
 
-function licenseDaysLeft(expiry: string): number {
-  const ms = new Date(expiry).getTime() - Date.now()
+function licenseDaysLeft(expiry: string | Date): number {
+  const date = expiry instanceof Date ? expiry : new Date(expiry)
+  const ms = date.getTime() - Date.now()
   return Math.ceil(ms / (1000 * 60 * 60 * 24))
 }
 

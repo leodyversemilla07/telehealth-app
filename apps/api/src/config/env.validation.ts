@@ -68,21 +68,27 @@ export const envSchema = z.object({
   S3_BUCKET: z.string().optional(),
 
   // ── Email (Resend SDK — required in production) ──────────────────────────
-  RESEND_API_KEY: z
-    .string()
-    .min(
-      1,
-      "RESEND_API_KEY is required for password resets and email verification",
-    )
-    .optional(),
+  RESEND_API_KEY: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z
+      .string()
+      .min(
+        1,
+        "RESEND_API_KEY is required for password resets and email verification",
+      )
+      .optional(),
+  ),
   EMAIL_FROM: z.string().optional(),
 
-  // ── LiveKit (required in production) ───────────────────────────────────────
-  LIVEKIT_URL: z
-    .string()
-    .url("LIVEKIT_URL must be a valid URL")
-    .optional()
-    .default("wss://localhost:7881"),
+  // ── LiveKit (optional; video endpoints return 403 when absent) ─────────────
+  LIVEKIT_URL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z
+      .string()
+      .url("LIVEKIT_URL must be a valid URL")
+      .optional()
+      .default("wss://localhost:7881"),
+  ),
   LIVEKIT_API_KEY: z
     .string()
     .min(1, "LIVEKIT_API_KEY is required for video consultations")
@@ -130,8 +136,6 @@ export function validate(config: Record<string, unknown>) {
   if (env.NODE_ENV === "production") {
     const missing: string[] = []
     if (!env.RESEND_API_KEY) missing.push("RESEND_API_KEY")
-    if (!env.LIVEKIT_API_KEY) missing.push("LIVEKIT_API_KEY")
-    if (!env.LIVEKIT_API_SECRET) missing.push("LIVEKIT_API_SECRET")
     if (missing.length > 0) {
       throw new Error(
         `Missing required environment variables in production: ${missing.join(", ")}`,

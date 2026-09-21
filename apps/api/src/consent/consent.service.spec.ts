@@ -8,6 +8,9 @@ type MockPrisma = {
     findFirst: jest.Mock
     findMany: jest.Mock
   }
+  user: {
+    findUnique: jest.Mock
+  }
 }
 
 function buildMock(): MockPrisma {
@@ -16,6 +19,9 @@ function buildMock(): MockPrisma {
       create: jest.fn(),
       findFirst: jest.fn(),
       findMany: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn().mockResolvedValue(null),
     },
   }
 }
@@ -91,6 +97,18 @@ describe("ConsentService", () => {
       expect(result).toBe(false)
     })
 
+    it("should use the atomic signup acceptance when no log exists", async () => {
+      const acceptedAt = new Date("2026-08-14T12:00:00.000Z")
+      prisma.consentLog.findFirst.mockResolvedValue(null)
+      prisma.user.findUnique.mockResolvedValue({
+        privacyPolicyAcceptedAt: acceptedAt,
+      })
+
+      const result = await service.hasConsented("u1", "privacy_policy")
+
+      expect(result).toBe(true)
+    })
+
     it("should return false when latest consent was denied", async () => {
       prisma.consentLog.findFirst.mockResolvedValue({
         granted: false,
@@ -127,6 +145,27 @@ describe("ConsentService", () => {
         where: { userId: "u1" },
         orderBy: { createdAt: "desc" },
       })
+    })
+
+    it("should expose signup acceptance when no privacy log exists", async () => {
+      const acceptedAt = new Date("2026-08-14T12:00:00.000Z")
+      prisma.consentLog.findMany.mockResolvedValue([])
+      prisma.user.findUnique.mockResolvedValue({
+        privacyPolicyAcceptedAt: acceptedAt,
+      })
+
+      const result = await service.getUserConsents("u1")
+
+      expect(result).toEqual([
+        {
+          id: "signup-privacy-u1",
+          userId: "u1",
+          consentType: "privacy_policy",
+          granted: true,
+          ipAddress: null,
+          createdAt: acceptedAt,
+        },
+      ])
     })
   })
 })

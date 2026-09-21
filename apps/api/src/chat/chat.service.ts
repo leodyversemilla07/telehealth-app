@@ -174,7 +174,7 @@ export class ChatService {
         SELECT DISTINCT ON (partner_id)
           m.id, m.content, m."senderId", m."receiverId", m."createdAt",
           u.name AS "senderName", u.email AS "senderEmail", u.image AS "senderImage"
-        FROM "ChatMessage" m
+        FROM "chat_messages" m
         JOIN "User" u ON u.id = m."senderId"
         CROSS JOIN LATERAL (
           SELECT CASE WHEN m."senderId" = ${userId} THEN m."receiverId" ELSE m."senderId" END AS partner_id

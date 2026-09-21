@@ -97,9 +97,8 @@ export const patientMedicalHistorySchema = z.object({
 /**
  * Full per-patient record bundle a doctor reads for one of their patients
  * (only appointments shared with that doctor). Returned by the records
- * router's `doctorPatientRecords` procedure. Dates are `z.coerce.date()` —
- * the global PhtDateInterceptor converts them to PHT strings on the wire and
- * clients read them back with the shared `toDate` helper.
+ * router's `doctorPatientRecords` procedure. Dates are `z.coerce.date()` and
+ * remain Date values across tRPC through the shared date transformer.
  */
 export const doctorPatientRecordsSchema = z.object({
   patient: z.object({

@@ -4,6 +4,7 @@ import { AuditLogsService } from "../audit-logs/audit-logs.service"
 import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
+import { StorageService } from "../storage/storage.service"
 import { UsersService } from "./users.service"
 
 type MockPrisma = {
@@ -18,6 +19,9 @@ type MockPrisma = {
     findFirst: jest.Mock
     delete: jest.Mock
     deleteMany: jest.Mock
+  }
+  medicalDocument: {
+    findMany: jest.Mock
   }
 }
 
@@ -34,6 +38,7 @@ describe("UsersService", () => {
   let prisma: MockPrisma
   let auditLogs: MockAuditLogs
   let alerts: MockAlerts
+  let storage: { deleteFile: jest.Mock; listFiles: jest.Mock }
 
   function buildPrismaMock(): MockPrisma {
     return {
@@ -49,6 +54,9 @@ describe("UsersService", () => {
         delete: jest.fn(),
         deleteMany: jest.fn(),
       },
+      medicalDocument: {
+        findMany: jest.fn(),
+      },
     }
   }
 
@@ -57,6 +65,7 @@ describe("UsersService", () => {
     const auditMock: MockAuditLogs = { createLog: jest.fn() }
     const alertsMock: MockAlerts = { createAlert: jest.fn() }
     const socketMock = { disconnectUser: jest.fn() }
+    const storageMock = { deleteFile: jest.fn(), listFiles: jest.fn() }
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -77,6 +86,10 @@ describe("UsersService", () => {
           provide: SocketService,
           useValue: socketMock as unknown as SocketService,
         },
+        {
+          provide: StorageService,
+          useValue: storageMock as unknown as StorageService,
+        },
       ],
     }).compile()
 
@@ -88,6 +101,10 @@ describe("UsersService", () => {
     alerts = module.get<SecurityAlertsService>(
       SecurityAlertsService,
     ) as unknown as MockAlerts
+    storage = module.get<StorageService>(StorageService) as unknown as {
+      deleteFile: jest.Mock
+      listFiles: jest.Mock
+    }
   })
 
   it("findById should throw when user is missing", async () => {
@@ -198,11 +215,34 @@ describe("UsersService", () => {
     )
   })
 
-  it("deleteAccount should audit-log and permanently delete the user", async () => {
+  it("deleteAccount should remove stored files, audit, and delete the user", async () => {
+    storage.listFiles.mockResolvedValue([
+      "avatar-u1-100.jpg",
+      "avatar-u1-123.png",
+    ])
+    prisma.medicalDocument.findMany.mockResolvedValue([
+      { storageKey: "medical-u1-1.pdf" },
+      { storageKey: "medical-u1-2.png" },
+    ])
     prisma.user.delete.mockResolvedValue({ id: "u1" })
 
     const result = await service.deleteAccount("u1", "u1@x.com")
 
+    expect(prisma.medicalDocument.findMany).toHaveBeenCalledWith({
+      where: {
+        OR: [
+          { patientId: "u1" },
+          { appointment: { doctor: { userId: "u1" } } },
+        ],
+      },
+      select: { storageKey: true },
+    })
+    expect(storage.listFiles).toHaveBeenCalledWith("avatar-u1-")
+    expect(storage.deleteFile).toHaveBeenCalledTimes(4)
+    expect(storage.deleteFile).toHaveBeenCalledWith("avatar-u1-100.jpg")
+    expect(storage.deleteFile).toHaveBeenCalledWith("avatar-u1-123.png")
+    expect(storage.deleteFile).toHaveBeenCalledWith("medical-u1-1.pdf")
+    expect(storage.deleteFile).toHaveBeenCalledWith("medical-u1-2.png")
     expect(auditLogs.createLog).toHaveBeenCalledWith(
       "u1",
       "Deleted own account",
@@ -213,5 +253,19 @@ describe("UsersService", () => {
     )
     expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: "u1" } })
     expect(result).toEqual({ success: true })
+  })
+
+  it("deleteAccount should keep the account when storage cleanup fails", async () => {
+    storage.listFiles.mockResolvedValue([])
+    prisma.medicalDocument.findMany.mockResolvedValue([
+      { storageKey: "medical-u1-1.pdf" },
+    ])
+    storage.deleteFile.mockRejectedValue(new Error("S3 unavailable"))
+
+    await expect(service.deleteAccount("u1", "u1@x.com")).rejects.toThrow(
+      "S3 unavailable",
+    )
+    expect(auditLogs.createLog).not.toHaveBeenCalled()
+    expect(prisma.user.delete).not.toHaveBeenCalled()
   })
 })

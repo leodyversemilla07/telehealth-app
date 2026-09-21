@@ -12,6 +12,9 @@ export interface StorageProvider {
   /** Check if a file exists. */
   exists(key: string): Promise<boolean>
 
+  /** List object keys beginning with a server-controlled prefix. */
+  list(prefix: string): Promise<string[]>
+
   /**
    * Read a file's bytes back. Returns null when the key does not exist.
    * Used to stream private (non-public) objects through the API so stored

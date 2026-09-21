@@ -24,7 +24,7 @@
     "test:cov": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./test/jest-e2e.json",
-    "trpc:generate": "nestjs-trpc generate -e src/app.module.ts -r \"**/*.router.ts\" -o src/trpc/generated",
+    "trpc:generate": "nestjs-trpc generate -e src/app.module.ts -r \"**/*.router.ts\" -o src/trpc/generated && node scripts/patch-trpc-transformer.mjs",
     "trpc:watch": "nestjs-trpc watch -e src/app.module.ts -r \"**/*.router.ts\" -o src/trpc/generated",
     "postinstall": "node scripts/chmod-trpc-binary.mjs",
     "test:e2e:db": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./test/jest-e2e-db.json"

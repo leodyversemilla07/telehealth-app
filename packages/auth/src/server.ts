@@ -10,24 +10,24 @@ import {
   validatePasswordComplexity,
 } from "./password.js"
 
+const CURRENT_PRIVACY_POLICY_VERSION = "1.0"
+
 /**
  * Best-effort trusted client IP for audit/alert attribution.
  *
  * Behind nginx the ONLY trustworthy hop is the one the proxy appends: the
- * LAST value of `x-forwarded-for` (or `x-real-ip` / `cf-connecting-ip`, which
- * the proxy/CDN sets to the real client). The FIRST `x-forwarded-for` value is
- * client-supplied and trivially spoofable, so it is never used here.
+ * LAST value of `x-forwarded-for`, which the trusted reverse proxy appends.
+ * The FIRST value and standalone client-supplied `cf-connecting-ip` /
+ * `x-real-ip` headers are not trusted.
  */
 function trustedClientIp(request?: Request | undefined): string | null {
   const headers = request?.headers
-  const cf = headers?.get("cf-connecting-ip")
-  if (cf) return cf
   const xff = headers?.get("x-forwarded-for")
   if (xff) {
     const last = xff.split(",").pop()?.trim()
     if (last) return last
   }
-  return headers?.get("x-real-ip") ?? null
+  return null
 }
 
 /**
@@ -286,6 +286,16 @@ Telehealth App`,
           type: "string",
           required: false,
         },
+        privacyPolicyAcceptedAt: {
+          type: "date",
+          required: false,
+          returned: false,
+        },
+        privacyPolicyVersion: {
+          type: "string",
+          required: false,
+          returned: false,
+        },
       },
     },
     hooks: {
@@ -300,6 +310,41 @@ Telehealth App`,
               headers: { "Content-Type": "application/json" },
             })
           }
+
+          // Email verification disables auto-sign-in, so an authenticated
+          // follow-up POST /consent cannot work at signup time. Persist the
+          // acceptance on the User row inside Better Auth's own user/account
+          // transaction instead. The client supplies only the explicit gate;
+          // the server owns the timestamp and policy version.
+          const body = ctx.body as Record<string, unknown> | undefined
+          if (body?.privacyPolicyConsent !== true) {
+            return new Response(
+              JSON.stringify({
+                message: "Privacy Policy consent is required",
+              }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              },
+            )
+          }
+          body.privacyPolicyAcceptedAt = new Date()
+          body.privacyPolicyVersion = CURRENT_PRIVACY_POLICY_VERSION
+          delete body.privacyPolicyConsent
+        }
+
+        if (
+          ctx.path === "/update-user" &&
+          (ctx.body?.privacyPolicyAcceptedAt !== undefined ||
+            ctx.body?.privacyPolicyVersion !== undefined)
+        ) {
+          return new Response(
+            JSON.stringify({ message: "Privacy acceptance is immutable" }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            },
+          )
         }
 
         // Validate password complexity on sign-up and password change

@@ -83,11 +83,11 @@ export class ReviewsService {
   async getDoctorReviews(doctorId: string, limit = 50, offset = 0) {
     const where = { doctorId }
     const [items, total, agg] = await Promise.all([
+      // Public reviews intentionally omit the patient relation. Publishing a
+      // patient's identity beside a doctor's specialty discloses a healthcare
+      // relationship and is not required to display the review itself.
       this.prisma.review.findMany({
         where,
-        include: {
-          patient: { select: { id: true, name: true, image: true } },
-        },
         orderBy: { createdAt: "desc" },
         take: limit,
         skip: offset,

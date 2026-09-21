@@ -45,9 +45,29 @@ export function stripPII(input: string): string {
     "[EMAIL REDACTED]",
   )
 
+  // Names when the user labels the value explicitly. Avoid trying to redact
+  // every pair of capitalized words: medical terms and sentence starts would
+  // create too many destructive false positives.
+  cleaned = cleaned.replace(
+    /\b((?:[Mm]y name is|[Pp]atient(?:'s)? name(?: is)?|[Nn]ame\s*:)\s*)\p{Lu}[\p{L}'-]+(?:\s+(?:\p{Lu}\.?|\p{Lu}[\p{L}'-]+)){1,3}/gu,
+    "$1[NAME REDACTED]",
+  )
+
+  // Explicitly labelled addresses.
+  cleaned = cleaned.replace(
+    /\b((?:[Hh]ome\s+|[Rr]esidential\s+)?[Aa]ddress\s*:\s*)[^\n.;]+/gu,
+    "$1[ADDRESS REDACTED]",
+  )
+
+  // Common street-address form even when it is not labelled.
+  cleaned = cleaned.replace(
+    /\b\d{1,5}\s+(?:[\p{L}\d.'-]+\s+){0,5}(?:[Ss]treet|[Ss]t\.?|[Rr]oad|[Rr]d\.?|[Aa]venue|[Aa]ve\.?|[Bb]oulevard|[Bb]lvd\.?|[Ll]ane|[Ll]n\.?|[Dd]rive|[Dd]r\.?)(?=\s|,|$)(?:,?\s+[\p{L}\d.'-]+){0,5}/gu,
+    "[ADDRESS REDACTED]",
+  )
+
   // Philippine mobile numbers: 0917... or +63...
   cleaned = cleaned.replace(
-    /(?:\+63|0)[1-9]\d{2,3}[ -]?\d{3}[ -]?\d{3,4}/g,
+    /(?:\+63[ -]?|0)9\d{2}[ -]?\d{3}[ -]?\d{4}/g,
     "[PHONE REDACTED]",
   )
 

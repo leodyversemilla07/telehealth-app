@@ -89,6 +89,45 @@ export class AppointmentsService {
     private readonly email: EmailService,
   ) {}
 
+  /**
+   * Translate the PostgreSQL active-slot exclusion constraint (and its legacy
+   * exact-slot unique index) into the stable domain error clients expect.
+   * Prisma may surface an exclusion violation as P2004 or as an underlying
+   * SQLSTATE 23P01 depending on the driver/engine version.
+   */
+  private async withSlotConflictTranslation<T>(
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    try {
+      return await operation()
+    } catch (error) {
+      const candidate = error as {
+        code?: string
+        message?: string
+        meta?: { database_error?: string; constraint?: string }
+      }
+      const detail = [
+        candidate.message,
+        candidate.meta?.database_error,
+        candidate.meta?.constraint,
+      ]
+        .filter(Boolean)
+        .join(" ")
+      const isSlotConstraint =
+        candidate.code === "P2002" ||
+        ((candidate.code === "P2004" || detail.includes("23P01")) &&
+          detail.includes("appointments_doctor_active_time_excl"))
+
+      if (isSlotConstraint) {
+        throw new ConflictException({
+          code: ERROR_CODES.SLOT_UNAVAILABLE,
+          message: "This time slot is already booked",
+        })
+      }
+      throw error
+    }
+  }
+
   private parseIsoTimeRange(startIso: string, endIso: string) {
     const start = new Date(startIso)
     const end = new Date(endIso)
@@ -212,14 +251,37 @@ export class AppointmentsService {
     }
 
     const { start, end } = this.parseIsoTimeRange(dto.startTime, dto.endTime)
+    if (start <= new Date()) {
+      throw new BadRequestException(
+        "Appointment start time must be in the future",
+      )
+    }
 
-    // Verify doctor exists and is approved
+    // Verify the doctor account is active, approved, and currently licensed.
+    // Discovery filters are not an authorization boundary: callers can submit
+    // a previously observed profile id directly, so booking must repeat every
+    // eligibility check.
     const doctor = await this.prisma.doctorProfile.findUnique({
       where: { id: dto.doctorId },
+      include: {
+        user: { select: { role: true, banned: true, banExpires: true } },
+      },
     })
     if (!doctor) throw new NotFoundException("Doctor not found")
     if (!doctor.isApproved) {
       throw new ForbiddenException("Doctor is not yet approved")
+    }
+    if (doctor.prcLicenseExpiry <= new Date()) {
+      throw new ForbiddenException({
+        code: ERROR_CODES.LICENSE_EXPIRED,
+        message: "Doctor's professional license has expired",
+      })
+    }
+    const activelyBanned =
+      doctor.user.banned &&
+      (!doctor.user.banExpires || doctor.user.banExpires > new Date())
+    if (doctor.user.role !== "DOCTOR" || activelyBanned) {
+      throw new ForbiddenException("Doctor is not available for booking")
     }
 
     // Verify schedule belongs to doctor
@@ -236,53 +298,55 @@ export class AppointmentsService {
     }
 
     // Check for double-booking and create appointment atomically
-    const appointment = await this.prisma.$transaction(async (tx) => {
-      // Re-check time-off inside transaction to prevent race conditions
-      const overlappingTimeOff = await tx.timeOff.findFirst({
-        where: {
-          scheduleId: schedule.id,
-          startDate: { lt: end },
-          endDate: { gt: start },
-        },
-      })
-      if (overlappingTimeOff) {
-        throw new ConflictException(
-          "Doctor is unavailable during the selected time window",
-        )
-      }
-
-      const overlapping = await tx.appointment.findFirst({
-        where: {
-          doctorId: dto.doctorId,
-          status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
-          startTime: { lt: end },
-          endTime: { gt: start },
-        },
-      })
-      if (overlapping) {
-        throw new ConflictException({
-          code: ERROR_CODES.SLOT_UNAVAILABLE,
-          message: "This time slot is already booked",
+    const appointment = await this.withSlotConflictTranslation(() =>
+      this.prisma.$transaction(async (tx) => {
+        // Re-check time-off inside transaction to prevent race conditions
+        const overlappingTimeOff = await tx.timeOff.findFirst({
+          where: {
+            scheduleId: schedule.id,
+            startDate: { lt: end },
+            endDate: { gt: start },
+          },
         })
-      }
+        if (overlappingTimeOff) {
+          throw new ConflictException(
+            "Doctor is unavailable during the selected time window",
+          )
+        }
 
-      return tx.appointment.create({
-        data: {
-          patientId: userId,
-          doctorId: dto.doctorId,
-          scheduleId: dto.scheduleId,
-          startTime: start,
-          endTime: end,
-          reason: dto.reason ?? null,
-          symptoms: dto.symptoms ?? null,
-          type: dto.type ?? "VIDEO",
-        },
-        include: {
-          patient: PATIENT_INCLUDE,
-          doctor: DOCTOR_INCLUDE,
-        },
-      })
-    })
+        const overlapping = await tx.appointment.findFirst({
+          where: {
+            doctorId: dto.doctorId,
+            status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
+            startTime: { lt: end },
+            endTime: { gt: start },
+          },
+        })
+        if (overlapping) {
+          throw new ConflictException({
+            code: ERROR_CODES.SLOT_UNAVAILABLE,
+            message: "This time slot is already booked",
+          })
+        }
+
+        return tx.appointment.create({
+          data: {
+            patientId: userId,
+            doctorId: dto.doctorId,
+            scheduleId: dto.scheduleId,
+            startTime: start,
+            endTime: end,
+            reason: dto.reason ?? null,
+            symptoms: dto.symptoms ?? null,
+            type: dto.type ?? "VIDEO",
+          },
+          include: {
+            patient: PATIENT_INCLUDE,
+            doctor: DOCTOR_INCLUDE,
+          },
+        })
+      }),
+    )
 
     // Audit log (best-effort, don't fail the mutation)
     try {
@@ -596,6 +660,11 @@ export class AppointmentsService {
       throw new ForbiddenException("Not your appointment")
 
     const { start, end } = this.parseIsoTimeRange(dto.startTime, dto.endTime)
+    if (start <= new Date()) {
+      throw new BadRequestException(
+        "Appointment start time must be in the future",
+      )
+    }
 
     const schedule = await this.prisma.availabilitySchedule.findUnique({
       where: { id: appt.scheduleId },
@@ -612,65 +681,67 @@ export class AppointmentsService {
     }
 
     // Check new slot availability and reschedule atomically
-    const rescheduled = await this.prisma.$transaction(async (tx) => {
-      // Re-validate status inside transaction to prevent race conditions
-      const current = await tx.appointment.findUnique({ where: { id } })
-      if (
-        !current ||
-        current.status === "COMPLETED" ||
-        current.status === "CANCELLED" ||
-        current.status === "IN_PROGRESS"
-      ) {
-        throw new ConflictException("Cannot reschedule this appointment")
-      }
+    const rescheduled = await this.withSlotConflictTranslation(() =>
+      this.prisma.$transaction(async (tx) => {
+        // Re-validate status inside transaction to prevent race conditions
+        const current = await tx.appointment.findUnique({ where: { id } })
+        if (
+          !current ||
+          current.status === "COMPLETED" ||
+          current.status === "CANCELLED" ||
+          current.status === "IN_PROGRESS"
+        ) {
+          throw new ConflictException("Cannot reschedule this appointment")
+        }
 
-      // Re-check time-off inside the transaction (like create()) so a
-      // concurrent time-off insert can't slip between the outside check and
-      // this update, leaving an appointment inside a time-off window.
-      const overlappingTimeOff = await tx.timeOff.findFirst({
-        where: {
-          scheduleId: schedule.id,
-          startDate: { lt: end },
-          endDate: { gt: start },
-        },
-      })
-      if (overlappingTimeOff) {
-        throw new ConflictException(
-          "Doctor is unavailable during the selected time window",
-        )
-      }
-
-      const conflict = await tx.appointment.findFirst({
-        where: {
-          doctorId: appt.doctorId,
-          status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
-          id: { not: id },
-          startTime: { lt: end },
-          endTime: { gt: start },
-        },
-      })
-      if (conflict) {
-        throw new ConflictException({
-          code: ERROR_CODES.SLOT_UNAVAILABLE,
-          message: "This time slot is already booked",
+        // Re-check time-off inside the transaction (like create()) so a
+        // concurrent time-off insert can't slip between the outside check and
+        // this update, leaving an appointment inside a time-off window.
+        const overlappingTimeOff = await tx.timeOff.findFirst({
+          where: {
+            scheduleId: schedule.id,
+            startDate: { lt: end },
+            endDate: { gt: start },
+          },
         })
-      }
+        if (overlappingTimeOff) {
+          throw new ConflictException(
+            "Doctor is unavailable during the selected time window",
+          )
+        }
 
-      return tx.appointment.update({
-        where: { id },
-        data: {
-          startTime: start,
-          endTime: end,
-          status: "BOOKED",
-          // New time → allow a fresh reminder for the rescheduled slot.
-          reminderSentAt: null,
-        },
-        include: {
-          patient: PATIENT_INCLUDE,
-          doctor: DOCTOR_INCLUDE,
-        },
-      })
-    })
+        const conflict = await tx.appointment.findFirst({
+          where: {
+            doctorId: appt.doctorId,
+            status: { in: ["BOOKED", "CONFIRMED", "IN_PROGRESS"] },
+            id: { not: id },
+            startTime: { lt: end },
+            endTime: { gt: start },
+          },
+        })
+        if (conflict) {
+          throw new ConflictException({
+            code: ERROR_CODES.SLOT_UNAVAILABLE,
+            message: "This time slot is already booked",
+          })
+        }
+
+        return tx.appointment.update({
+          where: { id },
+          data: {
+            startTime: start,
+            endTime: end,
+            status: "BOOKED",
+            // New time → allow a fresh reminder for the rescheduled slot.
+            reminderSentAt: null,
+          },
+          include: {
+            patient: PATIENT_INCLUDE,
+            doctor: DOCTOR_INCLUDE,
+          },
+        })
+      }),
+    )
 
     // Audit log (best-effort)
     try {

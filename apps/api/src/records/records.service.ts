@@ -39,29 +39,7 @@ export class RecordsService {
       throw new NotFoundException("Doctor profile not found")
     }
 
-    // Fetch the appointment
-    const appointment = await this.prisma.appointment.findUnique({
-      where: { id: dto.appointmentId },
-    })
-    if (!appointment) {
-      throw new NotFoundException("Appointment not found")
-    }
-
-    // Verify the appointment belongs to this doctor
-    if (appointment.doctorId !== doctorProfile.id) {
-      throw new ForbiddenException(
-        "You are not the doctor for this appointment",
-      )
-    }
-
-    // Verify the appointment is completed
-    if (appointment.status !== "COMPLETED") {
-      throw new ConflictException(
-        "Consultation notes can only be created for completed appointments",
-      )
-    }
-
-    // Build prescriptions data if provided
+    // Build prescriptions data if provided.
     const prescriptionsData = dto.prescriptions?.map((p) => ({
       medicationName: p.medicationName,
       dosage: p.dosage,
@@ -70,15 +48,34 @@ export class RecordsService {
       instructions: p.instructions ?? null,
     }))
 
-    // Preserve intake context from the appointment itself (reason/symptoms).
-    // Doctor-facing notes live in the Consultation record, and video call
-    // metadata is stored in the dedicated callMetadata column.
-    const intakeNotes = [appointment.reason, appointment.symptoms]
-      .filter((value): value is string => !!value)
-      .join(" | ")
-
-    // Check for existing consultation and create atomically
+    // Complete the appointment and persist its clinical record atomically.
+    // VideoService already completes an appointment when the room ends, while
+    // non-video flows may still be IN_PROGRESS. Supporting both states avoids
+    // a broken COMPLETED -> COMPLETED transition and, crucially, prevents a
+    // completed appointment from being committed without its medical record.
     const consultation = await this.prisma.$transaction(async (tx) => {
+      const appointment = await tx.appointment.findUnique({
+        where: { id: dto.appointmentId },
+      })
+      if (!appointment) {
+        throw new NotFoundException("Appointment not found")
+      }
+
+      if (appointment.doctorId !== doctorProfile.id) {
+        throw new ForbiddenException(
+          "You are not the doctor for this appointment",
+        )
+      }
+
+      if (
+        appointment.status !== "IN_PROGRESS" &&
+        appointment.status !== "COMPLETED"
+      ) {
+        throw new ConflictException(
+          "Consultation notes can only be created for an in-progress or completed appointment",
+        )
+      }
+
       const existing = await tx.consultation.findUnique({
         where: { appointmentId: dto.appointmentId },
       })
@@ -87,6 +84,19 @@ export class RecordsService {
           "Consultation notes already exist for this appointment",
         )
       }
+
+      if (appointment.status === "IN_PROGRESS") {
+        await tx.appointment.update({
+          where: { id: dto.appointmentId },
+          data: { status: "COMPLETED" },
+        })
+      }
+
+      // Preserve intake context from the appointment itself
+      // (reason/symptoms); clinician-authored notes remain separate.
+      const intakeNotes = [appointment.reason, appointment.symptoms]
+        .filter((value): value is string => !!value)
+        .join(" | ")
 
       return tx.consultation.create({
         data: {
@@ -108,6 +118,7 @@ export class RecordsService {
               doctorId: true,
               startTime: true,
               endTime: true,
+              status: true,
             },
           },
         },
@@ -161,6 +172,12 @@ export class RecordsService {
         },
       }),
     ])
+    await this.auditLogs.createLog(
+      patientId,
+      "Viewed own medical records",
+      patientId,
+      `Records returned: ${items.length}`,
+    )
     return { items, total, limit, offset }
   }
 
@@ -299,16 +316,11 @@ export class RecordsService {
     }
 
     // Authorization checks
-    if (role === "ADMIN") return consultation
-
     if (role === "PATIENT") {
       if (consultation.appointment.patientId !== userId) {
         throw new ForbiddenException("Not your medical record")
       }
-      return consultation
-    }
-
-    if (role === "DOCTOR") {
+    } else if (role === "DOCTOR") {
       const isAuthorized = await this.isDoctorAuthorized(
         userId,
         consultation.appointment.doctorId,
@@ -316,10 +328,17 @@ export class RecordsService {
       if (!isAuthorized) {
         throw new ForbiddenException("Not your medical record")
       }
-      return consultation
+    } else if (role !== "ADMIN") {
+      throw new ForbiddenException("Not your medical record")
     }
 
-    throw new ForbiddenException("Not your medical record")
+    await this.auditLogs.createLog(
+      userId,
+      "Viewed consultation record",
+      consultation.appointment.patientId,
+      `Appointment: ${appointmentId}; consultation: ${consultation.id}`,
+    )
+    return consultation
   }
 
   /**
@@ -365,6 +384,12 @@ export class RecordsService {
         },
       }),
     ])
+    await this.auditLogs.createLog(
+      patientId,
+      "Viewed own prescriptions",
+      patientId,
+      `Prescriptions returned: ${items.length}`,
+    )
     return { items, total, limit, offset }
   }
 
@@ -479,6 +504,13 @@ export class RecordsService {
     if (!patient) {
       throw new NotFoundException("Patient not found")
     }
+
+    await this.auditLogs.createLog(
+      doctorUserId,
+      "Viewed patient medical history",
+      patientId,
+      `Appointments returned: ${appointments.length}`,
+    )
 
     return { patient, appointments }
   }

@@ -88,6 +88,31 @@ export class S3Storage implements StorageProvider {
     }
   }
 
+  async list(prefix: string): Promise<string[]> {
+    const { ListObjectsV2Command } = await getS3()
+    const client = await this.ensureClient()
+    const keys: string[] = []
+    let continuationToken: string | undefined
+
+    do {
+      const response = await client.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        }),
+      )
+      for (const object of response.Contents ?? []) {
+        if (object.Key) keys.push(object.Key)
+      }
+      continuationToken = response.IsTruncated
+        ? response.NextContinuationToken
+        : undefined
+    } while (continuationToken)
+
+    return keys
+  }
+
   async read(
     key: string,
   ): Promise<{ data: Buffer; contentType: string } | null> {

@@ -52,7 +52,12 @@ export class RecommendationsService {
     const doctors = await this.prisma.doctorProfile.findMany({
       where: {
         isApproved: true,
+        prcLicenseExpiry: { gt: new Date() },
         specialty: { in: specialties },
+        user: {
+          role: "DOCTOR",
+          OR: [{ banned: false }, { banExpires: { lte: new Date() } }],
+        },
       },
       include: {
         user: {
@@ -65,7 +70,13 @@ export class RecommendationsService {
       },
     })
 
-    return { specialties, doctors }
+    return {
+      specialties,
+      doctors: doctors.map((doctor) => ({
+        ...doctor,
+        pricePerVisit: Number(String(doctor.pricePerVisit)) || 0,
+      })),
+    }
   }
 
   /**
@@ -99,7 +110,12 @@ export class RecommendationsService {
           const doctors = await this.prisma.doctorProfile.findMany({
             where: {
               isApproved: true,
+              prcLicenseExpiry: { gt: new Date() },
               specialty: { in: specialties },
+              user: {
+                role: "DOCTOR",
+                OR: [{ banned: false }, { banExpires: { lte: new Date() } }],
+              },
             },
             include: {
               user: {
@@ -112,7 +128,14 @@ export class RecommendationsService {
             },
           })
 
-          return { ...result, specialties, doctors }
+          return {
+            ...result,
+            specialties,
+            doctors: doctors.map((doctor) => ({
+              ...doctor,
+              pricePerVisit: Number(String(doctor.pricePerVisit)) || 0,
+            })),
+          }
         }
         this.logger.warn(
           `Model ${model} returned empty result, trying fallback`,

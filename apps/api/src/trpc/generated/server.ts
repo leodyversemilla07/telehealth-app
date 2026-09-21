@@ -9,9 +9,12 @@
  */
 
 import { initTRPC } from "@trpc/server";
+import { dateTransformer } from "@workspace/shared";
 import { z } from "zod";
 
-const t = initTRPC.create();
+// Keep the generated AppRouter's transformer metadata aligned with the
+// runtime TRPCModule configuration so clients deserialize Date values.
+const t = initTRPC.create({ transformer: dateTransformer });
 const publicProcedure = t.procedure;
 import { createAppointmentInput, appointmentIdInput, updateAppointmentStatusInput, rescheduleAppointmentInput } from "../../appointments/appointments.contracts";
 import { paginationInput } from "../../records/../trpc/contracts.util";

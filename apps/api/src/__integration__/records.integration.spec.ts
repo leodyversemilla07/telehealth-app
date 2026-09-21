@@ -32,7 +32,9 @@ describe("RecordsService (integration logic)", () => {
         findMany: jest.fn(),
       },
       prescription: { findMany: jest.fn() },
-      $transaction: jest.fn(),
+      $transaction: jest.fn(
+        async (fn: (tx: typeof prisma) => Promise<unknown>) => fn(prisma),
+      ),
     }
 
     const module: TestingModule = await Test.createTestingModule({
@@ -115,6 +117,13 @@ describe("RecordsService (integration logic)", () => {
       prisma.$transaction.mockImplementation(
         async (fn: (tx: Record<string, unknown>) => Promise<unknown>) => {
           const tx = {
+            appointment: {
+              findUnique: jest.fn().mockResolvedValue({
+                id: "apt-1",
+                doctorId: "doc-1",
+                status: "COMPLETED",
+              }),
+            },
             consultation: {
               findUnique: jest.fn().mockResolvedValue({ id: "existing" }),
             },
@@ -152,6 +161,13 @@ describe("RecordsService (integration logic)", () => {
       prisma.$transaction.mockImplementation(
         async (fn: (tx: Record<string, unknown>) => Promise<unknown>) => {
           const tx = {
+            appointment: {
+              findUnique: jest.fn().mockResolvedValue({
+                id: "apt-1",
+                doctorId: "doc-1",
+                status: "COMPLETED",
+              }),
+            },
             consultation: {
               findUnique: jest.fn().mockResolvedValue(null),
               create: jest.fn().mockResolvedValue(mockConsultation),

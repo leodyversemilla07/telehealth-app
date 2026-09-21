@@ -13,7 +13,6 @@ import { Server as SocketIOServer } from "socket.io"
 import { AppModule } from "./app.module"
 import { auth } from "./auth/auth"
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter"
-import { PhtDateInterceptor } from "./common/interceptors/pht-date.interceptor"
 import { RequestIdInterceptor } from "./common/interceptors/request-id.interceptor"
 import { Require2FaInterceptor } from "./common/interceptors/require-2fa.interceptor"
 import { authorizeUploadsKey } from "./common/middleware/uploads-gate"
@@ -34,13 +33,17 @@ export async function createApp(): Promise<CreatedApp> {
     bufferLogs: true,
   })
 
+  const expressApp = app.getHttpAdapter().getInstance()
+  // Exactly one trusted reverse-proxy hop (nginx/Next rewrite). This lets
+  // Express and Nest's REST throttler key requests by the real client instead
+  // of placing every production user in the proxy's 127.0.0.1 bucket. The
+  // public deployment must keep the API port private and expose it via nginx.
+  expressApp.set("trust proxy", 1)
+
   // Root health check endpoint (ALB health check requires this at /, not /api)
-  app
-    .getHttpAdapter()
-    .getInstance()
-    .get("/", (_req: Request, res: Response) => {
-      res.json({ status: "ok", timestamp: new Date().toISOString() })
-    })
+  expressApp.get("/", (_req: Request, res: Response) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() })
+  })
 
   // Enforce API route namespacing
   app.setGlobalPrefix("api")
@@ -157,7 +160,12 @@ export async function createApp(): Promise<CreatedApp> {
           return
         }
         res.setHeader("Content-Type", file.contentType)
-        res.setHeader("Cache-Control", "public, max-age=31536000, immutable")
+        res.setHeader(
+          "Cache-Control",
+          key.startsWith("avatar-")
+            ? "public, max-age=31536000, immutable"
+            : "private, no-store",
+        )
         res.send(file.data)
       } catch (err) {
         next(err)
@@ -177,10 +185,9 @@ export async function createApp(): Promise<CreatedApp> {
   // must have 2FA enabled before hitting admin/privileged-only REST routes.
   app.useGlobalInterceptors(new Require2FaInterceptor(app.get(Reflector)))
 
-  // ── PHT Date Interceptor ─────────────────────────────────────────────
-  // SRS §5.1 & Appendix D: "All times displayed in Philippine Standard Time (UTC+8)"
-  // Converts all Date fields in API responses to PHT-formatted strings.
-  app.useGlobalInterceptors(new PhtDateInterceptor())
+  // API timestamps remain machine-readable ISO values. PHT is a display
+  // concern handled by the web/mobile clients; tRPC preserves Date values
+  // through its shared transformer instead of changing the declared types.
 
   // Restrict CORS origins with secure credential handshakes
   const rawCorsOrigins =

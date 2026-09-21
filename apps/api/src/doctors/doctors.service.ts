@@ -213,10 +213,16 @@ export class DoctorsService {
 
     // Base: approved AND license still valid (PRC licenses expire every
     // 3 years — expired doctors must not be bookable by patients).
-    const expiryFilter = { prcLicenseExpiry: { gt: new Date() } }
+    const now = new Date()
+    const expiryFilter = { prcLicenseExpiry: { gt: now } }
+    const activeDoctorUser = {
+      role: "DOCTOR" as const,
+      OR: [{ banned: false }, { banExpires: { lte: now } }],
+    }
     const where: Record<string, unknown> = {
       isApproved: true,
       ...expiryFilter,
+      user: activeDoctorUser,
     }
 
     // Filter by specialty (case-insensitive partial match)
@@ -311,7 +317,15 @@ export class DoctorsService {
    */
   async findById(id: string) {
     const profile = await this.prisma.doctorProfile.findFirst({
-      where: { id, isApproved: true, prcLicenseExpiry: { gt: new Date() } },
+      where: {
+        id,
+        isApproved: true,
+        prcLicenseExpiry: { gt: new Date() },
+        user: {
+          role: "DOCTOR",
+          OR: [{ banned: false }, { banExpires: { lte: new Date() } }],
+        },
+      },
       include: {
         user: {
           select: PUBLIC_USER_SELECT,

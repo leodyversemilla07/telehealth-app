@@ -110,40 +110,31 @@ describe("ThrottleMiddleware", () => {
     ).resolves.toMatchObject({ ok: true })
   })
 
-  it("prefers cf-connecting-ip, then x-real-ip, then the socket address", async () => {
-    const cf = new ThrottleMiddleware()
+  it("ignores spoofable standalone proxy headers and falls back to the socket address", async () => {
+    const middleware = new ThrottleMiddleware()
     for (let i = 0; i < 30; i++) {
-      await cf.use(
+      await middleware.use(
         opts(
-          "203.0.113.1",
+          "172.17.0.2",
           {
-            "cf-connecting-ip": "198.51.100.7",
-            "x-forwarded-for": "1.1.1.1,2.2.2.2",
+            "cf-connecting-ip": `198.51.100.${i}`,
+            "x-real-ip": `100.64.0.${i}`,
           },
           "p.a",
         ),
       )
     }
     await expect(
-      cf.use(
-        opts("203.0.113.1", { "cf-connecting-ip": "198.51.100.7" }, "p.a"),
+      middleware.use(
+        opts(
+          "172.17.0.2",
+          {
+            "cf-connecting-ip": "203.0.113.99",
+            "x-real-ip": "203.0.113.100",
+          },
+          "p.a",
+        ),
       ),
-    ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" })
-
-    const real = new ThrottleMiddleware()
-    for (let i = 0; i < 30; i++) {
-      await real.use(opts(undefined, { "x-real-ip": "100.64.0.9" }, "p.b"))
-    }
-    await expect(
-      real.use(opts(undefined, { "x-real-ip": "100.64.0.9" }, "p.b")),
-    ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" })
-
-    const socket = new ThrottleMiddleware()
-    for (let i = 0; i < 30; i++) {
-      await socket.use(opts("172.17.0.2", undefined, "p.c"))
-    }
-    await expect(
-      socket.use(opts("172.17.0.2", undefined, "p.c")),
     ).rejects.toMatchObject({ code: "TOO_MANY_REQUESTS" })
   })
 

@@ -19,6 +19,20 @@ describe("env.validation", () => {
     expect(withDomain.success).toBe(true)
   })
 
+  it("treats blank optional integration values as unconfigured", () => {
+    const ok = envSchema.safeParse({
+      ...baseDev,
+      RESEND_API_KEY: "",
+      LIVEKIT_URL: "",
+    })
+
+    expect(ok.success).toBe(true)
+    if (ok.success) {
+      expect(ok.data.RESEND_API_KEY).toBeUndefined()
+      expect(ok.data.LIVEKIT_URL).toBe("wss://localhost:7881")
+    }
+  })
+
   it("accepts a fully-configured OAuth provider", () => {
     const ok = envSchema.safeParse({
       ...baseDev,

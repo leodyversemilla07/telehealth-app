@@ -123,6 +123,11 @@ export class StorageService {
     return this.provider.delete(key)
   }
 
+  /** List keys under a server-generated prefix. */
+  async listFiles(prefix: string): Promise<string[]> {
+    return this.provider.list(prefix)
+  }
+
   /** Read a file's bytes back (null when missing). */
   async read(
     key: string,

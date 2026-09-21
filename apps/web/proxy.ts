@@ -113,7 +113,7 @@ export async function proxy(request: NextRequest) {
   // https://tele-health.app:3000 and fail TLS validation. Forward the browser
   // cookie so Better Auth can read the session on the API process.
   const apiOrigin = process.env.API_URL || request.nextUrl.origin
-  let authenticated = false
+  let sessionUser: { role?: string } | null = null
   try {
     const sessionRes = await fetch(
       new URL("/api/auth/get-session", apiOrigin),
@@ -122,19 +122,44 @@ export async function proxy(request: NextRequest) {
       },
     )
     if (sessionRes.ok) {
-      const data = (await sessionRes.json()) as { user?: unknown } | null
-      authenticated = Boolean(data?.user)
+      const data = (await sessionRes.json()) as {
+        user?: { role?: string }
+      } | null
+      sessionUser = data?.user ?? null
     }
   } catch (err) {
     console.warn("Session check failed, treating as unauthenticated:", err)
-    authenticated = false
+    sessionUser = null
   }
 
-  if (!authenticated) {
+  if (!sessionUser) {
     const signInUrl = new URL("/sign-in", request.nextUrl.origin)
     // SignInForm reads `callbackUrl` and redirects back after login.
     signInUrl.searchParams.set("callbackUrl", pathname)
     return withCsp(NextResponse.redirect(signInUrl))
+  }
+
+  // Enforce role boundaries before rendering protected pages. The API remains
+  // the final authorization boundary, but doing this server-side prevents
+  // cross-role content from flashing before client layouts redirect.
+  const role = sessionUser.role
+  const allowedForArea =
+    (pathname.startsWith("/admin") && role === "ADMIN") ||
+    (pathname.startsWith("/patient") && role === "PATIENT") ||
+    (pathname.startsWith("/doctor") &&
+      (role === "DOCTOR" ||
+        (role === "PATIENT" && pathname === "/doctor/register")))
+
+  if (!allowedForArea) {
+    const destination =
+      role === "ADMIN"
+        ? "/admin/dashboard"
+        : role === "DOCTOR"
+          ? "/doctor/dashboard"
+          : "/patient/dashboard"
+    return withCsp(
+      NextResponse.redirect(new URL(destination, request.nextUrl.origin)),
+    )
   }
 
   return withCsp(NextResponse.next({ request: { headers: requestHeaders } }))

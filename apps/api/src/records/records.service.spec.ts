@@ -128,6 +128,30 @@ describe("RecordsService", () => {
     ).rejects.toThrow(ConflictException)
   })
 
+  it("createConsultation should complete an in-progress appointment atomically", async () => {
+    prisma.doctorProfile.findUnique.mockResolvedValue({ id: "doc-1" })
+    prisma.appointment.findUnique.mockResolvedValue({
+      id: "apt-1",
+      doctorId: "doc-1",
+      status: "IN_PROGRESS",
+      reason: null,
+      symptoms: null,
+    })
+    prisma.consultation.findUnique.mockResolvedValue(null)
+    prisma.consultation.create.mockResolvedValue({ id: "cons-1" })
+
+    await service.createConsultation("doctor-user", {
+      appointmentId: "apt-1",
+      diagnosis: "Migraine",
+    })
+
+    expect(prisma.appointment.update).toHaveBeenCalledWith({
+      where: { id: "apt-1" },
+      data: { status: "COMPLETED" },
+    })
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1)
+  })
+
   it("createConsultation should create consultation with intake notes and prescriptions", async () => {
     prisma.doctorProfile.findUnique.mockResolvedValue({ id: "doc-1" })
     prisma.appointment.findUnique.mockResolvedValue({

@@ -17,7 +17,7 @@ export interface MedicalDocumentDto {
   fileName: string
   mimeType: string
   sizeBytes: number
-  createdAt: string
+  createdAt: string | Date
   /** Relative URL proxied through the app server (cookie-authenticated). */
   fileUrl: string
 }

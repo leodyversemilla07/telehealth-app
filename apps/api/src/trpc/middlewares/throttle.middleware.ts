@@ -9,18 +9,15 @@ import type {
 /**
  * Extract the trusted client IP from the request, mirroring packages/auth
  * (trustedClientIp): only the hop the backend's own proxy appends is trusted.
- * Behind nginx that is the LAST x-forwarded-for value (or x-real-ip /
- * cf-connecting-ip when the proxy sets those). The FIRST x-forwarded-for value
- * is client-supplied and trivially spoofable, so it is never used.
+ * Behind nginx that is the LAST x-forwarded-for value appended by the
+ * trusted proxy. Standalone client-supplied cf-connecting-ip and x-real-ip
+ * headers are deliberately ignored.
  */
 function trustedClientIp(
   req?: { ip?: string; headers?: Record<string, unknown> } | null,
 ): string | null {
   const headers = req?.headers as Record<string, string | string[] | undefined>
   if (!headers) return req?.ip ?? null
-
-  const cf = headers["cf-connecting-ip"]
-  if (typeof cf === "string" && cf.trim() !== "") return cf.trim()
 
   const xff = headers["x-forwarded-for"]
   if (typeof xff === "string") {
@@ -30,9 +27,6 @@ function trustedClientIp(
     const last = xff[xff.length - 1]
     if (last && last.trim() !== "") return last.trim()
   }
-
-  const realIp = headers["x-real-ip"]
-  if (typeof realIp === "string" && realIp.trim() !== "") return realIp.trim()
 
   return req?.ip ?? null
 }

@@ -202,6 +202,43 @@ describe("API (e2e) — full AppModule, real Postgres", () => {
       "Notification not found",
     )
   })
+  it("lists chat conversations through the mapped chat_messages table", async () => {
+    const startTime = new Date(Date.now() + 30 * 24 * 60 * 60_000)
+    const appointment = await prisma.appointment.create({
+      data: {
+        patientId: patientUserId,
+        doctorId: doctorProfileId,
+        scheduleId,
+        startTime,
+        endTime: new Date(startTime.getTime() + 60 * 60_000),
+      },
+    })
+    await prisma.chatMessage.create({
+      data: {
+        senderId: patientUserId,
+        receiverId: doctorUserId,
+        appointmentId: appointment.id,
+        content: "Real database chat message",
+      },
+    })
+
+    const { ChatService } = await import("../src/chat/chat.service")
+    const conversations = await app.get(ChatService).getConversations(
+      patientUserId,
+    )
+
+    expect(conversations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          otherUser: expect.objectContaining({ id: doctorUserId }),
+          lastMessage: expect.objectContaining({
+            content: "Real database chat message",
+          }),
+        }),
+      ]),
+    )
+  })
+
   describe("appointment booking (real DB)", () => {
     const HOUR = 3_600_000
 
@@ -327,6 +364,36 @@ describe("API (e2e) — full AppModule, real Postgres", () => {
           ...times,
         }),
       ).rejects.toMatchObject({ code: "CONFLICT" })
+    })
+
+    it("enforces partial-overlap exclusion directly in Postgres", async () => {
+      const times = slot(20)
+      const start = new Date(times.startTime)
+      const end = new Date(times.endTime)
+
+      await prisma.appointment.create({
+        data: {
+          patientId: patientUserId,
+          doctorId: doctorProfileId,
+          scheduleId,
+          startTime: start,
+          endTime: end,
+          status: "BOOKED",
+        },
+      })
+
+      await expect(
+        prisma.appointment.create({
+          data: {
+            patientId: patientUserId,
+            doctorId: doctorProfileId,
+            scheduleId,
+            startTime: new Date(start.getTime() + 30 * 60_000),
+            endTime: new Date(end.getTime() + 30 * 60_000),
+            status: "CONFIRMED",
+          },
+        }),
+      ).rejects.toMatchObject({ code: "P2004" })
     })
 
     it("rejects a time outside the doctor's availability", async () => {

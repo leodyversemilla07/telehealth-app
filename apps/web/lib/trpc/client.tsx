@@ -2,6 +2,7 @@
 
 import { type QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
+import { dateTransformer } from "@workspace/shared"
 import { createTRPCClient, httpBatchLink, type TRPCClient } from "@trpc/client"
 import {
   createTRPCContext,
@@ -41,7 +42,9 @@ export function TRPCReactProvider({ children }: { children: ReactNode }) {
   const queryClient = getQueryClient()
   const [trpcClient] = useState(() =>
     createTRPCClient<AppRouter>({
-      links: [httpBatchLink({ url: "/api/trpc" })],
+      links: [
+        httpBatchLink({ url: "/api/trpc", transformer: dateTransformer }),
+      ],
     }),
   )
 

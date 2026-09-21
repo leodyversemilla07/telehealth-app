@@ -96,9 +96,10 @@ export class UsersController {
       throw new BadRequestException("No file provided")
     }
 
-    if (!this.storage.validateMimeType(file.mimetype)) {
+    const avatarMimeTypes = ["image/jpeg", "image/png", "image/webp"]
+    if (!avatarMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException(
-        `Invalid file type. Only ${this.storage.allowedMimeTypes.join(", ")} are allowed.`,
+        `Invalid file type for avatar. Only ${avatarMimeTypes.join(", ")} are allowed.`,
       )
     }
 

@@ -19,9 +19,17 @@ const ssl =
 // Pass a config object (connectionString) rather than a pg.Pool instance to
 // avoid a version-mismatch bug: @prisma/adapter-pg bundles its own pg version,
 // so `instanceof pg.Pool` fails and a Pool is treated as a flat config object.
+const databaseCa = process.env.DATABASE_SSL_CA?.replace(/\\n/g, "\n")
 const prismaPgAdapter = new PrismaPg({
   connectionString: databaseUrl,
-  ...(ssl ? { ssl: { rejectUnauthorized: false } } : {}),
+  ...(ssl
+    ? {
+        ssl: {
+          rejectUnauthorized: true,
+          ...(databaseCa ? { ca: databaseCa } : {}),
+        },
+      }
+    : {}),
 })
 
 /**

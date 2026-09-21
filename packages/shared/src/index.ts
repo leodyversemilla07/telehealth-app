@@ -9,6 +9,7 @@ export type * from "./types/appointment.js"
 export type * from "./types/recommendation.js"
 export type * from "./types/record.js"
 export type * from "./types/user.js"
+export * from "./utils/date-transformer.js"
 export * from "./utils/name.util.js"
 // Utils
 export * from "./utils/pht.util.js"

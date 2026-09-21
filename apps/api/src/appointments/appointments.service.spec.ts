@@ -155,8 +155,8 @@ describe("AppointmentsService", () => {
     const dto = {
       doctorId: "doctor-123",
       scheduleId: "sched-1",
-      startTime: "2026-05-30T01:00:00.000Z",
-      endTime: "2026-05-30T01:30:00.000Z",
+      startTime: "2099-05-30T01:00:00.000Z",
+      endTime: "2099-05-30T01:30:00.000Z",
       type: "VIDEO" as const,
       reason: "Headache",
     }
@@ -167,6 +167,22 @@ describe("AppointmentsService", () => {
       await expect(service.create(userId, dto)).rejects.toThrow(
         NotFoundException,
       )
+    })
+
+    it("should reject appointments in the past", async () => {
+      prisma.patientProfile.findUnique.mockResolvedValue({
+        id: "pat-1",
+        userId,
+      })
+
+      await expect(
+        service.create(userId, {
+          ...dto,
+          startTime: "2020-05-30T01:00:00.000Z",
+          endTime: "2020-05-30T01:30:00.000Z",
+        }),
+      ).rejects.toThrow(BadRequestException)
+      expect(prisma.doctorProfile.findUnique).not.toHaveBeenCalled()
     })
 
     it("should throw NotFoundException if doctor does not exist", async () => {
@@ -196,6 +212,40 @@ describe("AppointmentsService", () => {
       )
     })
 
+    it("should reject an expired doctor license", async () => {
+      prisma.patientProfile.findUnique.mockResolvedValue({
+        id: "pat-1",
+        userId,
+      })
+      prisma.doctorProfile.findUnique.mockResolvedValue({
+        id: dto.doctorId,
+        isApproved: true,
+        prcLicenseExpiry: new Date("2020-01-01T00:00:00.000Z"),
+        user: { role: "DOCTOR", banned: false, banExpires: null },
+      })
+
+      await expect(service.create(userId, dto)).rejects.toThrow(
+        ForbiddenException,
+      )
+    })
+
+    it("should reject an actively banned doctor account", async () => {
+      prisma.patientProfile.findUnique.mockResolvedValue({
+        id: "pat-1",
+        userId,
+      })
+      prisma.doctorProfile.findUnique.mockResolvedValue({
+        id: dto.doctorId,
+        isApproved: true,
+        prcLicenseExpiry: new Date("2100-01-01T00:00:00.000Z"),
+        user: { role: "DOCTOR", banned: true, banExpires: null },
+      })
+
+      await expect(service.create(userId, dto)).rejects.toThrow(
+        ForbiddenException,
+      )
+    })
+
     it("should throw NotFoundException if schedule not found for doctor", async () => {
       prisma.patientProfile.findUnique.mockResolvedValue({
         id: "pat-1",
@@ -204,6 +254,8 @@ describe("AppointmentsService", () => {
       prisma.doctorProfile.findUnique.mockResolvedValue({
         id: dto.doctorId,
         isApproved: true,
+        prcLicenseExpiry: new Date("2100-01-01T00:00:00.000Z"),
+        user: { role: "DOCTOR", banned: false, banExpires: null },
       })
       prisma.availabilitySchedule.findUnique.mockResolvedValue(null)
 
@@ -220,6 +272,8 @@ describe("AppointmentsService", () => {
       prisma.doctorProfile.findUnique.mockResolvedValue({
         id: dto.doctorId,
         isApproved: true,
+        prcLicenseExpiry: new Date("2100-01-01T00:00:00.000Z"),
+        user: { role: "DOCTOR", banned: false, banExpires: null },
       })
       prisma.availabilitySchedule.findUnique.mockResolvedValue({
         id: dto.scheduleId,
@@ -261,6 +315,8 @@ describe("AppointmentsService", () => {
       prisma.doctorProfile.findUnique.mockResolvedValue({
         id: dto.doctorId,
         isApproved: true,
+        prcLicenseExpiry: new Date("2100-01-01T00:00:00.000Z"),
+        user: { role: "DOCTOR", banned: false, banExpires: null },
       })
       prisma.availabilitySchedule.findUnique.mockResolvedValue({
         id: dto.scheduleId,
@@ -712,15 +768,15 @@ describe("AppointmentsService", () => {
       patientId: "user-1",
       scheduleId: "sched-1",
       status: "BOOKED",
-      startTime: new Date("2026-08-08T02:00:00.000Z"),
+      startTime: new Date("2099-08-08T02:00:00.000Z"),
       patient: { id: "user-1", name: "Patient" },
       doctor: { id: "doc-1", user: { id: "doc-user-1", name: "Doctor" } },
       ...overrides,
     })
 
     const dto = {
-      startTime: "2026-08-08T03:00:00.000Z",
-      endTime: "2026-08-08T03:30:00.000Z",
+      startTime: "2099-08-08T03:00:00.000Z",
+      endTime: "2099-08-08T03:30:00.000Z",
     }
 
     const satSchema = {
