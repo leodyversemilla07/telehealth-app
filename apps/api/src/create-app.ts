@@ -19,6 +19,7 @@ import { authorizeUploadsKey } from "./common/middleware/uploads-gate"
 import { setupSwagger } from "./config/swagger.config"
 import { SocketService } from "./notifications/socket.service"
 import { PrismaService } from "./prisma/prisma.service"
+import { RedisService } from "./redis/redis.service"
 import { StorageService } from "./storage/storage.service"
 
 export interface CreatedApp {
@@ -250,6 +251,10 @@ export async function createApp(): Promise<CreatedApp> {
       credentials: true,
     },
   })
+
+  // Cross-instance rooms and broadcasts require Redis. With no REDIS_URL the
+  // adapter stays in-process, which is appropriate only for a single API node.
+  await app.get(RedisService).configureSocketIo(io)
 
   io.on("connection", async (socket) => {
     const token = socket.handshake.auth?.token as string | undefined

@@ -32,6 +32,15 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      redis:
+        image: redis:8.2-alpine
+        ports:
+          - "6379:6379"
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -109,6 +118,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/telehealth?schema=public
           TELEHEALTH_E2E_DB_URL: postgresql://postgres:postgres@localhost:5432/telehealth?schema=public
+          TELEHEALTH_E2E_REDIS_URL: redis://localhost:6379
         run: |
           pnpm --filter @telehealth/db exec prisma migrate deploy
           pnpm run test:e2e:db --silent

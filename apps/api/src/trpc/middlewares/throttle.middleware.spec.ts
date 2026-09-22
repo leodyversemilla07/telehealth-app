@@ -7,7 +7,10 @@ import {
   jest,
 } from "@jest/globals"
 import type { MiddlewareOptions, MiddlewareResponse } from "nestjs-trpc"
+import { RedisService } from "../../redis/redis.service"
 import { ThrottleMiddleware } from "./throttle.middleware"
+
+const originalRedisUrl = process.env.REDIS_URL
 
 function opts(
   ip?: string,
@@ -23,15 +26,23 @@ function opts(
 
 describe("ThrottleMiddleware", () => {
   let middleware: ThrottleMiddleware
+  let rateLimits: RedisService
 
   beforeEach(() => {
     delete process.env.THROTTLE_LIMIT
-    middleware = new ThrottleMiddleware()
+    delete process.env.REDIS_URL
+    rateLimits = new RedisService()
+    middleware = new ThrottleMiddleware(rateLimits)
   })
 
   afterEach(() => {
     jest.useRealTimers()
     delete process.env.THROTTLE_LIMIT
+    if (originalRedisUrl === undefined) {
+      delete process.env.REDIS_URL
+    } else {
+      process.env.REDIS_URL = originalRedisUrl
+    }
   })
 
   it("allows requests under the limit", async () => {
@@ -82,7 +93,7 @@ describe("ThrottleMiddleware", () => {
 
   it("honors THROTTLE_LIMIT from the environment", async () => {
     process.env.THROTTLE_LIMIT = "2"
-    middleware = new ThrottleMiddleware()
+    middleware = new ThrottleMiddleware(rateLimits)
     await middleware.use(opts("1.2.3.4", {}, "p.a"))
     await middleware.use(opts("1.2.3.4", {}, "p.a"))
     await expect(
@@ -111,7 +122,7 @@ describe("ThrottleMiddleware", () => {
   })
 
   it("ignores spoofable standalone proxy headers and falls back to the socket address", async () => {
-    const middleware = new ThrottleMiddleware()
+    const middleware = new ThrottleMiddleware(rateLimits)
     for (let i = 0; i < 30; i++) {
       await middleware.use(
         opts(
@@ -141,10 +152,12 @@ describe("ThrottleMiddleware", () => {
   it("prunes expired entries so the map stays bounded", async () => {
     jest.useFakeTimers()
     jest.setSystemTime(new Date("2026-01-01T00:00:00Z"))
-    const m = new ThrottleMiddleware()
+    const m = new ThrottleMiddleware(rateLimits)
     await m.use(opts("1.1.1.1", {}, "p.a"))
     await m.use(opts("2.2.2.2", {}, "p.b"))
-    const windows = (m as unknown as { windows: Map<string, unknown> }).windows
+    const windows = (
+      rateLimits as unknown as { memoryWindows: Map<string, unknown> }
+    ).memoryWindows
     expect(windows.size).toBe(2)
 
     // 91s later: both entries expired, sweep ran during this call.

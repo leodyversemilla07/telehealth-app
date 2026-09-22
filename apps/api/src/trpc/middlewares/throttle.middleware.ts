@@ -5,6 +5,7 @@ import type {
   MiddlewareResponse,
   TRPCMiddleware,
 } from "nestjs-trpc"
+import { RedisService } from "../../redis/redis.service"
 
 /**
  * Extract the trusted client IP from the request, mirroring packages/auth
@@ -42,41 +43,29 @@ function trustedClientIp(
  * headers (e.g. Next.js server-side calls) fall back to the socket address,
  * which keeps the internal SSR path on its own shared bucket.
  *
- * In-memory store. pm2 runs the API as a single fork, so an in-process store
- * is accurate; entries are lazily pruned every SWEEP_INTERVAL_MS so the map
- * does not grow without bound over days of uptime.
+ * RedisService provides a shared store when REDIS_URL is configured and a
+ * bounded in-memory fallback for local/test single-instance deployments.
  */
 @Injectable()
 export class ThrottleMiddleware implements TRPCMiddleware {
-  private static readonly SWEEP_INTERVAL_MS = 30_000
-
-  private readonly windows = new Map<
-    string,
-    { count: number; resetAt: number }
-  >()
-  private lastSweepAt = 0
+  constructor(private readonly rateLimits: RedisService) {}
 
   async use(opts: MiddlewareOptions): Promise<MiddlewareResponse> {
     const ttlMs = 60_000
     const limit = Number(process.env.THROTTLE_LIMIT ?? 30)
-    const now = Date.now()
-
-    this.sweepIfDue(now)
-
     const ctx = opts.ctx as {
       req?: { ip?: string; headers?: Record<string, unknown> } | null
     }
     const ip = trustedClientIp(ctx.req) ?? "anonymous"
-    const key = `${ip}:${opts.path}`
+    const record = await this.rateLimits.increment(
+      `${ip}:${opts.path}`,
+      ttlMs,
+      limit,
+      ttlMs,
+      "trpc",
+    )
 
-    const entry = this.windows.get(key)
-    if (!entry || entry.resetAt <= now) {
-      this.windows.set(key, { count: 1, resetAt: now + ttlMs })
-      return opts.next()
-    }
-
-    entry.count += 1
-    if (entry.count > limit) {
+    if (record.isBlocked) {
       throw new TRPCError({
         code: "TOO_MANY_REQUESTS",
         message: "Too many requests — please try again in a minute",
@@ -84,14 +73,5 @@ export class ThrottleMiddleware implements TRPCMiddleware {
     }
 
     return opts.next()
-  }
-
-  /** Drop expired windows; bounded every 30s so a busy map stays small. */
-  private sweepIfDue(now: number): void {
-    if (now - this.lastSweepAt < ThrottleMiddleware.SWEEP_INTERVAL_MS) return
-    this.lastSweepAt = now
-    for (const [key, entry] of this.windows) {
-      if (entry.resetAt <= now) this.windows.delete(key)
-    }
   }
 }

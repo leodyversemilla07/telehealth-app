@@ -22,6 +22,7 @@ const mockHttpServer = { __mockServer: true }
 const mockGetSession = jest.fn()
 const mockStorageRead = jest.fn()
 const mockSocketSetServer = jest.fn()
+const mockRedisConfigureSocketIo = jest.fn().mockResolvedValue(false)
 const mockMedicalDocumentFindFirst = jest.fn()
 
 const mockExpress = {
@@ -59,6 +60,9 @@ const mockApp = {
   get: jest.fn((token: unknown) => {
     const name = (token as { name?: string } | undefined)?.name
     if (name === "SocketService") return { setServer: mockSocketSetServer }
+    if (name === "RedisService") {
+      return { configureSocketIo: mockRedisConfigureSocketIo }
+    }
     if (name === "StorageService") return { read: mockStorageRead }
     if (name === "PrismaService") {
       return { medicalDocument: { findFirst: mockMedicalDocumentFindFirst } }
@@ -82,6 +86,9 @@ jest.mock("./auth/auth", () => ({
 jest.mock("./config/swagger.config", () => ({ setupSwagger: jest.fn() }))
 jest.mock("./notifications/socket.service", () => ({
   SocketService: class {},
+}))
+jest.mock("./redis/redis.service", () => ({
+  RedisService: class {},
 }))
 jest.mock("./storage/storage.service", () => ({
   StorageService: class {},
@@ -458,8 +465,9 @@ describe("main bootstrap", () => {
 
   // ── socket.io wiring ─────────────────────────────────────────────────────
 
-  it("wire socket.io and shares the server with SocketService", () => {
+  it("wires Socket.IO to Redis and shares it with SocketService", () => {
     expect(typeof mockSocketHandlers.connection).toBe("function")
+    expect(mockRedisConfigureSocketIo).toHaveBeenCalled()
     expect(mockSocketSetServer).toHaveBeenCalled()
   })
 

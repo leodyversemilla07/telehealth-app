@@ -29,10 +29,20 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+      redis:
+        image: redis:8.2-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
       # Hermetic CI database (service container above). NODE_ENV is left
       # unset/development so the seed guard doesn't trip.
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/telehealth
+      REDIS_URL: redis://localhost:6379
       BETTER_AUTH_SECRET: e2e-only-better-auth-secret-0123456789abcdef
       # Real Resend key (GH secret) so the critical password-reset email
       # (appointment-lifecycle spec) actually succeeds.

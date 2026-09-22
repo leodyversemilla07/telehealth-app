@@ -91,16 +91,15 @@ aws ec2 authorize-security-group-ingress --group-id sg-0b7473a31d6033df6 \
    back to the SDK default credential chain when `AWS_ACCESS_KEY_ID` is unset,
    so no keys live on the server.
 
-4. **tRPC rate limiting is per proxy-trusted IP** — `ThrottleMiddleware` keys
-   each window on the LAST `x-forwarded-for` hop (what nginx appends), falling
-   back to `cf-connecting-ip` / `x-real-ip` / socket address. Before this,
-   every client behind nginx shared one `127.0.0.1` bucket of 30/min for the
-   whole site. Now 30 req/min per real client per procedure (override with
-   `THROTTLE_LIMIT`); expired windows are pruned every 30s. Diagnosing a burst
-   of `429`s: verify with `curl -H 'x-forwarded-for: 1.2.3.4'` against
-   `http://localhost:3001` — the 31st request must 429. Note your own NAT may
-   split traffic across several public IPs, so bursts from one workstation can
-   legitimately not trip it.
+4. **Rate limiting trusts only the proxy-appended IP** — REST and tRPC use the
+   last `x-forwarded-for` hop (what nginx appends), then the socket address;
+   standalone `cf-connecting-ip` and `x-real-ip` values are ignored. Configure
+   `REDIS_URL` to share hashed rate-limit buckets across API instances and to
+   enable the cross-instance Socket.IO adapter. Without Redis, a bounded
+   in-memory fallback is suitable only for one API process. The default is 30
+   requests/minute per client and route/procedure (`THROTTLE_LIMIT` overrides
+   it). A configured but unavailable Redis fails closed instead of silently
+   creating bypassable per-process limits.
 
 5. **Email is Resend-only; no SMTP vars** — `apps/api/src/common/utils/email.ts`
    uses the Resend SDK exclusively, and `EMAIL_PROVIDER`/`SMTP_*` are read

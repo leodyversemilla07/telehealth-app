@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common"
 import { ConfigModule } from "@nestjs/config"
 import { dateTransformer } from "@workspace/shared"
 import { TRPCModule } from "nestjs-trpc"
+import { RedisModule } from "../redis/redis.module"
 import { formatTrpcError } from "./error-formatter"
 import { AuthMiddleware } from "./middlewares/auth.middleware"
 import { DomainErrorMiddleware } from "./middlewares/domain-error.middleware"
@@ -20,6 +21,7 @@ import { TrpcErrorHandler } from "./trpc-error.handler"
 @Module({
   imports: [
     ConfigModule,
+    RedisModule,
     TRPCModule.forRoot({
       basePath: "/api/trpc",
       context: TrpcContext,

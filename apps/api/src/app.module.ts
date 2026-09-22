@@ -26,6 +26,8 @@ import { PrismaModule } from "./prisma/prisma.module"
 import { PushModule } from "./push/push.module"
 import { RecommendationsModule } from "./recommendations/recommendations.module"
 import { RecordsModule } from "./records/records.module"
+import { RedisModule } from "./redis/redis.module"
+import { RedisService } from "./redis/redis.service"
 import { RetentionModule } from "./retention/retention.module"
 import { ReviewsModule } from "./reviews/reviews.module"
 import { SecurityAlertsModule } from "./security-alerts/security-alerts.module"
@@ -45,8 +47,13 @@ import { VideoModule } from "./video/video.module"
         level: process.env.NODE_ENV !== "production" ? "debug" : "info",
       },
     }),
-    ThrottlerModule.forRoot(throttlerConfig),
     ConfigModule.forRoot({ isGlobal: true, validate }),
+    RedisModule,
+    ThrottlerModule.forRootAsync({
+      imports: [RedisModule],
+      inject: [RedisService],
+      useFactory: throttlerConfig,
+    }),
     PrismaModule,
     CommonModule,
     StorageModule,

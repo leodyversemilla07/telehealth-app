@@ -19,6 +19,21 @@ services:
     networks:
       - telehealth-network
 
+  redis:
+    image: redis:8.2-alpine
+    container_name: telehealth-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - telehealth-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - telehealth-network
+
   api:
     build:
       context: .
@@ -28,10 +43,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       NODE_ENV: production
       PORT: 3001
       DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/telehealth?schema=public"
+      REDIS_URL: "redis://redis:6379"
       BETTER_AUTH_URL: "http://localhost:${API_PORT:-3001}"
       BETTER_AUTH_SECRET: "e2e-only-better-auth-secret-0123456789abcdef"
       CORS_ORIGIN: "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:${WEB_PORT:-3002}"
@@ -67,6 +85,7 @@ services:
 
 volumes:
   telehealth-postgres-data:
+  telehealth-redis-data:
 
 networks:
   telehealth-network:

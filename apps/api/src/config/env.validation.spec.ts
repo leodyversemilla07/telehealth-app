@@ -33,6 +33,26 @@ describe("env.validation", () => {
     }
   })
 
+  it("accepts Redis URLs and normalizes a blank URL", () => {
+    const blank = envSchema.safeParse({ ...baseDev, REDIS_URL: "" })
+    expect(blank.success).toBe(true)
+    expect(blank.success && blank.data.REDIS_URL).toBeUndefined()
+
+    const configured = envSchema.safeParse({
+      ...baseDev,
+      REDIS_URL: "rediss://default:secret@redis.example.com:6380",
+    })
+    expect(configured.success).toBe(true)
+  })
+
+  it("rejects a non-Redis REDIS_URL", () => {
+    const result = envSchema.safeParse({
+      ...baseDev,
+      REDIS_URL: "https://redis.example.com",
+    })
+    expect(result.success).toBe(false)
+  })
+
   it("accepts a fully-configured OAuth provider", () => {
     const ok = envSchema.safeParse({
       ...baseDev,

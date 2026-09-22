@@ -25,6 +25,18 @@ export const envSchema = z.object({
     .positive()
     .optional()
     .describe("optional override; throttler.config.ts defaults to 30"),
+  REDIS_URL: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z
+      .string()
+      .url("REDIS_URL must be a valid URL")
+      .refine(
+        (value) =>
+          value.startsWith("redis://") || value.startsWith("rediss://"),
+        "REDIS_URL must use redis:// or rediss://",
+      )
+      .optional(),
+  ),
   CANCELLATION_WINDOW_HOURS: z.coerce
     .number()
     .int()
