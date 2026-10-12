@@ -6,7 +6,7 @@ import {
   it,
   jest,
 } from "@jest/globals"
-import { RedisService } from "./redis.service"
+import { collectScanKeys, RedisService } from "./redis.service"
 
 const originalRedisUrl = process.env.REDIS_URL
 
@@ -80,5 +80,23 @@ describe("RedisService in-memory fallback", () => {
       false,
     )
     expect(server.adapter).not.toHaveBeenCalled()
+  })
+})
+
+describe("collectScanKeys", () => {
+  async function* batches(
+    input: string[][],
+  ): AsyncGenerator<string[], void, unknown> {
+    for (const batch of input) yield batch
+  }
+
+  it("flattens scanIterator batches into a plain key list", async () => {
+    await expect(
+      collectScanKeys(batches([["a", "b"], [], ["c"]])),
+    ).resolves.toEqual(["a", "b", "c"])
+  })
+
+  it("returns an empty list when nothing matches", async () => {
+    await expect(collectScanKeys(batches([]))).resolves.toEqual([])
   })
 })

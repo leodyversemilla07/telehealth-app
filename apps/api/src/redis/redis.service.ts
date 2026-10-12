@@ -29,7 +29,6 @@ return {count, window_ttl, 0, 0}
 `
 
 type RedisClient = ReturnType<typeof createClient>
-
 type MemoryWindow = {
   count: number
   resetAt: number
@@ -41,6 +40,20 @@ type RateLimitRecord = {
   timeToExpire: number
   isBlocked: boolean
   timeToBlockExpire: number
+}
+
+/**
+ * Flatten scanIterator batches into a plain key list. The iterator yields
+ * one string[] per SCAN round — pushing batches unflattened produces
+ * nested arrays that DEL rejects. Covered by unit test; the shape is
+ * load-bearing and non-obvious.
+ */
+export async function collectScanKeys(
+  iterator: AsyncIterable<readonly string[]>,
+): Promise<string[]> {
+  const keys: string[] = []
+  for await (const batch of iterator) keys.push(...batch)
+  return keys
 }
 
 /**
@@ -185,18 +198,17 @@ export class RedisService implements ThrottlerStorage, OnApplicationShutdown {
     if (!this.redisUrl) return []
     const client = await this.getCommandClient()
     // scanIterator is exposed dynamically at runtime (Proxy-based commands)
-    // and has no static typings in redis@6, hence the narrow cast.
+    // and has no static typings on the `redis` facade, hence the narrow
+    // cast. It yields key batches (string[]), not individual keys.
     const iterator = (
       client as unknown as {
         scanIterator: (options: {
           MATCH: string
           COUNT: number
-        }) => AsyncIterable<string>
+        }) => AsyncGenerator<string[], void, unknown>
       }
     ).scanIterator({ MATCH: pattern, COUNT: 100 })
-    const keys: string[] = []
-    for await (const key of iterator) keys.push(key)
-    return keys
+    return collectScanKeys(iterator)
   }
 
   async onApplicationShutdown(): Promise<void> {
