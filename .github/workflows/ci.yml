@@ -48,7 +48,7 @@ jobs:
       - name: Setup pnpm + Node
         uses: pnpm/setup@v2
         with:
-          version: 11.4.0
+          version: 12.7.0
           runtime: node@24
           install: false
           cache: true
