@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common"
 import type { Role } from "@workspace/shared/types/user"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
-import { MemoryCache } from "../common/cache/memory-cache"
+import { CacheService } from "../common/cache/cache.service"
 import { DoctorsService } from "../doctors/doctors.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { UsersService } from "../users/users.service"
@@ -13,13 +13,12 @@ import { UsersService } from "../users/users.service"
  */
 @Injectable()
 export class AdminService {
-  private readonly cache = new MemoryCache(60_000) // 1-minute TTL for dashboard stats
-
   constructor(
     private readonly usersService: UsersService,
     private readonly doctorsService: DoctorsService,
     private readonly prisma: PrismaService,
     private readonly auditLogs: AuditLogsService,
+    private readonly cache: CacheService,
   ) {}
 
   // ─── User management (delegated) ───────────────────────────────────────
@@ -94,7 +93,7 @@ export class AdminService {
   // ─── Dashboard stats ───────────────────────────────────────────────────
 
   async getDashboardStats() {
-    const cached = this.cache.get("admin:dashboard")
+    const cached = await this.cache.get("admin:dashboard")
     if (cached) return cached
 
     const [
@@ -137,14 +136,14 @@ export class AdminService {
       recentAppointments,
     }
 
-    this.cache.set("admin:dashboard", stats)
+    await this.cache.set("admin:dashboard", stats, 60_000)
     return stats
   }
 
   // ─── Reports ──────────────────────────────────────────────────────────
 
   async getReports() {
-    const cached = this.cache.get("admin:reports")
+    const cached = await this.cache.get("admin:reports")
     if (cached) return cached
 
     const [
@@ -214,7 +213,7 @@ export class AdminService {
           : 0,
     }
 
-    this.cache.set("admin:reports", reports)
+    await this.cache.set("admin:reports", reports, 60_000)
     return reports
   }
 }

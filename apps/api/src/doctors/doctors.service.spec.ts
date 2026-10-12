@@ -1,6 +1,8 @@
 import { NotFoundException } from "@nestjs/common"
 import { Test, TestingModule } from "@nestjs/testing"
+import { CacheService } from "../common/cache/cache.service"
 import { PrismaService } from "../prisma/prisma.service"
+import { RedisService } from "../redis/redis.service"
 import { DoctorsService } from "./doctors.service"
 
 type MockPrisma = {
@@ -25,6 +27,15 @@ type MockPrisma = {
 describe("DoctorsService", () => {
   let service: DoctorsService
   let prisma: MockPrisma
+  const originalRedisUrl = process.env.REDIS_URL
+
+  afterEach(() => {
+    if (originalRedisUrl === undefined) {
+      delete process.env.REDIS_URL
+    } else {
+      process.env.REDIS_URL = originalRedisUrl
+    }
+  })
 
   function buildMock(): MockPrisma {
     return {
@@ -48,11 +59,14 @@ describe("DoctorsService", () => {
   }
 
   beforeEach(async () => {
+    delete process.env.REDIS_URL
     const prismaMock = buildMock()
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DoctorsService,
+        CacheService,
+        RedisService,
         { provide: PrismaService, useValue: prismaMock },
       ],
     }).compile()

@@ -2,9 +2,11 @@ import { ForbiddenException, NotFoundException } from "@nestjs/common"
 import { Test, type TestingModule } from "@nestjs/testing"
 import { AdminService } from "../admin/admin.service"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { CacheService } from "../common/cache/cache.service"
 import { DoctorsService } from "../doctors/doctors.service"
 import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
+import { RedisService } from "../redis/redis.service"
 import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
 import { UsersService } from "../users/users.service"
 
@@ -24,6 +26,15 @@ describe("AdminService (integration logic)", () => {
     approve: jest.Mock
     reject: jest.Mock
   }
+  const originalRedisUrl = process.env.REDIS_URL
+
+  afterEach(() => {
+    if (originalRedisUrl === undefined) {
+      delete process.env.REDIS_URL
+    } else {
+      process.env.REDIS_URL = originalRedisUrl
+    }
+  })
 
   function createMockPrisma() {
     return {
@@ -57,6 +68,7 @@ describe("AdminService (integration logic)", () => {
   }
 
   beforeEach(async () => {
+    delete process.env.REDIS_URL
     prisma = createMockPrisma()
 
     usersServiceMock = {
@@ -77,6 +89,8 @@ describe("AdminService (integration logic)", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AdminService,
+        CacheService,
+        RedisService,
         { provide: PrismaService, useValue: prisma },
         { provide: AuditLogsService, useValue: { createLog: jest.fn() } },
         {

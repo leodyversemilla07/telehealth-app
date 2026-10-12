@@ -110,8 +110,9 @@ export class RedisService implements ThrottlerStorage, OnApplicationShutdown {
     }
   }
 
-  /** Attach the Redis adapter so rooms and broadcasts span API instances. */
-  async configureSocketIo(server: Server): Promise<boolean> {
+  /** Attach the Redis adapter so rooms and broadcasts span API instances. */ async configureSocketIo(
+    server: Server,
+  ): Promise<boolean> {
     if (!this.redisUrl) {
       if (process.env.NODE_ENV === "production") {
         this.logger.warn(
@@ -143,6 +144,59 @@ export class RedisService implements ThrottlerStorage, OnApplicationShutdown {
       ])
       throw error
     }
+  }
+
+  /**
+   * Domain-cache primitives. Unlike rate limiting (fail-closed: limits must
+   * hold even when Redis is sick), caching is fail-OPEN — CacheService treats
+   * every Redis error as a miss so a cache outage degrades to DB reads
+   * instead of failed requests. These helpers therefore throw on Redis
+   * errors and return graceful no-op values only when Redis is not
+   * configured at all.
+   */
+  async cacheGet(key: string): Promise<string | null> {
+    if (!this.redisUrl) return null
+    const client = await this.getCommandClient()
+    return client.get(key)
+  }
+
+  async cacheSet(
+    key: string,
+    value: string,
+    ttlSeconds: number,
+  ): Promise<void> {
+    if (!this.redisUrl) return
+    const client = await this.getCommandClient()
+    await client.set(key, value, { EX: Math.max(1, Math.floor(ttlSeconds)) })
+  }
+
+  async cacheDelete(keys: string[]): Promise<void> {
+    if (!this.redisUrl || keys.length === 0) return
+    const client = await this.getCommandClient()
+    await client.del(keys)
+  }
+
+  /**
+   * List keys matching a glob pattern via SCAN (never KEYS — it blocks the
+   * server). Used for prefix invalidation, so callers must already scope
+   * the pattern to their own namespace.
+   */
+  async cacheScan(pattern: string): Promise<string[]> {
+    if (!this.redisUrl) return []
+    const client = await this.getCommandClient()
+    // scanIterator is exposed dynamically at runtime (Proxy-based commands)
+    // and has no static typings in redis@6, hence the narrow cast.
+    const iterator = (
+      client as unknown as {
+        scanIterator: (options: {
+          MATCH: string
+          COUNT: number
+        }) => AsyncIterable<string>
+      }
+    ).scanIterator({ MATCH: pattern, COUNT: 100 })
+    const keys: string[] = []
+    for await (const key of iterator) keys.push(key)
+    return keys
   }
 
   async onApplicationShutdown(): Promise<void> {

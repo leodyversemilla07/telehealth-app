@@ -5,7 +5,7 @@ import {
 } from "@nestjs/common"
 import type { Prisma } from "@telehealth/db"
 import type { z } from "zod"
-import { MemoryCache } from "../common/cache/memory-cache"
+import { CacheService } from "../common/cache/cache.service"
 import { PrismaService } from "../prisma/prisma.service"
 import {
   registerDoctorInput,
@@ -50,9 +50,10 @@ export type ApprovedDoctor = Omit<
 
 @Injectable()
 export class DoctorsService {
-  private readonly cache = new MemoryCache(120_000) // 2-minute TTL for doctor search
-
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cache: CacheService,
+  ) {}
 
   /**
    * Prisma returns Decimal instances for @db.Decimal fields; decimal.js-light
@@ -121,7 +122,7 @@ export class DoctorsService {
           },
         })
       })
-      this.cache.invalidatePrefix("doctors:approved")
+      await this.cache.invalidatePrefix("doctors:approved")
       return this.serializeDoctor(resubmitted)
     }
 
@@ -208,8 +209,8 @@ export class DoctorsService {
   async findApproved(filters?: SearchDoctorsDto): Promise<ApprovedDoctor[]> {
     // Cache key based on filters (cache for 2 minutes)
     const cacheKey = `doctors:approved:${JSON.stringify(filters || {})}`
-    const cached = this.cache.get(cacheKey)
-    if (cached) return cached as ApprovedDoctor[]
+    const cached = await this.cache.get<ApprovedDoctor[]>(cacheKey)
+    if (cached) return cached
 
     // Base: approved AND license still valid (PRC licenses expire every
     // 3 years — expired doctors must not be bookable by patients).
@@ -308,7 +309,7 @@ export class DoctorsService {
       }),
     )
 
-    this.cache.set(cacheKey, result)
+    await this.cache.set(cacheKey, result, 120_000)
     return result
   }
 
@@ -429,7 +430,7 @@ export class DoctorsService {
     if (!profile) {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
-    this.cache.invalidatePrefix("doctors:approved")
+    await this.cache.invalidatePrefix("doctors:approved")
     return this.serializeDoctor(
       await this.prisma.doctorProfile.update({
         where: { id },
@@ -449,7 +450,7 @@ export class DoctorsService {
     if (!profile) {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
-    this.cache.invalidatePrefix("doctors:approved")
+    await this.cache.invalidatePrefix("doctors:approved")
     return this.serializeDoctor(
       await this.prisma.doctorProfile.update({
         where: { id },
@@ -475,7 +476,7 @@ export class DoctorsService {
     if (!profile) {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
-    this.cache.invalidatePrefix("doctors:approved")
+    await this.cache.invalidatePrefix("doctors:approved")
     return this.serializeDoctor(
       await this.prisma.doctorProfile.update({
         where: { id },
@@ -494,7 +495,7 @@ export class DoctorsService {
     if (!profile) {
       throw new NotFoundException(`Doctor profile "${id}" not found`)
     }
-    this.cache.invalidatePrefix("doctors:approved")
+    await this.cache.invalidatePrefix("doctors:approved")
     return this.serializeDoctor(
       await this.prisma.doctorProfile.update({
         where: { id },

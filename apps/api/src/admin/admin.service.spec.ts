@@ -1,8 +1,10 @@
 import { NotFoundException } from "@nestjs/common"
 import { Test, TestingModule } from "@nestjs/testing"
 import { AuditLogsService } from "../audit-logs/audit-logs.service"
+import { CacheService } from "../common/cache/cache.service"
 import { DoctorsService } from "../doctors/doctors.service"
 import { PrismaService } from "../prisma/prisma.service"
+import { RedisService } from "../redis/redis.service"
 import { UsersService } from "../users/users.service"
 import { AdminService } from "./admin.service"
 
@@ -32,8 +34,18 @@ describe("AdminService", () => {
     doctorProfile: { count: jest.Mock }
     appointment: { count: jest.Mock; findMany: jest.Mock }
   }
+  const originalRedisUrl = process.env.REDIS_URL
+
+  afterEach(() => {
+    if (originalRedisUrl === undefined) {
+      delete process.env.REDIS_URL
+    } else {
+      process.env.REDIS_URL = originalRedisUrl
+    }
+  })
 
   beforeEach(async () => {
+    delete process.env.REDIS_URL
     const usersMock: MockUsersService = {
       findAll: jest.fn(),
       findById: jest.fn(),
@@ -65,6 +77,8 @@ describe("AdminService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AdminService,
+        CacheService,
+        RedisService,
         { provide: UsersService, useValue: usersMock },
         { provide: DoctorsService, useValue: doctorsMock },
         { provide: PrismaService, useValue: prismaMock },
