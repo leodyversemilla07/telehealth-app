@@ -12,7 +12,9 @@ packages:
 #    fixes land in 7.29.0, which is inside jsdom's ^7.25.0 range. The scoped
 #    override forces the in-range patched version (8.x would break jsdom:
 #    it needs the removed undici/lib/handler/wrap-handler.js).
-#  - fast-uri: ajv resolves a vulnerable 3.1.x; pin the patched 3.x release.
+#  - fast-uri: ajv@8.18.0 (NestJS CLI tooling) pins 3.1.2, which is below
+#    the advisory fix (>=3.1.6); 3.1.6 is the patched 3.x (4.x is a forced
+#    major we don't need).
 #  - multer, mysql2, and qs: framework/auth transitive ranges currently
 #    resolve vulnerable releases; force the advisory's patched versions.
 #  - js-yaml: keep each transitive consumer on its existing major while
@@ -43,6 +45,7 @@ overrides:
   deepmerge-ts: 8.0.2
 allowBuilds:
   '@nestjs/core': true
+  '@parcel/watcher': true
   '@prisma/engines': true
   '@scarf/scarf': true
   core-js-pure: true

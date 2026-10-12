@@ -44,6 +44,9 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/telehealth
       REDIS_URL: redis://localhost:6379
       BETTER_AUTH_SECRET: e2e-only-better-auth-secret-0123456789abcdef
+      # Keep the smoke suite pointed at the CI-managed local servers.
+      API_URL: http://localhost:3001
+      WEB_URL: http://localhost:3000
       # Real Resend key (GH secret) so the critical password-reset email
       # (appointment-lifecycle spec) actually succeeds.
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}

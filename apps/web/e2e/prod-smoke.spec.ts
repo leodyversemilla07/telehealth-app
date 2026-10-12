@@ -11,6 +11,8 @@ import { expect, test } from "@playwright/test"
  *   WEB_URL=https://tele-health.app API_URL=https://api.tele-health.app \
  *     pnpm exec playwright test e2e/prod-smoke.spec.ts
  *
+ * Defaults to the local servers in playwright.config for CI. Set both URLs
+ * explicitly when checking production.
  * The playwright.config webServer entries reuse the live URLs because they
  * already respond 200 (reuseExistingServer is enabled outside CI).
  */

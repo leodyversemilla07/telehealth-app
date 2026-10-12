@@ -15,11 +15,11 @@ echo "=== [2/7] system packages ==="
 apt-get update -y
 apt-get install -y curl git ca-certificates nginx unzip
 
-echo "=== [3/7] Node.js 22 + pnpm 11 + pm2 ==="
-curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+echo "=== [3/7] Node.js 24 + pnpm 12 + pm2 ==="
+curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
 apt-get install -y nodejs
 corepack enable || true
-corepack prepare pnpm@11.4.0 --activate || npm i -g pnpm@11.4.0
+corepack prepare pnpm@12.7.0 --activate || npm i -g pnpm@12.7.0
 npm i -g pm2
 
 node -v && pnpm -v && pm2 -v
