@@ -25,12 +25,12 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
-    "@turbo/gen": "^2.11.7",
+    "@turbo/gen": "^2.11.8",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@workspace/typescript-config": "workspace:*",
-    "shadcn": "^4.21.4",
+    "shadcn": "^4.21.5",
     "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3"
   },
