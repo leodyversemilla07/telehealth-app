@@ -2,13 +2,13 @@
 
 ## Telehealth Application — WC Launchpad Builder Round
 
-| Field | Details |
-|---|---|
-| **Project Name** | Telehealth App |
-| **Version** | 1.0 |
-| **Date** | 2026-05-30 |
-| **Status** | Final — Submitted for WC Launchpad Builder Round |
-| **Deadline** | 11:59 PM, May 30, 2026 |
+| Field            | Details                                          |
+| ---------------- | ------------------------------------------------ |
+| **Project Name** | Telehealth App                                   |
+| **Version**      | 1.0                                              |
+| **Date**         | 2026-05-30                                       |
+| **Status**       | Final — Submitted for WC Launchpad Builder Round |
+| **Deadline**     | 11:59 PM, May 30, 2026                           |
 
 ---
 
@@ -67,57 +67,57 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 
 ### 1.2 Product Scope
 
-| Feature | Description | Status |
-|---|---|---|
-| Patient Account | Register using email and password | ✅ Implemented |
-| Patient Profile | Name, birthday, weight, height, profile picture, contact details, basic medical history | ✅ Implemented |
-| Doctor Discovery | Browse doctors, view availability, filter by specialization | ✅ Implemented |
-| AI Recommendation | AI recommends doctors based on patient symptoms/needs via NVIDIA NIM | ✅ Implemented |
-| Appointment Booking | Book, reschedule, cancel consultations online | ✅ Implemented |
-| Real-time Notifications | Push notifications for booked, upcoming, and updated appointments | ✅ Implemented |
-| Consultation Session | Join video call for virtual consultation (LiveKit) | ✅ Implemented (requires LIVEKIT_* credentials) |
-| Appointment History | View past consultations and records | ✅ Implemented |
-| Medical Records | View basic medical records and prescriptions | ✅ Implemented |
-| Doctor Account | Register using email and password | ✅ Implemented |
-| Doctor Profile | Add profile details, bio, and specialization | ✅ Implemented |
-| Schedule Management | Manage consultation schedules, restrict unavailable time slots | ✅ Implemented |
-| Consultation Notes | Add medical notes and/or prescriptions after appointments | ✅ Implemented |
-| In-app Chat | Secure real-time messaging between patient and doctor | ✅ Implemented |
-| Doctor Reviews | Rate and review doctors after consultations | ✅ Implemented |
-| Admin Dashboard | Manage users, approve doctors, view audit logs | ✅ Implemented |
-| Privacy Consent at Sign-up | Explicit consent checkbox + ConsentLog on registration (F-AUTH-07) | ✅ Implemented |
-| Account Deletion | DELETE /api/users/me + Delete Account UI | ✅ Implemented |
-| Server-side Route Guard | Next.js 16 proxy.ts session check on protected areas | ✅ Implemented |
-| Standardized Error Codes | SRS Appendix C codes in every error response (NFR-REL-03) | ✅ Implemented |
+| Feature                    | Description                                                                             | Status                                          |
+| -------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Patient Account            | Register using email and password                                                       | ✅ Implemented                                  |
+| Patient Profile            | Name, birthday, weight, height, profile picture, contact details, basic medical history | ✅ Implemented                                  |
+| Doctor Discovery           | Browse doctors, view availability, filter by specialization                             | ✅ Implemented                                  |
+| AI Recommendation          | AI recommends doctors based on patient symptoms/needs via NVIDIA NIM                    | ✅ Implemented                                  |
+| Appointment Booking        | Book, reschedule, cancel consultations online                                           | ✅ Implemented                                  |
+| Real-time Notifications    | Push notifications for booked, upcoming, and updated appointments                       | ✅ Implemented                                  |
+| Consultation Session       | Join video call for virtual consultation (LiveKit)                                      | ✅ Implemented (requires LIVEKIT_* credentials) |
+| Appointment History        | View past consultations and records                                                     | ✅ Implemented                                  |
+| Medical Records            | View basic medical records and prescriptions                                            | ✅ Implemented                                  |
+| Doctor Account             | Register using email and password                                                       | ✅ Implemented                                  |
+| Doctor Profile             | Add profile details, bio, and specialization                                            | ✅ Implemented                                  |
+| Schedule Management        | Manage consultation schedules, restrict unavailable time slots                          | ✅ Implemented                                  |
+| Consultation Notes         | Add medical notes and/or prescriptions after appointments                               | ✅ Implemented                                  |
+| In-app Chat                | Secure real-time messaging between patient and doctor                                   | ✅ Implemented                                  |
+| Doctor Reviews             | Rate and review doctors after consultations                                             | ✅ Implemented                                  |
+| Admin Dashboard            | Manage users, approve doctors, view audit logs                                          | ✅ Implemented                                  |
+| Privacy Consent at Sign-up | Explicit consent checkbox + ConsentLog on registration (F-AUTH-07)                      | ✅ Implemented                                  |
+| Account Deletion           | DELETE /api/users/me + Delete Account UI                                                | ✅ Implemented                                  |
+| Server-side Route Guard    | Next.js 16 proxy.ts session check on protected areas                                    | ✅ Implemented                                  |
+| Standardized Error Codes   | SRS Appendix C codes in every error response (NFR-REL-03)                               | ✅ Implemented                                  |
 
 ### 1.3 Definitions, Acronyms, and Abbreviations
 
-| Term | Definition |
-|---|---|
-| **Patient** | End-user who books and attends consultations |
-| **Doctor** | Medical professional who manages schedules, consultations, prescriptions, and notes |
-| **Admin** | System administrator managing the platform |
-| **PRC** | Professional Regulation Commission — issues and regulates professional licenses |
-| **PDEA** | Philippine Drug Enforcement Agency — regulates controlled substances |
-| **PhilHealth** | Philippine Health Insurance Corporation |
-| **S2 License** | PDEA license required to prescribe controlled substances |
-| **eRx** | Electronic Prescription |
-| **EHR** | Electronic Health Record |
-| **OTP** | One-Time Password |
-| **RBAC** | Role-Based Access Control |
-| **GCash** | Leading mobile wallet in the Philippines |
-| **Maya** | Mobile wallet / digital bank (formerly PayMaya) |
-| **PHP** | Philippine Peso |
-| **PHT** | Philippine Time (UTC+8) |
+| Term           | Definition                                                                          |
+| -------------- | ----------------------------------------------------------------------------------- |
+| **Patient**    | End-user who books and attends consultations                                        |
+| **Doctor**     | Medical professional who manages schedules, consultations, prescriptions, and notes |
+| **Admin**      | System administrator managing the platform                                          |
+| **PRC**        | Professional Regulation Commission — issues and regulates professional licenses     |
+| **PDEA**       | Philippine Drug Enforcement Agency — regulates controlled substances                |
+| **PhilHealth** | Philippine Health Insurance Corporation                                             |
+| **S2 License** | PDEA license required to prescribe controlled substances                            |
+| **eRx**        | Electronic Prescription                                                             |
+| **EHR**        | Electronic Health Record                                                            |
+| **OTP**        | One-Time Password                                                                   |
+| **RBAC**       | Role-Based Access Control                                                           |
+| **GCash**      | Leading mobile wallet in the Philippines                                            |
+| **Maya**       | Mobile wallet / digital bank (formerly PayMaya)                                     |
+| **PHP**        | Philippine Peso                                                                     |
+| **PHT**        | Philippine Time (UTC+8)                                                             |
 
 ### 1.4 References
 
-| Reference | Source |
-|---|---|
-| PRC Online Services | https://www.prc.gov.ph |
+| Reference                 | Source                      |
+| ------------------------- | --------------------------- |
+| PRC Online Services       | https://www.prc.gov.ph      |
 | Better Auth Documentation | https://www.better-auth.com |
-| Next.js Documentation | https://nextjs.org/docs |
-| NestJS Documentation | https://docs.nestjs.com |
+| Next.js Documentation     | https://nextjs.org/docs     |
+| NestJS Documentation      | https://docs.nestjs.com     |
 
 ---
 
@@ -126,7 +126,6 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 ### 2.1 Product Perspective
 
 The Telehealth Application is a web-based platform connecting patients with licensed Philippine healthcare providers through video consultations. It is built with a monorepo architecture using:
-
 - **Frontend**: Next.js 16 + React 19 + Tailwind CSS v4 + Base UI (`apps/web`)
 - **Backend**: NestJS 11 REST API (`apps/api`)
 - **Database**: PostgreSQL 16 via Prisma ORM with `@prisma/adapter-pg`
@@ -140,7 +139,6 @@ The Telehealth Application is a web-based platform connecting patients with lice
 ### 2.2 Product Functions
 
 The system supports the following high-level functions:
-
 1. **User Registration and Authentication**
    - Patient and Doctor registration with email/password
    - Role-based access control (Patient, Doctor)
@@ -180,33 +178,33 @@ The system supports the following high-level functions:
 
 #### 2.3.1 Patient
 
-| Attribute | Description |
-|---|---|
-| Technical proficiency | Low to moderate; many first-time telehealth users |
-| Primary goal | Obtain convenient, affordable healthcare without visiting a clinic |
-| Devices | Smartphone (mobile web) primarily; desktop secondary |
+| Attribute             | Description                                                              |
+| --------------------- | ------------------------------------------------------------------------ |
+| Technical proficiency | Low to moderate; many first-time telehealth users                        |
+| Primary goal          | Obtain convenient, affordable healthcare without visiting a clinic       |
+| Devices               | Smartphone (mobile web) primarily; desktop secondary                     |
 | Internet connectivity | Metro Manila/urban — stable 4G/5G; Provincial/rural — intermittent 3G/4G |
-| Frequency of use | Occasional (once per episode of care) |
-| Language preference | Filipino, Taglish, or English |
+| Frequency of use      | Occasional (once per episode of care)                                    |
+| Language preference   | Filipino, Taglish, or English                                            |
 
 #### 2.3.2 Doctor
 
-| Attribute | Description |
-|---|---|
-| Typical providers | General practitioners, internists, pediatricians, OB-GYNs, psychiatrists, dermatologists |
-| Technical proficiency | Moderate |
-| Primary goal | Efficiently see patients, document visits |
-| Devices | Desktop primarily (may use tablet for notes) |
-| Frequency of use | Daily during clinic hours |
-| Regulatory requirements | Must maintain active PRC license |
+| Attribute               | Description                                                                              |
+| ----------------------- | ---------------------------------------------------------------------------------------- |
+| Typical providers       | General practitioners, internists, pediatricians, OB-GYNs, psychiatrists, dermatologists |
+| Technical proficiency   | Moderate                                                                                 |
+| Primary goal            | Efficiently see patients, document visits                                                |
+| Devices                 | Desktop primarily (may use tablet for notes)                                             |
+| Frequency of use        | Daily during clinic hours                                                                |
+| Regulatory requirements | Must maintain active PRC license                                                         |
 
 #### 2.3.3 Admin
 
-| Attribute | Description |
-|---|---|
-| Technical proficiency | High |
-| Primary goal | Manage users, verify doctor credentials, monitor operations |
-| Devices | Desktop |
+| Attribute             | Description                                                 |
+| --------------------- | ----------------------------------------------------------- |
+| Technical proficiency | High                                                        |
+| Primary goal          | Manage users, verify doctor credentials, monitor operations |
+| Devices               | Desktop                                                     |
 
 ### 2.4 Constraints
 
@@ -249,8 +247,8 @@ The system supports the following high-level functions:
 
 #### Functional Requirements
 
-| ID | Requirement | Verification |
-|---|---|---|
+| ID        | Requirement                                                                                                                                      | Verification                                                     |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
 | F-AUTH-01 | The system shall allow users to register as a Patient or Doctor using email and password (minimum 8 characters, must include letter and number). | Test: Registration form submits successfully, user created in DB |
 
 | F-AUTH-03 | The system shall enforce role-based access control: Patients access only patient routes; Doctors access only doctor routes; Admins access admin dashboard. | Test: Role mismatch returns 403 |
@@ -272,12 +270,12 @@ The system supports the following high-level functions:
 
 #### Functional Requirements
 
-| ID | Requirement | Verification |
-|---|---|---|
-| F-PATIENT-01 | The system shall allow Patients to input personal information: name, birthday, weight, height, profile picture, contact details. | Test: Profile fields save and persist |
-| F-PATIENT-02 | The system shall allow Patients to add basic medical history (allergies, chronic conditions, current medications). | Test: Medical history saved and displayed |
-| F-PATIENT-03 | The system shall display a patient profile view with all personal information and medical history. | Test: Profile page renders correctly |
-| F-PATIENT-04 | The system shall allow Patients to update their profile information at any time. | Test: Updates persist after page refresh |
+| ID           | Requirement                                                                                                                      | Verification                              |
+| ------------ | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| F-PATIENT-01 | The system shall allow Patients to input personal information: name, birthday, weight, height, profile picture, contact details. | Test: Profile fields save and persist     |
+| F-PATIENT-02 | The system shall allow Patients to add basic medical history (allergies, chronic conditions, current medications).               | Test: Medical history saved and displayed |
+| F-PATIENT-03 | The system shall display a patient profile view with all personal information and medical history.                               | Test: Profile page renders correctly      |
+| F-PATIENT-04 | The system shall allow Patients to update their profile information at any time.                                                 | Test: Updates persist after page refresh  |
 
 
 ### 3.3 Doctor Profile Management
@@ -290,12 +288,12 @@ The system supports the following high-level functions:
 
 #### Functional Requirements
 
-| ID | Requirement | Verification |
-|---|---|---|
-| F-DOCTOR-01 | The system shall allow Doctors to register with email and password. | Test: Doctor account created with default PENDING status |
-| F-DOCTOR-02 | The system shall allow Doctors to add profile details: bio, specialization, PRC license number, profile picture. | Test: Profile details persist |
-| F-DOCTOR-03 | The system shall display a doctor's public profile with credentials and specialization. | Test: Public profile visible to unauthenticated users |
-| F-DOCTOR-04 | The system shall prevent unapproved Doctors from being listed publicly or accepting appointments. | Test: Pending doctor not visible in search results |
+| ID          | Requirement                                                                                                      | Verification                                             |
+| ----------- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| F-DOCTOR-01 | The system shall allow Doctors to register with email and password.                                              | Test: Doctor account created with default PENDING status |
+| F-DOCTOR-02 | The system shall allow Doctors to add profile details: bio, specialization, PRC license number, profile picture. | Test: Profile details persist                            |
+| F-DOCTOR-03 | The system shall display a doctor's public profile with credentials and specialization.                          | Test: Public profile visible to unauthenticated users    |
+| F-DOCTOR-04 | The system shall prevent unapproved Doctors from being listed publicly or accepting appointments.                | Test: Pending doctor not visible in search results       |
 
 ### 3.4 Doctor Discovery and AI Recommendation
 
@@ -307,13 +305,13 @@ The system supports the following high-level functions:
 
 #### Functional Requirements
 
-| ID | Requirement | Verification |
-|---|---|---|
-| F-DISCOVERY-01 | The system shall allow Patients to browse all approved doctors and view their availability. | Test: Approved doctors listed with schedules |
-| F-DISCOVERY-02 | The system shall allow Patients to filter doctors by specialization (e.g., Cardiology, Pediatrics, Dermatology). | Test: Filter returns matching results |
-| F-DISCOVERY-03 | The system shall allow Patients to search doctors by name or specialty. | Test: Search returns matching doctors |
+| ID             | Requirement                                                                                                                                                                                                                  | Verification                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| F-DISCOVERY-01 | The system shall allow Patients to browse all approved doctors and view their availability.                                                                                                                                  | Test: Approved doctors listed with schedules     |
+| F-DISCOVERY-02 | The system shall allow Patients to filter doctors by specialization (e.g., Cardiology, Pediatrics, Dermatology).                                                                                                             | Test: Filter returns matching results            |
+| F-DISCOVERY-03 | The system shall allow Patients to search doctors by name or specialty.                                                                                                                                                      | Test: Search returns matching doctors            |
 | F-DISCOVERY-04 | The system shall provide an AI-powered recommendation feature that suggests doctors based on patient-described symptoms or healthcare needs, using NVIDIA NIM (Nemotron-3-Super-120B-A12B) for symptom-to-specialty mapping. | Test: AI recommendation returns relevant doctors |
-| F-DISCOVERY-05 | The system shall display doctor profiles with: name, specialty, bio, PRC credentials, price per visit, and available time slots. | Test: All fields render on profile page |
+| F-DISCOVERY-05 | The system shall display doctor profiles with: name, specialty, bio, PRC credentials, price per visit, and available time slots.                                                                                             | Test: All fields render on profile page          |
 
 ### 3.5 Appointment Booking
 
@@ -325,17 +323,17 @@ The system supports the following high-level functions:
 
 #### Functional Requirements
 
-| ID | Requirement | Verification |
-|---|---|---|
-| F-APPT-01 | The system shall allow Doctors to set recurring weekly availability with configurable time slots (15, 30, or 60 minutes). | Test: Availability saved, slots generated |
-| F-APPT-02 | The system shall allow Doctors to block specific dates/times for personal time or admin work. | Test: Blocked slots not visible to patients |
-| F-APPT-03 | The system shall allow Patients to book an appointment by selecting a Doctor, slot, and providing reason for visit. | Test: Appointment created, confirmation displayed |
-| F-APPT-04 | The system shall prevent double-booking by locking the slot during the booking transaction. | Test: Concurrent booking attempts — one succeeds, one fails |
-| F-APPT-05 | The system shall allow Patients to cancel an appointment. | Test: Cancelled appointment status updated |
-| F-APPT-06 | The system shall allow Patients to reschedule an appointment to another available slot. | Test: Original slot freed, new slot booked |
-| F-APPT-07 | The system shall allow Doctors to mark an appointment as: booked, confirmed, in_progress, completed, or cancelled. | Test: Status transitions follow valid state machine |
-| F-APPT-08 | The system shall display an appointment history timeline for both Patient and Doctor. | Test: History page shows past and future appointments |
-| F-APPT-09 | The system shall operate entirely in Philippine Time (PHT, UTC+8). | Test: All times displayed in PHT |
+| ID        | Requirement                                                                                                               | Verification                                                |
+| --------- | ------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| F-APPT-01 | The system shall allow Doctors to set recurring weekly availability with configurable time slots (15, 30, or 60 minutes). | Test: Availability saved, slots generated                   |
+| F-APPT-02 | The system shall allow Doctors to block specific dates/times for personal time or admin work.                             | Test: Blocked slots not visible to patients                 |
+| F-APPT-03 | The system shall allow Patients to book an appointment by selecting a Doctor, slot, and providing reason for visit.       | Test: Appointment created, confirmation displayed           |
+| F-APPT-04 | The system shall prevent double-booking by locking the slot during the booking transaction.                               | Test: Concurrent booking attempts — one succeeds, one fails |
+| F-APPT-05 | The system shall allow Patients to cancel an appointment.                                                                 | Test: Cancelled appointment status updated                  |
+| F-APPT-06 | The system shall allow Patients to reschedule an appointment to another available slot.                                   | Test: Original slot freed, new slot booked                  |
+| F-APPT-07 | The system shall allow Doctors to mark an appointment as: booked, confirmed, in_progress, completed, or cancelled.        | Test: Status transitions follow valid state machine         |
+| F-APPT-08 | The system shall display an appointment history timeline for both Patient and Doctor.                                     | Test: History page shows past and future appointments       |
+| F-APPT-09 | The system shall operate entirely in Philippine Time (PHT, UTC+8).                                                        | Test: All times displayed in PHT                            |
 
 #### State Machine
 
@@ -357,14 +355,14 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 #### Functional Requirements
 
-| ID | Requirement | Verification |
-|---|---|---|
-| F-CONSULT-01 | The system shall generate a unique video room for each appointment. | Test: Room created at appointment start time |
-| F-CONSULT-02 | The system shall allow the Patient to join the video room at the appointment start time. | Test: Join button activates at scheduled time |
-| F-CONSULT-03 | The system shall allow the Doctor to admit the Patient into the call. | Test: Patient's screen transitions to active call |
-| F-CONSULT-04 | The system shall provide controls for: mute/unmute, camera on/off, and end call on both sides. | Test: Each control functions independently |
-| F-CONSULT-05 | The system shall redirect both parties to a post-visit screen when the call ends. | Test: After end call, users see respective post-visit pages |
-| F-CONSULT-06 | The system shall store call metadata (duration, participants, timestamps) for records. | Test: Call record created in DB |
+| ID           | Requirement                                                                                    | Verification                                                |
+| ------------ | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| F-CONSULT-01 | The system shall generate a unique video room for each appointment.                            | Test: Room created at appointment start time                |
+| F-CONSULT-02 | The system shall allow the Patient to join the video room at the appointment start time.       | Test: Join button activates at scheduled time               |
+| F-CONSULT-03 | The system shall allow the Doctor to admit the Patient into the call.                          | Test: Patient's screen transitions to active call           |
+| F-CONSULT-04 | The system shall provide controls for: mute/unmute, camera on/off, and end call on both sides. | Test: Each control functions independently                  |
+| F-CONSULT-05 | The system shall redirect both parties to a post-visit screen when the call ends.              | Test: After end call, users see respective post-visit pages |
+| F-CONSULT-06 | The system shall store call metadata (duration, participants, timestamps) for records.         | Test: Call record created in DB                             |
 
 ### 3.7 Medical Records & Prescriptions
 
@@ -376,12 +374,12 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 #### Functional Requirements
 
-| ID | Requirement | Verification |
-|---|---|---|
-| F-RECORDS-01 | The system shall allow Doctors to add consultation notes after each appointment. | Test: Notes saved and linked to appointment |
+| ID           | Requirement                                                                                                      | Verification                                    |
+| ------------ | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| F-RECORDS-01 | The system shall allow Doctors to add consultation notes after each appointment.                                 | Test: Notes saved and linked to appointment     |
 | F-RECORDS-02 | The system shall allow Doctors to write electronic prescriptions with medication name, dosage, and instructions. | Test: Prescription saved and visible to patient |
-| F-RECORDS-03 | The system shall allow Patients to view their basic medical records and prescriptions from past consultations. | Test: Patient sees records list |
-| F-RECORDS-04 | The system shall allow Doctors to view a patient's consultation history and previously issued records. | Test: Doctor sees patient's past appointments |
+| F-RECORDS-03 | The system shall allow Patients to view their basic medical records and prescriptions from past consultations.   | Test: Patient sees records list                 |
+| F-RECORDS-04 | The system shall allow Doctors to view a patient's consultation history and previously issued records.           | Test: Doctor sees patient's past appointments   |
 
 ### 3.8 Notifications and Reminders
 
@@ -393,12 +391,12 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 #### Functional Requirements
 
-| ID | Requirement | Verification |
-|---|---|---|
+| ID         | Requirement                                                                                        | Verification                                        |
+| ---------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | F-NOTIF-01 | The system shall send real-time push notifications for booked, upcoming, and updated appointments. | Test: Push notification received on schedule change |
-| F-NOTIF-02 | The system shall notify users when an appointment is booked, rescheduled, or cancelled. | Test: Notification sent within 5 seconds of event |
-| F-NOTIF-03 | The system shall send a notification to the Doctor when a Patient has booked an appointment. | Test: Doctor receives booking notification |
-| F-NOTIF-04 | The system shall allow users to configure their notification preferences. | Test: Toggling notifications on/off works |
+| F-NOTIF-02 | The system shall notify users when an appointment is booked, rescheduled, or cancelled.            | Test: Notification sent within 5 seconds of event   |
+| F-NOTIF-03 | The system shall send a notification to the Doctor when a Patient has booked an appointment.       | Test: Doctor receives booking notification          |
+| F-NOTIF-04 | The system shall allow users to configure their notification preferences.                          | Test: Toggling notifications on/off works           |
 
 ---
 
@@ -418,64 +416,64 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 #### Key Screens
 
 **Patient Screens:**
-| Screen | Purpose |
-|---|---|
-| Landing / Home | Search doctors by specialty, featured doctors, quick actions |
-| Doctor Search | Filter by specialty, availability; AI recommendation |
-| Doctor Profile | PRC credentials, specialty, bio, available slots |
-| Booking Flow | Select doctor and slot → confirm |
-| My Appointments | Upcoming and past appointments with status |
-| Video Call | In-call interface optimized for mobile |
-| Medical Records | View basic medical records and prescriptions |
-| Settings | Profile, notification preferences |
+| Screen          | Purpose                                                      |
+| --------------- | ------------------------------------------------------------ |
+| Landing / Home  | Search doctors by specialty, featured doctors, quick actions |
+| Doctor Search   | Filter by specialty, availability; AI recommendation         |
+| Doctor Profile  | PRC credentials, specialty, bio, available slots             |
+| Booking Flow    | Select doctor and slot → confirm                             |
+| My Appointments | Upcoming and past appointments with status                   |
+| Video Call      | In-call interface optimized for mobile                       |
+| Medical Records | View basic medical records and prescriptions                 |
+| Settings        | Profile, notification preferences                            |
 
 **Doctor Screens:**
-| Screen | Purpose |
-|---|---|
-| Dashboard | Today's schedule, upcoming appointments |
-| Availability Manager | Weekly calendar, set/block slots |
-| Patient Queue | Waiting patients, upcoming visits |
-| Video Call | In-call interface |
-| Consultation Notes | Add notes and prescriptions after visit |
-| Appointment History | Past consultations and patient records |
-| Settings | Profile, PRC license, schedule |
+| Screen               | Purpose                                 |
+| -------------------- | --------------------------------------- |
+| Dashboard            | Today's schedule, upcoming appointments |
+| Availability Manager | Weekly calendar, set/block slots        |
+| Patient Queue        | Waiting patients, upcoming visits       |
+| Video Call           | In-call interface                       |
+| Consultation Notes   | Add notes and prescriptions after visit |
+| Appointment History  | Past consultations and patient records  |
+| Settings             | Profile, PRC license, schedule          |
 
 ### 4.2 Hardware Interfaces
 
-| Interface | Description |
-|---|---|
-| **Camera** | The system shall access the user's webcam via the browser's `getUserMedia()` API for video consultations. |
-| **Microphone** | The system shall access the user's microphone via the browser's `getUserMedia()` API for audio. |
-| **Speaker** | The system shall output audio through the device's default speaker, headset, or earphones. |
+| Interface      | Description                                                                                               |
+| -------------- | --------------------------------------------------------------------------------------------------------- |
+| **Camera**     | The system shall access the user's webcam via the browser's `getUserMedia()` API for video consultations. |
+| **Microphone** | The system shall access the user's microphone via the browser's `getUserMedia()` API for audio.           |
+| **Speaker**    | The system shall output audio through the device's default speaker, headset, or earphones.                |
 
 ### 4.3 Software Interfaces
 
 #### External Services
 
-| Service | Interface Type | Purpose | Data |
-|---|---|---|---|
-| **Better Auth** | REST API + SDK | Authentication, session management, RBAC | User credentials, roles, sessions |
-| **LiveKit** | JavaScript SDK + REST API | Video room creation and management | Room tokens, participant identities |
-| **NVIDIA NIM** (Nemotron-3-Super-120B-A12B) | OpenAI-compatible REST API (`integrate.api.nvidia.com/v1`) | AI doctor recommendation based on symptoms | Symptom description, doctor specialty data, recommendation result |
-| **Local Filesystem** | Filesystem API | File storage for attachments (profile photos, documents) | File binaries, metadata |
-| **PostgreSQL** | Prisma ORM + SQL | Primary data storage | All application data |
-| **Socket.io** | WebSocket (NestJS Gateway) | Real-time push notifications | Appointment events, notification payloads |
+| Service                                     | Interface Type                                             | Purpose                                                  | Data                                                              |
+| ------------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------- | ----------------------------------------------------------------- |
+| **Better Auth**                             | REST API + SDK                                             | Authentication, session management, RBAC                 | User credentials, roles, sessions                                 |
+| **LiveKit**                                 | JavaScript SDK + REST API                                  | Video room creation and management                       | Room tokens, participant identities                               |
+| **NVIDIA NIM** (Nemotron-3-Super-120B-A12B) | OpenAI-compatible REST API (`integrate.api.nvidia.com/v1`) | AI doctor recommendation based on symptoms               | Symptom description, doctor specialty data, recommendation result |
+| **Local Filesystem**                        | Filesystem API                                             | File storage for attachments (profile photos, documents) | File binaries, metadata                                           |
+| **PostgreSQL**                              | Prisma ORM + SQL                                           | Primary data storage                                     | All application data                                              |
+| **Socket.io**                               | WebSocket (NestJS Gateway)                                 | Real-time push notifications                             | Appointment events, notification payloads                         |
 
 #### Internal Packages
 
-| Package | Purpose | Location |
-|---|---|---|
-| `@workspace/ui` | Shared UI components (Base UI) | `packages/ui` |
+| Package             | Purpose                                     | Location          |
+| ------------------- | ------------------------------------------- | ----------------- |
+| `@workspace/ui`     | Shared UI components (Base UI)              | `packages/ui`     |
 | `@workspace/shared` | Shared types, validation schemas, utilities | `packages/shared` |
 
 ### 4.4 Communications Interfaces
 
-| Protocol | Usage |
-|---|---|
-| **HTTPS (TLS 1.3)** | All client-server communication |
-| **WebRTC** | Peer-to-peer video/audio streaming (via LiveKit server relay) |
-| **WebSocket** | Real-time notifications via Socket.io (NestJS Gateway) |
-| **REST (JSON)** | Standard CRUD operations via API |
+| Protocol            | Usage                                                         |
+| ------------------- | ------------------------------------------------------------- |
+| **HTTPS (TLS 1.3)** | All client-server communication                               |
+| **WebRTC**          | Peer-to-peer video/audio streaming (via LiveKit server relay) |
+| **WebSocket**       | Real-time notifications via Socket.io (NestJS Gateway)        |
+| **REST (JSON)**     | Standard CRUD operations via API                              |
 
 ---
 
@@ -483,55 +481,55 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 
 ### 5.1 Performance
 
-| ID | Requirement | Target |
-|---|---|---|
-| NFR-PERF-01 | Page load time (initial, Metro Manila broadband) | < 2 seconds |
-| NFR-PERF-02 | Page load time (initial, provincial 3G) | < 5 seconds |
-| NFR-PERF-03 | API response time (p95) | < 300ms for read operations, < 500ms for write operations |
-| NFR-PERF-04 | Notification delivery latency | < 5 seconds |
-| NFR-PERF-05 | Total page weight | < 500 KB (critical for data-capped mobile users) |
+| ID          | Requirement                                      | Target                                                    |
+| ----------- | ------------------------------------------------ | --------------------------------------------------------- |
+| NFR-PERF-01 | Page load time (initial, Metro Manila broadband) | < 2 seconds                                               |
+| NFR-PERF-02 | Page load time (initial, provincial 3G)          | < 5 seconds                                               |
+| NFR-PERF-03 | API response time (p95)                          | < 300ms for read operations, < 500ms for write operations |
+| NFR-PERF-04 | Notification delivery latency                    | < 5 seconds                                               |
+| NFR-PERF-05 | Total page weight                                | < 500 KB (critical for data-capped mobile users)          |
 
 ### 5.2 Security and Privacy
 
-| ID | Requirement |
-|---|---|
-| NFR-SEC-01 | Sensitive data protections are a production-hardening requirement and require formal review before launch. |
-| NFR-SEC-02 | All data in transit shall be encrypted using TLS 1.3. |
-| NFR-SEC-03 | Passwords shall be hashed using bcrypt (minimum 12 rounds). |
-| NFR-SEC-04 | Session tokens shall be cryptographically random and stored as HTTP-only, SameSite=Strict cookies. |
-| NFR-SEC-05 | API endpoints shall enforce rate limiting (30 requests per 60-second window). |
-| NFR-SEC-06 | All database queries shall use parameterized queries to prevent SQL injection. |
+| ID         | Requirement                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------- |
+| NFR-SEC-01 | Sensitive data protections are a production-hardening requirement and require formal review before launch.    |
+| NFR-SEC-02 | All data in transit shall be encrypted using TLS 1.3.                                                         |
+| NFR-SEC-03 | Passwords shall be hashed using bcrypt (minimum 12 rounds).                                                   |
+| NFR-SEC-04 | Session tokens shall be cryptographically random and stored as HTTP-only, SameSite=Strict cookies.            |
+| NFR-SEC-05 | API endpoints shall enforce rate limiting (30 requests per 60-second window).                                 |
+| NFR-SEC-06 | All database queries shall use parameterized queries to prevent SQL injection.                                |
 | NFR-SEC-07 | Access to health records shall be logged with: user ID, timestamp, IP address, action performed, resource ID. |
-| NFR-SEC-08 | Audit-log retention requirements will be finalized during production hardening. |
-| NFR-SEC-09 | A support contact and privacy-governance process will be defined before production launch. |
-| NFR-SEC-10 | The system shall provide account data access, correction, and deletion controls. |
+| NFR-SEC-08 | Audit-log retention requirements will be finalized during production hardening.                               |
+| NFR-SEC-09 | A support contact and privacy-governance process will be defined before production launch.                    |
+| NFR-SEC-10 | The system shall provide account data access, correction, and deletion controls.                              |
 
 ### 5.3 Reliability and Availability
 
-| ID | Requirement | Target |
-|---|---|---|
-| NFR-REL-01 | System uptime (excluding planned maintenance) | 99.9% uptime |
-| NFR-REL-02 | Graceful degradation | Video call continues in audio-only mode if video fails; messaging remains available if video service is down — ⚠️ Partial (messaging/Socket.io operational; video graceful-degradation not yet exercisable because backend video is stubbed). |
-| NFR-REL-03 | Error handling | All API errors return consistent JSON structure: `{ error: string, code: string, details?: any }` — ✅ Implemented (HttpExceptionFilter emits { error, code, details } with SRS Appendix C codes). |
-| NFR-REL-04 | Retry policy | Transient failures (network timeouts, 5xx) shall retry up to 3 times with exponential backoff |
+| ID         | Requirement                                   | Target                                                                                                                                                                                                                                        |
+| ---------- | --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NFR-REL-01 | System uptime (excluding planned maintenance) | 99.9% uptime                                                                                                                                                                                                                                  |
+| NFR-REL-02 | Graceful degradation                          | Video call continues in audio-only mode if video fails; messaging remains available if video service is down — ⚠️ Partial (messaging/Socket.io operational; video graceful-degradation not yet exercisable because backend video is stubbed). |
+| NFR-REL-03 | Error handling                                | All API errors return consistent JSON structure: `{ error: string, code: string, details?: any }` — ✅ Implemented (HttpExceptionFilter emits { error, code, details } with SRS Appendix C codes).                                            |
+| NFR-REL-04 | Retry policy                                  | Transient failures (network timeouts, 5xx) shall retry up to 3 times with exponential backoff                                                                                                                                                 |
 
 ### 5.4 Usability
 
-| ID | Requirement |
-|---|---|
+| ID        | Requirement                                                                                      |
+| --------- | ------------------------------------------------------------------------------------------------ |
 | NFR-UX-01 | No more than 3 taps/clicks to reach any core action (book appointment, join call, view records). |
-| NFR-UX-02 | All error messages shall be written in plain language (not technical jargon). |
-| NFR-UX-03 | Critical actions (booking, ending call) shall require explicit confirmation. |
-| NFR-UX-04 | The video call interface shall have a maximum of 5 large, easy-to-tap controls on mobile. |
-| NFR-UX-05 | Touch targets (buttons, links) shall be at least 44x44px on mobile for easy tapping. |
+| NFR-UX-02 | All error messages shall be written in plain language (not technical jargon).                    |
+| NFR-UX-03 | Critical actions (booking, ending call) shall require explicit confirmation.                     |
+| NFR-UX-04 | The video call interface shall have a maximum of 5 large, easy-to-tap controls on mobile.        |
+| NFR-UX-05 | Touch targets (buttons, links) shall be at least 44x44px on mobile for easy tapping.             |
 
 ### 5.5 Scalability
 
-| ID | Requirement |
-|---|---|
-| NFR-SCAL-01 | The system shall support 10,000 registered users in the first year. |
-| NFR-SCAL-02 | The API layer shall scale horizontally without requiring code changes. |
-| NFR-SCAL-03 | The database shall support read replicas for scaling read-heavy operations. |
+| ID          | Requirement                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------- |
+| NFR-SCAL-01 | The system shall support 10,000 registered users in the first year.                         |
+| NFR-SCAL-02 | The API layer shall scale horizontally without requiring code changes.                      |
+| NFR-SCAL-03 | The database shall support read replicas for scaling read-heavy operations.                 |
 | NFR-SCAL-04 | Static assets shall be served via CDN for low-latency access across all Philippine regions. |
 
 ### 5.6 Production Readiness
@@ -766,19 +764,19 @@ POST /api/storage/upload               # Upload file (profile photo, etc.)
 
 ### Appendix C: Error Codes
 
-| Code | HTTP Status | Description |
-|---|---|---|
-| `UNAUTHORIZED` | 401 | Missing or invalid authentication token |
-| `FORBIDDEN` | 403 | Authenticated but insufficient permissions |
-| `NOT_FOUND` | 404 | Resource does not exist |
-| `VALIDATION_ERROR` | 422 | Request body failed validation |
-| `CONFLICT` | 409 | Resource conflict (e.g., double-booking) |
-| `RATE_LIMITED` | 429 | Too many requests |
-| `SLOT_UNAVAILABLE` | 409 | Requested time slot is no longer available |
-| `CANCELLATION_WINDOW` | 422 | Cannot cancel outside allowed window |
-| `LICENSE_EXPIRED` | 403 | Doctor's PRC license is expired |
-| `PRIVACY_CONSENT_REQUIRED` | 403 | User has not accepted privacy policy |
-| `INTERNAL_ERROR` | 500 | Unexpected server error |
+| Code                       | HTTP Status | Description                                |
+| -------------------------- | ----------- | ------------------------------------------ |
+| `UNAUTHORIZED`             | 401         | Missing or invalid authentication token    |
+| `FORBIDDEN`                | 403         | Authenticated but insufficient permissions |
+| `NOT_FOUND`                | 404         | Resource does not exist                    |
+| `VALIDATION_ERROR`         | 422         | Request body failed validation             |
+| `CONFLICT`                 | 409         | Resource conflict (e.g., double-booking)   |
+| `RATE_LIMITED`             | 429         | Too many requests                          |
+| `SLOT_UNAVAILABLE`         | 409         | Requested time slot is no longer available |
+| `CANCELLATION_WINDOW`      | 422         | Cannot cancel outside allowed window       |
+| `LICENSE_EXPIRED`          | 403         | Doctor's PRC license is expired            |
+| `PRIVACY_CONSENT_REQUIRED` | 403         | User has not accepted privacy policy       |
+| `INTERNAL_ERROR`           | 500         | Unexpected server error                    |
 
 ### Appendix D: Production Readiness
 
@@ -786,47 +784,47 @@ Formal privacy, regulatory, certification, and data-residency review remains out
 
 ### Appendix E: Deliverables Checklist (WC Launchpad Submission — SE Track)
 
-| Deliverable | Details | Status |
-|---|---|---|
-| Pair Programming Session | Schedule via booking link | ⬜ To be scheduled |
-| Video Recording | Max 15 min — app walkthrough, code overview, challenges | ⬜ To be recorded |
-| Local Development Setup | pnpm dev | ✅ Ready |
-| Git Repository | https://github.com/leodyversemilla07/telehealth-app | ✅ Private/accessible |
+| Deliverable              | Details                                                 | Status                |
+| ------------------------ | ------------------------------------------------------- | --------------------- |
+| Pair Programming Session | Schedule via booking link                               | ⬜ To be scheduled    |
+| Video Recording          | Max 15 min — app walkthrough, code overview, challenges | ⬜ To be recorded     |
+| Local Development Setup  | pnpm dev                                                | ✅ Ready              |
+| Git Repository           | https://github.com/leodyversemilla07/telehealth-app     | ✅ Private/accessible |
 
 **Deadline:** 11:59 PM, May 30, 2026  
 **Submission:** https://forms.gle/2QrDQ17KBhHqWqBK9
 
 ### Bonus Features Implemented
 
-| Feature | Description |
-|---|---|
-| In-app Chat | Real-time secure messaging via Socket.io between patient and doctor |
-| Doctor Reviews & Ratings | Patients can rate (1-5) and review doctors post-consultation |
-| AI Symptom Checker | NVIDIA NIM-powered symptom analysis with condition assessment |
-| Two-Factor Authentication (2FA) | TOTP via authenticator apps with backup codes |
-| Account Lockout | Auto-lock after 5 failed login attempts |
-| Admin Dashboard | User management, doctor approval, audit logs, security alerts, reports |
-| Appearance/Theme Toggle | Light/dark mode across all roles (admin, doctor, patient) |
-| Dynamic Breadcrumbs | Context-aware navigation breadcrumbs |
-| Design System | Custom telehealth-themed design system (oklch color palette) |
-| Shared UI Components | Empty states, spinners, date pickers, navigation menus |
-| Notification Preferences | Per-type in-app and push notification toggles for all roles |
-| Waiting Room Overlay | Patient sees waiting state until doctor admits; doctor sees "Patient is waiting" banner |
-| PRC Auto-Reverification | Daily cron that deactivates expired licenses and warns expiring ones |
-| Bundle Analyzer | @next/bundle-analyzer for monitoring page weight (NFR-PERF-04/05) |
+| Feature                         | Description                                                                             |
+| ------------------------------- | --------------------------------------------------------------------------------------- |
+| In-app Chat                     | Real-time secure messaging via Socket.io between patient and doctor                     |
+| Doctor Reviews & Ratings        | Patients can rate (1-5) and review doctors post-consultation                            |
+| AI Symptom Checker              | NVIDIA NIM-powered symptom analysis with condition assessment                           |
+| Two-Factor Authentication (2FA) | TOTP via authenticator apps with backup codes                                           |
+| Account Lockout                 | Auto-lock after 5 failed login attempts                                                 |
+| Admin Dashboard                 | User management, doctor approval, audit logs, security alerts, reports                  |
+| Appearance/Theme Toggle         | Light/dark mode across all roles (admin, doctor, patient)                               |
+| Dynamic Breadcrumbs             | Context-aware navigation breadcrumbs                                                    |
+| Design System                   | Custom telehealth-themed design system (oklch color palette)                            |
+| Shared UI Components            | Empty states, spinners, date pickers, navigation menus                                  |
+| Notification Preferences        | Per-type in-app and push notification toggles for all roles                             |
+| Waiting Room Overlay            | Patient sees waiting state until doctor admits; doctor sees "Patient is waiting" banner |
+| PRC Auto-Reverification         | Daily cron that deactivates expired licenses and warns expiring ones                    |
+| Bundle Analyzer                 | @next/bundle-analyzer for monitoring page weight (NFR-PERF-04/05)                       |
 
 ---
 
 **Document Version History**
 
-| Version | Date | Author | Changes |
-|---|---|---|---|
-| 1.0 | 2026-05-30 | System | Updated for WC Launchpad Builder Round — focused MVP with Patient/Doctor modules, AI recommendation, and real-time notifications |
-| 1.1 | 2026-05-27 | System | Provider→Doctor rename throughout; updated Appendix A (normalized Consultation/Prescription models); updated Appendix B (API routes to match implementation: /doctors, /availability, /records, /video, /notifications, /consent) |
-| 1.2 | 2026-05-29 | System | Added Doctor Reviews/Ratings schema and JSON structures in Appendix A. |
-| 1.3 | 2026-05-30 | System | Updated schema to uuid(); added lockout, 2FA, chat, review, security models. Added bonus features. Final deliverable checklist. |
-| 1.4 | 2026-07-20 | System | Added notification preferences, PRC auto-reverification cron, waiting room overlay, post-visit redirect, and bundle analyzer. |
+| Version | Date       | Author | Changes                                                                                                                                                                                                                           |
+| ------- | ---------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0     | 2026-05-30 | System | Updated for WC Launchpad Builder Round — focused MVP with Patient/Doctor modules, AI recommendation, and real-time notifications                                                                                                  |
+| 1.1     | 2026-05-27 | System | Provider→Doctor rename throughout; updated Appendix A (normalized Consultation/Prescription models); updated Appendix B (API routes to match implementation: /doctors, /availability, /records, /video, /notifications, /consent) |
+| 1.2     | 2026-05-29 | System | Added Doctor Reviews/Ratings schema and JSON structures in Appendix A.                                                                                                                                                            |
+| 1.3     | 2026-05-30 | System | Updated schema to uuid(); added lockout, 2FA, chat, review, security models. Added bonus features. Final deliverable checklist.                                                                                                   |
+| 1.4     | 2026-07-20 | System | Added notification preferences, PRC auto-reverification cron, waiting room overlay, post-visit redirect, and bundle analyzer.                                                                                                     |
 
 ---
 
-*End of Software Requirements Specification*
+_End of Software Requirements Specification_

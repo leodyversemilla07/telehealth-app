@@ -2,16 +2,16 @@
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | Next.js 16, React 19, Tailwind CSS v4, Base UI |
-| **Backend** | NestJS 11, Express |
-| **Database** | PostgreSQL 16 (Prisma ORM) |
-| **Auth** | Better Auth (email/password, 2FA, lockout) |
-| **Video** | LiveKit |
-| **Real-time** | Socket.io (WebSocket) |
-| **Email** | Resend (email API) |
-| **Storage** | Local filesystem (S3-compatible in prod) |
+| Layer         | Technology                                     |
+| ------------- | ---------------------------------------------- |
+| **Frontend**  | Next.js 16, React 19, Tailwind CSS v4, Base UI |
+| **Backend**   | NestJS 11, Express                             |
+| **Database**  | PostgreSQL 16 (Prisma ORM)                     |
+| **Auth**      | Better Auth (email/password, 2FA, lockout)     |
+| **Video**     | LiveKit                                        |
+| **Real-time** | Socket.io (WebSocket)                          |
+| **Email**     | Resend (email API)                             |
+| **Storage**   | Local filesystem (S3-compatible in prod)       |
 
 ## Quick Start
 
@@ -55,29 +55,29 @@ pnpm db:seed          # Seed database
 
 ### Frontend Pages (~55 pages)
 
-| Route | Description |
-|-------|-------------|
-| `/sign-in`, `/sign-up` | Authentication, password reset, 2FA |
-| `/patient/*` | Patient area (20 pages — dashboard, appointments, chat, records, prescriptions, symptoms, settings) |
-| `/doctor/*` | Doctor area (18 pages — dashboard, consultations, chat, patients, records, schedule, settings) |
-| `/admin/*` | Admin area (13 pages — dashboard, users, doctors, audit-logs, reports, settings) |
+| Route                  | Description                                                                                         |
+| ---------------------- | --------------------------------------------------------------------------------------------------- |
+| `/sign-in`, `/sign-up` | Authentication, password reset, 2FA                                                                 |
+| `/patient/*`           | Patient area (20 pages — dashboard, appointments, chat, records, prescriptions, symptoms, settings) |
+| `/doctor/*`            | Doctor area (18 pages — dashboard, consultations, chat, patients, records, schedule, settings)      |
+| `/admin/*`             | Admin area (13 pages — dashboard, users, doctors, audit-logs, reports, settings)                    |
 
 ### API Endpoints (17 modules)
 
-| Module | Description |
-|--------|-------------|
-| `/api/auth/*` | Authentication (2FA, lockout, verification) |
-| `/api/doctors/*` | Doctor profiles & search |
-| `/api/appointments/*` | Book, reschedule, cancel appointments |
-| `/api/records/*` | Medical records, consultation notes, prescriptions |
-| `/api/video/*` | Video consultation rooms (LiveKit) |
-| `/api/chat/*` | Real-time messaging |
-| `/api/notifications/*` | Notifications + preferences |
-| `/api/reviews/*` | Doctor reviews & ratings |
-| `/api/recommendations` | AI symptom-based doctor recommendation |
-| `/api/availability/*` | Doctor schedules & time-off |
-| `/api/admin/*` | Admin operations, audit logs, reports |
-| `/api/storage/*` | File upload |
+| Module                 | Description                                        |
+| ---------------------- | -------------------------------------------------- |
+| `/api/auth/*`          | Authentication (2FA, lockout, verification)        |
+| `/api/doctors/*`       | Doctor profiles & search                           |
+| `/api/appointments/*`  | Book, reschedule, cancel appointments              |
+| `/api/records/*`       | Medical records, consultation notes, prescriptions |
+| `/api/video/*`         | Video consultation rooms (LiveKit)                 |
+| `/api/chat/*`          | Real-time messaging                                |
+| `/api/notifications/*` | Notifications + preferences                        |
+| `/api/reviews/*`       | Doctor reviews & ratings                           |
+| `/api/recommendations` | AI symptom-based doctor recommendation             |
+| `/api/availability/*`  | Doctor schedules & time-off                        |
+| `/api/admin/*`         | Admin operations, audit logs, reports              |
+| `/api/storage/*`       | File upload                                        |
 
 ### Database Models (21 models)
 

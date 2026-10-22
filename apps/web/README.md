@@ -4,16 +4,16 @@ A modern, highly interactive, and responsive web frontend built with **Next.js 1
 
 ## Technical Stack
 
-| Layer | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Framework** | Next.js 16 + React 19 | Server Component Architecture & Client Routing |
-| **Style & Layout** | Tailwind CSS v4 + Base UI | Responsive, themed UI with light/dark mode |
-| **Icons** | Lucide React | Clean, scalable vector outline icons |
-| **Data Fetching** | TanStack React Query v5 | Optimized query caching & mutations |
-| **Real-time Gateway**| Socket.io-client | Live push notifications, chat messages |
-| **Video** | @livekit/components-react | Video consultation rooms |
-| **Authentication** | Better Auth Client SDK | Secure cookie sessions, 2FA, OAuth |
-| **Testing** | Vitest + JSDOM | Component and hook unit tests |
+| Layer                 | Technology                | Purpose                                        |
+| :-------------------- | :------------------------ | :--------------------------------------------- |
+| **Framework**         | Next.js 16 + React 19     | Server Component Architecture & Client Routing |
+| **Style & Layout**    | Tailwind CSS v4 + Base UI | Responsive, themed UI with light/dark mode     |
+| **Icons**             | Lucide React              | Clean, scalable vector outline icons           |
+| **Data Fetching**     | TanStack React Query v5   | Optimized query caching & mutations            |
+| **Real-time Gateway** | Socket.io-client          | Live push notifications, chat messages         |
+| **Video**             | @livekit/components-react | Video consultation rooms                       |
+| **Authentication**    | Better Auth Client SDK    | Secure cookie sessions, 2FA, OAuth             |
+| **Testing**           | Vitest + JSDOM            | Component and hook unit tests                  |
 
 ---
 
@@ -60,27 +60,32 @@ apps/web/
 ## Core Features
 
 ### Video Consultations
+
 - LiveKit-powered video rooms with mute/unmute, camera toggle, end call
 - Waiting room overlay — patient waits until doctor admits
 - Post-visit redirect — doctor to consultations, patient to appointments
 - Call metadata recording (duration, participants)
 
 ### Real-time Notifications
+
 - Socket.io WebSocket gateway for instant push
 - Per-type notification preferences (in-app, push, email)
 - All roles can configure toggles in settings
 
 ### Doctor Discovery & AI Recommendations
+
 - Browse doctors by specialty, search, and sort
 - Aggregated ratings and review counts
 - NVIDIA NIM-powered symptom-based doctor recommendations
 
 ### In-app Chat
+
 - Secure real-time messaging between patient and doctor
 - Appointment-scoped conversations
 - Read/unread status tracking
 
 ### Multi-role Settings
+
 - Each role has dedicated settings: profile, password, 2FA, sessions, appearance (theme), alerts, notifications
 - Patient-specific: health info, privacy
 - Doctor-specific: professional info

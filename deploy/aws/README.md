@@ -2,14 +2,14 @@
 
 Infrastructure provisioned via AWS CLI (see `provision.sh` steps in this repo's history):
 
-| Resource | Value |
-|---|---|
-| EC2 | `t3.small` @ `<elastic-ip>` (Ubuntu 24.04, 30GB gp3) |
-| RDS | `telehealth-db` — PostgreSQL 16.14, `db.t3.micro` |
-| S3 | `telehealth-uploads-<ACCOUNT>` (ready; local disk used until presigned URLs are implemented) |
-| IAM | `telehealth-ec2-role` / `telehealth-ec2-profile` (S3 access via instance profile) |
-| Access | **SSM Session Manager** (port 22 inbound **closed**; key `~/.ssh/telehealth-prod.pem` kept for out-of-band emergency only) |
-| Secrets | `~/telehealth-aws.env` (local only, NOT committed) |
+| Resource | Value                                                                                                                      |
+| -------- | -------------------------------------------------------------------------------------------------------------------------- |
+| EC2      | `t3.small` @ `<elastic-ip>` (Ubuntu 24.04, 30GB gp3)                                                                       |
+| RDS      | `telehealth-db` — PostgreSQL 16.14, `db.t3.micro`                                                                          |
+| S3       | `telehealth-uploads-<ACCOUNT>` (ready; local disk used until presigned URLs are implemented)                               |
+| IAM      | `telehealth-ec2-role` / `telehealth-ec2-profile` (S3 access via instance profile)                                          |
+| Access   | **SSM Session Manager** (port 22 inbound **closed**; key `~/.ssh/telehealth-prod.pem` kept for out-of-band emergency only) |
+| Secrets  | `~/telehealth-aws.env` (local only, NOT committed)                                                                         |
 
 ## Topology
 
@@ -113,28 +113,28 @@ aws ec2 authorize-security-group-ingress --group-id sg-0b7473a31d6033df6 \
 
 - [x] Real domain + **Let's Encrypt** (certbot, single cert: tele-health.app, www, api; auto-renews)
 - [x] Email via **Resend SDK** (free tier 3,000/mo, 100/day, domain `tele-health.app` verified in
-      Resend: DKIM `resend._domainkey`, MX+SPF on `send.tele-health.app`)
-      `RESEND_API_KEY=<Resend API key>`, `EMAIL_FROM="Telehealth App <noreply@tele-health.app>"`
-      (⚠ `from` must be the verified domain — an IP in `from` gets a 550).
-      (Key lives in the repo-root `.env`, NOT in git.) Transport = `resend.emails.send` in
-      (in the repo-root `.env`, NOT in git). Transport = `resend.emails.send` in
-      `apps/api/src/common/utils/email.ts` (no nodemailer/SMTP; `SMTP_*` vars are legacy, unused).
-      Password reset verified end-to-end via Resend SDK (`POST /api/auth/request-password-reset` →
-      accepted, logged `Email sent to …`).
-      `requireEmailVerification: true` is **live** in `packages/auth/src/server.ts` — new signups must
-      verify their email before they can sign in (verification email via Resend).
+  Resend: DKIM `resend._domainkey`, MX+SPF on `send.tele-health.app`)
+  `RESEND_API_KEY=<Resend API key>`, `EMAIL_FROM="Telehealth App <noreply@tele-health.app>"`
+  (⚠ `from` must be the verified domain — an IP in `from` gets a 550).
+  (Key lives in the repo-root `.env`, NOT in git.) Transport = `resend.emails.send` in
+  (in the repo-root `.env`, NOT in git). Transport = `resend.emails.send` in
+  `apps/api/src/common/utils/email.ts` (no nodemailer/SMTP; `SMTP_*` vars are legacy, unused).
+  Password reset verified end-to-end via Resend SDK (`POST /api/auth/request-password-reset` →
+  accepted, logged `Email sent to …`).
+  `requireEmailVerification: true` is **live** in `packages/auth/src/server.ts` — new signups must
+  verify their email before they can sign in (verification email via Resend).
 - [x] LiveKit Cloud (Build tier) — `LIVEKIT_URL/API_KEY/API_SECRET` in the repo-root `.env`;
-      key is a **service-account key**; tokens signed server-side in `/api/video/join` (1h TTL);
-      web gets URL+token from the join response (no rebuild). Credits: 5,000 WebRTC min/mo free,
-      overage ~$0.0004/min. Credentials in the repo-root `.env` (project `telehealth-app-ju7ll1wy`).
+  key is a **service-account key**; tokens signed server-side in `/api/video/join` (1h TTL);
+  web gets URL+token from the join response (no rebuild). Credits: 5,000 WebRTC min/mo free,
+  overage ~$0.0004/min. Credentials in the repo-root `.env` (project `telehealth-app-ju7ll1wy`).
 - [x] S3 uploads enabled (PRIVATE objects, streamed through the API):
-      `S3_BUCKET=telehealth-uploads-<ACCOUNT>` in the repo-root `.env`; objects are written
-      with instance-profile creds and served via `GET /uploads/:key` (main.ts streams the
-      GetObject body server-side). Stored URLs are unified to `${BETTER_AUTH_URL}/uploads/<key>`
-      (commit `38ec18b`) so DB values work for local or S3 providers. Verified: upload →
-      fetch 200 image/png through nginx, direct S3 URL → 403, ACL owner-only.
-      No presigned URLs needed — objects never get a public URL, and avatars/attachments
-      survive instance rebuilds.
+  `S3_BUCKET=telehealth-uploads-<ACCOUNT>` in the repo-root `.env`; objects are written
+  with instance-profile creds and served via `GET /uploads/:key` (main.ts streams the
+  GetObject body server-side). Stored URLs are unified to `${BETTER_AUTH_URL}/uploads/<key>`
+  (commit `38ec18b`) so DB values work for local or S3 providers. Verified: upload →
+  fetch 200 image/png through nginx, direct S3 URL → 403, ACL owner-only.
+  No presigned URLs needed — objects never get a public URL, and avatars/attachments
+  survive instance rebuilds.
 - [ ] Upgrade to `t3.small` → paid after free-plan credits/6 months (~$33/mo total)
 
 ## Deploying code (server)
@@ -186,7 +186,6 @@ cd /opt/telehealth && pnpm build && pm2 restart api web --update-env
 ### Codebase-analysis fixes (deployed `2dea97d`, 2026-08-11)
 
 Ranked findings from the full-codebase analysis were all closed:
-
 1. **Public doctor listing no longer leaks emails** — `PUBLIC_USER_SELECT` drops `email`;
    anonymous `doctors.list`/`doctors.byId` expose only name/image/rating. (Web's book page
    previously read `doctor.user.email` for an avatar fallback — removed.)
@@ -214,6 +213,7 @@ Ranked findings from the full-codebase analysis were all closed:
    `Appointment(doctorId, status, startTime)` + `ChatMessage(senderId, receiverId)`
    (the June performance indexes were dropped by `20260729090937` — re-added).
    Applied to prod RDS 2026-08-11.
+
 - Better Auth server config via `createAuth(deps)` factory — deps (prisma,
   email transport) are injected by the API (`apps/api/src/auth/auth.ts`).
 - Client: `createTelehealthAuthClient(baseURL)` consumed by the web app
