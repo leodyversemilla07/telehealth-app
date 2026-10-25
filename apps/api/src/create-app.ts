@@ -173,9 +173,14 @@ export async function createApp(): Promise<CreatedApp> {
       }
     },
   )
-  // Last-resort dev fallback for files that predate the key scheme (flat
-  // files under /uploads never hit by the :key route).
-  app.use("/uploads", express.static(uploadsDir))
+  // Last-resort DEV-ONLY fallback for files that predate the key scheme
+  // (flat files under /uploads never matched by the :key route). It serves
+  // bytes without any authentication, so it must never be mounted in
+  // production — private objects there are streamed through the gated
+  // /uploads/:key handler above.
+  if (process.env.NODE_ENV !== "production") {
+    app.use("/uploads", express.static(uploadsDir))
+  }
 
   // ── Request ID Interceptor ────────────────────────────────────────────
   // Generates unique request IDs for end-to-end tracing and logging.
