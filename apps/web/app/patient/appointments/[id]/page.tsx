@@ -1,19 +1,6 @@
 "use client"
 
 import type { AvailableSlotDto } from "@workspace/shared"
-import dynamic from "next/dynamic"
-import { toDate } from "@/lib/dates"
-
-const LiveKitRoom = dynamic(
-  () => import("@livekit/components-react").then((mod) => mod.LiveKitRoom),
-  { ssr: false },
-)
-const VideoConference = dynamic(
-  () => import("@livekit/components-react").then((mod) => mod.VideoConference),
-  { ssr: false },
-)
-
-import { useRemoteParticipants } from "@livekit/components-react"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -56,6 +43,7 @@ import {
 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
+import { ConsultationRoom } from "@/components/consultation-room"
 import { ErrorAlert } from "@/components/error-alert"
 import { MedicalDocumentsCard } from "@/components/medical-documents"
 import { StatusBadge } from "@/components/status-badge"
@@ -69,7 +57,7 @@ import {
 import { useAppointmentConsultation } from "@/hooks/use-records"
 import { useCheckReview, useCreateReview } from "@/hooks/use-reviews"
 import { useJoinRoom } from "@/hooks/use-video"
-import "@livekit/components-styles"
+import { toDate } from "@/lib/dates"
 
 /** Format a call duration (seconds) as "Xm Ys" (or "Xs" under a minute). */
 function formatCallDuration(totalSeconds: number): string {
@@ -77,24 +65,6 @@ function formatCallDuration(totalSeconds: number): string {
   const seconds = totalSeconds % 60
   if (minutes === 0) return `${seconds}s`
   return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`
-}
-
-// F-CONSULT-03: Show a waiting overlay until the doctor connects.
-function DoctorWaitingOverlay() {
-  const remoteParticipants = useRemoteParticipants()
-  if (remoteParticipants.length > 0) return null
-
-  return (
-    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="text-center text-white">
-        <Video className="mx-auto mb-4 size-12 text-primary" />
-        <h3 className="text-lg font-bold">Waiting for doctor</h3>
-        <p className="mt-2 text-sm text-white/70">
-          Your doctor will join the consultation shortly
-        </p>
-      </div>
-    </div>
-  )
 }
 
 export default function AppointmentDetailPage() {
@@ -434,25 +404,18 @@ export default function AppointmentDetailPage() {
 
         {/* LiveKit Calling Container */}
         <div className="relative h-[70vh] rounded-2xl border border-border/50 bg-black overflow-hidden shadow-2xl">
-          <LiveKitRoom
+          <ConsultationRoom
             token={activeCallToken}
             serverUrl={activeCallUrl}
-            connect
-            audio
-            video
+            waitingVariant="overlay"
+            waitingLabel="Your doctor will join the consultation shortly"
             onDisconnected={() => {
               saveCallToken(null)
               saveCallUrl(null)
               // F-CONSULT-05: Redirect to post-visit appointments list
               router.push("/patient/appointments")
             }}
-            data-lk-theme="default"
-            className="h-full w-full"
-          >
-            {/* F-CONSULT-03: Show waiting overlay until doctor joins */}
-            <DoctorWaitingOverlay />
-            <VideoConference />
-          </LiveKitRoom>
+          />
         </div>
       </div>
     )

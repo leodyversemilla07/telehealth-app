@@ -1,18 +1,5 @@
 "use client"
 
-import dynamic from "next/dynamic"
-import { toDate } from "@/lib/dates"
-
-const LiveKitRoom = dynamic(
-  () => import("@livekit/components-react").then((mod) => mod.LiveKitRoom),
-  { ssr: false },
-)
-const VideoConference = dynamic(
-  () => import("@livekit/components-react").then((mod) => mod.VideoConference),
-  { ssr: false },
-)
-
-import { useRemoteParticipants } from "@livekit/components-react"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -62,6 +49,7 @@ import {
 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { useState } from "react"
+import { ConsultationRoom } from "@/components/consultation-room"
 import { MedicalDocumentsCard } from "@/components/medical-documents"
 import { StatusBadge } from "@/components/status-badge"
 import { useAppointment } from "@/hooks/use-appointments"
@@ -70,23 +58,7 @@ import {
   useCreateConsultation,
 } from "@/hooks/use-records"
 import { useEndRoom, useJoinRoom } from "@/hooks/use-video"
-import "@livekit/components-styles"
-
-// F-CONSULT-03: Show a banner when the patient is already waiting.
-function PatientWaitingBanner() {
-  const remoteParticipants = useRemoteParticipants()
-  if (remoteParticipants.length === 0) return null
-
-  return (
-    <div className="flex items-center gap-2 rounded-xl border border-warning/30 bg-warning/10 px-4 py-2 text-sm text-warning">
-      <span className="relative flex size-2">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-warning opacity-75" />
-        <span className="relative inline-flex size-2 rounded-full bg-warning" />
-      </span>
-      Patient is in the waiting room
-    </div>
-  )
-}
+import { toDate } from "@/lib/dates"
 
 interface PrescriptionInput {
   medicationName: string
@@ -450,22 +422,12 @@ export default function DoctorConsultationDetailPage() {
 
         {/* LiveKit Calling Container */}
         <div className="relative h-[70vh] rounded-2xl border border-border/50 bg-black overflow-hidden shadow-2xl">
-          {/* F-CONSULT-03: Show banner when patient is waiting */}
-          <div className="absolute left-4 top-4 z-10">
-            <PatientWaitingBanner />
-          </div>
-          <LiveKitRoom
+          <ConsultationRoom
             token={activeCallToken}
             serverUrl={activeCallUrl}
-            connect
-            audio
-            video
             onDisconnected={handleEndCall}
-            data-lk-theme="default"
-            className="h-full w-full"
-          >
-            <VideoConference />
-          </LiveKitRoom>
+            waitingLabel="Patient is in the waiting room"
+          />
         </div>
       </div>
     )
