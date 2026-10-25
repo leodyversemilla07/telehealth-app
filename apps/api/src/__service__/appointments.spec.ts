@@ -10,7 +10,7 @@ import { EmailService } from "../common/services/email.service"
 import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
 
-describe("AppointmentsService (integration logic)", () => {
+describe("AppointmentsService (service-level, mocked Prisma)", () => {
   let service: AppointmentsService
   let prisma: {
     patientProfile: { findUnique: jest.Mock }

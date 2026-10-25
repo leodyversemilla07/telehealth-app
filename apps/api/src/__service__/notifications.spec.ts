@@ -5,7 +5,7 @@ import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { PushService } from "../push/push.service"
 
-describe("NotificationsService (integration logic)", () => {
+describe("NotificationsService (service-level, mocked Prisma)", () => {
   let service: NotificationsService
   let prisma: {
     notification: {

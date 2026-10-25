@@ -10,7 +10,7 @@ import { RedisService } from "../redis/redis.service"
 import { SecurityAlertsService } from "../security-alerts/security-alerts.service"
 import { UsersService } from "../users/users.service"
 
-describe("AdminService (integration logic)", () => {
+describe("AdminService (service-level, mocked Prisma)", () => {
   let service: AdminService
   let prisma: Record<string, jest.Mock | Record<string, jest.Mock>>
   let usersServiceMock: {

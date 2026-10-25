@@ -8,7 +8,7 @@ import { ChatService } from "../chat/chat.service"
 import { SocketService } from "../notifications/socket.service"
 import { PrismaService } from "../prisma/prisma.service"
 
-describe("ChatService (integration logic)", () => {
+describe("ChatService (service-level, mocked Prisma)", () => {
   let service: ChatService
   let prisma: {
     user: { findUnique: jest.Mock; findMany: jest.Mock }

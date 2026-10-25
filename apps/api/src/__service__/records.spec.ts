@@ -8,7 +8,7 @@ import { AuditLogsService } from "../audit-logs/audit-logs.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { RecordsService } from "../records/records.service"
 
-describe("RecordsService (integration logic)", () => {
+describe("RecordsService (service-level, mocked Prisma)", () => {
   let service: RecordsService
   let prisma: {
     doctorProfile: { findUnique: jest.Mock }
