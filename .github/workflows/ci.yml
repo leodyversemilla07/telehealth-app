@@ -123,5 +123,14 @@ jobs:
           pnpm --filter @telehealth/db exec prisma migrate deploy
           pnpm run test:e2e:db --silent
 
+      # Guard #2: the committed tRPC contract (apps/api/src/trpc/generated)
+      # is the type source for the web client. Regenerate from the routers and
+      # fail if the output differs — drift would silently desync client/server.
+      - name: Detect tRPC contract drift
+        working-directory: apps/api
+        run: |
+          pnpm run trpc:generate
+          git diff --exit-code -- src/trpc/generated
+
       - name: Build
         run: pnpm build
