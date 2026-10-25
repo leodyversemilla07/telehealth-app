@@ -127,13 +127,13 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 
 The Telehealth Application is a web-based platform connecting patients with licensed Philippine healthcare providers through video consultations. It is built with a monorepo architecture using:
 - **Frontend**: Next.js 16 + React 19 + Tailwind CSS v4 + Base UI (`apps/web`)
-- **Backend**: NestJS 11 REST API (`apps/api`)
+- **Backend**: NestJS 12 (Express 5) — hybrid tRPC (`/api/trpc`) + REST (`api/*`) API (`apps/api`)
 - **Database**: PostgreSQL 16 via Prisma ORM with `@prisma/adapter-pg`
 - **Auth**: Better Auth (email/password, 2FA)
 - **AI Recommendation**: NVIDIA NIM — Nemotron-3-Super-120B-A12B (`nvidia/nemotron-3-super-120b-a12b`), fallback: Qwen3.5-122B-A10B (`qwen/qwen3.5-122b-a10b`)
 - **Monorepo**: Turborepo + pnpm workspaces
 - **Video**: LiveKit
-- **Notifications**: WebSocket via Socket.io (NestJS Gateway)
+- **Notifications**: WebSocket via Socket.io (server attached in `apps/api/src/create-app.ts`)
 - **File Storage**: Local filesystem (S3-compatible interface for future swap)
 
 ### 2.2 Product Functions
@@ -457,7 +457,7 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 | **NVIDIA NIM** (Nemotron-3-Super-120B-A12B) | OpenAI-compatible REST API (`integrate.api.nvidia.com/v1`) | AI doctor recommendation based on symptoms               | Symptom description, doctor specialty data, recommendation result |
 | **Local Filesystem**                        | Filesystem API                                             | File storage for attachments (profile photos, documents) | File binaries, metadata                                           |
 | **PostgreSQL**                              | Prisma ORM + SQL                                           | Primary data storage                                     | All application data                                              |
-| **Socket.io**                               | WebSocket (NestJS Gateway)                                 | Real-time push notifications                             | Appointment events, notification payloads                         |
+| **Socket.io**                               | WebSocket (Socket.IO server on the HTTP server)            | Real-time push notifications                             | Appointment events, notification payloads                         |
 
 #### Internal Packages
 
@@ -472,7 +472,7 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 | ------------------- | ------------------------------------------------------------- |
 | **HTTPS (TLS 1.3)** | All client-server communication                               |
 | **WebRTC**          | Peer-to-peer video/audio streaming (via LiveKit server relay) |
-| **WebSocket**       | Real-time notifications via Socket.io (NestJS Gateway)        |
+| **WebSocket**       | Real-time notifications via Socket.io (raw Socket.IO server)  |
 | **REST (JSON)**     | Standard CRUD operations via API                              |
 
 ---
@@ -542,7 +542,7 @@ Formal privacy, regulatory, data-residency, and certification work is not part o
 
 ### Appendix A: Data Models (Prisma)
 
-The complete schema is maintained at `apps/api/prisma/schema.prisma`. All primary keys use `uuid()` (migrated from `cuid()`). Key models:
+The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@telehealth/db` workspace). All primary keys use `uuid()` (migrated from `cuid()`). Key models:
 
 **User Model:**
 ```
@@ -660,6 +660,12 @@ The complete schema is maintained at `apps/api/prisma/schema.prisma`. All primar
 
 ### Appendix B: API Route Map
 
+> **Note:** domain modules are migrating from REST onto typed **tRPC**
+> procedures at `/api/trpc` (appointments, availability, doctors, documents,
+> notifications, patients, records, reviews). The REST paths below remain for
+> the auth-adjacent and streaming/third-party modules. Where both exist, the
+> tRPC procedure is authoritative for the web client.
+
 ```
 # Authentication (Better Auth)
 POST /api/auth/sign-in
@@ -713,7 +719,7 @@ POST /api/video/rooms/:roomName/join   # Get token to join room
 PATCH /api/video/rooms/:roomName/end   # End consultation
 GET /api/video/rooms/:roomName         # Get room metadata
 
-# Notifications (Socket.IO Gateway)
+# Notifications (Socket.IO + tRPC notifications router)
 GET /api/notifications                 # List notifications
 GET /api/notifications/unread-count    # Unread count
 PATCH /api/notifications/:id/read      # Mark as read

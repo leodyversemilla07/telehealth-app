@@ -5,7 +5,7 @@
 | Layer         | Technology                                     |
 | ------------- | ---------------------------------------------- |
 | **Frontend**  | Next.js 16, React 19, Tailwind CSS v4, Base UI |
-| **Backend**   | NestJS 11, Express                             |
+| **Backend**   | NestJS 12, Express 5 (tRPC + REST)             |
 | **Database**  | PostgreSQL 16 (Prisma ORM)                     |
 | **Auth**      | Better Auth (email/password, 2FA, lockout)     |
 | **Video**     | LiveKit                                        |
@@ -62,22 +62,33 @@ pnpm db:seed          # Seed database
 | `/doctor/*`            | Doctor area (18 pages — dashboard, consultations, chat, patients, records, schedule, settings)      |
 | `/admin/*`             | Admin area (13 pages — dashboard, users, doctors, audit-logs, reports, settings)                    |
 
-### API Endpoints (17 modules)
+### API Surface (hybrid tRPC + REST)
 
-| Module                 | Description                                        |
-| ---------------------- | -------------------------------------------------- |
-| `/api/auth/*`          | Authentication (2FA, lockout, verification)        |
-| `/api/doctors/*`       | Doctor profiles & search                           |
-| `/api/appointments/*`  | Book, reschedule, cancel appointments              |
-| `/api/records/*`       | Medical records, consultation notes, prescriptions |
-| `/api/video/*`         | Video consultation rooms (LiveKit)                 |
-| `/api/chat/*`          | Real-time messaging                                |
-| `/api/notifications/*` | Notifications + preferences                        |
-| `/api/reviews/*`       | Doctor reviews & ratings                           |
-| `/api/recommendations` | AI symptom-based doctor recommendation             |
-| `/api/availability/*`  | Doctor schedules & time-off                        |
-| `/api/admin/*`         | Admin operations, audit logs, reports              |
-| `/api/storage/*`       | File upload                                        |
+The API is migrating domain modules onto typed tRPC procedures at
+`/api/trpc` (consumed by the web client via the committed `AppRouter` types);
+REST controllers remain for auth-adjacent and streaming/third-party-module
+routes. Both share the same DI container, services, and Better Auth session.
+
+**tRPC routers** (`/api/trpc`, zod contracts as the single source of truth):
+appointments, availability, doctors, documents, notifications, patients,
+records, reviews.
+
+**REST controllers** (`/api/*`):
+
+| Module                   | Description                                    |
+| ------------------------ | ---------------------------------------------- |
+| `/api/auth/*`            | Authentication (2FA, lockout, verification)    |
+| `/api/video/*`           | Video consultation rooms (LiveKit)             |
+| `/api/chat/*`            | Real-time messaging                            |
+| `/api/documents/*`       | Medical document upload & authorized streaming |
+| `/api/recommendations`   | AI symptom-based doctor recommendation         |
+| `/api/admin/*`           | Admin operations, audit logs, reports          |
+| `/api/users/*`           | Profile, avatar, sessions, account deletion    |
+| `/api/consent/*`         | Privacy consent records                        |
+| `/api/push/*`            | Web push subscriptions                         |
+| `/api/security-alerts/*` | User-facing security alerts                    |
+| `/api/audit-logs/*`      | Audit trail                                    |
+| `/api/storage/*`         | File upload                                    |
 
 ### Database Models (21 models)
 
@@ -126,4 +137,4 @@ Private — All rights reserved.
 
 - **Video consultations:** fully implemented (backend `livekit-server-sdk` + web `@livekit/components-react`); requires `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` to connect. Without credentials the endpoints return `403 Video consultation is not configured`.
 - **Production readiness:** privacy governance, formal regulatory review, and data-residency decisions are deferred to the production-hardening milestone.
-- **The MVP has not undergone formal regulatory review.** `pnpm build`, `pnpm typecheck`, `pnpm lint`, and the unit + integration suites pass (686 tests). The full-stack e2e suites additionally require a running Postgres (`docker compose up -d`) and the S3 storage suite requires AWS credentials.
+- **The MVP has not undergone formal regulatory review.** `pnpm build`, `pnpm typecheck`, `pnpm lint`, and the unit + service-level suites (`pnpm test`) are green; the API's full-AppModule HTTP e2e (`pnpm --filter api test:e2e`) and the web unit suite (`pnpm --filter web test`) also pass. The full-stack e2e suites additionally require a running Postgres (`docker compose up -d`) and the S3 storage suite requires AWS credentials.
