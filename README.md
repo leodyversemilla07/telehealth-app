@@ -36,7 +36,7 @@ pnpm dev
 - **API:** http://localhost:3001
 - **Swagger:** http://localhost:3001/api/docs
 
-> Note: local development runs against the `docker-compose.yml` Postgres on `:5433`.
+> Note: configure a local Postgres instance and `DATABASE_URL` before starting the apps.
 > Production deployment lives in [`deploy/aws`](./deploy/aws) (EC2 + nginx + pm2 + RDS + S3).
 
 ## 📦 Available Scripts
@@ -137,4 +137,4 @@ Private — All rights reserved.
 
 - **Video consultations:** fully implemented (backend `livekit-server-sdk` + web `@livekit/components-react`); requires `LIVEKIT_URL` / `LIVEKIT_API_KEY` / `LIVEKIT_API_SECRET` to connect. Without credentials the endpoints return `403 Video consultation is not configured`.
 - **Production readiness:** privacy governance, formal regulatory review, and data-residency decisions are deferred to the production-hardening milestone.
-- **The MVP has not undergone formal regulatory review.** `pnpm build`, `pnpm typecheck`, `pnpm lint`, and the unit + service-level suites (`pnpm test`) are green; the API's full-AppModule HTTP e2e (`pnpm --filter api test:e2e`) and the web unit suite (`pnpm --filter web test`) also pass. The full-stack e2e suites additionally require a running Postgres (`docker compose up -d`) and the S3 storage suite requires AWS credentials.
+- **The MVP has not undergone formal regulatory review.** `pnpm build`, `pnpm typecheck`, `pnpm lint`, and the unit + service-level suites (`pnpm test`) are green; the API's full-AppModule HTTP e2e (`pnpm --filter api test:e2e`) and the web unit suite (`pnpm --filter web test`) also pass. The full-stack e2e suites additionally require a running Postgres, and the S3 storage suite requires AWS credentials.
