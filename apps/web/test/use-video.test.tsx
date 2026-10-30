@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { renderHook, waitFor } from "@testing-library/react"
 import { createElement, type ReactNode } from "react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { useJoinRoom } from "@/hooks/use-video"
+import { useEndRoom, useJoinRoom } from "@/hooks/use-video"
 import { ApiError } from "@/lib/api-client"
 
 const { postMock } = vi.hoisted(() => ({ postMock: vi.fn() }))
@@ -72,5 +72,39 @@ describe("useJoinRoom (F-CONSULT)", () => {
     expect(result.current.error?.message).toBe(
       "Video consultation is not configured",
     )
+  })
+})
+
+describe("useEndRoom (F-CONSULT-05)", () => {
+  beforeEach(() => postMock.mockReset())
+  afterEach(() => postMock.mockReset())
+
+  it("posts to /video/end with the appointmentId", async () => {
+    postMock.mockResolvedValue({ success: true })
+
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useEndRoom(), { wrapper })
+
+    result.current.mutate({ appointmentId: "apt-1" })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(postMock).toHaveBeenCalledWith("/video/end", {
+      appointmentId: "apt-1",
+    })
+    expect(result.current.data).toEqual({ success: true })
+  })
+
+  it("surfaces a forbidden end-room response as an error", async () => {
+    postMock.mockRejectedValue(
+      new ApiError("Not your appointment", 403, "Forbidden"),
+    )
+
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useEndRoom(), { wrapper })
+
+    result.current.mutate({ appointmentId: "apt-2" })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect((result.current.error as ApiError).statusCode).toBe(403)
   })
 })

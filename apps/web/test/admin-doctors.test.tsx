@@ -1,12 +1,14 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { render, screen } from "@testing-library/react"
-import { describe, expect, it, vi } from "vitest"
+import { render, screen, waitFor } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mockGet = vi.fn()
+const mockPatch = vi.fn()
 vi.mock("@/lib/api-client", () => ({
   apiClient: {
     get: (...args: unknown[]) => mockGet(...args),
-    patch: vi.fn(),
+    patch: (...args: unknown[]) => mockPatch(...args),
   },
 }))
 
@@ -81,14 +83,19 @@ const MOCK_DOCTORS = {
   total: 3,
 }
 
-async function renderAdminDoctors() {
+async function renderAdminDoctors({ fail = false } = {}) {
   const AdminDoctorsPage = (await import("@/app/admin/doctors/page")).default
 
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
 
-  mockGet.mockResolvedValue(MOCK_DOCTORS)
+  if (fail) {
+    mockGet.mockRejectedValue(new Error("network down"))
+  } else {
+    mockGet.mockResolvedValue(MOCK_DOCTORS)
+  }
+  mockPatch.mockResolvedValue({ id: "d1" })
 
   const result = render(
     <QueryClientProvider client={queryClient}>
@@ -100,7 +107,19 @@ async function renderAdminDoctors() {
   return result
 }
 
+/** First element carrying the label, with an explicit failure instead of `!`. */
+function first(label: string): HTMLElement {
+  const [el] = screen.getAllByText(label)
+  if (!el) throw new Error(`No element found for ${label}`)
+  return el
+}
+
 describe("AdminDoctorsPage", () => {
+  beforeEach(() => {
+    mockGet.mockReset()
+    mockPatch.mockReset()
+  })
+
   it("renders the page title and description", async () => {
     await renderAdminDoctors()
     expect(screen.getByText("Doctor Verification")).toBeDefined()
@@ -155,5 +174,108 @@ describe("AdminDoctorsPage", () => {
     await screen.findByText("Dr. Heart")
     const revokeButtons = screen.getAllByText("Revoke")
     expect(revokeButtons.length).toBe(2)
+  })
+
+  it("approves a pending doctor", async () => {
+    await renderAdminDoctors()
+    await screen.findByText("Dr. Skin")
+
+    await userEvent.setup().click(screen.getByText("Approve"))
+
+    await waitFor(() =>
+      expect(mockPatch).toHaveBeenCalledWith("/admin/doctors/d2/approve"),
+    )
+  })
+
+  it("verifies an approved doctor's credentials", async () => {
+    await renderAdminDoctors()
+    await screen.findByText("Dr. Heart")
+
+    await userEvent.setup().click(first("Verify"))
+
+    await waitFor(() =>
+      expect(mockPatch).toHaveBeenCalledWith("/admin/doctors/d1/verify"),
+    )
+  })
+
+  it("revokes approval through the reject dialog with a reason", async () => {
+    await renderAdminDoctors()
+    await screen.findByText("Dr. Heart")
+
+    const user = userEvent.setup()
+    await user.click(first("Revoke"))
+    await screen.findByText("Revoke doctor approval")
+
+    await user.type(
+      screen.getByLabelText("Rejection reason"),
+      "PRC license could not be validated",
+    )
+    await user.click(screen.getByText("Confirm rejection"))
+
+    await waitFor(() =>
+      expect(mockPatch).toHaveBeenCalledWith("/admin/doctors/d1/reject", {
+        reason: "PRC license could not be validated",
+      }),
+    )
+  })
+
+  it("closes the reject dialog without patching on Cancel", async () => {
+    await renderAdminDoctors()
+    await screen.findByText("Dr. Heart")
+
+    const user = userEvent.setup()
+    await user.click(first("Revoke"))
+    await screen.findByText("Revoke doctor approval")
+    await user.click(screen.getByText("Cancel"))
+
+    await waitFor(() =>
+      expect(screen.queryByText("Revoke doctor approval")).toBeNull(),
+    )
+    expect(mockPatch).not.toHaveBeenCalled()
+  })
+
+  it("filters to pending doctors only", async () => {
+    await renderAdminDoctors()
+    await screen.findByText("Dr. Heart")
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: /^Pending/ }))
+
+    expect(await screen.findByText("Dr. Skin")).toBeDefined()
+    expect(screen.queryByText("Dr. Heart")).toBeNull()
+  })
+
+  it("filters by search term across name, email and specialty", async () => {
+    await renderAdminDoctors()
+    await screen.findByText("Dr. Heart")
+
+    await userEvent
+      .setup()
+      .type(
+        screen.getByPlaceholderText("Search by name, email, or specialty..."),
+        "dermatology",
+      )
+
+    expect(await screen.findByText("Dr. Skin")).toBeDefined()
+    expect(screen.queryByText("Dr. Heart")).toBeNull()
+  })
+
+  it("shows the empty state when a filter matches nothing", async () => {
+    await renderAdminDoctors()
+    await screen.findByText("Dr. Heart")
+
+    await userEvent
+      .setup()
+      .click(screen.getByRole("button", { name: /^Rejected/ }))
+
+    expect(await screen.findByText("No doctors found")).toBeDefined()
+  })
+
+  it("surfaces an error alert when the fetch fails", async () => {
+    await renderAdminDoctors({ fail: true })
+
+    expect(await screen.findByText("Failed to retrieve doctors")).toBeDefined()
+    expect(screen.getByText("network down")).toBeDefined()
   })
 })

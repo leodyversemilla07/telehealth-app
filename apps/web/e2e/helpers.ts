@@ -83,7 +83,10 @@ export async function loginAs(page: Page, role: Role): Promise<void> {
       } catch {
         /* ignore */
       }
-      const body = (await page.locator("body").innerText()).slice(0, 600)
+      const body = ((await page.locator("body").textContent()) ?? "").slice(
+        0,
+        600,
+      )
       throw new Error(
         `2FA challenge UI did not appear for role=${role}.\nURL: ${page.url()}` +
           `\nBODY:\n${body}${screenshot}\nOriginal: ${String(e)}`,
