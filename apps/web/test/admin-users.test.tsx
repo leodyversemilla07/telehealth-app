@@ -1,15 +1,18 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { render, screen } from "@testing-library/react"
+import { render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 const mockGet = vi.fn()
+const mockPost = vi.fn()
+const mockPatch = vi.fn()
+const mockDelete = vi.fn()
 vi.mock("@/lib/api-client", () => ({
   apiClient: {
     get: (...args: unknown[]) => mockGet(...args),
-    post: vi.fn(),
-    patch: vi.fn(),
-    delete: vi.fn(),
+    post: (...args: unknown[]) => mockPost(...args),
+    patch: (...args: unknown[]) => mockPatch(...args),
+    delete: (...args: unknown[]) => mockDelete(...args),
   },
 }))
 
@@ -60,14 +63,18 @@ const MOCK_USERS = {
   total: 4,
 }
 
-async function renderAdminUsers() {
+async function renderAdminUsers({ fail = false } = {}) {
   const AdminUsersPage = (await import("@/app/admin/users/page")).default
 
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
 
-  mockGet.mockResolvedValue(MOCK_USERS)
+  if (fail) {
+    mockGet.mockRejectedValue(new Error("network down"))
+  } else {
+    mockGet.mockResolvedValue(MOCK_USERS)
+  }
 
   const result = render(
     <QueryClientProvider client={queryClient}>
@@ -79,7 +86,21 @@ async function renderAdminUsers() {
   return result
 }
 
+/** First element carrying the label, with an explicit failure instead of `!`. */
+function first(label: string): HTMLElement {
+  const [el] = screen.getAllByText(label)
+  if (!el) throw new Error(`No element found for ${label}`)
+  return el
+}
+
 describe("AdminUsersPage", () => {
+  beforeEach(() => {
+    mockGet.mockReset()
+    mockPost.mockReset()
+    mockPatch.mockReset()
+    mockDelete.mockReset()
+  })
+
   it("renders the page title", async () => {
     await renderAdminUsers()
     expect(screen.getByText("Users Management")).toBeDefined()
@@ -139,5 +160,82 @@ describe("AdminUsersPage", () => {
   it("shows pagination controls", async () => {
     await renderAdminUsers()
     await screen.findByText("Rows per page:")
+  })
+
+  it("bans a user through the dialog with a reason", async () => {
+    mockPost.mockResolvedValue({
+      id: "1",
+      email: "admin@test.com",
+      banned: true,
+    })
+    await renderAdminUsers()
+    await screen.findByText("Rows per page:")
+
+    const user = userEvent.setup()
+    await user.click(first("Ban"))
+    await screen.findByText("Ban User Account")
+
+    await user.type(
+      screen.getByPlaceholderText("Violation of terms, spamming..."),
+      "Abusive messages",
+    )
+    await user.click(screen.getByText("Confirm Ban"))
+
+    await waitFor(() =>
+      expect(mockPost).toHaveBeenCalledWith("/admin/users/1/ban", {
+        reason: "Abusive messages",
+      }),
+    )
+  })
+
+  it("unbans a banned user", async () => {
+    mockDelete.mockResolvedValue({
+      id: "4",
+      email: "banned@test.com",
+      banned: false,
+    })
+    await renderAdminUsers()
+    await screen.findByText("Rows per page:")
+
+    await userEvent.setup().click(screen.getByText("Unban"))
+
+    await waitFor(() =>
+      expect(mockDelete).toHaveBeenCalledWith("/admin/users/4/ban"),
+    )
+  })
+
+  it("opens the role-change dialog for a non-admin user", async () => {
+    await renderAdminUsers()
+    await screen.findByText("Rows per page:")
+
+    await userEvent.setup().click(first("Promote"))
+
+    expect(await screen.findByText("Change User Role")).toBeDefined()
+    expect(screen.getByText("Confirm Role Change")).toBeDefined()
+  })
+
+  it("shows the empty state and resets the search", async () => {
+    await renderAdminUsers()
+    await screen.findByText("Rows per page:")
+
+    const user = userEvent.setup()
+    await user.type(
+      screen.getByPlaceholderText("Search by name or email..."),
+      "nobody",
+    )
+
+    expect(await screen.findByText("No matching users found")).toBeDefined()
+    await user.click(screen.getByText("Reset search filter"))
+    // email renders in both the mobile and desktop columns
+    expect(
+      (await screen.findAllByText("doctor@test.com")).length,
+    ).toBeGreaterThan(0)
+  })
+
+  it("surfaces an error alert when the fetch fails", async () => {
+    await renderAdminUsers({ fail: true })
+
+    expect(await screen.findByText("Failed to retrieve users")).toBeDefined()
+    expect(screen.getByText("network down")).toBeDefined()
   })
 })

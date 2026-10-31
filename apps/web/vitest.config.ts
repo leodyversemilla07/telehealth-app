@@ -18,16 +18,15 @@ export default defineConfig({
       provider: "v8",
       reporter: ["text", "json-summary"],
       reportsDirectory: "./coverage",
-      // Anti-regression gate, not aspirational: thresholds sit ~4-5pt under
-      // today's numbers (64.3/58.4/53.3/64.9) so unrelated PRs can't dip
-      // the suite. Tracked toward API parity (60/55/62/60); statements and
-      // lines already exceed it — remaining gap is branch/function depth in
-      // the admin and settings pages.
+      // Anti-regression gate, not aspirational: thresholds sit ~5pt under
+      // today's numbers (75.9/64.5/71.2/76.6) so unrelated PRs can't dip
+      // the suite. This now clears API parity (60/55/62/60) on every metric;
+      // the remaining depth is in the symptom-checker and booking pages.
       thresholds: {
-        statements: 59,
-        branches: 53,
-        functions: 47,
-        lines: 59,
+        statements: 71,
+        branches: 60,
+        functions: 66,
+        lines: 71,
       },
     },
   },

@@ -31,10 +31,10 @@ test.describe("Production smoke (read-only)", () => {
       await page.evaluate(() => window.scrollBy(0, window.innerHeight))
       await page.waitForTimeout(500)
     }
-    const body = await page.locator("body").innerText()
+    const body = (await page.locator("body").textContent()) ?? ""
     for (const section of [
       "Symptom", // AI symptom-checker section
-      "Doctor profiles".slice(0, 6), // doctors directory heading prefix
+      "Doctor", // doctors directory heading
       "FAQ",
       "Security",
     ]) {

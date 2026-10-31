@@ -8,20 +8,20 @@ import type { App } from "supertest/types"
 import { mockGetSession } from "./mocks/telehealth-auth"
 
 /**
- * FULL-STACK e2e against a REAL Postgres (docker-compose, CI postgres
- * service): real PrismaClient → real queries → real schema. The only mocked
+ * FULL-STACK e2e against a REAL Postgres (local or CI service): real
+ * PrismaClient → real queries → real schema. The only mocked
  * layer is better-auth (ESM-only under jest) — sessions are injected through
  * the guard so the app's own services/REST surface run against the database
  * for real.
  *
  * DATABASE_URL is forced here (never borrowed from the workspace .env, which
  * points at the dev database): CI sets TELEHEALTH_E2E_DB_URL to its postgres
- * service URL; locally the docker-compose postgres on :5433 is used.
+ * service URL; locally Postgres is expected on :5432 by default.
  * These env lines MUST run before the first import of @telehealth/db, so the
  * prisma singleton is built with the typed URLs (dynamic imports below).
  */
 process.env.TELEHEALTH_E2E_DB_URL ??=
-  "postgresql://postgres:postgres@localhost:5433/telehealth?schema=public"
+  "postgresql://telehealth:telehealth_dev@localhost:5432/telehealth?schema=public"
 process.env.DATABASE_URL = process.env.TELEHEALTH_E2E_DB_URL
 process.env.BETTER_AUTH_SECRET ??=
   "test-secret-0123456789abcdef0123456789abcdef"
