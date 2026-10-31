@@ -37,7 +37,6 @@ pnpm dev
 - **Swagger:** http://localhost:3001/api/docs
 
 > Note: configure a local Postgres instance and `DATABASE_URL` before starting the apps.
-> Production deployment lives in [`deploy/aws`](./deploy/aws) (EC2 + nginx + pm2 + RDS + S3).
 
 ## 📦 Available Scripts
 
