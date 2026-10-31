@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Fraunces, Geist_Mono, Inter } from "next/font/google"
+import localFont from "next/font/local"
 
 import "@workspace/ui/globals.css"
 import { Toaster } from "@workspace/ui/components/toast"
@@ -14,18 +14,41 @@ import { TRPCReactProvider } from "@/lib/trpc/client"
 // prerendered pages would ship scripts without the nonce and break in prod.
 export const dynamic = "force-dynamic"
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
-
-const fontDisplay = Fraunces({
-  subsets: ["latin"],
-  variable: "--font-display",
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
+// Fonts are vendored under app/fonts instead of loaded via `next/font/google`:
+// the Google loader performs a live fetch to fonts.googleapis.com on EVERY
+// `next build`, and Google intermittently answers with an extensionless font
+// URL that crashes Turbopack ("next/font/google queries have exactly one
+// entry" / vercel/next.js#99114). No upstream release fixes it, so local
+// variable WOFF2 files keep the build hermetic. Latin subset only.
+const inter = localFont({
+  src: "./fonts/inter-latin-variable.woff2",
+  variable: "--font-sans",
+  weight: "100 900",
+  display: "swap",
 })
 
-const fontMono = Geist_Mono({
-  subsets: ["latin"],
+const fontDisplay = localFont({
+  src: [
+    {
+      path: "./fonts/fraunces-latin-variable.woff2",
+      weight: "400 700",
+      style: "normal",
+    },
+    {
+      path: "./fonts/fraunces-latin-italic-variable.woff2",
+      weight: "400 700",
+      style: "italic",
+    },
+  ],
+  variable: "--font-display",
+  display: "swap",
+})
+
+const fontMono = localFont({
+  src: "./fonts/geist-mono-latin-variable.woff2",
   variable: "--font-mono",
+  weight: "100 900",
+  display: "swap",
 })
 
 export const metadata: Metadata = {
