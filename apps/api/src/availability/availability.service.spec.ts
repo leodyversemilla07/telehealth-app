@@ -14,6 +14,7 @@ type MockPrisma = {
   }
   timeOff: {
     create: jest.Mock
+    findFirst: jest.Mock
     findMany: jest.Mock
     findUnique: jest.Mock
     delete: jest.Mock
@@ -35,6 +36,7 @@ describe("AvailabilityService", () => {
       },
       timeOff: {
         create: jest.fn(),
+        findFirst: jest.fn(),
         findMany: jest.fn(),
         findUnique: jest.fn(),
         delete: jest.fn(),
@@ -112,6 +114,26 @@ describe("AvailabilityService", () => {
     await expect(service.deleteTimeOff("user-1", "to-1")).rejects.toThrow(
       ForbiddenException,
     )
+  })
+
+  it("createTimeOff should translate a database overlap violation", async () => {
+    prisma.doctorProfile.findUnique.mockResolvedValue({ id: "doc-1" })
+    prisma.availabilitySchedule.findUnique.mockResolvedValue({ id: "sched-1" })
+    prisma.timeOff.findFirst.mockResolvedValue(null)
+    prisma.timeOff.create.mockRejectedValue({
+      code: "P2004",
+      meta: {
+        database_error:
+          'conflicting key value violates exclusion constraint "time_offs_schedule_time_excl"',
+      },
+    })
+
+    await expect(
+      service.createTimeOff("user-1", {
+        startDate: "2026-06-15T01:00:00.000Z",
+        endDate: "2026-06-15T02:00:00.000Z",
+      }),
+    ).rejects.toThrow("Time-off period overlaps with an existing block")
   })
 
   it("getAvailableSlots should remove booked slots", async () => {
