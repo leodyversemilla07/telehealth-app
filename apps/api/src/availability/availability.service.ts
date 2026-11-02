@@ -238,14 +238,40 @@ export class AvailabilityService {
       )
     }
 
-    return this.prisma.timeOff.create({
-      data: {
-        scheduleId: schedule.id,
-        startDate: new Date(dto.startDate),
-        endDate: new Date(dto.endDate),
-        reason: dto.reason,
-      },
-    })
+    try {
+      return await this.prisma.timeOff.create({
+        data: {
+          scheduleId: schedule.id,
+          startDate,
+          endDate,
+          reason: dto.reason,
+        },
+      })
+    } catch (error) {
+      const candidate = error as {
+        code?: string
+        message?: string
+        meta?: { database_error?: string; constraint?: string }
+      }
+      const detail = [
+        candidate.message,
+        candidate.meta?.database_error,
+        candidate.meta?.constraint,
+      ]
+        .filter(Boolean)
+        .join(" ")
+      const isOverlapConstraint =
+        (candidate.code === "P2004" || candidate.code === "P2039") &&
+        (detail.includes("23P01") ||
+          detail.includes("time_offs_schedule_time_excl"))
+
+      if (isOverlapConstraint) {
+        throw new ConflictException(
+          "Time-off period overlaps with an existing block",
+        )
+      }
+      throw error
+    }
   }
 
   /**
