@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto"
+import { createHash, randomUUID } from "node:crypto"
 import { Injectable, Logger, type OnApplicationShutdown } from "@nestjs/common"
 import type { ThrottlerStorage } from "@nestjs/throttler"
 import { createAdapter } from "@socket.io/redis-adapter"
@@ -42,6 +42,8 @@ type RateLimitRecord = {
   timeToBlockExpire: number
 }
 
+type LocalLock = { expiresAt: number; token: string }
+
 /**
  * Flatten scanIterator batches into a plain key list. The iterator yields
  * one string[] per SCAN round — pushing batches unflattened produces
@@ -73,6 +75,7 @@ export class RedisService implements ThrottlerStorage, OnApplicationShutdown {
   private readonly logger = new Logger(RedisService.name)
   private readonly redisUrl = this.normalizeUrl(process.env.REDIS_URL)
   private readonly memoryWindows = new Map<string, MemoryWindow>()
+  private readonly localLocks = new Map<string, LocalLock>()
   private readonly clients = new Set<RedisClient>()
   private commandClient: RedisClient | null = null
   private commandConnectPromise: Promise<void> | null = null
@@ -81,6 +84,37 @@ export class RedisService implements ThrottlerStorage, OnApplicationShutdown {
 
   get configured(): boolean {
     return this.redisUrl !== null
+  }
+
+  async tryAcquireLock(key: string, ttlMs: number): Promise<string | null> {
+    const ttl = Math.max(1_000, Math.floor(ttlMs))
+    const token = randomUUID()
+    if (!this.redisUrl) {
+      const current = this.localLocks.get(key)
+      const now = Date.now()
+      if (current && current.expiresAt > now) return null
+      this.localLocks.set(key, { expiresAt: now + ttl, token })
+      return token
+    }
+
+    const client = await this.getCommandClient()
+    const result = await client.set(`telehealth:lock:${key}`, token, {
+      NX: true,
+      PX: ttl,
+    })
+    return result === "OK" ? token : null
+  }
+
+  async releaseLock(key: string, token: string): Promise<void> {
+    if (!this.redisUrl) {
+      if (this.localLocks.get(key)?.token === token) this.localLocks.delete(key)
+      return
+    }
+    const client = await this.getCommandClient()
+    await client.eval(
+      `if redis.call("GET", KEYS[1]) == ARGV[1] then return redis.call("DEL", KEYS[1]) else return 0 end`,
+      { keys: [`telehealth:lock:${key}`], arguments: [token] },
+    )
   }
 
   async increment(
@@ -219,6 +253,7 @@ export class RedisService implements ThrottlerStorage, OnApplicationShutdown {
     this.commandClient = null
     this.commandConnectPromise = null
     this.socketAdapterConfigured = false
+    this.localLocks.clear()
   }
 
   private async getCommandClient(): Promise<RedisClient> {

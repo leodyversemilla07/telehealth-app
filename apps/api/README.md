@@ -69,23 +69,23 @@ Both surfaces enforce the same authorization rules. tRPC procedures declare `met
 
 ## Tech stack
 
-| Area             | Technology                                                              |
-| ---------------- | ----------------------------------------------------------------------- |
-| Framework        | NestJS 12, Express 5                                                    |
-| Language         | TypeScript 6                                                            |
-| RPC              | tRPC 11 via `nestjs-trpc`                                               |
-| Validation       | Zod (tRPC contracts, environment), class-validator (REST DTOs)          |
-| Database         | PostgreSQL 16, Prisma 7 with `@prisma/adapter-pg`                       |
-| Auth             | Better Auth 1.7 — email/password, verification, TOTP 2FA, lockout, RBAC |
-| Real-time        | Socket.IO with an optional Redis adapter                                |
-| Video            | LiveKit server SDK                                                      |
-| Email            | Resend                                                                  |
-| AI               | NVIDIA NIM                                                              |
-| Storage          | Local filesystem or private S3                                          |
-| Cache and limits | Redis (optional in development, required for multiple instances)        |
-| Observability    | Pino, request IDs, health check                                         |
-| Docs             | Swagger / OpenAPI in non-production                                     |
-| Testing          | Jest 30, Supertest, real-Postgres e2e                                   |
+| Area                         | Technology                                                              |
+| ---------------------------- | ----------------------------------------------------------------------- |
+| Framework                    | NestJS 12, Express 5                                                    |
+| Language                     | TypeScript 6                                                            |
+| RPC                          | tRPC 11 via `nestjs-trpc`                                               |
+| Validation                   | Zod (tRPC contracts, environment), class-validator (REST DTOs)          |
+| Database                     | PostgreSQL 16, Prisma 7 with `@prisma/adapter-pg`                       |
+| Auth                         | Better Auth 1.7 — email/password, verification, TOTP 2FA, lockout, RBAC |
+| Real-time                    | Socket.IO with an optional Redis adapter                                |
+| Video                        | LiveKit server SDK                                                      |
+| Email                        | Resend                                                                  |
+| AI                           | NVIDIA NIM                                                              |
+| Storage                      | Local filesystem or private S3                                          |
+| Cache, limits, and job locks | Redis (optional in development, required for multiple instances)        |
+| Observability                | Pino, request IDs, health check                                         |
+| Docs                         | Swagger / OpenAPI in non-production                                     |
+| Testing                      | Jest 30, Supertest, real-Postgres e2e                                   |
 
 ## Project structure
 
@@ -172,6 +172,10 @@ CI fails when the generated contract drifts from the routers.
 | Admin           | `GET /api/admin/dashboard`, `GET /api/admin/reports`, `GET /api/admin/users`, `PATCH /api/admin/users/:id`, ban/unban, role changes, doctor approval, rejection, verification       |
 | Health          | `GET /` and `GET /api` — uptime, version, and database latency                                                                                                                      |
 
+Deleting an account anonymizes and deactivates the user, revokes authentication
+sessions, and removes the avatar while retaining clinical records required for
+care, audit, and legal retention.
+
 Swagger is served at **http://localhost:3001/api/docs** outside production, with JSON and YAML at `/api/docs.json` and `/api/docs.yaml`.
 
 ## Authentication and authorization
@@ -249,7 +253,7 @@ Uploads are limited to JPEG, PNG, WebP, and PDF, validated by extension, declare
 | Web Push    | The VAPID public key is `null` and push delivery is disabled                              |
 | Redis       | In-process rate limits, cache, and Socket.IO adapter; suitable for a single instance only |
 
-AI recommendations strip PII before sending symptoms to NVIDIA NIM. Chat messages are sanitized with `isomorphic-dompurify` before storage.
+AI recommendations strip PII before sending symptoms to NVIDIA NIM. Symptom analysis is informational only and is not a diagnosis. Chat messages are sanitized with `isomorphic-dompurify` before storage.
 
 ## Environment variables
 

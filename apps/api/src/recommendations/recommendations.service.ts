@@ -1,5 +1,6 @@
 import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
+import { z } from "zod"
 import { stripPII } from "../common/utils/sanitize"
 import { PrismaService } from "../prisma/prisma.service"
 
@@ -29,6 +30,43 @@ const PRIMARY_MODEL = "nvidia/nemotron-3-super-120b-a12b"
 const FALLBACK_MODEL = "qwen/qwen3.5-122b-a10b"
 const NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
 const FETCH_TIMEOUT_MS = 30_000
+const SPECIALTIES = [
+  "General Practice",
+  "Internal Medicine",
+  "Cardiology",
+  "Dermatology",
+  "Pediatrics",
+  "Obstetrics and Gynecology",
+  "Ophthalmology",
+  "Otolaryngology (ENT)",
+  "Orthopedics",
+  "Neurology",
+  "Psychiatry",
+  "Pulmonology",
+  "Gastroenterology",
+  "Urology",
+  "Oncology",
+  "Radiology",
+  "Anesthesiology",
+  "Emergency Medicine",
+  "Family Medicine",
+] as const
+
+const symptomResponseSchema = z.object({
+  possibleConditions: z
+    .array(
+      z.object({
+        name: z.string().trim().min(1).max(120),
+        likelihood: z.enum(["high", "medium", "low"]),
+      }),
+    )
+    .max(10)
+    .default([]),
+  severity: z.enum(["low", "moderate", "high", "urgent"]),
+  recommendedAction: z.string().trim().min(1).max(1000),
+  specialties: z.array(z.enum(SPECIALTIES)).max(5).default([]),
+})
+type SymptomResponse = z.infer<typeof symptomResponseSchema>
 
 @Injectable()
 export class RecommendationsService {
@@ -102,11 +140,7 @@ export class RecommendationsService {
         )
         if (result) {
           // Find matching doctors
-          const specialties = Array.isArray(result.specialties)
-            ? result.specialties.filter(
-                (s): s is string => typeof s === "string",
-              )
-            : []
+          const specialties = result.specialties
           const doctors = await this.prisma.doctorProfile.findMany({
             where: {
               isApproved: true,
@@ -131,6 +165,8 @@ export class RecommendationsService {
           return {
             ...result,
             specialties,
+            disclaimer:
+              "This tool is for informational purposes only and is not a diagnosis. Seek emergency care for urgent or life-threatening symptoms.",
             doctors: doctors.map((doctor) => ({
               ...doctor,
               pricePerVisit: Number(String(doctor.pricePerVisit)) || 0,
@@ -158,7 +194,7 @@ export class RecommendationsService {
     apiKey: string,
     model: string,
     symptoms: string,
-  ): Promise<Record<string, unknown> | null> {
+  ): Promise<SymptomResponse | null> {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
 
@@ -206,9 +242,7 @@ export class RecommendationsService {
   /**
    * Parse symptom checker response.
    */
-  private parseSymptomResponse(
-    content: string,
-  ): Record<string, unknown> | null {
+  private parseSymptomResponse(content: string): SymptomResponse | null {
     const cleaned = content
       .replace(/^```(?:json)?\s*/i, "")
       .replace(/\s*```$/, "")
@@ -216,16 +250,17 @@ export class RecommendationsService {
 
     try {
       const parsed = JSON.parse(cleaned)
-      if (typeof parsed === "object" && parsed !== null) {
-        return parsed
-      }
-      return null
+      const validated = symptomResponseSchema.safeParse(parsed)
+      return validated.success ? validated.data : null
     } catch {
       this.logger.warn(`Failed to parse symptom response: ${cleaned}`)
       const match = cleaned.match(/\{[\s\S]*\}/)
       if (match) {
         try {
-          return JSON.parse(match[0])
+          const validated = symptomResponseSchema.safeParse(
+            JSON.parse(match[0]),
+          )
+          return validated.success ? validated.data : null
         } catch {
           // Failed
         }
@@ -336,9 +371,15 @@ export class RecommendationsService {
       const parsed = JSON.parse(cleaned)
 
       if (Array.isArray(parsed)) {
-        return parsed.filter(
-          (item): item is string => typeof item === "string" && item.length > 0,
-        )
+        return [
+          ...new Set(
+            parsed.filter(
+              (item): item is string =>
+                typeof item === "string" &&
+                (SPECIALTIES as readonly string[]).includes(item),
+            ),
+          ),
+        ]
       }
 
       this.logger.warn("NIM response was valid JSON but not an array")
@@ -351,10 +392,15 @@ export class RecommendationsService {
         try {
           const extracted = JSON.parse(match[0])
           if (Array.isArray(extracted)) {
-            return extracted.filter(
-              (item): item is string =>
-                typeof item === "string" && item.length > 0,
-            )
+            return [
+              ...new Set(
+                extracted.filter(
+                  (item): item is string =>
+                    typeof item === "string" &&
+                    (SPECIALTIES as readonly string[]).includes(item),
+                ),
+              ),
+            ]
           }
         } catch {
           // Regex extraction also failed

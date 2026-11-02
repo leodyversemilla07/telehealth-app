@@ -169,9 +169,37 @@ export class AvailabilityService {
    * Get a doctor's schedule (public).
    */
   async getSchedule(doctorId: string) {
+    const doctor = await this.prisma.doctorProfile.findUnique({
+      where: { id: doctorId },
+      select: {
+        isApproved: true,
+        prcLicenseExpiry: true,
+        user: { select: { role: true, banned: true, banExpires: true } },
+      },
+    })
+    if (
+      !doctor?.isApproved ||
+      doctor.prcLicenseExpiry <= new Date() ||
+      doctor.user.role !== "DOCTOR" ||
+      (doctor.user.banned &&
+        (!doctor.user.banExpires || doctor.user.banExpires > new Date()))
+    ) {
+      throw new NotFoundException("Schedule not found")
+    }
     const schedule = await this.prisma.availabilitySchedule.findUnique({
       where: { doctorId },
-      include: { timeOffs: true },
+      select: {
+        id: true,
+        doctorId: true,
+        monday: true,
+        tuesday: true,
+        wednesday: true,
+        thursday: true,
+        friday: true,
+        saturday: true,
+        sunday: true,
+        slotDuration: true,
+      },
     })
     if (!schedule) throw new NotFoundException("Schedule not found")
     return schedule
@@ -260,6 +288,23 @@ export class AvailabilityService {
    * then excludes already-booked appointments and time-offs.
    */
   async getAvailableSlots(doctorId: string, date: string) {
+    const doctor = await this.prisma.doctorProfile.findUnique({
+      where: { id: doctorId },
+      select: {
+        isApproved: true,
+        prcLicenseExpiry: true,
+        user: { select: { role: true, banned: true, banExpires: true } },
+      },
+    })
+    if (
+      !doctor?.isApproved ||
+      doctor.prcLicenseExpiry <= new Date() ||
+      doctor.user.role !== "DOCTOR" ||
+      (doctor.user.banned &&
+        (!doctor.user.banExpires || doctor.user.banExpires > new Date()))
+    ) {
+      return []
+    }
     // Convert PHT date to UTC range for DB queries
     const { start: phtDayStart, end: phtDayEnd } = phtDateToUTCRange(date)
 

@@ -16,6 +16,7 @@ import { ERROR_CODES } from "../common/errors/error-codes"
 import { EmailService } from "../common/services/email.service"
 import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
+import { RedisService } from "../redis/redis.service"
 import {
   createAppointmentInput,
   rescheduleAppointmentInput,
@@ -87,6 +88,7 @@ export class AppointmentsService {
     private readonly notifications: NotificationsService,
     private readonly auditLogs: AuditLogsService,
     private readonly email: EmailService,
+    private readonly redis: RedisService,
   ) {}
 
   /**
@@ -779,111 +781,124 @@ export class AppointmentsService {
    */
   @Cron(CronExpression.EVERY_HOUR)
   async sendUpcomingReminders() {
-    const now = new Date()
-    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
-
-    const upcoming = await this.prisma.appointment.findMany({
-      where: {
-        status: { in: ["BOOKED", "CONFIRMED"] },
-        startTime: { gte: now, lte: tomorrow },
-        // Only appointments that haven't been reminded yet — the cron runs
-        // hourly and without this every appointment inside the 24h window
-        // would be re-notified every hour.
-        reminderSentAt: null,
-      },
-      include: {
-        patient: PATIENT_INCLUDE,
-        doctor: DOCTOR_INCLUDE,
-      },
-    })
-
-    let sent = 0
-    for (const appt of upcoming) {
-      try {
-        const formattedTime = formatPHTFull(appt.startTime)
-        const doctorName = appt.doctor.user.name ?? "Doctor"
-        const patientName = appt.patient.name ?? "Patient"
-
-        // Each recipient is notified independently — a failure on one side
-        // must not block the other or prevent marking the reminder as sent.
-        // Otherwise the hourly cron re-notifies every hour and the first
-        // recipient receives duplicate reminders.
-        try {
-          await this.notifications.createNotification(
-            appt.patientId,
-            "APPOINTMENT_REMINDER",
-            "Upcoming Appointment Reminder",
-            `Your consultation with Dr. ${doctorName} is scheduled for ${formattedTime}.`,
-          )
-        } catch (err) {
-          this.logger.error(
-            `Failed to notify patient ${appt.patientId} (${appt.id}):`,
-            err,
-          )
-        }
-
-        try {
-          await this.notifications.createNotification(
-            appt.doctor.user.id,
-            "APPOINTMENT_REMINDER",
-            "Upcoming Appointment Reminder",
-            `You have a consultation with ${patientName} scheduled for ${formattedTime}.`,
-          )
-        } catch (err) {
-          this.logger.error(
-            `Failed to notify doctor ${appt.doctor.user.id} (${appt.id}):`,
-            err,
-          )
-        }
-
-        // Mark reminded regardless of in-app notification success — the
-        // hourly cron then skips this appointment instead of re-notifying.
-        await this.prisma.appointment.update({
-          where: { id: appt.id },
-          data: { reminderSentAt: now },
-        })
-
-        // Email reminders (best-effort)
-        const patientEmail = appt.patient.email
-        const doctorEmail = appt.doctor.user.email
-        if (patientEmail) {
-          this.email
-            .sendAppointmentReminder(
-              patientEmail,
-              appt.patient.name ?? "Patient",
-              `Dr. ${doctorName}`,
-              formattedTime,
-            )
-            .catch((e) =>
-              this.logger.error(
-                `Failed to email patient reminder: ${e instanceof Error ? e.message : String(e)}`,
-              ),
-            )
-        }
-        if (doctorEmail) {
-          this.email
-            .sendAppointmentReminder(
-              doctorEmail,
-              doctorName,
-              patientName,
-              formattedTime,
-            )
-            .catch((e) =>
-              this.logger.error(
-                `Failed to email doctor reminder: ${e instanceof Error ? e.message : String(e)}`,
-              ),
-            )
-        }
-
-        sent++
-      } catch (err) {
-        this.logger.error(
-          `Failed to send reminder for appointment ${appt.id}:`,
-          err,
-        )
-      }
+    const lockKey = "jobs:appointment-reminders"
+    const lockToken = await this.redis.tryAcquireLock(lockKey, 55 * 60 * 1000)
+    if (!lockToken) {
+      this.logger.debug(
+        "Skipping appointment reminders; another worker owns the lock",
+      )
+      return { sent: 0, total: 0 }
     }
 
-    return { sent, total: upcoming.length }
+    try {
+      const now = new Date()
+      const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000)
+
+      const upcoming = await this.prisma.appointment.findMany({
+        where: {
+          status: { in: ["BOOKED", "CONFIRMED"] },
+          startTime: { gte: now, lte: tomorrow },
+          // Only appointments that haven't been reminded yet — the cron runs
+          // hourly and without this every appointment inside the 24h window
+          // would be re-notified every hour.
+          reminderSentAt: null,
+        },
+        include: {
+          patient: PATIENT_INCLUDE,
+          doctor: DOCTOR_INCLUDE,
+        },
+      })
+
+      let sent = 0
+      for (const appt of upcoming) {
+        try {
+          const formattedTime = formatPHTFull(appt.startTime)
+          const doctorName = appt.doctor.user.name ?? "Doctor"
+          const patientName = appt.patient.name ?? "Patient"
+
+          // Each recipient is notified independently — a failure on one side
+          // must not block the other or prevent marking the reminder as sent.
+          // Otherwise the hourly cron re-notifies every hour and the first
+          // recipient receives duplicate reminders.
+          try {
+            await this.notifications.createNotification(
+              appt.patientId,
+              "APPOINTMENT_REMINDER",
+              "Upcoming Appointment Reminder",
+              `Your consultation with Dr. ${doctorName} is scheduled for ${formattedTime}.`,
+            )
+          } catch (err) {
+            this.logger.error(
+              `Failed to notify patient ${appt.patientId} (${appt.id}):`,
+              err,
+            )
+          }
+
+          try {
+            await this.notifications.createNotification(
+              appt.doctor.user.id,
+              "APPOINTMENT_REMINDER",
+              "Upcoming Appointment Reminder",
+              `You have a consultation with ${patientName} scheduled for ${formattedTime}.`,
+            )
+          } catch (err) {
+            this.logger.error(
+              `Failed to notify doctor ${appt.doctor.user.id} (${appt.id}):`,
+              err,
+            )
+          }
+
+          // Mark reminded regardless of in-app notification success — the
+          // hourly cron then skips this appointment instead of re-notifying.
+          await this.prisma.appointment.update({
+            where: { id: appt.id },
+            data: { reminderSentAt: now },
+          })
+
+          // Email reminders (best-effort)
+          const patientEmail = appt.patient.email
+          const doctorEmail = appt.doctor.user.email
+          if (patientEmail) {
+            this.email
+              .sendAppointmentReminder(
+                patientEmail,
+                appt.patient.name ?? "Patient",
+                `Dr. ${doctorName}`,
+                formattedTime,
+              )
+              .catch((e) =>
+                this.logger.error(
+                  `Failed to email patient reminder: ${e instanceof Error ? e.message : String(e)}`,
+                ),
+              )
+          }
+          if (doctorEmail) {
+            this.email
+              .sendAppointmentReminder(
+                doctorEmail,
+                doctorName,
+                patientName,
+                formattedTime,
+              )
+              .catch((e) =>
+                this.logger.error(
+                  `Failed to email doctor reminder: ${e instanceof Error ? e.message : String(e)}`,
+                ),
+              )
+          }
+
+          sent++
+        } catch (err) {
+          this.logger.error(
+            `Failed to send reminder for appointment ${appt.id}:`,
+            err,
+          )
+        }
+      }
+
+      return { sent, total: upcoming.length }
+    } finally {
+      await this.redis.releaseLock(lockKey, lockToken)
+    }
   }
 }

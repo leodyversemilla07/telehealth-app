@@ -114,19 +114,23 @@ export class ChatService {
   async getConversation(userId: string, otherUserId: string, limit = 50) {
     await this.assertCanChat(userId, otherUserId)
 
-    return this.prisma.chatMessage.findMany({
-      where: {
-        OR: [
-          { senderId: userId, receiverId: otherUserId },
-          { senderId: otherUserId, receiverId: userId },
-        ],
-      },
-      include: {
-        sender: { select: { id: true, name: true, email: true, image: true } },
-      },
-      orderBy: { createdAt: "asc" },
-      take: limit,
-    })
+    return this.prisma.chatMessage
+      .findMany({
+        where: {
+          OR: [
+            { senderId: userId, receiverId: otherUserId },
+            { senderId: otherUserId, receiverId: userId },
+          ],
+        },
+        include: {
+          sender: {
+            select: { id: true, name: true, email: true, image: true },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+      })
+      .then((messages) => messages.reverse())
   }
 
   /**

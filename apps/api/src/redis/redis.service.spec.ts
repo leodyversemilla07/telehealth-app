@@ -81,6 +81,18 @@ describe("RedisService in-memory fallback", () => {
     )
     expect(server.adapter).not.toHaveBeenCalled()
   })
+
+  it("coordinates local job locks and only releases the owner token", async () => {
+    const first = await service.tryAcquireLock("job", 60_000)
+    expect(first).toEqual(expect.any(String))
+    await expect(service.tryAcquireLock("job", 60_000)).resolves.toBeNull()
+    await service.releaseLock("job", "wrong-token")
+    await expect(service.tryAcquireLock("job", 60_000)).resolves.toBeNull()
+    await service.releaseLock("job", first as string)
+    await expect(service.tryAcquireLock("job", 60_000)).resolves.toEqual(
+      expect.any(String),
+    )
+  })
 })
 
 describe("collectScanKeys", () => {

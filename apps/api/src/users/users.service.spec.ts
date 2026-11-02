@@ -12,8 +12,8 @@ type MockPrisma = {
     findUnique: jest.Mock
     findMany: jest.Mock
     update: jest.Mock
-    delete: jest.Mock
   }
+  account: { deleteMany: jest.Mock }
   session: {
     findMany: jest.Mock
     findFirst: jest.Mock
@@ -46,8 +46,8 @@ describe("UsersService", () => {
         findUnique: jest.fn(),
         findMany: jest.fn(),
         update: jest.fn(),
-        delete: jest.fn(),
       },
+      account: { deleteMany: jest.fn() },
       session: {
         findMany: jest.fn(),
         findFirst: jest.fn(),
@@ -215,57 +215,49 @@ describe("UsersService", () => {
     )
   })
 
-  it("deleteAccount should remove stored files, audit, and delete the user", async () => {
+  it("deleteAccount should remove the avatar, anonymize the user, and revoke auth", async () => {
     storage.listFiles.mockResolvedValue([
       "avatar-u1-100.jpg",
       "avatar-u1-123.png",
     ])
-    prisma.medicalDocument.findMany.mockResolvedValue([
-      { storageKey: "medical-u1-1.pdf" },
-      { storageKey: "medical-u1-2.png" },
-    ])
-    prisma.user.delete.mockResolvedValue({ id: "u1" })
-
     const result = await service.deleteAccount("u1", "u1@x.com")
 
-    expect(prisma.medicalDocument.findMany).toHaveBeenCalledWith({
-      where: {
-        OR: [
-          { patientId: "u1" },
-          { appointment: { doctor: { userId: "u1" } } },
-        ],
-      },
-      select: { storageKey: true },
-    })
     expect(storage.listFiles).toHaveBeenCalledWith("avatar-u1-")
-    expect(storage.deleteFile).toHaveBeenCalledTimes(4)
+    expect(storage.deleteFile).toHaveBeenCalledTimes(2)
     expect(storage.deleteFile).toHaveBeenCalledWith("avatar-u1-100.jpg")
     expect(storage.deleteFile).toHaveBeenCalledWith("avatar-u1-123.png")
-    expect(storage.deleteFile).toHaveBeenCalledWith("medical-u1-1.pdf")
-    expect(storage.deleteFile).toHaveBeenCalledWith("medical-u1-2.png")
     expect(auditLogs.createLog).toHaveBeenCalledWith(
       "u1",
-      "Deleted own account",
+      "Anonymized own account",
       "u1",
       undefined,
       "u1@x.com",
       "u1@x.com",
     )
-    expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: "u1" } })
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: "u1" },
+      data: expect.objectContaining({
+        email: "deleted-u1@invalid.telehealth",
+        banned: true,
+      }),
+    })
+    expect(prisma.session.deleteMany).toHaveBeenCalledWith({
+      where: { userId: "u1" },
+    })
+    expect(prisma.account.deleteMany).toHaveBeenCalledWith({
+      where: { userId: "u1" },
+    })
     expect(result).toEqual({ success: true })
   })
 
   it("deleteAccount should keep the account when storage cleanup fails", async () => {
-    storage.listFiles.mockResolvedValue([])
-    prisma.medicalDocument.findMany.mockResolvedValue([
-      { storageKey: "medical-u1-1.pdf" },
-    ])
+    storage.listFiles.mockResolvedValue(["avatar-u1-100.jpg"])
     storage.deleteFile.mockRejectedValue(new Error("S3 unavailable"))
 
     await expect(service.deleteAccount("u1", "u1@x.com")).rejects.toThrow(
       "S3 unavailable",
     )
     expect(auditLogs.createLog).not.toHaveBeenCalled()
-    expect(prisma.user.delete).not.toHaveBeenCalled()
+    expect(prisma.user.update).not.toHaveBeenCalled()
   })
 })
