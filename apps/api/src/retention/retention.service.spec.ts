@@ -1,6 +1,7 @@
 import { ConfigService } from "@nestjs/config"
 import { Test, type TestingModule } from "@nestjs/testing"
 import { PrismaService } from "../prisma/prisma.service"
+import { RedisService } from "../redis/redis.service"
 import { RetentionService } from "./retention.service"
 
 type MockPrisma = {
@@ -62,6 +63,13 @@ describe("RetentionService", () => {
         RetentionService,
         { provide: PrismaService, useValue: prisma },
         { provide: ConfigService, useValue: config },
+        {
+          provide: RedisService,
+          useValue: {
+            tryAcquireLock: jest.fn().mockResolvedValue("lock-token"),
+            releaseLock: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile()
 

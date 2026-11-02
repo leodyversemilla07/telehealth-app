@@ -9,6 +9,7 @@ import { AuditLogsService } from "../audit-logs/audit-logs.service"
 import { EmailService } from "../common/services/email.service"
 import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
+import { RedisService } from "../redis/redis.service"
 
 describe("AppointmentsService (service-level, mocked Prisma)", () => {
   let service: AppointmentsService
@@ -62,6 +63,13 @@ describe("AppointmentsService (service-level, mocked Prisma)", () => {
         {
           provide: EmailService,
           useValue: { sendAppointmentReminder: jest.fn() },
+        },
+        {
+          provide: RedisService,
+          useValue: {
+            tryAcquireLock: jest.fn().mockResolvedValue("lock-token"),
+            releaseLock: jest.fn().mockResolvedValue(undefined),
+          },
         },
       ],
     }).compile()

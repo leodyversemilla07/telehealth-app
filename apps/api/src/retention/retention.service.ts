@@ -2,6 +2,7 @@ import { Injectable, Logger } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { Cron, CronExpression } from "@nestjs/schedule"
 import { PrismaService } from "../prisma/prisma.service"
+import { RedisService } from "../redis/redis.service"
 
 @Injectable()
 export class RetentionService {
@@ -10,23 +11,40 @@ export class RetentionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly redis: RedisService,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async purgeOldRecords() {
-    this.logger.log("Starting data retention cleanup...")
-    const results: string[] = []
-
-    results.push(await this.purgeVerifications())
-    results.push(await this.purgeNotifications())
-    results.push(await this.purgeSecurityAlerts())
-    results.push(await this.purgeAuditLogs())
-    results.push(await this.verifyDoctorLicenses())
-
-    for (const result of results) {
-      this.logger.log(result)
+    const lockKey = "jobs:retention"
+    const lockToken = await this.redis.tryAcquireLock(
+      lockKey,
+      23 * 60 * 60 * 1000,
+    )
+    if (!lockToken) {
+      this.logger.debug(
+        "Skipping retention cleanup; another worker owns the lock",
+      )
+      return
     }
-    this.logger.log("Data retention cleanup complete.")
+
+    try {
+      this.logger.log("Starting data retention cleanup...")
+      const results: string[] = []
+
+      results.push(await this.purgeVerifications())
+      results.push(await this.purgeNotifications())
+      results.push(await this.purgeSecurityAlerts())
+      results.push(await this.purgeAuditLogs())
+      results.push(await this.verifyDoctorLicenses())
+
+      for (const result of results) {
+        this.logger.log(result)
+      }
+      this.logger.log("Data retention cleanup complete.")
+    } finally {
+      await this.redis.releaseLock(lockKey, lockToken)
+    }
   }
 
   // NFR-COMP-05: Auto-reverify doctor PRC licenses every 6 months.

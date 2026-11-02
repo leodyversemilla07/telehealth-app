@@ -143,6 +143,11 @@ describe("AvailabilityService", () => {
     }
     schedule[dayKey] = '["09:00-10:00"]'
 
+    prisma.doctorProfile.findUnique.mockResolvedValue({
+      isApproved: true,
+      prcLicenseExpiry: new Date("2099-01-01"),
+      user: { role: "DOCTOR", banned: false, banExpires: null },
+    })
     prisma.availabilitySchedule.findUnique.mockResolvedValue(schedule)
 
     const slots = await service.getAvailableSlots("doc-1", date)
@@ -184,6 +189,11 @@ describe("AvailabilityService", () => {
     }
     schedule[dayKey] = '["09:00-11:00"]'
 
+    prisma.doctorProfile.findUnique.mockResolvedValue({
+      isApproved: true,
+      prcLicenseExpiry: new Date("2099-01-01"),
+      user: { role: "DOCTOR", banned: false, banExpires: null },
+    })
     prisma.availabilitySchedule.findUnique.mockResolvedValue(schedule)
 
     const slots = await service.getAvailableSlots("doc-1", date)
@@ -223,6 +233,11 @@ describe("AvailabilityService", () => {
     }
     schedule[dayKey] = '["00:00-02:00"]'
 
+    prisma.doctorProfile.findUnique.mockResolvedValue({
+      isApproved: true,
+      prcLicenseExpiry: new Date("2099-01-01"),
+      user: { role: "DOCTOR", banned: false, banExpires: null },
+    })
     prisma.availabilitySchedule.findUnique.mockResolvedValue(schedule)
 
     const slots = await service.getAvailableSlots("doc-1", date)

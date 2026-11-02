@@ -334,45 +334,45 @@ export class UsersService {
   }
 
   /**
-   * Permanently delete the current user's account. Related records (sessions,
-   * accounts, profiles, appointments, consents, notifications, etc.) are
-   * removed via Prisma cascade rules. Audit logs are retained independently.
+   * Deactivate and anonymize the account while retaining clinical records.
+   * Healthcare records and appointment history must not be deleted merely
+   * because authentication access is withdrawn.
    */
   async deleteAccount(userId: string, email: string) {
-    // Collect every object whose database row will be removed by the account
-    // cascade. Object storage has no foreign keys, so it must be cleaned up
-    // explicitly before the user row disappears.
-    const [documents, avatarKeys] = await Promise.all([
-      this.prisma.medicalDocument.findMany({
-        where: {
-          OR: [{ patientId: userId }, { appointment: { doctor: { userId } } }],
-        },
-        select: { storageKey: true },
-      }),
-      this.storage.listFiles(`avatar-${userId}-`),
-    ])
+    const avatarKeys = await this.storage.listFiles(`avatar-${userId}-`)
 
-    const keys = new Set([
-      ...documents.map((document) => document.storageKey),
-      ...avatarKeys,
-    ])
+    // Fail closed if object cleanup fails; the user can retry the request.
+    await Promise.all(avatarKeys.map((key) => this.storage.deleteFile(key)))
 
-    // Fail closed: if storage cleanup fails, keep the account so the user can
-    // retry instead of leaving inaccessible orphaned health data behind.
-    await Promise.all([...keys].map((key) => this.storage.deleteFile(key)))
+    // Keep the row so appointment and clinical-record foreign keys remain
+    // valid, but remove direct identifiers and all authentication access.
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: `deleted-${userId}@invalid.telehealth`,
+        name: null,
+        firstName: null,
+        middleName: null,
+        lastName: null,
+        image: null,
+        banned: true,
+        banReason: "Account deleted by user",
+        banExpires: null,
+        privacyPolicyAcceptedAt: null,
+        privacyPolicyVersion: null,
+      },
+    })
+    await this.prisma.session.deleteMany({ where: { userId } })
+    await this.prisma.account.deleteMany({ where: { userId } })
 
-    // Log the erasure before the row is gone (AuditLog has no FK to User).
     await this.auditLogs.createLog(
       userId,
-      "Deleted own account",
+      "Anonymized own account",
       userId,
       undefined,
       email,
       email,
     )
-
-    // Cascade removes sessions, accounts, profiles, appointments, consents, etc.
-    await this.prisma.user.delete({ where: { id: userId } })
 
     return { success: true }
   }

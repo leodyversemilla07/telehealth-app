@@ -67,28 +67,28 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 
 ### 1.2 Product Scope
 
-| Feature                    | Description                                                                             | Status                                          |
-| -------------------------- | --------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Patient Account            | Register using email and password                                                       | ✅ Implemented                                  |
-| Patient Profile            | Name, birthday, weight, height, profile picture, contact details, basic medical history | ✅ Implemented                                  |
-| Doctor Discovery           | Browse doctors, view availability, filter by specialization                             | ✅ Implemented                                  |
-| AI Recommendation          | AI recommends doctors based on patient symptoms/needs via NVIDIA NIM                    | ✅ Implemented                                  |
-| Appointment Booking        | Book, reschedule, cancel consultations online                                           | ✅ Implemented                                  |
-| Real-time Notifications    | Push notifications for booked, upcoming, and updated appointments                       | ✅ Implemented                                  |
-| Consultation Session       | Join video call for virtual consultation (LiveKit)                                      | ✅ Implemented (requires LIVEKIT_* credentials) |
-| Appointment History        | View past consultations and records                                                     | ✅ Implemented                                  |
-| Medical Records            | View basic medical records and prescriptions                                            | ✅ Implemented                                  |
-| Doctor Account             | Register using email and password                                                       | ✅ Implemented                                  |
-| Doctor Profile             | Add profile details, bio, and specialization                                            | ✅ Implemented                                  |
-| Schedule Management        | Manage consultation schedules, restrict unavailable time slots                          | ✅ Implemented                                  |
-| Consultation Notes         | Add medical notes and/or prescriptions after appointments                               | ✅ Implemented                                  |
-| In-app Chat                | Secure real-time messaging between patient and doctor                                   | ✅ Implemented                                  |
-| Doctor Reviews             | Rate and review doctors after consultations                                             | ✅ Implemented                                  |
-| Admin Dashboard            | Manage users, approve doctors, view audit logs                                          | ✅ Implemented                                  |
-| Privacy Consent at Sign-up | Explicit consent checkbox + ConsentLog on registration (F-AUTH-07)                      | ✅ Implemented                                  |
-| Account Deletion           | DELETE /api/users/me + Delete Account UI                                                | ✅ Implemented                                  |
-| Server-side Route Guard    | Next.js 16 proxy.ts session check on protected areas                                    | ✅ Implemented                                  |
-| Standardized Error Codes   | SRS Appendix C codes in every error response (NFR-REL-03)                               | ✅ Implemented                                  |
+| Feature                    | Description                                                                                                   | Status                                          |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------- |
+| Patient Account            | Register using email and password                                                                             | ✅ Implemented                                  |
+| Patient Profile            | Name, birthday, weight, height, profile picture, contact details, basic medical history                       | ✅ Implemented                                  |
+| Doctor Discovery           | Browse doctors, view availability, filter by specialization                                                   | ✅ Implemented                                  |
+| AI Recommendation          | AI recommends doctors based on patient symptoms/needs via NVIDIA NIM                                          | ✅ Implemented                                  |
+| Appointment Booking        | Book, reschedule, cancel consultations online                                                                 | ✅ Implemented                                  |
+| Real-time Notifications    | Push notifications for booked, upcoming, and updated appointments                                             | ✅ Implemented                                  |
+| Consultation Session       | Join video call for virtual consultation (LiveKit)                                                            | ✅ Implemented (requires LIVEKIT_* credentials) |
+| Appointment History        | View past consultations and records                                                                           | ✅ Implemented                                  |
+| Medical Records            | View basic medical records and prescriptions                                                                  | ✅ Implemented                                  |
+| Doctor Account             | Register using email and password                                                                             | ✅ Implemented                                  |
+| Doctor Profile             | Add profile details, bio, and specialization                                                                  | ✅ Implemented                                  |
+| Schedule Management        | Manage consultation schedules, restrict unavailable time slots                                                | ✅ Implemented                                  |
+| Consultation Notes         | Add medical notes and/or prescriptions after appointments                                                     | ✅ Implemented                                  |
+| In-app Chat                | Secure real-time messaging between patient and doctor                                                         | ✅ Implemented                                  |
+| Doctor Reviews             | Rate and review doctors after consultations                                                                   | ✅ Implemented                                  |
+| Admin Dashboard            | Manage users, approve doctors, view audit logs                                                                | ✅ Implemented                                  |
+| Privacy Consent at Sign-up | Explicit consent checkbox + ConsentLog on registration (F-AUTH-07)                                            | ✅ Implemented                                  |
+| Account Deletion           | DELETE /api/users/me + Delete Account UI; anonymizes/deactivates the account while retaining clinical records | ✅ Implemented                                  |
+| Server-side Route Guard    | Next.js 16 proxy.ts session check on protected areas                                                          | ✅ Implemented                                  |
+| Standardized Error Codes   | SRS Appendix C codes in every error response (NFR-REL-03)                                                     | ✅ Implemented                                  |
 
 ### 1.3 Definitions, Acronyms, and Abbreviations
 

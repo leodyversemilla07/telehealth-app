@@ -10,6 +10,7 @@ import { AuditLogsService } from "../audit-logs/audit-logs.service"
 import { EmailService } from "../common/services/email.service"
 import { NotificationsService } from "../notifications/notifications.service"
 import { PrismaService } from "../prisma/prisma.service"
+import { RedisService } from "../redis/redis.service"
 import { AppointmentsService } from "./appointments.service"
 
 type MockModel = {
@@ -131,6 +132,13 @@ describe("AppointmentsService", () => {
           useValue: {
             sendAppointmentReminder: jest.fn().mockResolvedValue(undefined),
             sendMail: jest.fn().mockResolvedValue(undefined),
+          },
+        },
+        {
+          provide: RedisService,
+          useValue: {
+            tryAcquireLock: jest.fn().mockResolvedValue("lock-token"),
+            releaseLock: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],

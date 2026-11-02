@@ -335,7 +335,7 @@ The `ci` workflow runs a frozen install, lockfile drift check, format check, lin
 - Video requires `LIVEKIT_*`; without it the video endpoints return `403 Video consultation is not configured`.
 - AI recommendations require `NIM_API_KEY`; without it the endpoint returns `503`.
 - Local file storage is the default in development. Set the `AWS_*` and `S3_BUCKET` variables to use private S3 storage.
-- Redis is optional for a single API instance. Configure `REDIS_URL` before running multiple instances so rate limits and Socket.IO rooms are shared.
+- Redis is optional for a single API instance. Configure `REDIS_URL` before running multiple instances so rate limits, Socket.IO rooms, and scheduled-job locks are shared.
 - Swagger is only served outside production.
 - The repository does not include deployment manifests. The web app and API can be deployed independently, provided PostgreSQL, the root environment variables, and any optional integrations are available.
 
