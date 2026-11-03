@@ -1,7 +1,13 @@
-import { Injectable, Logger, ServiceUnavailableException } from "@nestjs/common"
+import {
+  ForbiddenException,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+} from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { z } from "zod"
 import { stripPII } from "../common/utils/sanitize"
+import { ConsentService } from "../consent/consent.service"
 import { PrismaService } from "../prisma/prisma.service"
 
 const SYSTEM_PROMPT = `You are a medical specialty classifier. Given patient symptoms or healthcare needs, respond ONLY with a JSON array of relevant medical specialties from this list: General Practice, Internal Medicine, Cardiology, Dermatology, Pediatrics, Obstetrics and Gynecology, Ophthalmology, Otolaryngology (ENT), Orthopedics, Neurology, Psychiatry, Pulmonology, Gastroenterology, Urology, Oncology, Radiology, Anesthesiology, Emergency Medicine, Family Medicine. Example response: ["Cardiology", "Internal Medicine"]`
@@ -75,6 +81,7 @@ export class RecommendationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly consent: ConsentService,
   ) {}
 
   /**
@@ -83,7 +90,8 @@ export class RecommendationsService {
    * 2. Queries the database for approved doctors matching those specialties
    * 3. Returns both the identified specialties and matching doctors
    */
-  async getRecommendation(symptoms: string) {
+  async getRecommendation(userId: string, symptoms: string) {
+    await this.requireDataSharingConsent(userId)
     const safeSymptoms = stripPII(symptoms)
     const specialties = await this.mapSymptomsToSpecialties(safeSymptoms)
 
@@ -120,7 +128,8 @@ export class RecommendationsService {
   /**
    * AI Symptom Checker - provides detailed analysis of symptoms.
    */
-  async checkSymptoms(symptoms: string) {
+  async checkSymptoms(userId: string, symptoms: string) {
+    await this.requireDataSharingConsent(userId)
     const safeSymptoms = stripPII(symptoms)
     const apiKey = this.config.get<string>("NIM_API_KEY")
 
@@ -185,6 +194,14 @@ export class RecommendationsService {
     throw new ServiceUnavailableException(
       "Unable to analyze symptoms at this time. Please try again later.",
     )
+  }
+
+  private async requireDataSharingConsent(userId: string): Promise<void> {
+    if (!(await this.consent.hasConsented(userId, "data_sharing"))) {
+      throw new ForbiddenException(
+        "Data-sharing consent is required before using AI symptom analysis",
+      )
+    }
   }
 
   /**

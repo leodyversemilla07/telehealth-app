@@ -9,7 +9,8 @@ import {
   ApiUnauthorizedResponse,
 } from "@nestjs/swagger"
 import { Throttle } from "@nestjs/throttler"
-import { Roles } from "@thallesp/nestjs-better-auth"
+import type { UserSession } from "@thallesp/nestjs-better-auth"
+import { Roles, Session } from "@thallesp/nestjs-better-auth"
 import { GetRecommendationDto } from "./dto"
 import { RecommendationsService } from "./recommendations.service"
 
@@ -35,8 +36,14 @@ export class RecommendationsController {
   @ApiBadRequestResponse({ description: "Invalid input" })
   @ApiUnauthorizedResponse({ description: "Not authenticated" })
   @ApiForbiddenResponse({ description: "Forbidden" })
-  async getRecommendation(@Body() dto: GetRecommendationDto) {
-    return this.recommendationsService.getRecommendation(dto.symptoms)
+  async getRecommendation(
+    @Session() session: UserSession,
+    @Body() dto: GetRecommendationDto,
+  ) {
+    return this.recommendationsService.getRecommendation(
+      session.user.id,
+      dto.symptoms,
+    )
   }
 
   @Post("symptoms")
@@ -49,7 +56,13 @@ export class RecommendationsController {
   @ApiBadRequestResponse({ description: "Invalid input" })
   @ApiUnauthorizedResponse({ description: "Not authenticated" })
   @ApiForbiddenResponse({ description: "Forbidden" })
-  async checkSymptoms(@Body() dto: GetRecommendationDto) {
-    return this.recommendationsService.checkSymptoms(dto.symptoms)
+  async checkSymptoms(
+    @Session() session: UserSession,
+    @Body() dto: GetRecommendationDto,
+  ) {
+    return this.recommendationsService.checkSymptoms(
+      session.user.id,
+      dto.symptoms,
+    )
   }
 }

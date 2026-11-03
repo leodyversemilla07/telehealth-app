@@ -32,6 +32,17 @@ const PUBLIC_USER_SELECT = {
   image: true,
 } as const
 
+const PUBLIC_DOCTOR_SELECT = {
+  id: true,
+  userId: true,
+  specialty: true,
+  bio: true,
+  clinicAddress: true,
+  pricePerVisit: true,
+  isVerified: true,
+  user: { select: PUBLIC_USER_SELECT },
+} as const
+
 /**
  * Public doctor card returned by findApproved: the approved profile plus
  * rating aggregates, with pricePerVisit normalized to a plain number.
@@ -39,7 +50,7 @@ const PUBLIC_USER_SELECT = {
  */
 export type ApprovedDoctor = Omit<
   Prisma.DoctorProfileGetPayload<{
-    include: { user: { select: typeof PUBLIC_USER_SELECT } }
+    select: typeof PUBLIC_DOCTOR_SELECT
   }>,
   "pricePerVisit"
 > & {
@@ -273,10 +284,8 @@ export class DoctorsService {
 
     const doctors = await this.prisma.doctorProfile.findMany({
       where,
-      include: {
-        user: {
-          select: PUBLIC_USER_SELECT,
-        },
+      select: {
+        ...PUBLIC_DOCTOR_SELECT,
         _count: {
           select: { reviews: true },
         },
@@ -327,10 +336,8 @@ export class DoctorsService {
           OR: [{ banned: false }, { banExpires: { lte: new Date() } }],
         },
       },
-      include: {
-        user: {
-          select: PUBLIC_USER_SELECT,
-        },
+      select: {
+        ...PUBLIC_DOCTOR_SELECT,
         _count: {
           select: { reviews: true },
         },

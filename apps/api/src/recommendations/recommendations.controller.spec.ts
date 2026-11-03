@@ -24,21 +24,24 @@ describe("RecommendationsController", () => {
 
   it("getRecommendation delegates with the symptom text", async () => {
     const dto = { symptoms: "fever and cough" } as GetRecommendationDto
-    await expect(controller.getRecommendation(dto)).resolves.toEqual({
+    await expect(controller.getRecommendation(session, dto)).resolves.toEqual({
       doctors: [],
     })
-    expect(service.getRecommendation).toHaveBeenCalledWith("fever and cough")
+    expect(service.getRecommendation).toHaveBeenCalledWith(
+      "pat-1",
+      "fever and cough",
+    )
   })
 
   it("checkSymptoms delegates with the symptom text", async () => {
     const dto = { symptoms: "headache" } as GetRecommendationDto
-    await expect(controller.checkSymptoms(dto)).resolves.toEqual({
+    await expect(controller.checkSymptoms(session, dto)).resolves.toEqual({
       analysis: "ok",
     })
-    expect(service.checkSymptoms).toHaveBeenCalledWith("headache")
+    expect(service.checkSymptoms).toHaveBeenCalledWith("pat-1", "headache")
   })
 
-  it("does not require a session for the AI endpoints", async () => {
+  it("requires a patient session for the AI endpoints", async () => {
     expect(session.user.id).toBe("pat-1")
   })
 })

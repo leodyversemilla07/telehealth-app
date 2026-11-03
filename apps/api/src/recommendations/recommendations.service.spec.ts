@@ -1,6 +1,7 @@
 import { ServiceUnavailableException } from "@nestjs/common"
 import { ConfigService } from "@nestjs/config"
 import { Test, type TestingModule } from "@nestjs/testing"
+import { ConsentService } from "../consent/consent.service"
 import { PrismaService } from "../prisma/prisma.service"
 import { RecommendationsService } from "./recommendations.service"
 
@@ -37,11 +38,13 @@ describe("RecommendationsService", () => {
   let service: RecommendationsService
   let prisma: MockPrisma
   let config: { get: jest.Mock }
+  let consent: { hasConsented: jest.Mock }
   const originalFetch = globalThis.fetch
 
   beforeEach(async () => {
     prisma = buildPrismaMock()
     config = { get: jest.fn() }
+    consent = { hasConsented: jest.fn().mockResolvedValue(true) }
     config.get.mockImplementation((key: string) =>
       key === "NIM_API_KEY" ? "nim-key" : undefined,
     )
@@ -51,6 +54,7 @@ describe("RecommendationsService", () => {
         RecommendationsService,
         { provide: PrismaService, useValue: prisma },
         { provide: ConfigService, useValue: config },
+        { provide: ConsentService, useValue: consent },
       ],
     }).compile()
 
@@ -63,6 +67,17 @@ describe("RecommendationsService", () => {
   })
 
   describe("getRecommendation", () => {
+    it("requires data-sharing consent before calling the external AI provider", async () => {
+      consent.hasConsented.mockResolvedValue(false)
+      const fetchMock = jest.fn()
+      globalThis.fetch = fetchMock as unknown as typeof fetch
+
+      await expect(
+        service.getRecommendation("pat-1", "chest pain"),
+      ).rejects.toThrow("Data-sharing consent is required")
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+
     it("should return matching approved doctors for mapped specialties", async () => {
       globalThis.fetch = jest
         .fn()
@@ -74,7 +89,7 @@ describe("RecommendationsService", () => {
       ]
       prisma.doctorProfile.findMany.mockResolvedValue(doctors)
 
-      const result = await service.getRecommendation("chest pain")
+      const result = await service.getRecommendation("pat-1", "chest pain")
 
       expect(result).toEqual({
         specialties: ["Cardiology", "Internal Medicine"],
@@ -98,7 +113,7 @@ describe("RecommendationsService", () => {
         ) as unknown as typeof fetch
       prisma.doctorProfile.findMany.mockResolvedValue([])
 
-      const result = await service.getRecommendation("headache")
+      const result = await service.getRecommendation("pat-1", "headache")
 
       expect(result.specialties).toEqual(["Neurology"])
     })
@@ -111,7 +126,7 @@ describe("RecommendationsService", () => {
       globalThis.fetch = fetchMock as unknown as typeof fetch
       prisma.doctorProfile.findMany.mockResolvedValue([])
 
-      const result = await service.getRecommendation("rash")
+      const result = await service.getRecommendation("pat-1", "rash")
 
       expect(fetchMock).toHaveBeenCalledTimes(2)
       expect(result.specialties).toEqual(["Dermatology"])
@@ -120,7 +135,7 @@ describe("RecommendationsService", () => {
     it("should throw ServiceUnavailable when the API key is missing", async () => {
       config.get.mockReturnValue(undefined)
 
-      await expect(service.getRecommendation("pain")).rejects.toThrow(
+      await expect(service.getRecommendation("pat-1", "pain")).rejects.toThrow(
         ServiceUnavailableException,
       )
     })
@@ -131,7 +146,7 @@ describe("RecommendationsService", () => {
         .mockRejectedValue(new Error("down"))
         .mockRejectedValue(new Error("down")) as unknown as typeof fetch
 
-      await expect(service.getRecommendation("pain")).rejects.toThrow(
+      await expect(service.getRecommendation("pat-1", "pain")).rejects.toThrow(
         ServiceUnavailableException,
       )
     })
@@ -152,7 +167,7 @@ describe("RecommendationsService", () => {
       const doctors = [{ id: "d1", pricePerVisit: 500 }]
       prisma.doctorProfile.findMany.mockResolvedValue(doctors)
 
-      const result = await service.checkSymptoms("runny nose")
+      const result = await service.checkSymptoms("pat-1", "runny nose")
 
       expect(result).toEqual(
         expect.objectContaining({
@@ -166,7 +181,7 @@ describe("RecommendationsService", () => {
     it("should throw ServiceUnavailable when the API key is missing", async () => {
       config.get.mockReturnValue(undefined)
 
-      await expect(service.checkSymptoms("cough")).rejects.toThrow(
+      await expect(service.checkSymptoms("pat-1", "cough")).rejects.toThrow(
         ServiceUnavailableException,
       )
     })
@@ -187,7 +202,7 @@ describe("RecommendationsService", () => {
       globalThis.fetch = fetchMock as unknown as typeof fetch
       prisma.doctorProfile.findMany.mockResolvedValue([])
 
-      const result = await service.checkSymptoms("fever")
+      const result = await service.checkSymptoms("pat-1", "fever")
 
       expect(fetchMock).toHaveBeenCalledTimes(2)
       expect(result).toEqual(
@@ -203,7 +218,7 @@ describe("RecommendationsService", () => {
         .fn()
         .mockResolvedValue(errResponse(500)) as unknown as typeof fetch
 
-      await expect(service.checkSymptoms("pain")).rejects.toThrow(
+      await expect(service.checkSymptoms("pat-1", "pain")).rejects.toThrow(
         ServiceUnavailableException,
       )
     })
