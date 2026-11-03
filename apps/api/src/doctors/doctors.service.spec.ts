@@ -125,8 +125,8 @@ describe("DoctorsService", () => {
 
       const callArgs = prisma.doctorProfile.findMany.mock.calls[0][0]
       const userSelect = (
-        callArgs as { include: { user: { select: Record<string, unknown> } } }
-      ).include.user.select
+        callArgs as { select: { user: { select: Record<string, unknown> } } }
+      ).select.user.select
       expect(userSelect).not.toHaveProperty("email")
       expect(userSelect).toHaveProperty("name")
     })

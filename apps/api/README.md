@@ -253,7 +253,11 @@ Uploads are limited to JPEG, PNG, WebP, and PDF, validated by extension, declare
 | Web Push    | The VAPID public key is `null` and push delivery is disabled                              |
 | Redis       | In-process rate limits, cache, and Socket.IO adapter; suitable for a single instance only |
 
-AI recommendations strip PII before sending symptoms to NVIDIA NIM. Symptom analysis is informational only and is not a diagnosis. Chat messages are sanitized with `isomorphic-dompurify` before storage.
+AI recommendations require the patient's `data_sharing` consent before symptoms
+are sent to NVIDIA NIM. Input is still minimized with best-effort PII stripping,
+and symptom analysis is informational only, not a diagnosis. Public doctor
+profiles use an explicit field allowlist and never expose license credentials.
+Chat messages are sanitized with `isomorphic-dompurify` before storage.
 
 ## Environment variables
 
