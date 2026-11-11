@@ -2,5 +2,7 @@
 set -euo pipefail
 
 echo "Checking staged files with Biome ..."
-npx biome check --staged --no-errors-on-unmatched
+# pnpm exec, not npx: npm misresolves the pnpm-managed @biomejs/biome shim on
+# Windows and fails with "Cannot find module .../@biomejs/biome/bin/biome".
+pnpm exec biome check --staged --no-errors-on-unmatched
 echo "Biome check passed"
