@@ -86,7 +86,7 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 | Doctor Reviews             | Rate and review doctors after consultations                                                                   | ✅ Implemented                                  |
 | Admin Dashboard            | Manage users, approve doctors, view audit logs                                                                | ✅ Implemented                                  |
 | Privacy Consent at Sign-up | Explicit consent checkbox + ConsentLog on registration (F-AUTH-07)                                            | ✅ Implemented                                  |
-| Account Deletion           | DELETE /api/users/me + Delete Account UI; anonymizes/deactivates the account while retaining clinical records | ✅ Implemented                                  |
+| Account Deletion           | DELETE /api/users/me + UI; deactivates user, removes direct identifiers, retains anonymized clinical records. | ✅ Implemented                                  |
 | Server-side Route Guard    | Next.js 16 proxy.ts session check on protected areas                                                          | ✅ Implemented                                  |
 | Standardized Error Codes   | SRS Appendix C codes in every error response (NFR-REL-03)                                                     | ✅ Implemented                                  |
 

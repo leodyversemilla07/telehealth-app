@@ -172,9 +172,11 @@ CI fails when the generated contract drifts from the routers.
 | Admin           | `GET /api/admin/dashboard`, `GET /api/admin/reports`, `GET /api/admin/users`, `PATCH /api/admin/users/:id`, ban/unban, role changes, doctor approval, rejection, verification       |
 | Health          | `GET /` and `GET /api` — uptime, version, and database latency                                                                                                                      |
 
-Deleting an account anonymizes and deactivates the user, revokes authentication
-sessions, and removes the avatar while retaining clinical records required for
-care, audit, and legal retention.
+Deleting an account deactivates the user and removes direct identifiers from
+the account and profile. Authentication, 2FA, push-subscription, notification,
+and verification artifacts are revoked; chat text and document filenames are
+redacted; and audit-log emails are pseudonymized. Clinical records required for
+care, audit, and legal retention remain linked to the anonymized account.
 
 Swagger is served at **http://localhost:3001/api/docs** outside production, with JSON and YAML at `/api/docs.json` and `/api/docs.yaml`.
 

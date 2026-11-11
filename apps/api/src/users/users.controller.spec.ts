@@ -141,12 +141,9 @@ describe("UsersController", () => {
     )
   })
 
-  it("deleteMyAccount passes the email for erasure flows", async () => {
+  it("deleteMyAccount passes only the authenticated user id", async () => {
     await controller.deleteMyAccount(session as never)
-    expect(usersService.deleteAccount).toHaveBeenCalledWith(
-      "user-1",
-      "p@test.ph",
-    )
+    expect(usersService.deleteAccount).toHaveBeenCalledWith("user-1")
   })
 
   it("publicRoute returns a public message", async () => {

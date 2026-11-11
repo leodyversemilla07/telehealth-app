@@ -336,43 +336,164 @@ export class UsersService {
   /**
    * Deactivate and anonymize the account while retaining clinical records.
    * Healthcare records and appointment history must not be deleted merely
-   * because authentication access is withdrawn.
+   * because authentication access is withdrawn. Direct identifiers and
+   * authentication artifacts are removed in the same transaction so the
+   * account can never be left half-anonymized.
    */
-  async deleteAccount(userId: string, email: string) {
+  async deleteAccount(userId: string) {
+    const account = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        email: true,
+        doctorProfile: { select: { id: true } },
+      },
+    })
+    if (!account) {
+      throw new NotFoundException(`User with id "${userId}" not found`)
+    }
+
     const avatarKeys = await this.storage.listFiles(`avatar-${userId}-`)
 
     // Fail closed if object cleanup fails; the user can retry the request.
     await Promise.all(avatarKeys.map((key) => this.storage.deleteFile(key)))
 
-    // Keep the row so appointment and clinical-record foreign keys remain
-    // valid, but remove direct identifiers and all authentication access.
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        email: `deleted-${userId}@invalid.telehealth`,
-        name: null,
-        firstName: null,
-        middleName: null,
-        lastName: null,
-        image: null,
-        banned: true,
-        banReason: "Account deleted by user",
-        banExpires: null,
-        privacyPolicyAcceptedAt: null,
-        privacyPolicyVersion: null,
-      },
-    })
-    await this.prisma.session.deleteMany({ where: { userId } })
-    await this.prisma.account.deleteMany({ where: { userId } })
+    const anonymizedEmail = `deleted-${userId}@invalid.telehealth`
 
-    await this.auditLogs.createLog(
-      userId,
-      "Anonymized own account",
-      userId,
-      undefined,
-      email,
-      email,
-    )
+    await this.prisma.$transaction(async (tx) => {
+      // Keep the row so appointment and clinical-record foreign keys remain
+      // valid, but remove direct identifiers and all authentication access.
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          email: anonymizedEmail,
+          emailVerified: false,
+          mobile: null,
+          mobileVerified: false,
+          name: null,
+          firstName: null,
+          middleName: null,
+          lastName: null,
+          image: null,
+          banned: true,
+          banReason: "Account deleted by user",
+          banExpires: null,
+          failedLoginAttempts: 0,
+          lockoutUntil: null,
+          privacyPolicyAcceptedAt: null,
+          privacyPolicyVersion: null,
+          twoFactorEnabled: false,
+          twoFactorSecret: null,
+          twoFactorBackupCodes: null,
+        },
+      })
+
+      // Patient contact details and government identifiers are direct PII.
+      // Clinical attributes (DOB, measurements, and medical history) remain
+      // available for continuity of care.
+      await tx.patientProfile.updateMany({
+        where: { userId },
+        data: {
+          phone: null,
+          address: null,
+          philhealthNumber: null,
+        },
+      })
+
+      // A doctor account may also be deleted. Keep the professional profile
+      // for appointment/record foreign keys, but hide it and remove license,
+      // accreditation, clinic, and biography identifiers.
+      await tx.doctorProfile.updateMany({
+        where: { userId },
+        data: {
+          prcLicenseNumber: `deleted-${userId}`,
+          philhealthAccreditation: null,
+          pdeaS2License: null,
+          pdeaS2Expiry: null,
+          bio: null,
+          clinicAddress: null,
+          isApproved: false,
+          isVerified: false,
+          verifiedAt: null,
+          rejectionReason: null,
+        },
+      })
+
+      await tx.session.deleteMany({ where: { userId } })
+      await tx.account.deleteMany({ where: { userId } })
+      await tx.twoFactor.deleteMany({ where: { userId } })
+      await tx.notificationPreference.deleteMany({ where: { userId } })
+      await tx.pushSubscription.deleteMany({ where: { userId } })
+      await tx.notification.deleteMany({ where: { userId } })
+      await tx.securityAlert.deleteMany({ where: { userId } })
+
+      // Pending verification records have no foreign key to User and may
+      // contain the original email address, so remove them explicitly.
+      await tx.verification.deleteMany({
+        where: {
+          OR: [{ identifier: account.email }, { identifier: userId }],
+        },
+      })
+
+      // Consent history is retained for compliance, but request IP addresses
+      // are direct account data and must not survive deactivation.
+      await tx.consentLog.updateMany({
+        where: { userId },
+        data: { ipAddress: null },
+      })
+
+      // Conversations are retained as clinical context, but message bodies may
+      // contain identifiers that were not present in the structured profile.
+      await tx.chatMessage.updateMany({
+        where: { OR: [{ senderId: userId }, { receiverId: userId }] },
+        data: { content: "[Message removed with deleted account]" },
+      })
+
+      // Medical-document bytes are retained for care/legal obligations. Their
+      // original filenames can contain patient identifiers, so redact those.
+      await tx.medicalDocument.updateMany({
+        where: { OR: [{ patientId: userId }, { uploadedById: userId }] },
+        data: { fileName: "redacted-document" },
+      })
+
+      // Reviews are user-authored public content rather than clinical records.
+      // Remove a deleted patient's reviews instead of exposing a pseudonymous
+      // account that still represents that person.
+      await tx.review.deleteMany({ where: { patientId: userId } })
+
+      // Audit trails are retained, but email addresses are replaced with the
+      // same stable pseudonym used by the deactivated account.
+      await tx.auditLog.updateMany({
+        where: { actorId: userId },
+        data: {
+          actorEmail: anonymizedEmail,
+          reason: null,
+        },
+      })
+      await tx.auditLog.updateMany({
+        where: {
+          targetId: {
+            in: [
+              userId,
+              ...(account.doctorProfile ? [account.doctorProfile.id] : []),
+            ],
+          },
+        },
+        data: { targetEmail: anonymizedEmail },
+      })
+      await tx.auditLog.create({
+        data: {
+          action: "Anonymized own account",
+          actorId: userId,
+          actorEmail: anonymizedEmail,
+          targetId: userId,
+          targetEmail: anonymizedEmail,
+        },
+      })
+    })
+
+    // A revoked session must not keep receiving live events while the client
+    // waits for its next session check.
+    this.socket.disconnectUser(userId)
 
     return { success: true }
   }

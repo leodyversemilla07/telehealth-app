@@ -66,7 +66,7 @@ export default function PrivacyConsentPage() {
     try {
       await apiClient.delete("/users/me")
       toast.add({
-        title: "Your account has been permanently deleted.",
+        title: "Your account has been deactivated and anonymized.",
         type: "success",
       })
       try {
@@ -272,8 +272,9 @@ export default function PrivacyConsentPage() {
                   Delete Account
                 </CardTitle>
                 <CardDescription className="text-xs">
-                  Permanently remove your account and all associated personal
-                  data. This action cannot be undone.
+                  Deactivate your account and remove direct identifiers.
+                  Clinical history required for care, audit, and legal retention
+                  is kept in anonymized form. This action cannot be undone.
                 </CardDescription>
               </div>
               <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
@@ -291,9 +292,10 @@ export default function PrivacyConsentPage() {
                       Delete your account?
                     </DialogTitle>
                     <DialogDescription>
-                      This permanently deletes your account, profile, and
-                      personal data, including appointment and medical-record
-                      history. This cannot be undone.
+                      This deactivates your account, removes direct identifiers
+                      and sign-in access, and signs you out. Appointment and
+                      medical-record history is retained in anonymized form for
+                      care, audit, and legal retention.
                     </DialogDescription>
                   </DialogHeader>
                   <label className="flex items-start gap-2 text-xs text-muted-foreground">
@@ -303,7 +305,8 @@ export default function PrivacyConsentPage() {
                       onChange={(e) => setDeleteConfirmed(e.target.checked)}
                       className="mt-0.5"
                     />
-                    I understand this action is permanent and cannot be undone.
+                    I understand my account will be deactivated and cannot be
+                    reactivated.
                   </label>
                   <DialogFooter>
                     <DialogClose

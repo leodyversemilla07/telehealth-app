@@ -169,7 +169,7 @@ export class UsersController {
   })
   @ApiUnauthorizedResponse({ description: "Not authenticated" })
   async deleteMyAccount(@Session() session: UserSession) {
-    return this.usersService.deleteAccount(session.user.id, session.user.email)
+    return this.usersService.deleteAccount(session.user.id)
   }
 
   // ─── Public ───────────────────────────────────────────────────────────────

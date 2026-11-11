@@ -539,4 +539,238 @@ describe("API (e2e) — full AppModule, real Postgres", () => {
       expect(notifications.length).toBeGreaterThanOrEqual(2) // booking + confirm
     })
   })
+
+  it("anonymizes account data while retaining clinical records", async () => {
+    const originalEmail = "patient@e2e.ph"
+    const startTime = new Date(Date.now() + 40 * 24 * 60 * 60_000)
+    const endTime = new Date(startTime.getTime() + 60 * 60_000)
+
+    await prisma.patientProfile.update({
+      where: { userId: patientUserId },
+      data: {
+        dob: new Date("1990-05-20T00:00:00.000Z"),
+        phone: "+639171234567",
+        address: "1 Patient Street, Manila",
+        philhealthNumber: "12-34567890-X",
+        medicalHistory: { conditions: ["asthma"] },
+      },
+    })
+    await prisma.session.create({
+      data: {
+        userId: patientUserId,
+        token: "deletion-session-token",
+        expiresAt: new Date(Date.now() + 60 * 60_000),
+      },
+    })
+    await prisma.account.create({
+      data: {
+        userId: patientUserId,
+        accountId: "deletion-account",
+        providerId: "credential",
+        password: "hashed-password",
+      },
+    })
+    await prisma.twoFactor.create({
+      data: {
+        id: "deletion-2fa",
+        userId: patientUserId,
+        secret: "encrypted-secret",
+        backupCodes: "encrypted-backup-codes",
+        verified: true,
+      },
+    })
+    await prisma.notificationPreference.create({
+      data: { userId: patientUserId },
+    })
+    await prisma.pushSubscription.create({
+      data: {
+        userId: patientUserId,
+        endpoint: "https://push.example.test/deletion-endpoint",
+        p256dh: "public-key",
+        auth: "auth-secret",
+      },
+    })
+    await prisma.securityAlert.create({
+      data: {
+        userId: patientUserId,
+        title: "Prior sign-in",
+        message: "A prior sign-in was recorded",
+        ipAddress: "203.0.113.10",
+      },
+    })
+    await prisma.verification.create({
+      data: {
+        identifier: originalEmail,
+        value: "verification-code",
+        expiresAt: new Date(Date.now() + 60 * 60_000),
+      },
+    })
+    await prisma.consentLog.create({
+      data: {
+        userId: patientUserId,
+        consentType: "data_sharing",
+        granted: true,
+        ipAddress: "203.0.113.11",
+      },
+    })
+
+    const appointment = await prisma.appointment.create({
+      data: {
+        patientId: patientUserId,
+        doctorId: doctorProfileId,
+        scheduleId,
+        startTime,
+        endTime,
+        status: "COMPLETED",
+        reason: "Retained clinical reason",
+        symptoms: "Retained clinical symptoms",
+      },
+    })
+    const consultation = await prisma.consultation.create({
+      data: {
+        appointmentId: appointment.id,
+        doctorNotes: "Retained doctor notes",
+        diagnosis: "Retained diagnosis",
+      },
+    })
+    await prisma.chatMessage.create({
+      data: {
+        senderId: patientUserId,
+        receiverId: doctorUserId,
+        appointmentId: appointment.id,
+        content: "Message containing private identifiers",
+      },
+    })
+    await prisma.medicalDocument.create({
+      data: {
+        appointmentId: appointment.id,
+        patientId: patientUserId,
+        uploadedById: doctorUserId,
+        fileName: "patient-result-private.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 100,
+        storageKey: "e2e/deletion-document.pdf",
+      },
+    })
+    await prisma.review.create({
+      data: {
+        patientId: patientUserId,
+        doctorId: doctorProfileId,
+        appointmentId: appointment.id,
+        rating: 5,
+        comment: "Private review comment",
+      },
+    })
+    await prisma.auditLog.create({
+      data: {
+        action: "Viewed own medical records",
+        actorId: patientUserId,
+        actorEmail: originalEmail,
+        targetId: patientUserId,
+        targetEmail: originalEmail,
+        reason: "Original private reason",
+      },
+    })
+
+    mockGetSession.mockResolvedValueOnce({
+      user: { id: patientUserId, role: "PATIENT", email: originalEmail },
+      session: { id: "deletion-session-token" },
+    })
+    await request(app.getHttpServer()).delete("/users/me").expect(200)
+
+    const anonymizedEmail = `deleted-${patientUserId}@invalid.telehealth`
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: patientUserId },
+    })
+    expect(user).toMatchObject({
+      email: anonymizedEmail,
+      name: null,
+      firstName: null,
+      lastName: null,
+      mobile: null,
+      image: null,
+      banned: true,
+      emailVerified: false,
+      twoFactorEnabled: false,
+      twoFactorSecret: null,
+      twoFactorBackupCodes: null,
+    })
+
+    const profile = await prisma.patientProfile.findUniqueOrThrow({
+      where: { userId: patientUserId },
+    })
+    expect(profile).toMatchObject({
+      phone: null,
+      address: null,
+      philhealthNumber: null,
+      dob: new Date("1990-05-20T00:00:00.000Z"),
+      medicalHistory: { conditions: ["asthma"] },
+    })
+
+    await expect(
+      prisma.session.count({ where: { userId: patientUserId } }),
+    ).resolves.toBe(0)
+    await expect(
+      prisma.account.count({ where: { userId: patientUserId } }),
+    ).resolves.toBe(0)
+    await expect(
+      prisma.twoFactor.count({ where: { userId: patientUserId } }),
+    ).resolves.toBe(0)
+    await expect(
+      prisma.notificationPreference.count({ where: { userId: patientUserId } }),
+    ).resolves.toBe(0)
+    await expect(
+      prisma.pushSubscription.count({ where: { userId: patientUserId } }),
+    ).resolves.toBe(0)
+    await expect(
+      prisma.notification.count({ where: { userId: patientUserId } }),
+    ).resolves.toBe(0)
+    await expect(
+      prisma.securityAlert.count({ where: { userId: patientUserId } }),
+    ).resolves.toBe(0)
+    await expect(
+      prisma.verification.count({ where: { identifier: originalEmail } }),
+    ).resolves.toBe(0)
+
+    const consent = await prisma.consentLog.findFirstOrThrow({
+      where: { userId: patientUserId },
+    })
+    expect(consent.ipAddress).toBeNull()
+
+    const chat = await prisma.chatMessage.findFirstOrThrow({
+      where: { appointmentId: appointment.id },
+    })
+    expect(chat.content).toBe("[Message removed with deleted account]")
+
+    const document = await prisma.medicalDocument.findFirstOrThrow({
+      where: { appointmentId: appointment.id },
+    })
+    expect(document.fileName).toBe("redacted-document")
+
+    await expect(
+      prisma.review.count({ where: { patientId: patientUserId } }),
+    ).resolves.toBe(0)
+    await expect(
+      prisma.consultation.count({ where: { id: consultation.id } }),
+    ).resolves.toBe(1)
+    await expect(
+      prisma.appointment.count({ where: { id: appointment.id } }),
+    ).resolves.toBe(1)
+
+    const actorAuditLogs = await prisma.auditLog.findMany({
+      where: { actorId: patientUserId },
+    })
+    expect(actorAuditLogs.length).toBeGreaterThan(0)
+    expect(
+      actorAuditLogs.every((log) => log.actorEmail === anonymizedEmail),
+    ).toBe(true)
+    expect(
+      actorAuditLogs.every((log) => log.targetEmail !== originalEmail),
+    ).toBe(true)
+    await expect(
+      prisma.auditLog.count({
+        where: { actorId: patientUserId, action: "Anonymized own account" },
+      }),
+    ).resolves.toBe(1)
+  })
 })
