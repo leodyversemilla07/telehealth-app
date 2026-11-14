@@ -24,14 +24,14 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.3",
+    "@tailwindcss/postcss": "^4.3.5",
     "@turbo/gen": "^2.11.10",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@workspace/typescript-config": "workspace:*",
-    "shadcn": "^4.22.1",
-    "tailwindcss": "^4.3.3",
+    "shadcn": "^4.23.0",
+    "tailwindcss": "^4.3.5",
     "typescript": "^6.0.3"
   },
   "exports": {
