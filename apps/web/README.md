@@ -22,6 +22,7 @@
 ## Overview
 
 The web app is a Next.js 16 App Router application built with React 19, Tailwind CSS v4, and Base UI. It provides three authenticated portals behind a shared public site:
+
 - **Patients** discover doctors, book and manage appointments, attend video consultations, chat with their care team, review records and prescriptions, run an AI-assisted symptom check, and manage their profile and privacy settings.
 - **Doctors** register with PRC credentials, publish availability, work through consultation queues, chart SOAP notes, issue prescriptions, review patient history, and message patients.
 - **Administrators** monitor platform activity, manage users and roles, approve or verify doctors, review audit logs, and inspect operational reports.
@@ -211,6 +212,7 @@ flowchart LR
 ### Rendering and security
 
 `proxy.ts` is the Next.js 16 replacement for middleware. It runs before protected pages render and:
+
 1. Generates a per-request CSP nonce and attaches the policy to both the request and response.
 2. Calls `/api/auth/get-session` with the browser cookie.
 3. Redirects unauthenticated users to `/sign-in?callbackUrl=...`.
@@ -346,6 +348,7 @@ const user = await apiClient.get<UserDto>("/users/me")
 ## Video consultations
 
 `components/consultation-room.tsx` dynamically imports LiveKit only on the client, so WebRTC APIs never run during server rendering. It provides:
+
 - Camera, microphone, and screen-share controls
 - A patient waiting overlay until the doctor joins
 - A doctor-side waiting banner

@@ -24,6 +24,7 @@
 The API is a NestJS 12 application on Express 5. It owns authentication, role-based access control, appointment scheduling, availability, video consultation tokens, medical documents, clinical records, prescriptions, chat, notifications, AI-assisted specialty recommendations, consent tracking, audit logs, and administrative operations.
 
 Two HTTP surfaces share one NestJS dependency-injection container, the same services, and the same Better Auth session:
+
 - **tRPC** at `/api/trpc` for domain modules with shared Zod contracts and end-to-end types.
 - **REST** at `/api/*` for authentication, streaming, multipart uploads, third-party callbacks, and modules that are not yet migrated.
 
@@ -183,6 +184,7 @@ Swagger is served at **http://localhost:3001/api/docs** outside production, with
 ## Authentication and authorization
 
 Authentication is delegated to [Better Auth](https://www.better-auth.com/) in `packages/auth`, configured for the API in `src/auth/auth.ts`.
+
 - Email/password sign-up with **required email verification**
 - TOTP two-factor authentication with backup codes
 - Account lockout after **5 failed sign-in attempts** for **15 minutes**
@@ -195,6 +197,7 @@ Authentication is delegated to [Better Auth](https://www.better-auth.com/) in `p
 Privileged roles must enable 2FA before using doctor or admin endpoints. This is enforced by `Require2FaInterceptor` for REST and `RolesMiddleware` for tRPC, so it cannot be bypassed by calling the other surface.
 
 Additional safeguards:
+
 - Global rate limit of **30 requests per 60 seconds per IP**, backed by Redis when configured
 - Stricter limits on costly routes: AI recommendations (10/min), chat send (30/min), avatar upload (5/hour)
 - Helmet CSP, HSTS, frame denial, and MIME sniffing protection
@@ -205,11 +208,13 @@ Additional safeguards:
 ## Database
 
 The schema, migrations, seed, and shared Prisma client live in `packages/db`:
+
 - Schema: `packages/db/prisma/schema.prisma`
 - Migrations: `packages/db/prisma/migrations`
 - Generated client: `packages/db/generated/prisma`, re-exported through `@telehealth/db`
 
 There are 21 models across five areas:
+
 - **Auth:** `User`, `Session`, `Account`, `Verification`, `twoFactor`
 - **Profiles:** `PatientProfile`, `DoctorProfile`, `AvailabilitySchedule`, `TimeOff`
 - **Care:** `Appointment`, `Consultation`, `Prescription`, `MedicalDocument`
@@ -240,6 +245,7 @@ Retention windows can be overridden with `RETENTION_NOTIFICATIONS_DAYS`, `RETENT
 ## File storage
 
 `StorageService` selects a provider at runtime:
+
 - **Local** (default): files live under `apps/api/uploads`. Avatar keys are public and cached immutably; every other key is streamed through the authenticated `/uploads/:key` handler after an ownership check.
 - **S3**: set `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, and `S3_BUCKET`. Objects stay private and are streamed by the API; no public object URLs are issued.
 

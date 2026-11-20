@@ -95,6 +95,7 @@ flowchart LR
 ```
 
 The HTTP surface is intentionally hybrid:
+
 - **tRPC** at `/api/trpc` for domain modules with shared Zod contracts and end-to-end types.
 - **REST** at `/api/*` for authentication, video, chat, uploads, push, admin operations, and other streaming or third-party modules.
 
@@ -284,6 +285,7 @@ API errors use a consistent shape: `{ error, code, details? }`.
 ## Database
 
 The Prisma schema, migrations, seed, and shared client live in `packages/db`:
+
 - Schema: `packages/db/prisma/schema.prisma`
 - Migrations: `packages/db/prisma/migrations`
 - Generated client: `packages/db/generated/prisma`, re-exported through `@telehealth/db`
@@ -295,6 +297,7 @@ pnpm --filter @telehealth/db exec prisma migrate dev --name <migration-name>
 ```
 
 There are 21 models across five areas:
+
 - **Auth:** `User`, `Session`, `Account`, `Verification`, `twoFactor`
 - **Profiles:** `PatientProfile`, `DoctorProfile`, `AvailabilitySchedule`, `TimeOff`
 - **Care:** `Appointment`, `Consultation`, `Prescription`, `MedicalDocument`

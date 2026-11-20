@@ -62,6 +62,7 @@
 This Software Requirements Specification (SRS) defines the complete functional and non-functional requirements for a Telehealth Application built for the **WC Launchpad Builder Round**. The system enables patients to connect with licensed healthcare professionals through video consultations, secure messaging, and integrated health record management, with privacy and security controls planned for the product.
 
 The application is designed as a **minimal viable product (MVP)** with two primary modules:
+
 - **Patient Module** — account management, doctor discovery, appointment booking, video consultations, and health records
 - **Doctor Module** — profile management, schedule management, virtual consultations, consultation notes, and prescriptions
 
@@ -126,6 +127,7 @@ The application is designed as a **minimal viable product (MVP)** with two prima
 ### 2.1 Product Perspective
 
 The Telehealth Application is a web-based platform connecting patients with licensed Philippine healthcare providers through video consultations. It is built with a monorepo architecture using:
+
 - **Frontend**: Next.js 16 + React 19 + Tailwind CSS v4 + Base UI (`apps/web`)
 - **Backend**: NestJS 12 (Express 5) — hybrid tRPC (`/api/trpc`) + REST (`api/*`) API (`apps/api`)
 - **Database**: PostgreSQL 16 via Prisma ORM with `@prisma/adapter-pg`
@@ -139,6 +141,7 @@ The Telehealth Application is a web-based platform connecting patients with lice
 ### 2.2 Product Functions
 
 The system supports the following high-level functions:
+
 1. **User Registration and Authentication**
    - Patient and Doctor registration with email/password
    - Role-based access control (Patient, Doctor)
@@ -276,7 +279,6 @@ The system supports the following high-level functions:
 | F-PATIENT-02 | The system shall allow Patients to add basic medical history (allergies, chronic conditions, current medications).               | Test: Medical history saved and displayed |
 | F-PATIENT-03 | The system shall display a patient profile view with all personal information and medical history.                               | Test: Profile page renders correctly      |
 | F-PATIENT-04 | The system shall allow Patients to update their profile information at any time.                                                 | Test: Updates persist after page refresh  |
-
 
 ### 3.3 Doctor Profile Management
 
@@ -416,6 +418,7 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 #### Key Screens
 
 **Patient Screens:**
+
 | Screen          | Purpose                                                      |
 | --------------- | ------------------------------------------------------------ |
 | Landing / Home  | Search doctors by specialty, featured doctors, quick actions |
@@ -428,6 +431,7 @@ booked ──→ confirmed ──→ in_progress ──→ completed
 | Settings        | Profile, notification preferences                            |
 
 **Doctor Screens:**
+
 | Screen               | Purpose                                 |
 | -------------------- | --------------------------------------- |
 | Dashboard            | Today's schedule, upcoming appointments |
@@ -545,6 +549,7 @@ Formal privacy, regulatory, data-residency, and certification work is not part o
 The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@telehealth/db` workspace). All primary keys use `uuid()` (migrated from `cuid()`). Key models:
 
 **User Model:**
+
 ```
 - id: String @id @default(uuid())
 - email, emailVerified, mobile, mobileVerified
@@ -559,12 +564,14 @@ The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@t
 ```
 
 **PatientProfile Model:**
+
 ```
 - id, userId (unique), dob, sex, phone, address
 - philhealthNumber, weight, height, medicalHistory (Json?)
 ```
 
 **DoctorProfile Model:**
+
 ```
 - id, userId (unique), specialty, prcLicenseNumber
 - prcLicenseExpiry, philhealthAccreditation
@@ -574,6 +581,7 @@ The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@t
 ```
 
 **AvailabilitySchedule Model:**
+
 ```
 - id, doctorId (unique)
 - monday..sunday: String (JSON array of time slots, default "[]")
@@ -582,11 +590,13 @@ The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@t
 ```
 
 **TimeOff Model:**
+
 ```
 - id, scheduleId, startDate, endDate, reason?
 ```
 
 **Appointment Model:**
+
 ```
 - id @default(uuid()), patientId, doctorId, scheduleId
 - startTime, endTime, status (AppointmentStatus)
@@ -597,6 +607,7 @@ The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@t
 ```
 
 **Consultation Model:**
+
 ```
 - id, appointmentId (unique)
 - patientNotes?, doctorNotes?, diagnosis?, plan?
@@ -604,12 +615,14 @@ The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@t
 ```
 
 **Prescription Model:**
+
 ```
 - id, consultationId, medicationName, dosage
 - frequency, duration, instructions?
 ```
 
 **Review Model:**
+
 ```
 - id @default(uuid()), patientId, doctorId, appointmentId
 - rating (Int 1-5), comment?
@@ -617,18 +630,21 @@ The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@t
 ```
 
 **ChatMessage Model:**
+
 ```
 - id @default(uuid()), senderId, receiverId
 - appointmentId?, content, isRead (default false)
 ```
 
 **Notification Model:**
+
 ```
 - id @default(uuid()), userId, type (NotificationType enum)
 - title, body?, isRead, readAt?
 ```
 
 **NotificationPreference Model:**
+
 ```
 - id, userId (unique)
 - appointmentReminder, appointmentConfirmation, appointmentCancelled
@@ -637,6 +653,7 @@ The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@t
 ```
 
 **PushSubscription Model:**
+
 ```
 - id, userId, endpoint (unique), p256dh, auth, userAgent?
 ```
@@ -644,16 +661,19 @@ The complete schema is maintained at `packages/db/prisma/schema.prisma` (the `@t
 **NotificationType enum:** APPOINTMENT_REMINDER, APPOINTMENT_CONFIRMATION, APPOINTMENT_CANCELLED, NEW_MESSAGE, SCHEDULE_UPDATED, SYSTEM
 
 **SecurityAlert Model:**
+
 ```
 - id, userId, title, message, ipAddress?, userAgent?, read
 ```
 
 **AuditLog Model:**
+
 ```
 - id, action, actorId, actorEmail, targetId?, targetEmail?, reason?, timestamp
 ```
 
 **ConsentLog Model:**
+
 ```
 - id, userId, consentType, granted, ipAddress?
 ```
